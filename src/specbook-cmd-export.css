@@ -1,0 +1,127 @@
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  Adobe Source Sans 3 font faces (url() references inlined at build time via PostCSS)  */
+@font-face                  { font-family: "Source Sans 3"; font-style: normal; font-weight: normal;
+                              src: url("../node_modules/source-sans/WOFF2/TTF/SourceSans3-Regular.ttf.woff2") format("woff2"); }
+@font-face                  { font-family: "Source Sans 3"; font-style: italic; font-weight: normal;
+                              src: url("../node_modules/source-sans/WOFF2/TTF/SourceSans3-It.ttf.woff2") format("woff2"); }
+@font-face                  { font-family: "Source Sans 3"; font-style: normal; font-weight: bold;
+                              src: url("../node_modules/source-sans/WOFF2/TTF/SourceSans3-Bold.ttf.woff2") format("woff2"); }
+@font-face                  { font-family: "Source Sans 3"; font-style: italic; font-weight: bold;
+                              src: url("../node_modules/source-sans/WOFF2/TTF/SourceSans3-BoldIt.ttf.woff2") format("woff2"); }
+@font-face                  { font-family: "Noto Sans Symbols"; font-style: normal; font-weight: normal;
+                              src: url("../node_modules/@fontsource/noto-sans-symbols/files/noto-sans-symbols-symbols-400-normal.woff2") format("woff2"); }
+
+/*  Adobe Source Code Pro font faces (url() references inlined at build time via PostCSS)  */
+@font-face                  { font-family: "Source Code Pro"; font-style: normal; font-weight: normal;
+                              src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-Regular.ttf.woff2") format("woff2"); }
+@font-face                  { font-family: "Source Code Pro"; font-style: italic; font-weight: normal;
+                              src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-It.ttf.woff2") format("woff2"); }
+@font-face                  { font-family: "Source Code Pro"; font-style: normal; font-weight: bold;
+                              src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-Bold.ttf.woff2") format("woff2"); }
+@font-face                  { font-family: "Source Code Pro"; font-style: italic; font-weight: bold;
+                              src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-BoldIt.ttf.woff2") format("woff2"); }
+
+html, body                  { font-size: 12pt; }
+
+@media print {
+html, body                  { font-size: 9pt; }
+}
+
+body                        { font-family: "Source Sans 3", sans-serif; max-width: 60rem;
+                              margin: 0 auto; padding: 2rem; color: #303030; }
+
+/*  the vertical brand bar at the left edge of the viewport (for print
+    the PDF export draws it onto the physical paper edge instead)  */
+body::before                { content: ""; position: fixed; top: 0; bottom: 0;
+                              left: 0; width: 0.6rem; background-color: #336699; }
+@media print {
+body::before                { display: none; }
+}
+
+@media print {
+body                        { padding: 0; }
+}
+
+section                     { margin: 0.5rem 0; }
+
+h1                          { margin: 3.0rem 0 2.0rem 0; border-bottom: 1px solid #d0d0d0; }
+h2, h3, h4                  { margin: 2.0rem 0 1.0rem 0; }
+
+body                        { counter-reset: sec1; }
+article h1                  { counter-increment: sec1; counter-reset: sec2; }
+article h2                  { counter-increment: sec2; counter-reset: sec3; }
+article h3                  { counter-increment: sec3; }
+article h1::before          { content: counter(sec1, decimal-leading-zero) " "; color: #999999; margin-right: 0.4rem; font-weight: normal; }
+article h2::before          { content: counter(sec1, decimal-leading-zero) "." counter(sec2, decimal-leading-zero) " "; color: #999999; margin-right: 0.4rem; font-weight: normal; }
+article h3::before          { content: counter(sec1, decimal-leading-zero) "." counter(sec2, decimal-leading-zero) "." counter(sec3, decimal-leading-zero) " "; color: #999999; margin-right: 0.4rem; font-weight: normal; }
+
+a                           { color: #336699; text-decoration: none; }
+
+.object-kind                { color: #336699; }
+.property-name              { color: #336699; }
+span.link-broken            { color: #cc0000; }
+span.anchor-paren           { color: #999999; font-weight: normal; }
+span.anchor-symbol          { color: #aaaaaa; font-family: "Noto Sans Symbols", sans-serif;
+                              font-weight: normal; font-size: 80%; margin-left: 0.2rem; }
+span.link-symbol            { color: #aaaaaa; font-family: "Noto Sans Symbols", sans-serif;
+                              font-weight: normal; font-size: 140%; margin-left: 0.2rem;
+                              vertical-align: -0.2rem; line-height: 0; }
+
+table.props                 { border-collapse: collapse; margin: 0.5rem 0;
+                              width: 100%; }
+table.props td              { border: 0; border-left: 1px solid #d0d0d0;
+                              padding: 0.3rem 0.6rem; overflow-wrap: break-word; }
+table.props td:first-child  { border-left: 0; }
+table.props td.key          { font-weight: bold; width: 1px; white-space: nowrap;
+                              background-color: #f0f8ff; }
+table.props tr:nth-child(even) td        { background-color: #f8f8f8; }
+table.props tr:nth-child(even) td.key    { background-color: #e8f0f8; }
+
+table.objects               { border-collapse: collapse; margin: 1.0rem 0;
+                              width: 100%; table-layout: fixed; }
+table.objects th,
+table.objects td            { border: 0; border-left: 1px solid #d0d0d0;
+                              padding: 0.3rem 0.6rem;
+                              text-align: left; vertical-align: top; overflow-wrap: break-word; }
+table.objects th:first-child,
+table.objects td:first-child { border-left: 0; }
+table.objects td:first-child { font-weight: bold; }
+table.objects th            { background-color: #f0f8ff; }
+table.objects tbody tr:nth-child(even) td { background-color: #f8f8f8; }
+table.objects p.description { margin: 0; }
+
+p.description               { margin: 1.0rem 0 0.5rem 0; }
+div.embedding               { margin: 0.5rem 0; }
+div.embedding img,
+div.embedding svg           { max-width: 100%; height: auto; }
+span.rationale              { color: #999999; }
+span.keyword                { font-weight: bold; }
+code                        { font-family: "Source Code Pro", monospace; font-size: 1.0em; letter-spacing: -0.030rem; }
+div.meta                    { color: #909090; font-size: 0.8rem; }
+
+div.titlepage               { text-align: center; margin: 6rem 0 4rem 0;
+                              page-break-after: always; }
+div.titlepage .title        { font-size: 3.50rem; font-weight: bold; color: #336699; letter-spacing: -0.10rem; }
+div.titlepage .subtitle     { font-size: 1.50rem; color: #336699; margin-top: 0.5rem; }
+div.titlepage .author       { font-size: 1.25rem; margin-top: 2rem; }
+div.titlepage p.description { margin-top: 2rem; }
+div.titlepage table.meta    { margin: 1rem auto 0 auto; color: #909090;
+                              font-size: 1.0rem; border-collapse: collapse; }
+div.titlepage table.meta td { padding: 0.0rem 0.5rem; text-align: left; }
+
+nav.toc                     { page-break-after: always; counter-reset: toc; }
+nav.toc h1                  { color: #336699; }
+nav.toc tr                  { counter-increment: toc; }
+nav.toc td:first-child a::before { content: counter(toc, decimal-leading-zero) " "; color: #999999; margin-right: 0.4rem; font-weight: normal; }
+nav.toc table               { border-collapse: collapse; margin: 1.0rem 0;
+                              width: 100%; }
+nav.toc td                  { padding: 0.3rem 0.6rem; }
+nav.toc td.page             { width: 1px; text-align: right; }
+nav.toc td.page a           { color: #999999; }
+nav.toc tr:nth-child(even) td { background-color: #f8f8f8; }
+nav.toc a                   { text-decoration: none; color: #303030; }

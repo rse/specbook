@@ -1,0 +1,834 @@
+##
+##  Specification Book (SpecBook)
+##  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+##  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+##
+
+#
+#   ASE Specbook Schema
+#
+
+-   kind: META
+    name: Title
+    id:   TI
+    file: META-01-TI-Title.md
+    props:
+        -   name: TITLE
+            desc: The title of the specification.
+        -   name: SUBTITLE
+            desc: The subtitle of the specification.
+            optional: true
+        -   name: AUTHOR
+            desc: The author of the specification.
+            optional: true
+        -   name: VERSION
+            desc: The version of the specification.
+            optional: true
+
+-   kind: SPEC
+    name: Solution Vision
+    id: SV
+    file: SPEC-01-SV-Solution-Vision.md
+    desc: >
+        The high-level, aspirational description of the solution,
+        capturing its purpose, value proposition, and the desired
+        future state it aims to achieve.
+    childs:
+        -   kind: ASPECT
+            desc: >
+                A single vision aspect, described in an aspirational but
+                unambiguous tone. Recommended aspects are "Purpose",
+                "Target Audience", "Value Proposition", "Differentiators",
+                and "Future State".
+
+-   kind: SPEC
+    name: User Personas
+    id: UP
+    file: SPEC-02-UP-User-Personas.md
+    desc: >
+        The archetypal user profiles representing distinct user groups,
+        capturing their goals, needs, behaviors, and context.
+    childs:
+        -   kind: PERSONA
+            desc: >
+                An archetypal user profile, named with a per-artifact
+                unique first name of the fictional person and carrying a
+                short, bold first-person quote that captures their core
+                attitude, motivation, frustration, or need.
+            props:
+                -   name: GENDER
+                    desc: The gender of the persona.
+                    value: ^(?:male|female|diverse)$
+                -   name: AGE
+                    desc: The age in years of the persona.
+                    value: ^[0-9]+$
+                -   name: ROLE
+                    desc: The role of the persona.
+
+-   kind: SPEC
+    name: User Journey
+    id: UJ
+    file: SPEC-03-UJ-User-Journey.md
+    desc: >
+        The end-to-end experience a user has while discovering,
+        adopting, and using the solution, mapping their steps,
+        touchpoints, and emotions over time.
+    childs:
+        -   kind: STEP
+            desc: >
+                A single step of the journey, named with a 5-10 word
+                summary of the step at its touchpoint.
+            props:
+                -   name: STAGE
+                    desc: The journey stage the step belongs to.
+                    value: ^(?:Awareness|Consideration|Decision|Onboarding|Retention|Advocacy)$
+                -   name: ACTOR
+                    desc: Reference to a User Personas object.
+                    value: "[[PERSONA:*]]"
+                -   name: GOAL
+                    desc: What the actor wants to achieve at this step.
+                -   name: TOUCHPOINT
+                    desc: Where or how the interaction happens.
+                -   name: ACTION
+                    desc: What the actor actually does at this step.
+                -   name: EMOTION
+                    desc: >
+                        The AS IS felt state at this step, given as a word
+                        plus an intensity on a 1-5 Likert scale.
+                    value: ^.+ \([1-5]\)$
+                -   name: PAIN-POINT
+                    desc: >
+                        The AS IS friction or frustration the actor
+                        encounters at this step.
+                    optional: true
+
+-   kind: SPEC
+    name: Functional Requirements
+    id: FR
+    file: SPEC-04-FR-Functional-Requirements.md
+    desc: >
+        The concrete behaviors and capabilities the solution must
+        provide, describing what the system does in terms of functions,
+        features, and operations.
+    childs:
+        -   kind: REQUIREMENT
+            desc: >
+                A single functional requirement, described as what the
+                solution must do, written with the keyword MUST, SHOULD,
+                COULD, or WONT to indicate the obligation level.
+            props:
+                -   name: PRIORITY
+                    desc: The MoSCoW priority of the requirement.
+                    value: ^(?:MUST|SHOULD|COULD|WONT)$
+
+-   kind: SPEC
+    name: Non-Functional Requirements
+    id: NR
+    file: SPEC-05-NR-Non-Functional-Requirements.md
+    desc: >
+        The quality attributes and constraints the solution must satisfy,
+        such as performance, security, scalability, reliability, and
+        usability.
+    childs:
+        -   kind: REQUIREMENT
+            desc: >
+                A single non-functional requirement, described as the
+                quality attribute or constraint the solution must satisfy,
+                including a SMART metric threshold or target by which the
+                requirement is judged satisfied.
+            props:
+                -   name: PRIORITY
+                    desc: The MoSCoW priority of the requirement.
+                    value: ^(?:MUST|SHOULD|COULD|WONT)$
+                -   name: CATEGORY
+                    desc: >
+                        The quality attribute category the requirement
+                        addresses, according to the top-level
+                        characteristics of the ISO/IEC 25010:2023
+                        Software-Quality Model.
+                    value: ^(?:Performance|Compatibility|Usability|Reliability|Security|Safety|Maintainability|Flexibility|Compliance)$
+
+-   kind: SPEC
+    name: Business Rules
+    id: BR
+    file: SPEC-06-BR-Business-Rules.md
+    desc: >
+        The domain invariants, policies, and decision logic that must
+        always hold true in the problem domain, independent of any single
+        feature, constraining the Functional and Non-Functional
+        Requirements.
+    childs:
+        -   kind: RULE
+            desc: >
+                A single business rule, described declaratively as a
+                condition that must hold, written with the keyword MUST,
+                SHOULD, or MUST NOT to indicate the obligation level.
+            props:
+                -   name: CATEGORY
+                    desc: The kind of rule.
+                    value: ^(?:Invariant|Constraint|Derivation|Policy)$
+                -   name: CONSTRAINS
+                    desc: >
+                        Comma-separated references to the
+                        FUNCTIONAL-REQUIREMENTS or NON-FUNCTIONAL-REQUIREMENTS
+                        objects the rule constrains.
+                    value: ^SPEC-(?:FR|NR)-.+(?:,\s*SPEC-(?:FR|NR)-.+)*$
+                    optional: true
+
+-   kind: SPEC
+    name: Data Model
+    id: DM
+    file: SPEC-07-DM-Data-Model.md
+    desc: >
+        The structure of named entities, with named attributes and
+        directed relationships, of the data the solution manages,
+        defining how information is organized and connected.
+    childs:
+        -   kind: ENTITY
+            name: "[A-Z][a-zA-Z0-9]*"
+            desc: >
+                A named entity of the data model, carrying a
+                Pascal-cased, per-artifact unique name.
+            childs:
+                -   kind: ATTRIBUTE
+                    name: "[a-z][a-zA-Z0-9]*"
+                    desc: >
+                        A named attribute of the entity, carrying a
+                        camel-cased, per-entity unique identifier.
+                    props:
+                        -   name: TYPE
+                            desc: The type (and optionally qualifier) of the entity attribute.
+                            value: ^((?:unique|)\s+)?(?:boolean|string|integer|float|uuid|date|time|datetime|enum\((?:[A-Za-z0-9_]+)(?:,\s*[A-Za-z0-9_]+)*\))$
+                        -   name: ARITY
+                            desc: Arity of the type. Can mark the attribute as optional.
+                            value: \?
+                            optional: true
+                -   kind: RELATION
+                    name: "[a-z][a-zA-Z0-9]*"
+                    desc: >
+                        A named directed relation of the entity, carrying a
+                        camel-cased, per-entity unique identifier and
+                        targeting another entity.
+                    optional: true
+                    props:
+                        -   name: TYPE
+                            desc: Name of the entity the directed relation targets.
+                            value: "[A-Z][a-zA-Z0-9]*"
+                        -   name: ARITY
+                            desc: Arity of the relation at the target entity.
+                            value: ^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n)$
+                            optional: true
+
+-   kind: SPEC
+    name: State Model
+    id: SM
+    file: SPEC-08-SM-State-Model.md
+    desc: >
+        For each entity with a non-trivial lifecycle, the legal states it
+        can occupy and the permitted transitions between them over its
+        lifetime, making the forbidden moves as explicit as the allowed
+        ones.
+    childs:
+        -   kind: LIFECYCLE
+            desc: >
+                The lifecycle of a single entity, named with the 1-3 word
+                name of the entity it governs.
+            props:
+                -   name: ENTITY
+                    desc: >
+                        Reference to the DATA-MODEL entity whose lifecycle
+                        this models.
+                    value: ^SPEC-DM-.+$
+                -   name: INITIAL
+                    desc: >
+                        The single state every instance of the entity
+                        enters upon creation.
+                    value: ^[A-Z][a-zA-Z0-9]*$
+                -   name: FINAL
+                    desc: >
+                        Comma-separated list of one or more states in which
+                        the entity may legally come to rest permanently.
+                    value: ^[A-Z][a-zA-Z0-9]*(?:,\s*[A-Z][a-zA-Z0-9]*)*$
+            childs:
+                -   kind: STATE
+                    name: "[A-Z][a-zA-Z0-9]*"
+                    desc: >
+                        A single state the entity can occupy, carrying a
+                        short, Pascal-cased, per-lifecycle unique name and
+                        described by what holds true in it.
+                -   kind: TRANSITION
+                    name: "[a-z]+"
+                    desc: >
+                        A single permitted transition between two states,
+                        named with the short, lower-cased verb of the
+                        triggering event and described by its side effect
+                        and guard; any move not listed is implicitly
+                        forbidden.
+                    props:
+                        -   name: FROM
+                            desc: The state the transition departs from.
+                            value: ^[A-Z][a-zA-Z0-9]*$
+                        -   name: TO
+                            desc: The state the transition arrives at.
+                            value: ^[A-Z][a-zA-Z0-9]*$
+
+-   kind: SPEC
+    name: Glossary
+    id: GL
+    file: SPEC-09-GL-Glossary.md
+    desc: >
+        The ubiquitous language of the domain, defining the meaning of
+        each domain term in business language, together with its synonyms
+        and the ambiguities to avoid, shared consistently across all
+        Artifacts.
+    childs:
+        -   kind: TERM
+            desc: >
+                A single domain term, named with its canonical, preferred
+                form and defined in business language, independent of any
+                implementation.
+            props:
+                -   name: SYNONYMS
+                    desc: >
+                        Comma-separated list of alternative names or
+                        abbreviations that refer to the same term but are
+                        not the preferred form.
+                    optional: true
+
+-   kind: SPEC
+    name: Use Cases
+    id: UC
+    file: SPEC-10-UC-Use-Cases.md
+    desc: >
+        The discrete goals users pursue with the solution, each
+        describing an actor's interaction to achieve a specific outcome,
+        together with the concrete step-by-step flows for main,
+        alternative, and exceptional paths.
+    childs:
+        -   kind: USE CASE
+            desc: >
+                A discrete goal a user pursues with the solution, named
+                as an actor goal.
+            props:
+                -   name: ACTOR
+                    desc: >
+                        Reference to the PERSONAS object denoting the
+                        primary actor pursuing the goal.
+                    value: ^SPEC-PE-.+$
+                -   name: REQUIREMENTS
+                    desc: >
+                        Comma-separated references to the
+                        FUNCTIONAL-REQUIREMENTS objects the use case
+                        realizes.
+                    value: ^SPEC-FR-.+(?:,\s*SPEC-FR-.+)*$
+                    optional: true
+                -   name: GOAL
+                    desc: >
+                        What the actor wants to achieve through this use
+                        case.
+                -   name: PRE-CONDITION
+                    desc: >
+                        The condition that must hold before the use case
+                        can begin.
+                    optional: true
+                -   name: POST-CONDITION
+                    desc: >
+                        The condition that holds after the use case
+                        completes successfully.
+                    optional: true
+            childs:
+                -   kind: SCENARIO
+                    desc: >
+                        A concrete step-by-step flow of the use case,
+                        comprised of sequentially numbered, imperative
+                        steps, each naming the acting party (actor or
+                        system) and the action taken.
+                    props:
+                        -   name: TYPE
+                            desc: The path the scenario represents.
+                            value: ^(?:Main|Alternative|Exceptional)$
+
+-   kind: SPEC
+    name: Test Cases
+    id: TC
+    file: SPEC-11-TC-Test-Cases.md
+    desc: >
+        The verifiable conditions and steps used to confirm that
+        requirements are correctly implemented, with mandatory defined
+        inputs, mandatory expected outcomes, and optional pre- and
+        post-conditions.
+    childs:
+        -   kind: TEST CASE
+            desc: A single verifiable test case.
+            props:
+                -   name: VERIFIES
+                    desc: >
+                        Reference to the FUNCTIONAL-REQUIREMENTS or
+                        NON-FUNCTIONAL-REQUIREMENTS object the test case
+                        verifies.
+                    value: ^SPEC-(?:FR|NR)-.+$
+                -   name: PRE-CONDITION
+                    desc: >
+                        The state or setup that must hold before the test
+                        is executed.
+                    optional: true
+                -   name: INPUT
+                    desc: >
+                        The mandatory, concrete input data or actions
+                        applied during the test.
+                -   name: EXPECTED
+                    desc: >
+                        The mandatory, concrete expected outcome or
+                        observable result that defines a passing test.
+                -   name: POST-CONDITION
+                    desc: >
+                        The state that must hold after the test completes.
+                    optional: true
+
+-   kind: SPEC
+    name: Interaction Concept
+    id: IC
+    file: SPEC-12-IC-Interaction-Concept.md
+    desc: >
+        The overarching idea of how users interact with the solution,
+        describing the intended workflows and interaction philosophy
+        (e.g. auto-save behavior).
+    childs:
+        -   kind: PRINCIPLE
+            desc: >
+                A single interaction principle, described by how it
+                governs the user's experience across the solution.
+
+-   kind: SPEC
+    name: Language Conventions
+    id: LC
+    file: SPEC-13-LC-Language-Conventions.md
+    desc: >
+        The terminology, naming, tone, and wording standards used
+        consistently across the solution and its content.
+    childs:
+        -   kind: CONVENTION
+            desc: >
+                A single language convention to be applied consistently
+                across the solution, optionally illustrated by a short,
+                concrete example.
+            props:
+                -   name: CATEGORY
+                    desc: The aspect of language the convention governs.
+                    value: ^(?:Terminology|Naming|Tone|Capitalization|Punctuation|Formatting)$
+
+-   kind: SPEC
+    name: Dialog Patterns
+    id: DP
+    file: SPEC-14-DP-Dialog-Patterns.md
+    desc: >
+        The reusable interaction structures governing how the system and
+        user exchange information across recurring conversational or UI
+        flows (e.g. master-detail dialog).
+    childs:
+        -   kind: PATTERN
+            desc: >
+                A single reusable dialog pattern, described by the
+                interaction structure and how the system and user exchange
+                information within it.
+            props:
+                -   name: CONTEXT
+                    desc: >
+                        The recurring situation or flow in which the
+                        pattern is applied.
+                -   name: PROBLEM
+                    desc: >
+                        The tension or difficulty the pattern resolves,
+                        stated independently of its solution.
+
+-   kind: SPEC
+    name: Dialog Storyboard
+    id: DS
+    file: SPEC-15-DS-Dialog-Storyboard.md
+    desc: >
+        The sequenced visual or textual depiction of a specific dialog
+        flow, illustrating how an interaction unfolds screen by screen or
+        turn by turn.
+    childs:
+        -   kind: STORYBOARD
+            desc: >
+                A single depicted dialog flow, comprised of sequentially
+                numbered frames.
+            props:
+                -   name: PATTERN
+                    desc: >
+                        Reference to the DIALOG-PATTERNS object the
+                        storyboard instantiates.
+                    value: ^SPEC-DP-.+$
+                    optional: true
+                -   name: USE-CASE
+                    desc: >
+                        Reference to the USE-CASES object the storyboard
+                        visualizes.
+                    value: ^SPEC-UC-.+$
+                    optional: true
+                -   name: SCENARIO
+                    desc: >
+                        Reference to the USE-CASES scenario object the
+                        storyboard visualizes.
+                    value: ^SPEC-UC-.+-.+$
+                    optional: true
+            childs:
+                -   kind: FRAME
+                    desc: >
+                        A single frame of the storyboard, named with a
+                        short (2-5 word) label for the screen, turn, or
+                        state and described by what the user sees and does.
+
+-   kind: SPEC
+    name: Visual Design
+    id: VD
+    file: SPEC-16-VD-Visual-Design.md
+    desc: >
+        The aesthetic and layout aspects of the solution, defining
+        colors, typography, spacing, imagery, and overall look and feel.
+    childs:
+        -   kind: ELEMENT
+            desc: >
+                A single visual design element, described by the concrete
+                values, tokens, or rules that define it (e.g. palette,
+                font family, scale).
+            props:
+                -   name: CATEGORY
+                    desc: The aspect of visual design the element governs.
+                    value: ^(?:Color|Typography|Iconography|Imagery|Layout|Animation)$
+
+-   kind: ARCH
+    name: Context View
+    id: CV
+    file: ARCH-01-CV-Context-View.md
+    desc: >
+        The relationships, dependencies, and interactions between the
+        solution and its environment, defining the system's scope,
+        external entities, and boundaries.
+    childs:
+        -   kind: ENTITY
+            desc: >
+                A single external entity the solution interacts with,
+                described by the relationship and dependency between the
+                solution and the entity.
+            props:
+                -   name: KIND
+                    desc: The kind of external entity.
+                    value: ^(?:Person|System|Service|Datastore|Device|Organization)$
+                -   name: DIRECTION
+                    desc: >
+                        The flow of interaction relative to the solution.
+                    value: ^(?:Inbound|Outbound|Bidirectional)$
+                -   name: INTERFACE
+                    desc: How the interaction happens.
+                -   name: DATA
+                    desc: >
+                        The principal information exchanged across the
+                        boundary with this entity.
+
+-   kind: ARCH
+    name: Functionality View
+    id: FV
+    file: ARCH-02-FV-Functionality-View.md
+    desc: >
+        The functional components of the solution, their
+        responsibilities, interfaces, and primary interactions,
+        describing what the system does at runtime.
+    childs:
+        -   kind: COMPONENT
+            desc: >
+                A single functional component, described by what it does
+                and how it collaborates with the components it depends on.
+            props:
+                -   name: KIND
+                    desc: The kind of functional component.
+                    value: ^(?:Component|Service|Module|Connector|Subsystem)$
+                -   name: RESPONSIBILITY
+                    desc: >
+                        The single, primary responsibility the component
+                        owns.
+                -   name: INTERFACE
+                    desc: How other components interact with this component.
+                -   name: DEPENDS-ON
+                    desc: >
+                        Comma-separated references to the
+                        FUNCTIONALITY-VIEW objects this component depends
+                        on at runtime.
+                    value: ^ARCH-FV-.+(?:,\s*ARCH-FV-.+)*$
+                    optional: true
+
+-   kind: ARCH
+    name: Information View
+    id: IV
+    file: ARCH-03-IV-Information-View.md
+    desc: >
+        The way the solution stores, manages, manipulates, and
+        distributes information, defining the static data structure and
+        dynamic information flow.
+    childs:
+        -   kind: ASPECT
+            desc: >
+                A single information aspect, described by how the solution
+                stores, manages, or distributes the information and how
+                its consistency is upheld.
+            props:
+                -   name: CONCERN
+                    desc: >
+                        The information-handling concern the aspect
+                        addresses.
+                    value: ^(?:Persistence|Flow|Ownership|Consistency|Replication|Caching|Retention|Migration)$
+                -   name: ENTITIES
+                    desc: >
+                        Comma-separated references to the DATA-MODEL
+                        entities the aspect governs.
+                    value: ^SPEC-DM-.+(?:,\s*SPEC-DM-.+)*$
+                    optional: true
+                -   name: OWNER
+                    desc: >
+                        Reference to the FUNCTIONALITY-VIEW object that
+                        owns this information.
+                    value: ^ARCH-FV-.+$
+                    optional: true
+                -   name: LIFECYCLE
+                    desc: >
+                        How the information comes into being, changes, and
+                        is disposed of.
+
+-   kind: ARCH
+    name: Concurrency View
+    id: CO
+    file: ARCH-04-CO-Concurrency-View.md
+    desc: >
+        The concurrency structure of the solution, mapping functional
+        components to processes and threads, and defining how they
+        coordinate and communicate.
+    childs:
+        -   kind: UNIT
+            desc: >
+                A single concurrency unit, described by how it executes
+                and how it avoids or manages contention, races, and
+                deadlocks.
+            props:
+                -   name: KIND
+                    desc: The kind of concurrency unit.
+                    value: ^(?:Process|Thread|Pool|Queue|EventLoop)$
+                -   name: HOSTS
+                    desc: >
+                        Comma-separated references to the
+                        FUNCTIONALITY-VIEW objects that run inside this
+                        concurrency unit.
+                    value: ^ARCH-FV-.+(?:,\s*ARCH-FV-.+)*$
+                    optional: true
+                -   name: MULTIPLICITY
+                    desc: How many instances of the unit run.
+                -   name: COORDINATION
+                    desc: >
+                        The mechanism by which the unit coordinates or
+                        communicates with other units.
+
+-   kind: ARCH
+    name: Development View
+    id: DV
+    file: ARCH-05-DV-Development-View.md
+    desc: >
+        The architecture supporting the software development process,
+        defining the module organization, build approach, and codeline
+        conventions.
+    childs:
+        -   kind: ASPECT
+            desc: >
+                A single development aspect, described by the development
+                convention or structure and the rule developers must
+                follow.
+            props:
+                -   name: CATEGORY
+                    desc: The development concern the aspect governs.
+                    value: ^(?:Structure|Build|Dependency|Codeline|Standardization|Tooling)$
+
+-   kind: ARCH
+    name: Deployment View
+    id: DP
+    file: ARCH-06-DP-Deployment-View.md
+    desc: >
+        The environment into which the solution is deployed, mapping
+        software elements to the runtime platform, hardware, and network
+        topology.
+    childs:
+        -   kind: NODE
+            desc: >
+                A single deployment node, described by its sizing and its
+                place in the deployment topology.
+            props:
+                -   name: KIND
+                    desc: The kind of deployment node.
+                    value: ^(?:Server|Container|Cluster|Function|Device|Managed)$
+                -   name: PLATFORM
+                    desc: The runtime platform of the node.
+                -   name: HOSTS
+                    desc: >
+                        Comma-separated references to the
+                        FUNCTIONALITY-VIEW objects deployed onto this node.
+                    value: ^ARCH-FV-.+(?:,\s*ARCH-FV-.+)*$
+                    optional: true
+                -   name: NETWORK
+                    desc: >
+                        The network placement and connectivity of the
+                        node.
+
+-   kind: ARCH
+    name: Operations View
+    id: OV
+    file: ARCH-07-OV-Operations-View.md
+    desc: >
+        The way the solution is operated, administered, and supported in
+        production, defining installation, monitoring, and management
+        concerns.
+    childs:
+        -   kind: CONCERN
+            desc: >
+                A single operational concern, described by how it is
+                handled in production and which procedures or tools
+                support it.
+            props:
+                -   name: CATEGORY
+                    desc: The category of the concern.
+                    value: ^(?:Installation|Configuration|Provisioning|Monitoring|Logging|Alerting|Backup|Recovery|Upgrade|Support)$
+                -   name: ELEMENT
+                    desc: >
+                        Comma-separated references to the
+                        FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW objects the
+                        concern applies to.
+                    value: ^ARCH-(?:FV|DP)-.+(?:,\s*ARCH-(?:FV|DP)-.+)*$
+                    optional: true
+
+-   kind: ARCH
+    name: Quality Perspectives
+    id: QP
+    file: ARCH-08-QP-Quality-Perspectives.md
+    desc: >
+        How the Non-Functional Requirements (NR) are addressed.
+    childs:
+        -   kind: PERSPECTIVE
+            desc: >
+                A single quality perspective, described by how the
+                architecture satisfies the quality attribute across the
+                affected elements.
+            props:
+                -   name: QUALITY
+                    desc: >
+                        The quality attribute the perspective addresses, a
+                        solution-oriented refinement of the
+                        NON-FUNCTIONAL-REQUIREMENTS categories.
+                    value: ^(?:Performance|Scalability|Reliability|Availability|Security|Privacy|Usability|Accessibility|Maintainability|Portability|Compatibility|Compliance)$
+                -   name: ADDRESSES
+                    desc: >
+                        Comma-separated references to the
+                        NON-FUNCTIONAL-REQUIREMENTS objects the perspective
+                        addresses.
+                    value: ^SPEC-NR-.+(?:,\s*SPEC-NR-.+)*$
+                -   name: TACTIC
+                    desc: >
+                        The architectural tactic or strategy applied to
+                        achieve the quality.
+                -   name: AFFECTS
+                    desc: >
+                        Comma-separated references to the
+                        FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW objects the
+                        tactic affects.
+                    value: ^ARCH-(?:FV|DP)-.+(?:,\s*ARCH-(?:FV|DP)-.+)*$
+                    optional: true
+
+-   kind: ARCH
+    name: Decision Record
+    id: DR
+    file: ARCH-09-DR-Decision-Record.md
+    desc: >
+        The major decisions related to the architecture, each recording
+        the forces at play, the chosen response, and the reasoning that
+        justifies it.
+    childs:
+        -   kind: DECISION
+            desc: >
+                A single architecture decision, named with a short summary
+                of the decision, not longer than 80 characters. It must be
+                hard to reverse, surprising without context, and the
+                result of a real trade-off.
+            props:
+                -   name: STATUS
+                    desc: The status of the decision.
+                    value: ^(?:proposed|accepted|deprecated|superseded)$
+                -   name: AFFECTS
+                    desc: >
+                        Comma-separated references to the
+                        FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW objects the
+                        decision affects.
+                    value: ^ARCH-(?:FV|DP)-.+(?:,\s*ARCH-(?:FV|DP)-.+)*$
+                    optional: true
+                -   name: SUPERSEDED-BY
+                    desc: >
+                        Reference to the DECISION-RECORD object that
+                        supersedes this decision. Present if and only if
+                        STATUS is "superseded".
+                    value: ^ARCH-DR-.+$
+                    optional: true
+                -   name: CREATED
+                    desc: ISO-style timestamp when the decision was created.
+                -   name: MODIFIED
+                    desc: ISO-style timestamp when the decision was last modified.
+                -   name: WHEN
+                    desc: >
+                        The context: the situation that forces the
+                        decision, stated neutrally and factually as the
+                        forces at play, without the decision itself.
+                -   name: WHAT
+                    desc: >
+                        The decision: the chosen response to the forces,
+                        stated in active, assertive voice as a committed
+                        position.
+                -   name: WHY
+                    desc: >
+                        The rationale: the reasoning that justifies why
+                        this choice follows from the forces, naming the
+                        trade-off and why the alternatives lost.
+                -   name: NOTES
+                    desc: >
+                        Background on the decision process, non-obvious
+                        consequences, and links to related decisions.
+                    optional: true
+
+-   kind: ARCH
+    name: Technology Stack
+    id: TS
+    file: ARCH-10-TS-Technology-Stack.md
+    desc: >
+        The concrete technology products the solution is built upon,
+        organized by tier and lifecycle phase, recording for each
+        component its chosen product, its purpose, and the alternatives
+        that were considered but not chosen.
+    childs:
+        -   kind: TIER
+            name: ^(?:Client|Server|Middleware|Database)$
+            desc: >
+                The system architecture Tier this component belongs to.
+                One of "Client", "Server", "Middleware", or "Database".
+            childs:
+                -   kind: COMPONENT
+                    desc: A single software component
+                    props:
+                        -   name: PRODUCT
+                            desc: Name of the product.
+                        -   name: ALTERNATIVES
+                            desc: Names of alternative products which were not chosen.
+                            optional: true
+                        -   name: COVERAGE
+                            desc: >
+                                A comma-separated list of one or more of the known *Client Aspects* or
+                                *Server Aspects*. The general goal is to achieve a maximum coverage of
+                                all aspects per TIER with the minimum total number of PRODUCTs.
+                            optional: true
+                        -   name: WHEN
+                            desc: Whether the component is a build-time or run-time one.
+                            value: ^(?:Build-Time|Run-Time)$
+                            optional: true
+
