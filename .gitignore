@@ -1,4 +1,5 @@
+.ase
+.claude/settings.local.json
 node_modules/
 dist/
-.claude/settings.local.json
 package-lock.json

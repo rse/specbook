@@ -58,10 +58,10 @@
             props:
                 -   name: GENDER
                     desc: The gender of the persona.
-                    value: ^(?:male|female|diverse)$
+                    value: enum(male,female,diverse)
                 -   name: AGE
                     desc: The age in years of the persona.
-                    value: ^[0-9]+$
+                    value: /^[0-9]+$/
                 -   name: ROLE
                     desc: The role of the persona.
 
@@ -74,33 +74,42 @@
         adopting, and using the solution, mapping their steps,
         touchpoints, and emotions over time.
     childs:
-        -   kind: STEP
+        -   kind: JOURNEY
             desc: >
-                A single step of the journey, named with a 5-10 word
-                summary of the step at its touchpoint.
+                The end-to-end journey of a single persona (or of multiple
+                personas sharing the same experience as role variants),
+                named with a 2-5 word summary of the pursued scenario.
             props:
-                -   name: STAGE
-                    desc: The journey stage the step belongs to.
-                    value: ^(?:Awareness|Consideration|Decision|Onboarding|Retention|Advocacy)$
                 -   name: ACTOR
-                    desc: Reference to a User Personas object.
-                    value: "[[PERSONA:*]]"
-                -   name: GOAL
-                    desc: What the actor wants to achieve at this step.
-                -   name: TOUCHPOINT
-                    desc: Where or how the interaction happens.
-                -   name: ACTION
-                    desc: What the actor actually does at this step.
-                -   name: EMOTION
                     desc: >
-                        The AS IS felt state at this step, given as a word
-                        plus an intensity on a 1-5 Likert scale.
-                    value: ^.+ \([1-5]\)$
-                -   name: PAIN-POINT
+                        Comma-separated references to the User Personas
+                        objects experiencing the journey.
+                    value: list([[PERSONA:*]])
+            childs:
+                -   kind: STEP
                     desc: >
-                        The AS IS friction or frustration the actor
-                        encounters at this step.
-                    optional: true
+                        A single step of the journey, named with a 5-10 word
+                        summary of the step at its touchpoint.
+                    props:
+                        -   name: STAGE
+                            desc: The journey stage the step belongs to.
+                            value: enum(Awareness,Consideration,Decision,Onboarding,Retention,Advocacy)
+                        -   name: GOAL
+                            desc: What the actor wants to achieve at this step.
+                        -   name: TOUCHPOINT
+                            desc: Where or how the interaction happens.
+                        -   name: ACTION
+                            desc: What the actor actually does at this step.
+                        -   name: EMOTION
+                            desc: >
+                                The AS IS felt state at this step, given as a word
+                                plus an intensity on a 1-5 Likert scale.
+                            value: /^.+ \([1-5]\)$/
+                        -   name: PAIN-POINT
+                            desc: >
+                                The AS IS friction or frustration the actor
+                                encounters at this step.
+                            optional: true
 
 -   kind: SPEC
     name: Functional Requirements
@@ -119,7 +128,7 @@
             props:
                 -   name: PRIORITY
                     desc: The MoSCoW priority of the requirement.
-                    value: ^(?:MUST|SHOULD|COULD|WONT)$
+                    value: enum(MUST,SHOULD,COULD,WONT)
 
 -   kind: SPEC
     name: Non-Functional Requirements
@@ -139,14 +148,14 @@
             props:
                 -   name: PRIORITY
                     desc: The MoSCoW priority of the requirement.
-                    value: ^(?:MUST|SHOULD|COULD|WONT)$
+                    value: enum(MUST,SHOULD,COULD,WONT)
                 -   name: CATEGORY
                     desc: >
                         The quality attribute category the requirement
                         addresses, according to the top-level
                         characteristics of the ISO/IEC 25010:2023
                         Software-Quality Model.
-                    value: ^(?:Performance|Compatibility|Usability|Reliability|Security|Safety|Maintainability|Flexibility|Compliance)$
+                    value: enum(Performance,Compatibility,Usability,Reliability,Security,Safety,Maintainability,Flexibility,Compliance)
 
 -   kind: SPEC
     name: Business Rules
@@ -166,13 +175,13 @@
             props:
                 -   name: CATEGORY
                     desc: The kind of rule.
-                    value: ^(?:Invariant|Constraint|Derivation|Policy)$
+                    value: enum(Invariant,Constraint,Derivation,Policy)
                 -   name: CONSTRAINS
                     desc: >
                         Comma-separated references to the
                         FUNCTIONAL-REQUIREMENTS or NON-FUNCTIONAL-REQUIREMENTS
                         objects the rule constrains.
-                    value: ^SPEC-(?:FR|NR)-.+(?:,\s*SPEC-(?:FR|NR)-.+)*$
+                    value: list(/^SPEC-(?:FR|NR)-.+$/)
                     optional: true
 
 -   kind: SPEC
@@ -198,10 +207,10 @@
                     props:
                         -   name: TYPE
                             desc: The type (and optionally qualifier) of the entity attribute.
-                            value: ^((?:unique|)\s+)?(?:boolean|string|integer|float|uuid|date|time|datetime|enum\((?:[A-Za-z0-9_]+)(?:,\s*[A-Za-z0-9_]+)*\))$
+                            value: /^((?:unique|)\s+)?(?:boolean|string|integer|float|uuid|date|time|datetime|enum\((?:[A-Za-z0-9_]+)(?:,\s*[A-Za-z0-9_]+)*\))$/
                         -   name: ARITY
                             desc: Arity of the type. Can mark the attribute as optional.
-                            value: \?
+                            value: /\?/
                             optional: true
                 -   kind: RELATION
                     name: "[a-z][a-zA-Z0-9]*"
@@ -213,10 +222,10 @@
                     props:
                         -   name: TYPE
                             desc: Name of the entity the directed relation targets.
-                            value: "[A-Z][a-zA-Z0-9]*"
+                            value: /[A-Z][a-zA-Z0-9]*/
                         -   name: ARITY
                             desc: Arity of the relation at the target entity.
-                            value: ^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n)$
+                            value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n)$/
                             optional: true
 
 -   kind: SPEC
@@ -238,17 +247,17 @@
                     desc: >
                         Reference to the DATA-MODEL entity whose lifecycle
                         this models.
-                    value: ^SPEC-DM-.+$
+                    value: /^SPEC-DM-.+$/
                 -   name: INITIAL
                     desc: >
                         The single state every instance of the entity
                         enters upon creation.
-                    value: ^[A-Z][a-zA-Z0-9]*$
+                    value: /^[A-Z][a-zA-Z0-9]*$/
                 -   name: FINAL
                     desc: >
                         Comma-separated list of one or more states in which
                         the entity may legally come to rest permanently.
-                    value: ^[A-Z][a-zA-Z0-9]*(?:,\s*[A-Z][a-zA-Z0-9]*)*$
+                    value: list(/^[A-Z][a-zA-Z0-9]*$/)
             childs:
                 -   kind: STATE
                     name: "[A-Z][a-zA-Z0-9]*"
@@ -267,10 +276,10 @@
                     props:
                         -   name: FROM
                             desc: The state the transition departs from.
-                            value: ^[A-Z][a-zA-Z0-9]*$
+                            value: /^[A-Z][a-zA-Z0-9]*$/
                         -   name: TO
                             desc: The state the transition arrives at.
-                            value: ^[A-Z][a-zA-Z0-9]*$
+                            value: /^[A-Z][a-zA-Z0-9]*$/
 
 -   kind: SPEC
     name: Glossary
@@ -314,13 +323,13 @@
                     desc: >
                         Reference to the PERSONAS object denoting the
                         primary actor pursuing the goal.
-                    value: ^SPEC-PE-.+$
+                    value: /^SPEC-PE-.+$/
                 -   name: REQUIREMENTS
                     desc: >
                         Comma-separated references to the
                         FUNCTIONAL-REQUIREMENTS objects the use case
                         realizes.
-                    value: ^SPEC-FR-.+(?:,\s*SPEC-FR-.+)*$
+                    value: list(/^SPEC-FR-.+$/)
                     optional: true
                 -   name: GOAL
                     desc: >
@@ -346,7 +355,7 @@
                     props:
                         -   name: TYPE
                             desc: The path the scenario represents.
-                            value: ^(?:Main|Alternative|Exceptional)$
+                            value: enum(Main,Alternative,Exceptional)
 
 -   kind: SPEC
     name: Test Cases
@@ -366,7 +375,7 @@
                         Reference to the FUNCTIONAL-REQUIREMENTS or
                         NON-FUNCTIONAL-REQUIREMENTS object the test case
                         verifies.
-                    value: ^SPEC-(?:FR|NR)-.+$
+                    value: /^SPEC-(?:FR|NR)-.+$/
                 -   name: PRE-CONDITION
                     desc: >
                         The state or setup that must hold before the test
@@ -415,7 +424,7 @@
             props:
                 -   name: CATEGORY
                     desc: The aspect of language the convention governs.
-                    value: ^(?:Terminology|Naming|Tone|Capitalization|Punctuation|Formatting)$
+                    value: enum(Terminology,Naming,Tone,Capitalization,Punctuation,Formatting)
 
 -   kind: SPEC
     name: Dialog Patterns
@@ -459,19 +468,19 @@
                     desc: >
                         Reference to the DIALOG-PATTERNS object the
                         storyboard instantiates.
-                    value: ^SPEC-DP-.+$
+                    value: /^SPEC-DP-.+$/
                     optional: true
                 -   name: USE-CASE
                     desc: >
                         Reference to the USE-CASES object the storyboard
                         visualizes.
-                    value: ^SPEC-UC-.+$
+                    value: /^SPEC-UC-.+$/
                     optional: true
                 -   name: SCENARIO
                     desc: >
                         Reference to the USE-CASES scenario object the
                         storyboard visualizes.
-                    value: ^SPEC-UC-.+-.+$
+                    value: /^SPEC-UC-.+-.+$/
                     optional: true
             childs:
                 -   kind: FRAME
@@ -496,7 +505,7 @@
             props:
                 -   name: CATEGORY
                     desc: The aspect of visual design the element governs.
-                    value: ^(?:Color|Typography|Iconography|Imagery|Layout|Animation)$
+                    value: enum(Color,Typography,Iconography,Imagery,Layout,Animation)
 
 -   kind: ARCH
     name: Context View
@@ -515,11 +524,11 @@
             props:
                 -   name: KIND
                     desc: The kind of external entity.
-                    value: ^(?:Person|System|Service|Datastore|Device|Organization)$
+                    value: enum(Person,System,Service,Datastore,Device,Organization)
                 -   name: DIRECTION
                     desc: >
                         The flow of interaction relative to the solution.
-                    value: ^(?:Inbound|Outbound|Bidirectional)$
+                    value: enum(Inbound,Outbound,Bidirectional)
                 -   name: INTERFACE
                     desc: How the interaction happens.
                 -   name: DATA
@@ -543,7 +552,7 @@
             props:
                 -   name: KIND
                     desc: The kind of functional component.
-                    value: ^(?:Component|Service|Module|Connector|Subsystem)$
+                    value: enum(Component,Service,Module,Connector,Subsystem)
                 -   name: RESPONSIBILITY
                     desc: >
                         The single, primary responsibility the component
@@ -555,7 +564,7 @@
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW objects this component depends
                         on at runtime.
-                    value: ^ARCH-FV-.+(?:,\s*ARCH-FV-.+)*$
+                    value: list(/^ARCH-FV-.+$/)
                     optional: true
 
 -   kind: ARCH
@@ -577,18 +586,18 @@
                     desc: >
                         The information-handling concern the aspect
                         addresses.
-                    value: ^(?:Persistence|Flow|Ownership|Consistency|Replication|Caching|Retention|Migration)$
+                    value: enum(Persistence,Flow,Ownership,Consistency,Replication,Caching,Retention,Migration)
                 -   name: ENTITIES
                     desc: >
                         Comma-separated references to the DATA-MODEL
                         entities the aspect governs.
-                    value: ^SPEC-DM-.+(?:,\s*SPEC-DM-.+)*$
+                    value: list(/^SPEC-DM-.+$/)
                     optional: true
                 -   name: OWNER
                     desc: >
                         Reference to the FUNCTIONALITY-VIEW object that
                         owns this information.
-                    value: ^ARCH-FV-.+$
+                    value: /^ARCH-FV-.+$/
                     optional: true
                 -   name: LIFECYCLE
                     desc: >
@@ -612,13 +621,13 @@
             props:
                 -   name: KIND
                     desc: The kind of concurrency unit.
-                    value: ^(?:Process|Thread|Pool|Queue|EventLoop)$
+                    value: enum(Process,Thread,Pool,Queue,EventLoop)
                 -   name: HOSTS
                     desc: >
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW objects that run inside this
                         concurrency unit.
-                    value: ^ARCH-FV-.+(?:,\s*ARCH-FV-.+)*$
+                    value: list(/^ARCH-FV-.+$/)
                     optional: true
                 -   name: MULTIPLICITY
                     desc: How many instances of the unit run.
@@ -644,7 +653,7 @@
             props:
                 -   name: CATEGORY
                     desc: The development concern the aspect governs.
-                    value: ^(?:Structure|Build|Dependency|Codeline|Standardization|Tooling)$
+                    value: enum(Structure,Build,Dependency,Codeline,Standardization,Tooling)
 
 -   kind: ARCH
     name: Deployment View
@@ -662,14 +671,14 @@
             props:
                 -   name: KIND
                     desc: The kind of deployment node.
-                    value: ^(?:Server|Container|Cluster|Function|Device|Managed)$
+                    value: enum(Server,Container,Cluster,Function,Device,Managed)
                 -   name: PLATFORM
                     desc: The runtime platform of the node.
                 -   name: HOSTS
                     desc: >
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW objects deployed onto this node.
-                    value: ^ARCH-FV-.+(?:,\s*ARCH-FV-.+)*$
+                    value: list(/^ARCH-FV-.+$/)
                     optional: true
                 -   name: NETWORK
                     desc: >
@@ -693,13 +702,13 @@
             props:
                 -   name: CATEGORY
                     desc: The category of the concern.
-                    value: ^(?:Installation|Configuration|Provisioning|Monitoring|Logging|Alerting|Backup|Recovery|Upgrade|Support)$
+                    value: enum(Installation,Configuration,Provisioning,Monitoring,Logging,Alerting,Backup,Recovery,Upgrade,Support)
                 -   name: ELEMENT
                     desc: >
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW objects the
                         concern applies to.
-                    value: ^ARCH-(?:FV|DP)-.+(?:,\s*ARCH-(?:FV|DP)-.+)*$
+                    value: list(/^ARCH-(?:FV|DP)-.+$/)
                     optional: true
 
 -   kind: ARCH
@@ -720,13 +729,13 @@
                         The quality attribute the perspective addresses, a
                         solution-oriented refinement of the
                         NON-FUNCTIONAL-REQUIREMENTS categories.
-                    value: ^(?:Performance|Scalability|Reliability|Availability|Security|Privacy|Usability|Accessibility|Maintainability|Portability|Compatibility|Compliance)$
+                    value: enum(Performance,Scalability,Reliability,Availability,Security,Privacy,Usability,Accessibility,Maintainability,Portability,Compatibility,Compliance)
                 -   name: ADDRESSES
                     desc: >
                         Comma-separated references to the
                         NON-FUNCTIONAL-REQUIREMENTS objects the perspective
                         addresses.
-                    value: ^SPEC-NR-.+(?:,\s*SPEC-NR-.+)*$
+                    value: list(/^SPEC-NR-.+$/)
                 -   name: TACTIC
                     desc: >
                         The architectural tactic or strategy applied to
@@ -736,7 +745,7 @@
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW objects the
                         tactic affects.
-                    value: ^ARCH-(?:FV|DP)-.+(?:,\s*ARCH-(?:FV|DP)-.+)*$
+                    value: list(/^ARCH-(?:FV|DP)-.+$/)
                     optional: true
 
 -   kind: ARCH
@@ -757,20 +766,20 @@
             props:
                 -   name: STATUS
                     desc: The status of the decision.
-                    value: ^(?:proposed|accepted|deprecated|superseded)$
+                    value: enum(proposed,accepted,deprecated,superseded)
                 -   name: AFFECTS
                     desc: >
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW objects the
                         decision affects.
-                    value: ^ARCH-(?:FV|DP)-.+(?:,\s*ARCH-(?:FV|DP)-.+)*$
+                    value: list(/^ARCH-(?:FV|DP)-.+$/)
                     optional: true
                 -   name: SUPERSEDED-BY
                     desc: >
                         Reference to the DECISION-RECORD object that
                         supersedes this decision. Present if and only if
                         STATUS is "superseded".
-                    value: ^ARCH-DR-.+$
+                    value: /^ARCH-DR-.+$/
                     optional: true
                 -   name: CREATED
                     desc: ISO-style timestamp when the decision was created.
@@ -829,6 +838,6 @@
                             optional: true
                         -   name: WHEN
                             desc: Whether the component is a build-time or run-time one.
-                            value: ^(?:Build-Time|Run-Time)$
+                            value: enum(Build-Time,Run-Time)
                             optional: true
 

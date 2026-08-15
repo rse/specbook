@@ -57,8 +57,10 @@ The YAML schema configuration (see `ase.specbook.yaml` for a
 comprehensive example) defines which domain-specific objects are
 allowed: the artifact kinds with their `file` mapping on the first
 level, the object kinds of the deeper levels, and their properties with
-optional value patterns. The `file` field is only allowed on the first
-(artifact) level.
+optional value constraints: regular expressions `/xxx/`, object
+references `[[xxx]]`, enumerations `enum(xxx,yyy)`, tag sets
+`tags(xxx,yyy)`, and lists `list(xxx[, ...])` of such alternatives.
+The `file` field is only allowed on the first (artifact) level.
 
 ## Usage
 

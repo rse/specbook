@@ -16,8 +16,10 @@ import { type SchemaSpecification, type SchemaObject }
     from "./specbook-struct-schema.js"
 import { type Diagnostic }
     from "./specbook-config.js"
-import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, splitQuoted, type LinkIndex }
+import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, type LinkIndex }
     from "./specbook-link.js"
+import { compileValueExpr, splitItems, type ValueExpr }
+    from "./specbook-value.js"
 
 /*  a single specification Markdown source file  */
 export interface SourceFile {
@@ -137,6 +139,24 @@ const plainText = (text: string): string =>
 /*  compile a configured pattern into an anchored regular expression  */
 const anchored = (pattern: string, flags = ""): RegExp =>
     new RegExp(`^(?:${pattern})$`, flags)
+
+/*  match a single inline token against a value expression
+    (case-insensitively, as inline tokens are decorations)  */
+const tokenMatches = (expr: ValueExpr, token: string): boolean =>
+    expr.kind === "regex" ?
+        anchored(expr.source, "i").test(token) :
+        expr.kind === "enum" ?
+            expr.members.some((member) => member.toLowerCase() === token.toLowerCase()) :
+            false
+
+/*  match a full property value directly against a value expression
+    (defined for the regex and enum kinds only)  */
+const directMatches = (expr: ValueExpr, text: string): boolean =>
+    expr.kind === "regex" ?
+        expr.regex.test(text) :
+        expr.kind === "enum" ?
+            expr.members.includes(text) :
+            false
 
 /*  extract the plain text lines of a Markdown list item
     (excluding any nested lists)  */
@@ -597,15 +617,18 @@ export class Parser {
             fails: keep the token matching the own pattern and distribute
             the remaining tokens across the sibling properties  */
         for (const prop of props) {
-            if (prop.value === undefined || prop.value.startsWith("[["))
+            if (prop.value === undefined)
+                continue
+            const expr = compileValueExpr(prop.value)
+            if (expr.kind !== "regex" && expr.kind !== "enum")
                 continue
             const match = findProp(prop.name)
-            if (match === undefined || new RegExp(prop.value).test(plainText(match.value)))
+            if (match === undefined || directMatches(expr, plainText(match.value)))
                 continue
             const parts = plainText(match.value).split(/\s+/)
             if (parts.length < 2)
                 continue
-            const idx = parts.findIndex((part) => anchored(prop.value ?? "", "i").test(part))
+            const idx = parts.findIndex((part) => tokenMatches(expr, part))
             if (idx < 0)
                 continue
             match.value = parts[idx]
@@ -614,9 +637,12 @@ export class Parser {
             tokens.push(...parts)
         }
         for (const prop of props) {
-            if (prop.value === undefined || prop.value.startsWith("[[") || findProp(prop.name) !== undefined)
+            if (prop.value === undefined || findProp(prop.name) !== undefined)
                 continue
-            const idx = tokens.findIndex((token) => anchored(prop.value ?? "", "i").test(token))
+            const expr = compileValueExpr(prop.value)
+            if (expr.kind !== "regex" && expr.kind !== "enum")
+                continue
+            const idx = tokens.findIndex((token) => tokenMatches(expr, token))
             if (idx >= 0) {
                 object.properties.push({ key: prop.name, value: tokens[idx] })
                 tokenAssigned.add(prop.name)
@@ -630,13 +656,13 @@ export class Parser {
         /*  check the configured properties  */
         let parenConsumed = false
         for (const prop of props) {
+            const expr  = prop.value !== undefined ? compileValueExpr(prop.value) : undefined
             const match = findProp(prop.name)
             if (match === undefined) {
                 /*  accept a trailing parenthesized name token as the value of a
                     still missing property when it matches the property pattern  */
-                if (object.paren !== undefined && prop.value !== undefined
-                    && !prop.value.startsWith("[[")
-                    && new RegExp(prop.value).test(object.paren)) {
+                if (object.paren !== undefined && expr !== undefined
+                    && directMatches(expr, object.paren)) {
                     parenConsumed = true
                     continue
                 }
@@ -644,32 +670,49 @@ export class Parser {
                     this.diagnose(meta.file, meta.line,
                         `required property "${prop.name}" missing on ${object.kind} "${object.name}"`)
             }
-            else if (prop.value !== undefined && prop.value.startsWith("[[")) {
-                /*  a link constraint: the value has to be one reference or a
-                    comma-separated list of them, each resolving into the union
-                    of the wildcard match sets of the constraint's alternatives
-                    (e.g. "[[PERSONA:*,TOUCHPOINT:*]]")  */
+            else if (expr !== undefined) {
                 const line = this.propMeta.get(match)?.line ?? meta.line
-                if (!/^\[\[[^[\]]+\]\](?:\s*,\s*\[\[[^[\]]+\]\])*$/.test(match.value.trim()))
-                    this.diagnose(meta.file, line,
-                        `property "${prop.name}" value "${match.value}" is not a link reference list`)
-                else {
-                    const allowed = new Set(splitQuoted(prop.value.slice(2, -2), ",")
-                        .map((alternative) => alternative.trim())
-                        .filter((alternative) => alternative !== "")
-                        .flatMap((alternative) => resolveSet(this.linkIndex, alternative)))
-                    for (const m of match.value.matchAll(referenceRegex)) {
-                        const target = resolveUnique(this.linkIndex, m[1].trim()).target
-                        if (target !== undefined && !allowed.has(target))
+                if (expr.kind === "reference") {
+                    /*  a reference constraint: the value has to be exactly one
+                        reference resolving into the constraint's wildcard match set  */
+                    if (!/^\[\[[^[\]]+\]\]$/.test(match.value.trim()))
+                        this.diagnose(meta.file, line,
+                            `property "${prop.name}" value "${match.value}" is not a single link reference`)
+                    else {
+                        const ref    = match.value.trim().slice(2, -2).trim()
+                        const target = resolveUnique(this.linkIndex, ref).target
+                        if (target !== undefined && !resolveSet(this.linkIndex, expr.pattern).includes(target))
                             this.diagnose(meta.file, line,
-                                `link reference "[[${m[1].trim()}]]" does not match constraint "${prop.value}"`)
+                                `link reference "[[${ref}]]" does not match constraint "${prop.value}"`)
                     }
                 }
+                else if (expr.kind === "tags") {
+                    /*  a tags constraint: the value is a comma-separated set of
+                        configured tags, each occurring at most once  */
+                    const seen = new Set<string>()
+                    for (const item of splitItems(plainText(match.value))) {
+                        if (!expr.members.includes(item))
+                            this.diagnose(meta.file, line,
+                                `tag "${item}" of property "${prop.name}" not allowed by constraint "${prop.value}"`)
+                        else if (seen.has(item))
+                            this.diagnose(meta.file, line,
+                                `duplicate tag "${item}" on property "${prop.name}"`)
+                        seen.add(item)
+                    }
+                }
+                else if (expr.kind === "list") {
+                    /*  a list constraint: the value is a comma-separated list
+                        of items, each matching at least one alternative  */
+                    for (const item of splitItems(match.value))
+                        if (!this.matchAlternatives(expr.alternatives, item))
+                            this.diagnose(meta.file, line,
+                                `list item "${item}" of property "${prop.name}" does not match constraint "${prop.value}"`)
+                }
+                else if (!tokenAssigned.has(prop.name) && !directMatches(expr, plainText(match.value)))
+                    this.diagnose(meta.file, line, expr.kind === "enum" ?
+                        `property "${prop.name}" value "${match.value}" is not a member of "${prop.value}"` :
+                        `property "${prop.name}" value "${match.value}" does not match pattern "${prop.value}"`)
             }
-            else if (prop.value !== undefined && !tokenAssigned.has(prop.name)
-                && !new RegExp(prop.value).test(plainText(match.value)))
-                this.diagnose(meta.file, this.propMeta.get(match)?.line ?? meta.line,
-                    `property "${prop.name}" value "${match.value}" does not match pattern "${prop.value}"`)
         }
         for (const property of object.properties)
             if (!props.some((p) => p.name === plainKey(property.key)))
@@ -717,6 +760,30 @@ export class Parser {
             return i >= 0 ? i : props.length
         }
         object.properties.sort((a, b) => propPos(a.key) - propPos(b.key))
+    }
+
+    /*  match a single list item against the alternatives of a list
+        constraint (a reference item resolves leniently, as unresolvable
+        and ambiguous ones are already reported by the reference pass)  */
+    private matchAlternatives (alternatives: ValueExpr[], item: string): boolean {
+        const rm = item.match(/^\[\[([^[\]]+)\]\]$/)
+        for (const alternative of alternatives) {
+            if (alternative.kind === "reference") {
+                if (rm === null)
+                    continue
+                const target = resolveUnique(this.linkIndex, rm[1].trim()).target
+                if (target === undefined
+                    || resolveSet(this.linkIndex, alternative.pattern).includes(target))
+                    return true
+            }
+            else if (alternative.kind === "tags") {
+                if (alternative.members.includes(plainText(item)))
+                    return true
+            }
+            else if (directMatches(alternative, plainText(item)))
+                return true
+        }
+        return false
     }
 }
 

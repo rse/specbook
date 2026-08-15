@@ -3,7 +3,8 @@ Created:  2026-06-18 10:18
 Modified: 2026-06-18 10:18
 ---
 
-#   SPEC: User Personas (UP)
+SPEC: User Personas (UP)
+========================
 
 ##  PERSONA: Anna {{attendee}}
 

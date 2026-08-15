@@ -41,7 +41,7 @@ export const buildLinkIndex = (specification: Specification): LinkIndex => {
 
 /*  split a text at a separator character, honoring double-quoted
     sections (the quotes are retained for a later unquote())  */
-export const splitQuoted = (text: string, separator: string): string[] => {
+const splitQuoted = (text: string, separator: string): string[] => {
     const parts = [ "" ]
     let quoted = false
     for (const char of text) {

@@ -51,15 +51,21 @@ const syntax = textframe`
     The following artifacts, object kinds, and properties are configured.
     Object kinds and property names are *case-sensitive* and must be
     written exactly as configured. Properties marked \`required\` must be
-    present, and property values must match the given regular expression
-    pattern (if any).
+    present, and property values must match their given constraint (if
+    any, else any value is allowed): \`/xxx/\` requires a match of the
+    regular expression, \`[[xxx]]\` requires exactly one Wiki-style link
+    reference resolving into the (usually wildcard) reference pattern,
+    \`enum(xxx,yyy)\` requires one of the listed members, \`tags(xxx,yyy)\`
+    requires a comma-separated set of the listed members (each at most
+    once), and \`list(xxx[, ...])\` requires a comma-separated list of
+    items, each matching one of the alternative constraints.
 `
 
 /*  describe a single configured property  */
 const describeProperty = (prop: { name: string, desc?: string, value?: string, optional?: boolean }, indent: string): string => {
     let line = `${indent}-   property \`${prop.name}\` (${prop.optional === true ? "optional" : "required"}`
     if (prop.value !== undefined)
-        line += `, pattern \`${prop.value}\``
+        line += `, constraint \`${prop.value}\``
     line += `): ${collapse(prop.desc)}`
     return line
 }

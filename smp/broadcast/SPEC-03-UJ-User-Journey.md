@@ -3,73 +3,82 @@ Created:  2026-06-18 10:18
 Modified: 2026-06-18 10:18
 ---
 
-#   SPEC: User Journey (UJ)
+SPEC: User Journey (UJ)
+=======================
 
-##  STEP: Receive personal event invitation URL <a id="SPEC-UJ-invitation"></a>
+JOURNEY: Attend a Broadcast event {{attend}}
+---------------------------------
+
+-   ACTOR:      [[PERSONA:attendee]]
+
+### STEP: Receive personal event invitation URL <a id="SPEC-UJ-attend-invitation"></a>
 
 -   STAGE:      Awareness
--   ACTOR:      [[PERSONA:attendee]]
 -   GOAL:       Learn that an event is happening and that access is granted
 -   TOUCHPOINT: Invitation email containing the individual event URL
 -   ACTION:     The attendee reads the invitation and clicks the personalized event link.
 -   EMOTION:    Curious (4)
 
-##  STEP: Open event page and review login info <a id="SPEC-UJ-arrival"></a>
+### STEP: Open event page and review login info {{arrival}}
 
 -   STAGE:      Consideration
--   ACTOR:      [[PERSONA:attendee]]
 -   GOAL:       Understand what the event is and how to join
 -   TOUCHPOINT: Event landing screen in the web browser
 -   ACTION:     The attendee reads the optional login message and any links before deciding to log in.
 -   EMOTION:    Interested (3)
 -   PAIN-POINT: Uncertainty whether the link is genuine and what data will be collected.
 
-##  STEP: Authenticate via email token <a id="SPEC-UJ-authenticate"></a>
+### STEP: Authenticate via email token {{authenticate}}
 
 -   STAGE:      Decision
--   ACTOR:      [[PERSONA:attendee]]
 -   GOAL:       Gain access to the live video stream
 -   TOUCHPOINT: Login dialog with email and token challenge
 -   ACTION:     The attendee enters the email, receives a 6-digit token by mail, and submits it.
 -   EMOTION:    Slightly impatient (3)
 -   PAIN-POINT: Waiting for the token email and re-checking the inbox adds friction before the event.
 
-##  STEP: Watch stream and interact <a id="SPEC-UJ-participate"></a>
+### STEP: Watch stream and interact {{participate}}
 
 -   STAGE:      Onboarding
--   ACTOR:      [[PERSONA:attendee]]
 -   GOAL:       Follow the event and contribute questions, chat, and likes
 -   TOUCHPOINT: Main attendee screen with video and interaction sidebar
 -   ACTION:     The attendee watches the stream, posts questions or chat messages, and likes others' messages.
 -   EMOTION:    Engaged (4)
 -   PAIN-POINT: Messages may be delayed by moderation, so the attendee is unsure whether input arrived.
 
-##  STEP: Configure and run the event <a id="SPEC-UJ-operate"></a>
+JOURNEY: Operate a Broadcast Event {{operate}}
+----------------------------------
+
+-   ACTOR:      [[PERSONA:manager]]
+
+### STEP: Configure and run the event {{configure}}
 
 -   STAGE:      Onboarding
--   ACTOR:      [[PERSONA:manager]]
 -   GOAL:       Set up, start, and control an event end-to-end
 -   TOUCHPOINT: Manager configuration screen and Ventari Excel import/export
 -   ACTION:     The manager imports attendees, configures channels and options, and starts the event.
 -   EMOTION:    Focused (3)
 -   PAIN-POINT: Coordinating streaming providers, access lists, and tokens before going live is error-prone.
 
-##  STEP: Moderate and support the presenter <a id="SPEC-UJ-moderate"></a>
+### STEP: Export anonymized results after event {{export}}
+
+-   STAGE:      Advocacy
+-   GOAL:       Capture and share the event's interaction outcomes
+-   TOUCHPOINT: Manager export function producing a downloadable file
+-   ACTION:     The manager exports anonymized messages with timestamps, states, and like counts.
+-   EMOTION:    Satisfied (4)
+
+JOURNEY: Moderate a Broadcast Event {{moderate}}
+-----------------------------------
+
+-   ACTOR:      [[PERSONA:moderator-chat]], [[PERSONA:moderator-qa]]
+
+### STEP: Moderate and support the presenter {{support}}
 
 -   STAGE:      Retention
--   ACTOR:      [[PERSONA:moderator-chat]], [[PERSONA:moderator-qa]]
 -   GOAL:       Keep interaction clean and forward the best questions to the presenter
 -   TOUCHPOINT: Moderator Kanban board of chat and question messages
 -   ACTION:     The moderator approves, rejects, and forwards messages and sends hints to the presenter.
 -   EMOTION:    Pressured (4)
 -   PAIN-POINT: High message volume under time pressure makes it hard to keep an overview.
-
-##  STEP: Export anonymized results after event <a id="SPEC-UJ-export"></a>
-
--   STAGE:      Advocacy
--   ACTOR:      [[PERSONA:manager]]
--   GOAL:       Capture and share the event's interaction outcomes
--   TOUCHPOINT: Manager export function producing a downloadable file
--   ACTION:     The manager exports anonymized messages with timestamps, states, and like counts.
--   EMOTION:    Satisfied (4)
 

@@ -10,6 +10,7 @@ import * as v  from "valibot"
 import sourceCodeError from "source-code-error"
 
 import { SchemaSpecification, type SchemaObject } from "./specbook-struct-schema.js"
+import { compileValueExpr } from "./specbook-value.js"
 
 /*  a single parse/validation diagnostic  */
 export interface Diagnostic {
@@ -100,5 +101,27 @@ export const loadConfig = (file: string): { config: SchemaSpecification | null, 
         })
     }
     checkFileField(result.output, [], 1)
+
+    /*  reject syntactically invalid property value expressions  */
+    const checkValueExpr = (objects: SchemaObject[], path: (string | number)[]) => {
+        objects.forEach((object, i) => {
+            (object.props ?? []).forEach((prop, j) => {
+                if (prop.value === undefined)
+                    return
+                try {
+                    compileValueExpr(prop.value)
+                }
+                catch (err) {
+                    const pos = lineColOfPath(yaml, cst, [ ...path, i, "props", j, "value" ])
+                    diagnostics.push({ file, line: pos.line, column: pos.column,
+                        message: `invalid value expression "${prop.value}": ` +
+                            (err instanceof Error ? err.message : String(err)) })
+                }
+            })
+            if (object.childs !== undefined)
+                checkValueExpr(object.childs, [ ...path, i, "childs" ])
+        })
+    }
+    checkValueExpr(result.output, [])
     return { config: diagnostics.length === 0 ? result.output : null, diagnostics }
 }
