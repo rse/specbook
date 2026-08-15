@@ -5,6 +5,8 @@ Modified: 2026-06-18 10:18
 
 #   ARCH: Functionality View (FV)
 
+![](ARCH-02-FV-Functionality-View-1.svg)
+
 ##  COMPONENT: Web Client <a id="ARCH-FV-client"></a>
 
 -   KIND:           Subsystem
