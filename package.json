@@ -25,6 +25,7 @@
         "nunjucks":                        "3.2.4",
         "@rse/nunjucks-addons":            "2.2.0",
         "textframe":                       "1.2.1",
+        "@swc/html":                       "1.16.0",
         "tokenizr":                        "2.2.1",
         "playwright":                      "1.62.1",
         "ai":                              "7.0.64",

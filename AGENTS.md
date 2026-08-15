@@ -18,8 +18,20 @@ a CLI `specbook <cmd>`, and an MCP service `specbook mcp` with tools
     -   `src/specbook-mcp.ts`: the MCP stdio service (thin wrapper over the API)
     -   `src/specbook-cmd-*.ts`: one module per command
         (`init`, `lint`, `export`, `describe`, `import`, `edit`);
-        `export` covers JSON, JSON5, YAML, TOON, HTML, PDF, and normalized Markdown
+        `export` dispatches onto the format renderers in `src/specbook-export-*.ts`
+    -   `src/specbook-export-common.ts`: cross-renderer helpers
+        (HTML escaping, stylesheet, document title)
+    -   `src/specbook-export-ast.ts`: the AST renderer (JSON, JSON5, YAML, TOON)
+    -   `src/specbook-export-md.ts`: the normalized Markdown renderer
+    -   `src/specbook-export-html.ts`: the HTML renderer
+        (with `src/specbook-export-html.css` as its inlined stylesheet)
+    -   `src/specbook-export-pdf.ts`: the PDF renderer (HTML printed
+        via Playwright/Chromium, post-processed with `pdf-lib`)
     -   `src/specbook-config.ts`: YAML schema configuration loading and validation (Valibot)
+    -   `src/specbook-diagnostic.ts`: the `Diagnostic` type and its
+        single-line/verbose renderers, shared by all layers
+    -   `src/specbook-link.ts`: Wiki-style reference (`[[xxx]]`) syntax,
+        link index building, reference resolution, and anchor path derivation
     -   `src/specbook-parse.ts`: parser facade class `Parser`, wiring the
         two parsing phases with file/line-precise diagnostics
     -   `src/specbook-parse-common.ts`: parsing types, the shared phase

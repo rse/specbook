@@ -4,18 +4,14 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import type { Specification }
-    from "./specbook-struct-spec.js"
-import { documentTitle }
-    from "./specbook-export-common.js"
-import { renderAst, type AstFormat }
-    from "./specbook-export-ast.js"
-import { renderMarkdown }
-    from "./specbook-export-md.js"
-import { renderHtml }
-    from "./specbook-export-html.js"
-import { htmlToPdf }
-    from "./specbook-export-pdf.js"
+import { minify }                    from "@swc/html"
+
+import type { Specification }        from "./specbook-struct-spec.js"
+import { documentTitle }             from "./specbook-export-common.js"
+import { renderAst, type AstFormat } from "./specbook-export-ast.js"
+import { renderMarkdown }            from "./specbook-export-md.js"
+import { renderHtml }                from "./specbook-export-html.js"
+import { htmlToPdf }                 from "./specbook-export-pdf.js"
 
 /*  the supported export formats  */
 export const formats = [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ] as const
@@ -35,9 +31,18 @@ export const exportSpecification = async (
         return renderAst(specification, format satisfies AstFormat)
     else if (format === "md")
         return Buffer.from(renderMarkdown(specification), "utf8")
-    else if (format === "html")
-        return Buffer.from(renderHtml(specification, maxTableColumns), "utf8")
+    else if (format === "html") {
+        /*  compress the rendered HTML (whitespace, comments, and inline CSS)  */
+        const html     = renderHtml(specification, maxTableColumns)
+        const minified = await minify(Buffer.from(html, "utf8"), {
+            collapseWhitespaces: "smart",
+            removeComments:      true,
+            minifyCss:           true
+        })
+        return Buffer.from(minified.code, "utf8")
+    }
     else
         return htmlToPdf((tocPages) => renderHtml(specification, maxTableColumns, tocPages),
             documentTitle(specification), verbose)
 }
+

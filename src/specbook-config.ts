@@ -7,37 +7,10 @@
 import * as fs from "node:fs"
 import { parse as parseYaml, parseDocument, YAMLParseError } from "yaml"
 import * as v  from "valibot"
-import sourceCodeError from "source-code-error"
 
 import { SchemaSpecification, type SchemaObject } from "./specbook-struct-schema.js"
-import { compileValueExpr } from "./specbook-parse-value.js"
-
-/*  a single parse/validation diagnostic  */
-export interface Diagnostic {
-    file:    string
-    line:    number
-    column:  number
-    message: string
-}
-
-/*  render a diagnostic as a standard single-line message  */
-export const renderDiagnostic = (diagnostic: Diagnostic): string =>
-    `${diagnostic.file}:${diagnostic.line}:${diagnostic.column}: ${diagnostic.message}`
-
-/*  render a diagnostic as a multi-line message with the affected
-    source snippet, falling back to the single-line message when the
-    source file is unreadable (e.g. the file is a directory)  */
-export const renderDiagnosticVerbose = (diagnostic: Diagnostic, colors = false): string => {
-    let code
-    try {
-        code = fs.readFileSync(diagnostic.file, "utf8")
-    }
-    catch {
-        return `${renderDiagnostic(diagnostic)}\n`
-    }
-    return sourceCodeError({ message: diagnostic.message, filename: diagnostic.file,
-        code, line: diagnostic.line, column: diagnostic.column, colors })
-}
+import { compileValueExpr }  from "./specbook-parse-value.js"
+import { type Diagnostic }   from "./specbook-diagnostic.js"
 
 /*  determine line/column of a YAML document path via the CST  */
 const lineColOfPath = (yaml: string, cst: ReturnType<typeof parseDocument>, path: (string | number)[]) => {

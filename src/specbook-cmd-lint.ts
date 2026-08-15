@@ -7,7 +7,8 @@
 import * as fs   from "node:fs"
 import * as path from "node:path"
 
-import { loadConfig, type Diagnostic }         from "./specbook-config.js"
+import { loadConfig }                          from "./specbook-config.js"
+import { type Diagnostic }                     from "./specbook-diagnostic.js"
 import { parseSpecification, type SourceFile } from "./specbook-parse.js"
 import { type Specification }                  from "./specbook-struct-spec.js"
 

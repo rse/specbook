@@ -4,7 +4,8 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import { loadConfig, renderDiagnostic, renderDiagnosticVerbose, type Diagnostic } from "./specbook-config.js"
+import { loadConfig }                                    from "./specbook-config.js"
+import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic } from "./specbook-diagnostic.js"
 import { initSpecification }                             from "./specbook-cmd-init.js"
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
 import { exportSpecification, formats, type ExportFormat } from "./specbook-cmd-export.js"
