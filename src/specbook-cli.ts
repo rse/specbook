@@ -6,9 +6,9 @@
 */
 
 import * as fs             from "node:fs"
-import { Command, Option } from "commander"
+import { Command }         from "commander"
 
-import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, formats, type ExportFormat } from "./specbook-api.js"
+import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, parseOutputSpec } from "./specbook-api.js"
 import { serveMcp }        from "./specbook-mcp.js"
 
 /*  route verbose messages to stderr, keeping stdout reserved
@@ -107,19 +107,26 @@ common(program.command("export"))
     .description("export the specification Markdown files below the base directory " +
         "as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown")
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
-    .option("-o, --output <output-file>", "output file (\"-\" for stdout)", envDefault("output", "-"))
-    .addOption(new Option("-f, --format <format>", "output format")
-        .choices(formats).default(envDefault("format", "json")))
+    .option("-o, --output [<format>:]<output-file>",
+        "output file (\"-\" for stdout, repeatable), with the format inferred " +
+        "from the filename extension unless explicitly prefixed",
+        (value: string, previous: string[]) => previous.concat(value), [] as string[])
     .option("--max-table-columns <count>",
         "maximum name/property/description columns for the compact table rendering",
         (value) => parseInt(value, 10),
         parseInt(envDefault("max-table-columns", "4") ?? "4", 10))
     .action(async (opts: { verbose: boolean, config?: string, basedir: string,
-        output: string, format: ExportFormat, maxTableColumns: number }) => {
+        output: string[], maxTableColumns: number }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const data = await specbook.export({ config: opts.config, basedir: opts.basedir,
-            format: opts.format, maxTableColumns: opts.maxTableColumns })
-        await writeOutput(opts.output, data, verboseOf(opts))
+        const outputs = (opts.output.length > 0 ? opts.output : [ envDefault("output") ?? "-" ])
+            .map((spec) => parseOutputSpec(spec))
+
+        /*  parse the input once and export each distinct format once  */
+        const distinct = Array.from(new Set(outputs.map(({ format }) => format)))
+        const buffers  = await specbook.export({ config: opts.config, basedir: opts.basedir,
+            formats: distinct, maxTableColumns: opts.maxTableColumns })
+        for (const { format, output } of outputs)
+            await writeOutput(output, buffers[distinct.indexOf(format)], verboseOf(opts))
     })
 
 common(program.command("describe"))

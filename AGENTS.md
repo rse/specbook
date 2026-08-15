@@ -77,7 +77,7 @@ No test target is defined.
 ```
 specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
-specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o <output-file>] [-f json|json5|yaml|toon|html|pdf|md]
+specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
                   [--max-table-columns <count>]
 specbook describe [-v] [-c <yaml-file>] [-o <markdown-file>]
 specbook import   [-v] [-c <yaml-file>] [-b <basedir>] <input-files...>
@@ -87,6 +87,10 @@ specbook mcp      [-v]
 
 The base directory is scanned recursively for the specification Markdown
 files, and generated specification Markdown files are placed inside it.
+The export output option `-o`/`--output` (default: `-` for stdout) can
+occur multiple times; the format is inferred from the filename extension,
+unless explicitly given as a `<format>:` prefix, and plain `-` (stdout)
+defaults to JSON.
 The default value of every CLI option `--xxx` can be overridden by a
 corresponding `SPECBOOK_XXX` environment variable. The LLM-based
 commands `import` and `edit` use the `ai` package: the environment

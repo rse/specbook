@@ -69,7 +69,7 @@ The `file` field is only allowed on the first (artifact) level.
 ```
 $ specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 $ specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
-$ specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o <output-file>] [-f json|json5|yaml|toon|html|pdf|md]
+$ specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
                     [--max-table-columns <count>]
 $ specbook describe [-v] [-c <yaml-file>] [-o <markdown-file>]
 $ specbook import   [-v] [-c <yaml-file>] [-b <basedir>] <input-files...>
@@ -81,9 +81,15 @@ The base directory `-b`/`--basedir` (default: `.`) is scanned
 recursively for the specification Markdown files, and generated
 specification Markdown files are placed inside it, too.
 
+The export output option `-o`/`--output` (default: `-` for stdout) can
+occur multiple times. The format (`json`, `json5`, `yaml`, `toon`,
+`html`, `pdf`, or `md`) is inferred from the filename extension, unless
+it is explicitly given as a `<format>:` prefix, and plain `-` (stdout)
+defaults to JSON.
+
 The default value of every CLI option `--xxx` can be overridden by a
 corresponding `SPECBOOK_XXX` environment variable (e.g.
-`SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_FORMAT`,
+`SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_OUTPUT`,
 `SPECBOOK_VERBOSE`), while an explicitly supplied option always wins.
 
 ### API

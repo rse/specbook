@@ -8,14 +8,14 @@ import { loadConfig }                                    from "./specbook-config
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic } from "./specbook-diagnostic.js"
 import { initSpecification }                             from "./specbook-cmd-init.js"
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
-import { exportSpecification, formats, type ExportFormat } from "./specbook-cmd-export.js"
+import { exportSpecification, parseOutputSpec, formats, type ExportFormat } from "./specbook-cmd-export.js"
 import { describeConfiguration }                         from "./specbook-cmd-describe.js"
 import { importSpecification }                           from "./specbook-cmd-import.js"
 import { editSpecification }                             from "./specbook-cmd-edit.js"
 import { type SchemaSpecification }                      from "./specbook-struct-schema.js"
 
 /*  re-export the central types for API consumers  */
-export { formats, type ExportFormat }
+export { formats, parseOutputSpec, type ExportFormat }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic }
 export { type LintResult }
 export type { Specification, Artifact, Object, Description, Property } from "./specbook-struct-spec.js"
@@ -58,19 +58,23 @@ export class SpecBook {
     }
 
     /*  export the specification Markdown files below the base directory
-        as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown
-        (best-effort: diagnostics do not prevent the export, as
-        validation is the concern of lint)  */
-    async export (options: { config?: string, basedir?: string, format?: ExportFormat,
-        maxTableColumns?: number }): Promise<Buffer> {
+        as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown,
+        parsing the input just once and returning one buffer per
+        requested format (best-effort: diagnostics do not prevent the
+        export, as validation is the concern of lint)  */
+    async export (options: { config?: string, basedir?: string, formats?: ExportFormat[],
+        maxTableColumns?: number }): Promise<Buffer[]> {
         const result = lint({ config: options.config, basedir: options.basedir ?? ".", verbose: this.verbose })
         for (const diagnostic of result.diagnostics)
             this.verbose(`diagnostic: ${renderDiagnostic(diagnostic)}`)
         if (result.specification.artifacts.length === 0)
             throw new Error("unexportable specification:\n" +
                 result.diagnostics.map(renderDiagnostic).join("\n"))
-        return exportSpecification(result.specification, options.format ?? "json",
-            this.verbose, options.maxTableColumns)
+        const buffers = [] as Buffer[]
+        for (const format of options.formats ?? [ "json" ])
+            buffers.push(await exportSpecification(result.specification, format,
+                this.verbose, options.maxTableColumns))
+        return buffers
     }
 
     /*  describe the configured specification format as Markdown  */

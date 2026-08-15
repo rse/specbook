@@ -17,6 +17,33 @@ import { htmlToPdf }                 from "./specbook-export-pdf.js"
 export const formats = [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ] as const
 export type ExportFormat = typeof formats[number]
 
+/*  the filename extensions mapping onto the export formats  */
+const extensions: Record<string, ExportFormat> = {
+    json:     "json",
+    json5:    "json5",
+    yaml:     "yaml",   yml: "yaml",
+    toon:     "toon",
+    html:     "html",   htm: "html",
+    pdf:      "pdf",
+    md:       "md",     markdown: "md"
+}
+
+/*  parse an output specification "[<format>:]<filename>", inferring the
+    format from the filename extension when not explicitly given
+    (plain "-" for stdout defaults to JSON)  */
+export const parseOutputSpec = (spec: string): { format: ExportFormat, output: string } => {
+    const prefixed = spec.match(/^([a-zA-Z0-9]+):(.+)$/)
+    if (prefixed !== null && (formats as readonly string[]).includes(prefixed[1]))
+        return { format: prefixed[1] as ExportFormat, output: prefixed[2] }
+    if (spec === "-")
+        return { format: "json", output: spec }
+    const ext = spec.match(/\.([a-zA-Z0-9]+)$/)
+    if (ext !== null && extensions[ext[1].toLowerCase()] !== undefined)
+        return { format: extensions[ext[1].toLowerCase()], output: spec }
+    throw new Error(`unable to infer export format from output "${spec}" ` +
+        "(use an explicit \"<format>:<filename>\" specification)")
+}
+
 /*  export a specification into the requested format  */
 export const exportSpecification = async (
     specification:   Specification,

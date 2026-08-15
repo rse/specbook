@@ -85,7 +85,8 @@ export const serveMcp = async (verbose: (msg: string) => void): Promise<void> =>
         }
     }, async (args) => {
         try {
-            const data = await specbook.export(args)
+            const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
+                formats: [ args.format ?? "json" ], maxTableColumns: args.maxTableColumns })
             if (args.output !== undefined) {
                 await fs.promises.writeFile(args.output, data)
                 return { content: [ { type: "text", text: `exported specification into "${args.output}" (${data.length} bytes)` } ] }
