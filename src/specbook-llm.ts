@@ -74,3 +74,4 @@ export const parseFileBlocks = (text: string): { name: string, content: string }
         blocks.push({ name: m[1], content: m[2].replace(/\n*$/, "\n") })
     return blocks
 }
+

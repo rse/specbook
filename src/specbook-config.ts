@@ -10,7 +10,7 @@ import * as v  from "valibot"
 import sourceCodeError from "source-code-error"
 
 import { SchemaSpecification, type SchemaObject } from "./specbook-struct-schema.js"
-import { compileValueExpr } from "./specbook-value.js"
+import { compileValueExpr } from "./specbook-parse-value.js"
 
 /*  a single parse/validation diagnostic  */
 export interface Diagnostic {

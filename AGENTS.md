@@ -20,8 +20,16 @@ a CLI `specbook <cmd>`, and an MCP service `specbook mcp` with tools
         (`init`, `lint`, `export`, `describe`, `import`, `edit`);
         `export` covers JSON, JSON5, YAML, TOON, HTML, PDF, and normalized Markdown
     -   `src/specbook-config.ts`: YAML schema configuration loading and validation (Valibot)
-    -   `src/specbook-parse.ts`: Markdown to `Specification` AST parser plus
-        configuration-driven semantic validation with file/line-precise diagnostics
+    -   `src/specbook-parse.ts`: parser facade class `Parser`, wiring the
+        two parsing phases with file/line-precise diagnostics
+    -   `src/specbook-parse-common.ts`: parsing types, the shared phase
+        context, and the image embedding MIME type mapping
+    -   `src/specbook-parse-syntax.ts`: the syntactic phase, parsing
+        Markdown into the `Specification` AST
+    -   `src/specbook-parse-semantic.ts`: the semantic phase, validating
+        the AST against the schema configuration and the link references
+    -   `src/specbook-parse-value.ts`: property value expression language
+        (Tokenizr-based compiler for regex/enum/tags/list/reference constraints)
     -   `src/specbook-struct-spec.ts`: types/schema of the generic Markdown
         structure (the AST of the specification)
     -   `src/specbook-struct-schema.ts`: types/schema of the YAML schema
