@@ -11,8 +11,6 @@ LIFECYCLE: Event {{event}}
 
 -   ENTITY:  [[ENTITY:Event]]
 
-The primary entity [[ENTITY:Event]] has a distinct lifecycle.
-
 ### STATE
 
 -   Planning; INITIAL: true;

@@ -3,9 +3,11 @@ Created:  2026-06-18 10:18
 Modified: 2026-06-18 10:18
 ---
 
-#   SPEC: Use Cases (UC)
+SPEC: Use Cases (UC)
+====================
 
-##  USE CASE: Join Event and Watch Stream {{join-event}}
+USE CASE: Join Event and Watch Stream {{join-event}}
+-------------------------------------
 
 -   ACTOR:          [[PERSONA:attendee]]
 -   REQUIREMENTS:   [[FR.authentication]], [[FR.individual-url]], [[FR.user-consent]], [[FR.parallel-access]]
@@ -13,8 +15,10 @@ Modified: 2026-06-18 10:18
 -   PRE-CONDITION:  The attendee holds an event URL and their email is granted access.
 -   POST-CONDITION: The attendee holds an active session token and sees the stream.
 
-The attendee opens the individual event URL, proves control of their email via a one-time token, accepts any required
-consent, and is admitted to the live stream while any prior session for the same user is closed.
+The attendee opens the individual event URL, proves control of their
+email via a one-time token, accepts any required consent, and is
+admitted to the live stream while any prior session for the same user is
+closed.
 
 ### SCENARIO: Successful Token Login (Main) {{join-event-token-login}}
 

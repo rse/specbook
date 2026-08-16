@@ -158,7 +158,11 @@ const parseList = (ctx: ParseContext, list: Tokens.List, object: SpecObject, fil
     for (const item of list.items) {
         const lines = itemLines(item)
         const first = lines[0]
-        const cm = first.match(/^([^:;]+):\s+(.+;.+)$/)
+
+        /*  a concise-format item carries a further segment on its first
+            line, or ends it with the segment terminator (the case of an
+            object without properties, whose description follows below)  */
+        const cm = first.match(/^([^:;]+):\s+(.+;.*)$/)
         if (cm !== null)
             parseConcise(ctx, item, object, file, line)
         else {
