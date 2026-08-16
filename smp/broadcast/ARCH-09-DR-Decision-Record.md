@@ -5,7 +5,7 @@ Modified: 2026-06-18 10:18
 
 #   ARCH: Decision Record (DR)
 
-##  DECISION: Use MQTT over WebSockets as the live transport <a id="ARCH-DR-mqtt-transport"></a>
+##  DECISION: Use MQTT over WebSockets as the live transport {{mqtt-transport}}
 
 -   STATUS:   accepted
 -   AFFECTS:  ARCH-FV-relay, ARCH-FV-service
@@ -25,7 +25,7 @@ Modified: 2026-06-18 10:18
     polling or bespoke socket handling, and its mature broker ecosystem already solves connection scaling; a plain HTTP/REST
     design was rejected because it cannot deliver low-latency server-initiated fan-out at this connection count.
 
-##  DECISION: Self-host on Hetzner instead of public cloud <a id="ARCH-DR-self-host"></a>
+##  DECISION: Self-host on Hetzner instead of public cloud {{self-host}}
 
 -   STATUS:   accepted
 -   AFFECTS:  ARCH-DP-datacenter
@@ -45,7 +45,7 @@ Modified: 2026-06-18 10:18
     cost-minimization forces; public cloud was rejected because its per-event egress and compute pricing would undermine the
     cost goal that justified building the solution at all.
 
-##  DECISION: Privacy by design with no permanent user accounts <a id="ARCH-DR-no-accounts"></a>
+##  DECISION: Privacy by design with no permanent user accounts {{no-accounts}}
 
 -   STATUS:   accepted
 -   AFFECTS:  ARCH-FV-auth, ARCH-FV-service
@@ -65,7 +65,7 @@ Modified: 2026-06-18 10:18
     outweighs the convenience of persistent accounts; a conventional account model was rejected because standing personal data
     is exactly the liability privacy by design exists to avoid.
 
-##  DECISION: Email one-time token as the authentication factor <a id="ARCH-DR-email-token"></a>
+##  DECISION: Email one-time token as the authentication factor {{email-token}}
 
 -   STATUS:   accepted
 -   AFFECTS:  ARCH-FV-auth
@@ -85,7 +85,7 @@ Modified: 2026-06-18 10:18
     everyone already has, fitting the no-accounts stance; password accounts and external identity providers were rejected as
     too heavy and as reintroducing the persistent personal data the design forbids.
 
-##  DECISION: Decouple logical Channels from physical provider Resources <a id="ARCH-DR-channel-resource"></a>
+##  DECISION: Decouple logical Channels from physical provider Resources {{channel-resource}}
 
 -   STATUS:   accepted
 -   AFFECTS:  ARCH-FV-service, ARCH-FV-client

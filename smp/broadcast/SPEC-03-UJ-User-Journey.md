@@ -11,7 +11,7 @@ JOURNEY: Attend a Broadcast event {{attend}}
 
 -   ACTOR:      [[PERSONA:attendee]]
 
-### STEP: Receive personal event invitation URL <a id="SPEC-UJ-attend-invitation"></a>
+### STEP: Receive personal event invitation URL {{attend-invitation}}
 
 -   STAGE:      Awareness
 -   GOAL:       Learn that an event is happening and that access is granted

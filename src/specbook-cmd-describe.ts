@@ -46,6 +46,12 @@ const syntax = textframe`
 
     Child objects nest as indented list items below their parent item.
 
+    ##  Primary Marker
+
+    In both formats a literal \`(*)\` directly after the \`<name>\` marks the
+    object as *primary* (e.g. the primary attribute of an entity). It is
+    distinct from an id given as \`(<id>)\` and both may be combined.
+
     ##  Configured Artifacts
 
     The following artifacts, object kinds, and properties are configured.

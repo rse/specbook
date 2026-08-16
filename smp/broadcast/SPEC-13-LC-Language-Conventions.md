@@ -5,7 +5,7 @@ Modified: 2026-06-18 10:18
 
 #   SPEC: Language Conventions (LC)
 
-##  CONVENTION: Role Names in Quotes <a id="SPEC-LC-role-quotes"></a>
+##  CONVENTION: Role Names in Quotes {{role-quotes}}
 
 -   CATEGORY: Terminology
 
@@ -13,14 +13,14 @@ Event role names are written capitalized and, in prose, treated as defined terms
 "Attendee") rather than generic words
 (e.g. "the Moderator forwards the question", not "the moderator forwards the question").
 
-##  CONVENTION: Product Name Spelling <a id="SPEC-LC-product-name"></a>
+##  CONVENTION: Product Name Spelling {{product-name}}
 
 -   CATEGORY: Capitalization
 
 The product is always written "msg.Broadcast" with the lower-case "msg" prefix and capital "B"
 (e.g. "msg.Broadcast streams the event", not "MSG Broadcast" or "msg broadcast").
 
-##  CONVENTION: Bilingual Content <a id="SPEC-LC-bilingual"></a>
+##  CONVENTION: Bilingual Content {{bilingual}}
 
 -   CATEGORY: Terminology
 
@@ -28,7 +28,7 @@ Attendee-facing event content is authored in German and English, the two support
 labeled as such distinctly from the human original
 (e.g. show an "original language" marker on translated messages).
 
-##  CONVENTION: Anonymous Placeholder <a id="SPEC-LC-anonymous"></a>
+##  CONVENTION: Anonymous Placeholder {{anonymous}}
 
 -   CATEGORY: Naming
 
@@ -36,7 +36,7 @@ When identity is hidden, the displayed sender name is exactly "Anonymous", and m
 sender name "Moderator"
 (e.g. an anonymized chat shows "Anonymous", not "anonymous user" or "N/A").
 
-##  CONVENTION: Entity Naming in Specs <a id="SPEC-LC-entity-naming"></a>
+##  CONVENTION: Entity Naming in Specs {{entity-naming}}
 
 -   CATEGORY: Naming
 
@@ -44,14 +44,14 @@ Data-model entities are referred to by their Pascal-cased names and attributes b
 font in specifications
 (e.g. `Event.accessList`, `Message.senderName`).
 
-##  CONVENTION: Token Display Format <a id="SPEC-LC-token-format"></a>
+##  CONVENTION: Token Display Format {{token-format}}
 
 -   CATEGORY: Formatting
 
 Authorization tokens are always presented in the grouped six-digit form "NNN-NNN" with a hyphen separator
 (e.g. "123-456", not "123456").
 
-##  CONVENTION: Neutral Operational Tone <a id="SPEC-LC-tone"></a>
+##  CONVENTION: Neutral Operational Tone {{tone}}
 
 -   CATEGORY: Tone
 

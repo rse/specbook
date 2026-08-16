@@ -5,9 +5,9 @@ Modified: 2026-06-18 10:18
 
 #   SPEC: State Model (SM)
 
-##  LIFECYCLE: Event <a id="SPEC-SM-event"></a>
+##  LIFECYCLE: Event {{event}}
 
--   ENTITY:  SPEC-DM-event
+-   ENTITY:  [[ENTITY:Event]]
 -   INITIAL: Planning
 -   FINAL:   Finished
 
@@ -43,9 +43,9 @@ Modified: 2026-06-18 10:18
     The anonymization procedure runs and access is closed,
     **WHEN** the manager finishes the event.
 
-##  LIFECYCLE: Message <a id="SPEC-SM-message"></a>
+##  LIFECYCLE: Message {{message}}
 
--   ENTITY:  SPEC-DM-message
+-   ENTITY:  [[ENTITY:Message]]
 -   INITIAL: Pending
 -   FINAL:   Rejected, Answered, Suspended, Accepted
 
@@ -91,9 +91,9 @@ Modified: 2026-06-18 10:18
     The message is set aside for the live event,
     **WHEN** the presenter or moderator decided not to process it.
 
-##  LIFECYCLE: AuthorizationToken <a id="SPEC-SM-authtoken"></a>
+##  LIFECYCLE: AuthorizationToken {{authtoken}}
 
--   ENTITY:  SPEC-DM-authtoken
+-   ENTITY:  [[ENTITY:AuthorizationToken]]
 -   INITIAL: Issued
 -   FINAL:   Used
 

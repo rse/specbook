@@ -66,6 +66,8 @@ a                           { color: #336699; text-decoration: none; }
 .property-name              { color: #336699; }
 span.link-broken            { color: #cc0000; }
 span.anchor-paren           { color: #999999; font-weight: normal; }
+span.primary-marker         { color: #99ccff; font-weight: normal; font-size: 150%;
+                              vertical-align: -0.25rem; }
 span.anchor-symbol          { color: #aaaaaa; font-family: "Noto Sans Symbols", sans-serif;
                               font-weight: normal; font-size: 80%; margin-left: 0.2rem; }
 span.link-symbol            { color: #aaaaaa; font-family: "Noto Sans Symbols", sans-serif;

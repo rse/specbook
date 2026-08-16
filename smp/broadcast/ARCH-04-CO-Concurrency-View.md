@@ -5,7 +5,7 @@ Modified: 2026-06-18 10:18
 
 #   ARCH: Concurrency View (CO)
 
-##  UNIT: Router Process <a id="ARCH-CO-router"></a>
+##  UNIT: Router Process {{router}}
 
 -   KIND:         Process
 -   HOSTS:        ARCH-FV-router
@@ -15,7 +15,7 @@ Modified: 2026-06-18 10:18
 The router runs as a single front-door process per data center distributing connections across environments and proxy
 instances, BECAUSE a stateless balancer can spread load without holding per-connection state.
 
-##  UNIT: Proxy Pool <a id="ARCH-CO-proxy-pool"></a>
+##  UNIT: Proxy Pool {{proxy-pool}}
 
 -   KIND:         Pool
 -   HOSTS:        ARCH-FV-proxy
@@ -25,7 +25,7 @@ instances, BECAUSE a stateless balancer can spread load without holding per-conn
 The proxy layer runs as a pool of independent, stateless reverse-proxy instances per environment, BECAUSE request handling
 must scale out horizontally to absorb connection spikes.
 
-##  UNIT: Relay Pool <a id="ARCH-CO-relay-pool"></a>
+##  UNIT: Relay Pool {{relay-pool}}
 
 -   KIND:         Pool
 -   HOSTS:        ARCH-FV-relay
@@ -35,7 +35,7 @@ must scale out horizontally to absorb connection spikes.
 The relay layer runs as a pool of Mosquitto/MQTT-Plus broker instances each maintaining thousands of WebSocket connections and
 fanning out per-event topics, BECAUSE sustaining up to 10000 concurrent connections requires horizontal broker scaling.
 
-##  UNIT: Service Event Loop <a id="ARCH-CO-service-loop"></a>
+##  UNIT: Service Event Loop {{service-loop}}
 
 -   KIND:         EventLoop
 -   HOSTS:        ARCH-FV-service, ARCH-FV-auth, ARCH-FV-translation
@@ -46,7 +46,7 @@ The service runs as Node.js single-threaded event loops that react to MQTT messa
 database transactions, BECAUSE an event-loop model handles many concurrent I/O-bound interactions without shared-memory
 races.
 
-##  UNIT: Statistics Scheduler <a id="ARCH-CO-stats-scheduler"></a>
+##  UNIT: Statistics Scheduler {{stats-scheduler}}
 
 -   KIND:         Thread
 -   HOSTS:        ARCH-FV-statistics
@@ -56,7 +56,7 @@ races.
 A scheduled task within the service captures a statistics snapshot every five minutes for each running event, BECAUSE
 periodic cumulative counts must be produced on a fixed cadence independent of user activity.
 
-##  UNIT: Database Server <a id="ARCH-CO-database"></a>
+##  UNIT: Database Server {{database}}
 
 -   KIND:         Process
 -   HOSTS:        ARCH-FV-database

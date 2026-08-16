@@ -22,6 +22,7 @@ export type Object = {
     anchor?:           string
     paren?:            string
     name:              string
+    primary?:          boolean
     description?:      Description
     properties:        Property[]
     childs:            Object[]
@@ -53,6 +54,7 @@ const Object: v.GenericSchema<Object> = v.object({
     anchor:            v.optional(v.string()),
     paren:             v.optional(v.string()),
     name:              v.string(),
+    primary:           v.optional(v.boolean()),
     description:       v.optional(Description),
     properties:        v.array(Property),
     childs:            v.array(v.lazy(() => Object))

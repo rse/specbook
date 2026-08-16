@@ -50,14 +50,22 @@ const parseHeadingText = (raw: string) => {
         text      = text.slice(0, fm.index).trim()
     }
 
-    /*  detect the trailing explicit Wiki-style anchor ("{{xxx}}") and/or
-        the implicit parenthesized anchor token ("(xxx)"), in any order  */
-    let paren: string | undefined
+    /*  detect the trailing explicit Wiki-style anchor ("{{xxx}}"), the
+        primary marker ("(*)"), and/or the implicit parenthesized anchor
+        token ("(xxx)"), in any order  */
+    let paren:   string | undefined
+    let primary = false
     for (;;) {
         const wm = text.match(/\{\{([^{}]+)\}\}\s*$/)
         if (wm !== null && wm.index !== undefined) {
             id ??= wm[1].trim()
             text  = text.slice(0, wm.index).trim()
+            continue
+        }
+        const sm = text.match(/\(\*\)\s*$/)
+        if (sm !== null && sm.index !== undefined) {
+            primary = true
+            text    = text.slice(0, sm.index).trim()
             continue
         }
         const pm = text.match(/\(([^()]+)\)\s*$/)
@@ -72,7 +80,7 @@ const parseHeadingText = (raw: string) => {
     return {
         kind: km !== null ? km[1].trim() : text,
         name: km !== null ? km[2].trim() : "",
-        id, paren, malformed
+        id, paren, primary, malformed
     }
 }
 
@@ -251,13 +259,20 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
         return
     }
     let name = head[2].trim()
-    let anchor: string | undefined
-    let paren:  string | undefined
+    let anchor:  string | undefined
+    let paren:   string | undefined
+    let primary = false
     for (;;) {
         const am = name.match(/\{\{([^{}]+)\}\}\s*$/)
         if (am !== null && am.index !== undefined) {
             anchor ??= am[1].trim()
             name     = name.slice(0, am.index).trim()
+            continue
+        }
+        const sm = name.match(/\(\*\)\s*$/)
+        if (sm !== null && sm.index !== undefined) {
+            primary = true
+            name    = name.slice(0, sm.index).trim()
             continue
         }
         const pm = name.match(/\(([^()]+)\)\s*$/)
@@ -279,6 +294,8 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
         object.anchor = anchor
     if (paren !== undefined)
         object.paren = paren
+    if (primary)
+        object.primary = true
     ctx.objectMeta.set(object, { file, line })
     const statements = new Array<string>()
     for (const segment of segments) {
@@ -361,6 +378,8 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
                     object.anchor = heading.id
                 if (heading.paren !== undefined)
                     object.paren = heading.paren
+                if (heading.primary)
+                    object.primary = true
                 ctx.objectMeta.set(object, { file: source.file, line })
                 if (token.depth === 1) {
                     artifacts.push({

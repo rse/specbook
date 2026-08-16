@@ -7,7 +7,7 @@ Modified: 2026-06-18 10:18
 
 ![](ARCH-02-FV-Functionality-View-1.svg)
 
-##  COMPONENT: Web Client <a id="ARCH-FV-client"></a>
+##  COMPONENT: Web Client {{client}}
 
 -   KIND:           Subsystem
 -   RESPONSIBILITY: Render the attendee and operator UI and drive all user interaction.
@@ -17,7 +17,7 @@ Modified: 2026-06-18 10:18
 The Vue.js single-page application renders the panel, attendee, studio, moderator, and manager screens, plays the video
 stream, and exchanges live data over MQTT, BECAUSE msg.Broadcast delivers its entire experience in the browser.
 
-##  COMPONENT: Client NLP <a id="ARCH-FV-client-nlp"></a>
+##  COMPONENT: Client NLP {{client-nlp}}
 
 -   KIND:           Module
 -   RESPONSIBILITY: Perform lightweight client-side sentiment and language detection on input.
@@ -26,7 +26,7 @@ stream, and exchanges live data over MQTT, BECAUSE msg.Broadcast delivers its en
 The client NLP module runs local sentiment analysis and language identification on attendee input before it is sent,
 BECAUSE filtering at the source reduces server load and can prevent improper submissions.
 
-##  COMPONENT: Router <a id="ARCH-FV-router"></a>
+##  COMPONENT: Router {{router}}
 
 -   KIND:           Connector
 -   RESPONSIBILITY: Route incoming requests across proxy instances of an environment.
@@ -35,7 +35,7 @@ BECAUSE filtering at the source reduces server load and can prevent improper sub
 The router (HAProxy with NFTables) directs incoming HTTP and WebSocket traffic to proxy instances using round-robin and
 separates the dev, QA, and production environments, BECAUSE traffic must be balanced and environments isolated at the edge.
 
-##  COMPONENT: Proxy <a id="ARCH-FV-proxy"></a>
+##  COMPONENT: Proxy {{proxy}}
 
 -   KIND:           Connector
 -   RESPONSIBILITY: Proxy environment HTTP and WebSocket requests to the relay layer.
@@ -45,7 +45,7 @@ separates the dev, QA, and production environments, BECAUSE traffic must be bala
 The proxy layer (HAProxy) forwards requests of a specific environment to the relay layer and scales horizontally per
 environment, BECAUSE request handling must scale independently of the messaging layer.
 
-##  COMPONENT: Relay <a id="ARCH-FV-relay"></a>
+##  COMPONENT: Relay {{relay}}
 
 -   KIND:           Connector
 -   RESPONSIBILITY: Maintain thousands of bidirectional WebSocket/MQTT connections.
@@ -55,7 +55,7 @@ environment, BECAUSE request handling must scale independently of the messaging 
 The relay layer brokers MQTT messages between clients and the service layer over many concurrent WebSockets and scales
 horizontally, BECAUSE real-time fan-out to up to 10000 attendees is the central performance challenge.
 
-##  COMPONENT: Service <a id="ARCH-FV-service"></a>
+##  COMPONENT: Service {{service}}
 
 -   KIND:           Service
 -   RESPONSIBILITY: Execute all business logic for events, messages, auth, and statistics.
@@ -65,7 +65,7 @@ horizontally, BECAUSE real-time fan-out to up to 10000 attendees is the central 
 The service layer is the main server holding event, moderation, access, and configuration logic, reacting to MQTT messages
 and persisting state, BECAUSE the authoritative business rules must live in a single server tier.
 
-##  COMPONENT: Authentication Service <a id="ARCH-FV-auth"></a>
+##  COMPONENT: Authentication Service {{auth}}
 
 -   KIND:           Module
 -   RESPONSIBILITY: Issue and validate authorization and session tokens.
@@ -75,7 +75,7 @@ and persisting state, BECAUSE the authoritative business rules must live in a si
 The authentication module generates one-time tokens, sends them via the email gateway, validates logins, and enforces a
 single active session per user per event, BECAUSE email-verified, single-session access is the core security mechanism.
 
-##  COMPONENT: Translation Service <a id="ARCH-FV-translation"></a>
+##  COMPONENT: Translation Service {{translation}}
 
 -   KIND:           Module
 -   RESPONSIBILITY: Produce language-specific message texts via an external LLM.
@@ -84,7 +84,7 @@ single active session per user per event, BECAUSE email-verified, single-session
 The translation module translates message texts into the supported languages on the fly while preserving the original,
 BECAUSE chat and questions must be available in both German and English.
 
-##  COMPONENT: Statistics Service <a id="ARCH-FV-statistics"></a>
+##  COMPONENT: Statistics Service {{statistics}}
 
 -   KIND:           Module
 -   RESPONSIBILITY: Generate periodic event, channel, and user statistics snapshots.
@@ -94,7 +94,7 @@ BECAUSE chat and questions must be available in both German and English.
 The statistics module periodically captures cumulative counts of tokens, sessions, connections, and viewers during a running
 event, BECAUSE trend dashboards require regular snapshots over the event's lifetime.
 
-##  COMPONENT: Junction Orchestrator <a id="ARCH-FV-junction"></a>
+##  COMPONENT: Junction Orchestrator {{junction}}
 
 -   KIND:           Component
 -   RESPONSIBILITY: Serve the static client content and orchestrate backend delivery over MQTT+.
@@ -103,7 +103,7 @@ event, BECAUSE trend dashboards require regular snapshots over the event's lifet
 The Junction component serves the static client bundle and orchestrates its delivery to the relay over MQTT+, BECAUSE the
 client must be distributed alongside the same messaging infrastructure used for live data.
 
-##  COMPONENT: Database <a id="ARCH-FV-database"></a>
+##  COMPONENT: Database {{database}}
 
 -   KIND:           Component
 -   RESPONSIBILITY: Persist all business objects and static assets.

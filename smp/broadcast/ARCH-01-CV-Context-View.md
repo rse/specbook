@@ -5,7 +5,7 @@ Modified: 2026-06-18 10:18
 
 #   ARCH: Context View (CV)
 
-##  ENTITY: Attendee Browser <a id="ARCH-CV-attendee"></a>
+##  ENTITY: Attendee Browser {{attendee}}
 
 -   KIND:      Person
 -   DIRECTION: Bidirectional
@@ -15,7 +15,7 @@ Modified: 2026-06-18 10:18
 The attendee's web browser is the primary client through which a person authenticates, watches the stream, and interacts,
 BECAUSE msg.Broadcast is a browser-delivered solution serving thousands of concurrent attendees.
 
-##  ENTITY: Operator Browser <a id="ARCH-CV-operator"></a>
+##  ENTITY: Operator Browser {{operator}}
 
 -   KIND:      Person
 -   DIRECTION: Bidirectional
@@ -25,7 +25,7 @@ BECAUSE msg.Broadcast is a browser-delivered solution serving thousands of concu
 Managers, moderators, and presenters use their browsers to configure events, moderate input, and present forwarded questions,
 BECAUSE all event operation happens through the same web application as attendance.
 
-##  ENTITY: Streaming Provider <a id="ARCH-CV-provider"></a>
+##  ENTITY: Streaming Provider {{provider}}
 
 -   KIND:      System
 -   DIRECTION: Outbound
@@ -35,7 +35,7 @@ BECAUSE all event operation happens through the same web application as attendan
 External streaming providers such as msg Filmstudio, msg Broadcast, YouTube, Cloudflare, Twitch, and 3Q ingest and deliver
 the video, BECAUSE the solution is streaming-provider independent and consumes provider endpoints rather than hosting video.
 
-##  ENTITY: Content CDN <a id="ARCH-CV-cdn"></a>
+##  ENTITY: Content CDN {{cdn}}
 
 -   KIND:      Service
 -   DIRECTION: Outbound
@@ -45,7 +45,7 @@ the video, BECAUSE the solution is streaming-provider independent and consumes p
 A Cloudflare content delivery network fronts static content for fast, stable distribution, BECAUSE static assets must load
 quickly and reliably for a global, large-scale audience.
 
-##  ENTITY: Ventari Platform <a id="ARCH-CV-ventari"></a>
+##  ENTITY: Ventari Platform {{ventari}}
 
 -   KIND:      System
 -   DIRECTION: Bidirectional
@@ -55,7 +55,7 @@ quickly and reliably for a global, large-scale audience.
 The U2D Ventari platform supplies attendee registration data and receives generated access URLs via Excel exchange,
 BECAUSE events are provisioned from the organization's existing registration system.
 
-##  ENTITY: Email Gateway <a id="ARCH-CV-email"></a>
+##  ENTITY: Email Gateway {{email}}
 
 -   KIND:      Service
 -   DIRECTION: Outbound
@@ -65,7 +65,7 @@ BECAUSE events are provisioned from the organization's existing registration sys
 An external mail-sending service delivers one-time authorization tokens to attendees, BECAUSE email is the first-factor
 channel through which access is verified.
 
-##  ENTITY: Translation LLM <a id="ARCH-CV-llm"></a>
+##  ENTITY: Translation LLM {{llm}}
 
 -   KIND:      Service
 -   DIRECTION: Outbound
@@ -75,7 +75,7 @@ channel through which access is verified.
 An external AI/LLM service translates message texts between the supported languages, BECAUSE chat and questions are made
 available in German and English on the fly.
 
-##  ENTITY: Embedded Third-Party App <a id="ARCH-CV-app"></a>
+##  ENTITY: Embedded Third-Party App {{app}}
 
 -   KIND:      System
 -   DIRECTION: Bidirectional

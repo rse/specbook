@@ -5,7 +5,7 @@ Modified: 2026-06-18 10:18
 
 #   ARCH: Deployment View (DP)
 
-##  NODE: Client Device <a id="ARCH-DP-client-device"></a>
+##  NODE: Client Device {{client-device}}
 
 -   KIND:     Device
 -   PLATFORM: Recent web browser on desktop, tablet, or mobile
@@ -15,7 +15,7 @@ Modified: 2026-06-18 10:18
 The attendee and operator devices run the web client and local NLP entirely in the browser, BECAUSE the solution requires
 no installation and must run on both managed and unmanaged devices.
 
-##  NODE: Cloudflare CDN <a id="ARCH-DP-cdn"></a>
+##  NODE: Cloudflare CDN {{cdn}}
 
 -   KIND:     Managed
 -   PLATFORM: Cloudflare edge network
@@ -24,7 +24,7 @@ no installation and must run on both managed and unmanaged devices.
 A Cloudflare CDN edge distributes the static client bundle and static resources close to users, BECAUSE static content must
 be delivered quickly and stably to a large, distributed audience.
 
-##  NODE: Edge Router <a id="ARCH-DP-router"></a>
+##  NODE: Edge Router {{router}}
 
 -   KIND:     Server
 -   PLATFORM: Linux with HAProxy and NFTables
@@ -34,7 +34,7 @@ be delivered quickly and stably to a large, distributed audience.
 The edge router terminates inbound HTTP and WebSocket traffic and round-robins it to per-environment proxies, BECAUSE a
 single hardened entry point must balance load and isolate environments.
 
-##  NODE: Proxy Tier <a id="ARCH-DP-proxy"></a>
+##  NODE: Proxy Tier {{proxy}}
 
 -   KIND:     Server
 -   PLATFORM: Linux with HAProxy
@@ -44,7 +44,7 @@ single hardened entry point must balance load and isolate environments.
 The proxy tier runs several HAProxy instances per environment forwarding to the relay tier, BECAUSE per-environment scaling
 of request handling needs multiple proxy instances.
 
-##  NODE: Relay Tier <a id="ARCH-DP-relay"></a>
+##  NODE: Relay Tier {{relay}}
 
 -   KIND:     Server
 -   PLATFORM: Linux with Mosquitto and MQTT-Plus
@@ -54,7 +54,7 @@ of request handling needs multiple proxy instances.
 The relay tier runs several MQTT broker instances per environment holding the live WebSocket connections, BECAUSE
 sustaining thousands of bidirectional connections requires a dedicated, scalable messaging tier.
 
-##  NODE: Service Tier <a id="ARCH-DP-service"></a>
+##  NODE: Service Tier {{service}}
 
 -   KIND:     Container
 -   PLATFORM: Junction container running Node.js
@@ -64,7 +64,7 @@ sustaining thousands of bidirectional connections requires a dedicated, scalable
 The service tier runs the Node.js business services and the Junction orchestrator in containers per environment, BECAUSE
 containerized services give reproducible, independently scalable business logic.
 
-##  NODE: Database Tier <a id="ARCH-DP-database"></a>
+##  NODE: Database Tier {{database}}
 
 -   KIND:     Server
 -   PLATFORM: Linux with PostgreSQL and filesystem storage
@@ -74,7 +74,7 @@ containerized services give reproducible, independently scalable business logic.
 The database tier runs PostgreSQL with filesystem asset storage as the authoritative persistence node, BECAUSE durable
 state must reside on a protected, non-public node.
 
-##  NODE: Hetzner Data Center <a id="ARCH-DP-datacenter"></a>
+##  NODE: Hetzner Data Center {{datacenter}}
 
 -   KIND:     Cluster
 -   PLATFORM: Hetzner infrastructure in Nürnberg, Germany

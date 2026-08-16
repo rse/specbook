@@ -5,104 +5,104 @@ Modified: 2026-06-18 10:18
 
 #   SPEC: Test Cases (TC)
 
-##  TEST CASE: Valid Token Grants Access <a id="SPEC-TC-valid-token"></a>
+##  TEST CASE: Valid Token Grants Access {{valid-token}}
 
--   VERIFIES:       SPEC-FR-authentication
+-   VERIFIES:       [[FR.authentication]]
 -   PRE-CONDITION:  An invited user with a sent, unexpired authorization token exists for a running event.
 -   INPUT:          The user submits the correct six-digit token for their email.
 -   EXPECTED:       The system issues a session token and grants access to the stream.
 -   POST-CONDITION: The authorization token is in state used.
 
-##  TEST CASE: Unauthorized Email Rejected <a id="SPEC-TC-unauthorized"></a>
+##  TEST CASE: Unauthorized Email Rejected {{unauthorized}}
 
--   VERIFIES:      SPEC-FR-authentication
+-   VERIFIES:      [[FR.authentication]]
 -   PRE-CONDITION: An email not on the access list and not matching the access pattern.
 -   INPUT:         The user enters that email in the login dialog.
 -   EXPECTED:      The system denies access and shows a not-authorized notice.
 
-##  TEST CASE: Second Login Closes First Session <a id="SPEC-TC-single-session"></a>
+##  TEST CASE: Second Login Closes First Session {{single-session}}
 
--   VERIFIES:       SPEC-FR-parallel-access
+-   VERIFIES:       [[FR.parallel-access]]
 -   PRE-CONDITION:  A user holds an active session for an event from one device.
 -   INPUT:          The same user completes a login from a second device.
 -   EXPECTED:       The first connection is closed and only the new session remains active.
 -   POST-CONDITION: Exactly one active session token exists for the user and event.
 
-##  TEST CASE: Moderated Question Starts Pending <a id="SPEC-TC-moderated-pending"></a>
+##  TEST CASE: Moderated Question Starts Pending {{moderated-pending}}
 
--   VERIFIES:      SPEC-FR-moderation
+-   VERIFIES:      [[FR.moderation]]
 -   PRE-CONDITION: An event with question moderation enabled is running.
 -   INPUT:         An attendee submits a question.
 -   EXPECTED:      The question is stored in state pending and is not visible to the audience.
 
-##  TEST CASE: Unmoderated Chat Starts Accepted <a id="SPEC-TC-unmoderated-accepted"></a>
+##  TEST CASE: Unmoderated Chat Starts Accepted {{unmoderated-accepted}}
 
--   VERIFIES:      SPEC-FR-moderation
+-   VERIFIES:      [[FR.moderation]]
 -   PRE-CONDITION: An event with chat moderation disabled is running.
 -   INPUT:         An attendee submits a chat message.
 -   EXPECTED:      The message is stored in state accepted and is immediately visible.
 
-##  TEST CASE: Forwarded Message Is Locked <a id="SPEC-TC-forward-lock"></a>
+##  TEST CASE: Forwarded Message Is Locked {{forward-lock}}
 
--   VERIFIES:      SPEC-FR-message-editing
+-   VERIFIES:      [[FR.message-editing]]
 -   PRE-CONDITION: An accepted question has been forwarded to the presenter.
 -   INPUT:         The original attendee attempts to edit or delete the message.
 -   EXPECTED:      The system refuses the edit and the message remains unchanged.
 
-##  TEST CASE: Sentiment Auto-Reject Below Threshold <a id="SPEC-TC-sentiment-reject"></a>
+##  TEST CASE: Sentiment Auto-Reject Below Threshold {{sentiment-reject}}
 
--   VERIFIES:      SPEC-FR-server-sentiment
+-   VERIFIES:      [[FR.server-sentiment]]
 -   PRE-CONDITION: Server-side sentiment analysis and auto-reject are enabled.
 -   INPUT:         An attendee submits a message scoring -0.5.
 -   EXPECTED:      The system stores the message directly in state rejected.
 
-##  TEST CASE: Live Provider Switch Propagates <a id="SPEC-TC-provider-switch"></a>
+##  TEST CASE: Live Provider Switch Propagates {{provider-switch}}
 
--   VERIFIES:       SPEC-FR-provider-switch
+-   VERIFIES:       [[FR.provider-switch]]
 -   PRE-CONDITION:  A running event with two configured resources and connected clients.
 -   INPUT:          The manager activates the second resource on the channel.
 -   EXPECTED:       All connected clients switch to the new stream without user interaction.
 -   POST-CONDITION: Exactly one resource of the channel is active.
 
-##  TEST CASE: Config Change Reaches Clients <a id="SPEC-TC-config-propagation"></a>
+##  TEST CASE: Config Change Reaches Clients {{config-propagation}}
 
--   VERIFIES:      SPEC-FR-config-propagation
+-   VERIFIES:      [[FR.config-propagation]]
 -   PRE-CONDITION: A running event with connected clients and chat disabled.
 -   INPUT:         The manager enables chat for the event.
 -   EXPECTED:      Connected clients show the chat panel within 2 seconds without a reload.
 
-##  TEST CASE: Ventari Import Avoids Duplicates <a id="SPEC-TC-ventari-dedup"></a>
+##  TEST CASE: Ventari Import Avoids Duplicates {{ventari-dedup}}
 
--   VERIFIES:      SPEC-FR-ventari-import
+-   VERIFIES:      [[FR.ventari-import]]
 -   PRE-CONDITION: An event whose access list already contains some imported emails.
 -   INPUT:         The manager imports a Ventari sheet overlapping the existing emails.
 -   EXPECTED:      Existing users are not duplicated and their prior tokens are returned.
 
-##  TEST CASE: Returned URL Format <a id="SPEC-TC-url-format"></a>
+##  TEST CASE: Returned URL Format {{url-format}}
 
--   VERIFIES:      SPEC-FR-ventari-export
+-   VERIFIES:      [[FR.ventari-export]]
 -   PRE-CONDITION: A Ventari import has generated tokens for new users.
 -   INPUT:         The manager exports the access URLs.
 -   EXPECTED:      Each URL contains event, user, and a six-digit "NNN-NNN" token in the URL column.
 
-##  TEST CASE: Anonymization Removes Personal Data <a id="SPEC-TC-anonymize"></a>
+##  TEST CASE: Anonymization Removes Personal Data {{anonymize}}
 
--   VERIFIES:       SPEC-FR-user-consent
+-   VERIFIES:       [[FR.user-consent]]
 -   PRE-CONDITION:  A running event with messages, likes, tokens, and an access list.
 -   INPUT:          The manager finishes the event.
 -   EXPECTED:       Sender names become "Anonymous", likes become bare counts, and tokens, users, and Moderator roles are deleted.
 -   POST-CONDITION: No personal attendee data remains and Manager roles are retained.
 
-##  TEST CASE: Export Contains Required Fields <a id="SPEC-TC-export-fields"></a>
+##  TEST CASE: Export Contains Required Fields {{export-fields}}
 
--   VERIFIES:      SPEC-FR-export-inputs
+-   VERIFIES:      [[FR.export-inputs]]
 -   PRE-CONDITION: A finished, anonymized event with messages.
 -   INPUT:         The manager exports the attendee inputs.
 -   EXPECTED:      The export includes at least timestamp, state, number of likes, and message text per message.
 
-##  TEST CASE: Concurrent Attendee Load <a id="SPEC-TC-load"></a>
+##  TEST CASE: Concurrent Attendee Load {{load}}
 
--   VERIFIES:      SPEC-NR-attendee-scale
+-   VERIFIES:      [[NR.attendee-scale]]
 -   PRE-CONDITION: A running event deployed with scaled proxy, relay, and server instances.
 -   INPUT:         10000 simulated attendees connect simultaneously and interact.
 -   EXPECTED:      All connections are served and message round-trips remain responsive under load.

@@ -84,7 +84,7 @@ const templates: { [ name: string ]: string } = {
     /*  <Object/>  */
     "Object": textframe`
         <section>
-            <h{{ Object.level }} id="{{ Object.id }}"><span class="object-kind">{{ Object.kind }}:</span> {{ Object.name }}{% if Object.paren %} <span class="anchor-paren">({{ Object.paren }})</span>{% endif %} <a href="#{{ Object.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></h{{ Object.level }}>
+            <h{{ Object.level }} id="{{ Object.id }}"><span class="object-kind">{{ Object.kind }}:</span> {{ Object.name }}{% if Object.primary %} <span class="primary-marker">&#x25CF;</span>{% endif %}{% if Object.paren %} <span class="anchor-paren">({{ Object.paren }})</span>{% endif %} <a href="#{{ Object.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></h{{ Object.level }}>
             {{ Object.properties }}
             {{ Object.description }}
             {{ Object.childs }}
@@ -122,7 +122,7 @@ const templates: { [ name: string ]: string } = {
             <tbody>
                 {% for row in Table.rows %}
                 <tr id="{{ row.id }}">
-                    <td>{{ row.name }}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
+                    <td>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x25CF;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     {%- for value in row.values %}<td>{{ value }}</td>{% endfor %}
                     {%- if Table.desc %}<td>{{ row.description }}</td>{% endif %}
                 </tr>
@@ -272,6 +272,7 @@ const renderTable = (childs: SpecObject[]): string => {
         rows: childs.map((child) => ({
             id:          anchorOf(child),
             paren:       child.paren,
+            primary:     child.primary,
             name:        inline(child.name),
             values:      keys.map((key) => {
                 const value = child.properties.find((property) => property.key === key)?.value
@@ -290,6 +291,7 @@ const renderObject = (object: SpecObject, level: number, maxColumns: number): st
         kind:        object.kind,
         id:          anchorOf(object),
         paren:       object.paren,
+        primary:     object.primary,
         name:        inline(object.name),
         properties:  object.properties.length > 0 ?
             safe(render("Properties", { Properties: inlineProperties(object.kind, object.properties) })) : "",

@@ -181,7 +181,7 @@
                         Comma-separated references to the
                         FUNCTIONAL-REQUIREMENTS or NON-FUNCTIONAL-REQUIREMENTS
                         objects the rule constrains.
-                    value: list(/^SPEC-(?:FR|NR)-.+$/)
+                    value: list([[FR.*]], [[NR.*]])
                     optional: true
 
 -   kind: SPEC
@@ -207,10 +207,10 @@
                     props:
                         -   name: TYPE
                             desc: The type (and optionally qualifier) of the entity attribute.
-                            value: /^((?:unique|)\s+)?(?:boolean|string|integer|float|uuid|date|time|datetime|enum\((?:[A-Za-z0-9_]+)(?:,\s*[A-Za-z0-9_]+)*\))$/
-                        -   name: ARITY
-                            desc: Arity of the type. Can mark the attribute as optional.
-                            value: /\?/
+                            value: /^((?:unique|)\s+)?(?:boolean|string|integer|float|uuid|date|time|datetime|enum\((?:[A-Za-z0-9_]+)(?:,\s*[A-Za-z0-9_]+)*\))(?:\?)?$/
+                        -   name: DEFAULT
+                            desc: Default value
+                            value: /.*/
                             optional: true
                 -   kind: RELATION
                     name: "[a-z][a-zA-Z0-9]*"
@@ -222,7 +222,7 @@
                     props:
                         -   name: TYPE
                             desc: Name of the entity the directed relation targets.
-                            value: /[A-Z][a-zA-Z0-9]*/
+                            value: "[[DM.ENTITY:*]]"
                         -   name: ARITY
                             desc: Arity of the relation at the target entity.
                             value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n)$/
@@ -247,7 +247,7 @@
                     desc: >
                         Reference to the DATA-MODEL entity whose lifecycle
                         this models.
-                    value: /^SPEC-DM-.+$/
+                    value: "[[DM.ENTITY:*]]"
                 -   name: INITIAL
                     desc: >
                         The single state every instance of the entity
@@ -323,13 +323,13 @@
                     desc: >
                         Reference to the PERSONAS object denoting the
                         primary actor pursuing the goal.
-                    value: /^SPEC-PE-.+$/
+                    value: "[[PERSONA:*]]"
                 -   name: REQUIREMENTS
                     desc: >
                         Comma-separated references to the
                         FUNCTIONAL-REQUIREMENTS objects the use case
                         realizes.
-                    value: list(/^SPEC-FR-.+$/)
+                    value: list([[FR.*]])
                     optional: true
                 -   name: GOAL
                     desc: >
@@ -375,7 +375,7 @@
                         Reference to the FUNCTIONAL-REQUIREMENTS or
                         NON-FUNCTIONAL-REQUIREMENTS object the test case
                         verifies.
-                    value: /^SPEC-(?:FR|NR)-.+$/
+                    value: "[[REQUIREMENT:*]]"
                 -   name: PRE-CONDITION
                     desc: >
                         The state or setup that must hold before the test
@@ -468,19 +468,19 @@
                     desc: >
                         Reference to the DIALOG-PATTERNS object the
                         storyboard instantiates.
-                    value: /^SPEC-DP-.+$/
+                    value: "[[PATTERN:*]]"
                     optional: true
                 -   name: USE-CASE
                     desc: >
                         Reference to the USE-CASES object the storyboard
                         visualizes.
-                    value: /^SPEC-UC-.+$/
+                    value: "[[USE CASE:*]]"
                     optional: true
                 -   name: SCENARIO
                     desc: >
                         Reference to the USE-CASES scenario object the
                         storyboard visualizes.
-                    value: /^SPEC-UC-.+-.+$/
+                    value: "[[SCENARIO:*]]"
                     optional: true
             childs:
                 -   kind: FRAME
@@ -591,7 +591,7 @@
                     desc: >
                         Comma-separated references to the DATA-MODEL
                         entities the aspect governs.
-                    value: list(/^SPEC-DM-.+$/)
+                    value: list([[DM.ENTITY:*]])
                     optional: true
                 -   name: OWNER
                     desc: >
@@ -735,7 +735,7 @@
                         Comma-separated references to the
                         NON-FUNCTIONAL-REQUIREMENTS objects the perspective
                         addresses.
-                    value: list(/^SPEC-NR-.+$/)
+                    value: list([[NR.*]])
                 -   name: TACTIC
                     desc: >
                         The architectural tactic or strategy applied to
