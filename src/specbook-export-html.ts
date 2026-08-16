@@ -11,8 +11,12 @@ import textframe         from "textframe"
 
 import type { Specification, Artifact, Object as SpecObject, Property, Description }
     from "./specbook-struct-spec.js"
+import type { SchemaSpecification, SchemaObject }
+    from "./specbook-struct-schema.js"
 import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths }
     from "./specbook-link.js"
+import { compileValueExpr, splitItems }
+    from "./specbook-parse-value.js"
 import { embeddingRegex, embeddingMimeType }
     from "./specbook-parse-common.js"
 import { escapeHtml, stylesheet, isTitleObject, documentTitle }
@@ -141,10 +145,12 @@ const safe = (html: string) =>
 const render = (name: string, context: object): string =>
     env.renderString(templates[name], context)
 
-/*  the active per-document reference expander and fully-qualified
-    anchor paths (both set during HTML rendering)  */
+/*  the active per-document reference expander, fully-qualified
+    anchor paths, and enum/tags property value kinds
+    (all set during HTML rendering)  */
 let linker: ((text: string) => string) | null = null
 let anchors: Map<SpecObject, string> | null  = null
+let members: Map<string, "enum" | "tags"> | null = null
 
 /*  determine the fully-qualified anchor path of an object  */
 const anchorOf = (object: SpecObject): string =>
@@ -178,9 +184,42 @@ const renderDescription = (description: Description): string => {
     } })
 }
 
+/*  collect the "enum(...)"/"tags(...)" constrained properties of the
+    schema configuration, keyed by object kind and property name  */
+const collectMembers = (schemas: SchemaObject[], result: Map<string, "enum" | "tags">) => {
+    for (const schema of schemas) {
+        for (const property of schema.props ?? []) {
+            if (property.value === undefined)
+                continue
+            try {
+                const expr = compileValueExpr(property.value)
+                if (expr.kind === "enum" || expr.kind === "tags")
+                    result.set(`${schema.kind} ${property.name}`, expr.kind)
+            }
+            catch {
+                /*  an invalid expression is the concern of lint  */
+            }
+        }
+        collectMembers(schema.childs ?? [], result)
+    }
+    return result
+}
+
+/*  render a property value, badging the individual members of an
+    "enum(...)" (a single member) or "tags(...)" (a member set) value  */
+const inlineValue = (kind: string, key: string, value: string) => {
+    const member = members?.get(`${kind} ${key.replace(/\s*\([^)]*\)\s*$/, "").trim()}`)
+    if (member === undefined)
+        return inline(value)
+    const items = member === "tags" ? splitItems(value) : [ value.trim() ]
+    return safe(items.map((item) =>
+        `<span class="value-member">${inline(item)}</span>`).join(" "))
+}
+
 /*  expand the inline Markdown of the property values  */
-const inlineProperties = (properties: Property[]) =>
-    properties.map((property) => ({ key: property.key, value: inline(property.value) }))
+const inlineProperties = (kind: string, properties: Property[]) =>
+    properties.map((property) => ({ key: property.key,
+        value: inlineValue(kind, property.key, property.value) }))
 
 /*  determine the column shape of a potential compact table  */
 const tableShape = (childs: SpecObject[]) => {
@@ -236,7 +275,7 @@ const renderTable = (childs: SpecObject[]): string => {
             name:        inline(child.name),
             values:      keys.map((key) => {
                 const value = child.properties.find((property) => property.key === key)?.value
-                return value !== undefined ? inline(value) : ""
+                return value !== undefined ? inlineValue(child.kind, key, value) : ""
             }),
             description: child.description !== undefined ?
                 safe(renderDescription(child.description)) : ""
@@ -253,7 +292,7 @@ const renderObject = (object: SpecObject, level: number, maxColumns: number): st
         paren:       object.paren,
         name:        inline(object.name),
         properties:  object.properties.length > 0 ?
-            safe(render("Properties", { Properties: inlineProperties(object.properties) })) : "",
+            safe(render("Properties", { Properties: inlineProperties(object.kind, object.properties) })) : "",
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
         childs:      tabularChilds(object, maxColumns) ?
@@ -275,7 +314,7 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
         properties:  rest.length > 0 ?
-            safe(render("Properties", { Properties: inlineProperties(rest) })) : "",
+            safe(render("Properties", { Properties: inlineProperties(object.kind, rest) })) : "",
         created, modified
     } })
 }
@@ -291,12 +330,13 @@ const renderArtifact = (artifact: Artifact, maxColumns: number): string =>
     artifact timestamps aggregated into min(Created)/max(Modified), and
     optional per-anchor page numbers attached to the ToC entries  */
 export const renderHtml = (specification: Specification, maxColumns: number,
-    tocPages?: Map<string, number>): string => {
+    config?: SchemaSpecification, tocPages?: Map<string, number>): string => {
     /*  expand "[[xxx]]" references into hyperlinks (an unresolvable or
         ambiguous reference stays literal, marked as broken), targeting
         the fully-qualified anchor paths of the objects  */
     const index = buildLinkIndex(specification)
     anchors = anchorPaths(index)
+    members = config !== undefined ? collectMembers(config, new Map()) : null
     linker  = (text) => expandReferences(text, (reference) => {
         const target = resolveUnique(index, reference).target
         if (target === undefined)

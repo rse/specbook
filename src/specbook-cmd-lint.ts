@@ -11,6 +11,7 @@ import { loadConfig }                          from "./specbook-config.js"
 import { type Diagnostic }                     from "./specbook-diagnostic.js"
 import { parseSpecification, type SourceFile } from "./specbook-parse.js"
 import { type Specification }                  from "./specbook-struct-spec.js"
+import { type SchemaSpecification }            from "./specbook-struct-schema.js"
 
 /*  the options of the lint command  */
 export interface LintOptions {
@@ -23,6 +24,7 @@ export interface LintOptions {
 export interface LintResult {
     specification: Specification
     diagnostics:   Diagnostic[]
+    config?:       SchemaSpecification
 }
 
 /*  recursively scan a base directory for Markdown files  */
@@ -64,5 +66,5 @@ export const lint = (options: LintOptions): LintResult => {
     }
     const result  = parseSpecification(sources, config)
     diagnostics.push(...result.diagnostics)
-    return { specification: result.specification, diagnostics }
+    return { specification: result.specification, diagnostics, config }
 }

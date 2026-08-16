@@ -73,7 +73,7 @@ export class SpecBook {
         const buffers = [] as Buffer[]
         for (const format of options.formats ?? [ "json" ])
             buffers.push(await exportSpecification(result.specification, format,
-                this.verbose, options.maxTableColumns))
+                this.verbose, options.maxTableColumns, result.config))
         return buffers
     }
 

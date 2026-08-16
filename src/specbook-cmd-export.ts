@@ -7,6 +7,7 @@
 import { minify }                    from "@swc/html"
 
 import type { Specification }        from "./specbook-struct-spec.js"
+import type { SchemaSpecification }  from "./specbook-struct-schema.js"
 import { documentTitle }             from "./specbook-export-common.js"
 import { renderAst, type AstFormat } from "./specbook-export-ast.js"
 import { renderMarkdown }            from "./specbook-export-md.js"
@@ -49,7 +50,8 @@ export const exportSpecification = async (
     specification:   Specification,
     format:          ExportFormat,
     verbose:         (msg: string) => void,
-    maxTableColumns = 4
+    maxTableColumns = 4,
+    config?:         SchemaSpecification
 ): Promise<Buffer> => {
     if (!(formats as readonly string[]).includes(format))
         throw new Error(`unknown export format "${format}"`)
@@ -60,7 +62,7 @@ export const exportSpecification = async (
         return Buffer.from(renderMarkdown(specification), "utf8")
     else if (format === "html") {
         /*  compress the rendered HTML (whitespace, comments, and inline CSS)  */
-        const html     = renderHtml(specification, maxTableColumns)
+        const html     = renderHtml(specification, maxTableColumns, config)
         const minified = await minify(Buffer.from(html, "utf8"), {
             collapseWhitespaces: "smart",
             removeComments:      true,
@@ -69,7 +71,7 @@ export const exportSpecification = async (
         return Buffer.from(minified.code, "utf8")
     }
     else
-        return htmlToPdf((tocPages) => renderHtml(specification, maxTableColumns, tocPages),
+        return htmlToPdf((tocPages) => renderHtml(specification, maxTableColumns, config, tocPages),
             documentTitle(specification), verbose)
 }
 
