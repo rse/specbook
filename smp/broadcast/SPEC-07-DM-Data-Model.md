@@ -199,15 +199,15 @@ BECAUSE the entire data model is event-centric and every other entity hangs off 
 The textual description of a phase in an event,
 BECAUSE attendees and moderators track which part of the event is currently active.
 
--   ATTRIBUTE: agendaPointId; TYPE: `unique uuid`;
+-   ATTRIBUTE: agendaPointId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the agenda point,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: text; TYPE: `string`;
+-   ATTRIBUTE: text (*); TYPE: `string`;
     Description of the current phase of the event,
     BECAUSE the phase must be presented in human-readable form.
 
--   ATTRIBUTE: orderPosition; TYPE: `integer`;
+-   ATTRIBUTE: orderPosition (*); TYPE: `integer`;
     Ordering position of the phase,
     BECAUSE agenda points have a defined sequence.
 
@@ -220,19 +220,19 @@ BECAUSE attendees and moderators track which part of the event is currently acti
 A logical content delivery stream linking video streams to an event,
 BECAUSE an event groups its streams by language and resolution into channels.
 
--   ATTRIBUTE: channelId; TYPE: `unique uuid`;
+-   ATTRIBUTE: channelId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the channel,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: name; TYPE: `string`;
+-   ATTRIBUTE: name (*); TYPE: `string`;
     Display name of the channel such as "Digital Townhall",
     BECAUSE attendees choose between named channels.
 
--   ATTRIBUTE: active; TYPE: `boolean`;
+-   ATTRIBUTE: active; TYPE: `boolean`; DEFAULT: `false`;
     Whether the channel is the currently active one,
     BECAUSE only one channel of an event is active at once.
 
--   ATTRIBUTE: default; TYPE: `boolean`;
+-   ATTRIBUTE: default; TYPE: `boolean`; DEFAULT: `false`;
     Whether this channel is activated by default on entering an event,
     BECAUSE attendees need a defined initial channel.
 
@@ -249,15 +249,15 @@ BECAUSE an event groups its streams by language and resolution into channels.
 A physical content delivery resource such as a provider stream or static website linked to a channel,
 BECAUSE a channel must map to concrete provider endpoints to be playable.
 
--   ATTRIBUTE: resourceId; TYPE: `unique uuid`;
+-   ATTRIBUTE: resourceId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the resource,
     BECAUSE it is referenced as a foreign key and in the access URL.
 
--   ATTRIBUTE: providerId; TYPE: `string`;
+-   ATTRIBUTE: providerId (*); TYPE: `string`;
     Provider identifier from the event configuration file,
     BECAUSE a resource binds to a specific configured streaming provider.
 
--   ATTRIBUTE: active; TYPE: `boolean`;
+-   ATTRIBUTE: active; TYPE: `boolean`; DEFAULT: `false`;
     Whether this resource is the active resource of the channel,
     BECAUSE only one resource of a channel is active at once for provider switching.
 
@@ -270,19 +270,19 @@ BECAUSE a channel must map to concrete provider endpoints to be playable.
 A key-value parameter belonging to exactly one resource and provider, defined in the event configuration file,
 BECAUSE provider endpoints are parameterized by values an administrator supplies.
 
--   ATTRIBUTE: resourceId; TYPE: `unique uuid`;
+-   ATTRIBUTE: resourceId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Identifier of the owning resource,
     BECAUSE the parameter belongs to exactly one resource.
 
--   ATTRIBUTE: providerId; TYPE: `unique string`;
+-   ATTRIBUTE: providerId (*); TYPE: `unique string`;
     Provider identifier from the configuration file,
     BECAUSE the parameter is scoped to one provider.
 
--   ATTRIBUTE: key; TYPE: `unique string`;
+-   ATTRIBUTE: key (*); TYPE: `unique string`;
     Parameter key defined in the configuration file,
     BECAUSE each provider parameter is identified by its key.
 
--   ATTRIBUTE: value; TYPE: `string`;
+-   ATTRIBUTE: value (*); TYPE: `string`;
     Value the administrator entered for the key,
     BECAUSE the concrete endpoint requires the supplied value.
 
@@ -291,15 +291,15 @@ BECAUSE provider endpoints are parameterized by values an administrator supplies
 A grant of special rights to a specific user within an event,
 BECAUSE the application is role-based and rights are granted through roles.
 
--   ATTRIBUTE: roleId; TYPE: `unique uuid`;
+-   ATTRIBUTE: roleId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the role,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: type; TYPE: `enum(Manager,Moderator,Presenter)`;
+-   ATTRIBUTE: type; TYPE: `enum(Manager,Moderator,Presenter)`; DEFAULT: `Presenter`;
     The role granted to the person for the event,
     BECAUSE each role carries a distinct set of rights.
 
--   ATTRIBUTE: email; TYPE: `string`;
+-   ATTRIBUTE: email (*); TYPE: `string`;
     Email address of the authorized person,
     BECAUSE roles are granted by email without permanent accounts.
 
@@ -308,19 +308,19 @@ BECAUSE the application is role-based and rights are granted through roles.
 A helper entity enabling event-based logins for invited or pattern-matched attendees,
 BECAUSE the system holds no permanent accounts yet must identify attendees per event.
 
--   ATTRIBUTE: userId; TYPE: `unique uuid`;
+-   ATTRIBUTE: userId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the user,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: email; TYPE: `string`;
+-   ATTRIBUTE: email (*); TYPE: `string`;
     Concrete email address of the user,
     BECAUSE authorization tokens are sent to this address at login.
 
--   ATTRIBUTE: firstname; TYPE: `string`;
+-   ATTRIBUTE: firstname; TYPE: `string`; DEFAULT: `""`;
     Optional first name of the user,
     BECAUSE it is displayed on the user's chat and question messages.
 
--   ATTRIBUTE: lastname; TYPE: `string`;
+-   ATTRIBUTE: lastname; TYPE: `string`; DEFAULT: `""`;
     Optional last name of the user,
     BECAUSE it is displayed on the user's chat and question messages.
 
@@ -341,19 +341,19 @@ BECAUSE the system holds no permanent accounts yet must identify attendees per e
 A single chat, support, or question item tracked for attendees and moderators,
 BECAUSE all event interaction is represented uniformly as messages with language-specific texts.
 
--   ATTRIBUTE: messageId; TYPE: `unique uuid`;
+-   ATTRIBUTE: messageId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the message,
     BECAUSE it is the foreign key for the translated message texts.
 
--   ATTRIBUTE: type; TYPE: `enum(Chat,Support,Question)`;
+-   ATTRIBUTE: type; TYPE: `enum(Chat,Support,Question)`; DEFAULT: `Chat`;
     The kind of message,
     BECAUSE each type has a distinct lifecycle and visibility.
 
--   ATTRIBUTE: timestamp; TYPE: `datetime`; DEFAULT: `NOW`;
+-   ATTRIBUTE: timestamp; TYPE: `datetime`; DEFAULT: `Date.now()`;
     Time the sender created the message,
     BECAUSE ordering and export require the creation time.
 
--   ATTRIBUTE: timestampAnswered; TYPE: `datetime`; DEFAULT: `NOW`;
+-   ATTRIBUTE: timestampAnswered; TYPE: `datetime`; DEFAULT: `Date.now()`;
     Time the message was answered,
     BECAUSE the presenter records when a question was answered.
 
@@ -418,7 +418,7 @@ BECAUSE all event interaction is represented uniformly as messages with language
 A language-specific text of a message,
 BECAUSE a message is translated into multiple languages while retaining one original.
 
--   ATTRIBUTE: messageTextId; TYPE: `unique uuid`;
+-   ATTRIBUTE: messageTextId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the message text,
     BECAUSE it is referenced as a foreign key.
 
@@ -435,7 +435,7 @@ BECAUSE a message is translated into multiple languages while retaining one orig
 A named tag attachable to question messages,
 BECAUSE questions are categorized by topic or addressed person for routing and grouping.
 
--   ATTRIBUTE: questionTagId; TYPE: `unique uuid`;
+-   ATTRIBUTE: questionTagId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the question tag,
     BECAUSE it is referenced as a foreign key.
 
@@ -456,15 +456,15 @@ BECAUSE questions are categorized by topic or addressed person for routing and g
 A one-time second factor proving an attendee controls the email address used as first factor,
 BECAUSE email-verified access is the core mechanism limiting the audience.
 
--   ATTRIBUTE: token; TYPE: `string`;
+-   ATTRIBUTE: token (*); TYPE: `string`;
     The generated one-time token for the next login attempt,
     BECAUSE the attendee proves control of the email by returning this token.
 
--   ATTRIBUTE: validUntil; TYPE: `datetime`;
+-   ATTRIBUTE: validUntil; TYPE: `datetime`; DEFAULT: `Date.now() + 1d`;
     Expiry time of the token, unset for pre-generated tokens,
     BECAUSE ordinary tokens expire within minutes while pre-generated ones last until event end.
 
--   ATTRIBUTE: state; TYPE: `enum(issued,sent,used)`;
+-   ATTRIBUTE: state; TYPE: `enum(issued,sent,used)`; DEFAULT: `issued`;
     Lifecycle state of the token,
     BECAUSE debugging statistics and anonymized sums need the token state.
 
@@ -481,11 +481,11 @@ BECAUSE email-verified access is the core mechanism limiting the audience.
 The result of a successful login of a user to an event,
 BECAUSE an active session must be tracked to enforce single concurrent access.
 
--   ATTRIBUTE: sessionId; TYPE: `unique uuid`;
+-   ATTRIBUTE: sessionId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the session,
     BECAUSE the active session of a user for an event must be addressable.
 
--   ATTRIBUTE: issuedAt; TYPE: `datetime`;
+-   ATTRIBUTE: issuedAt; TYPE: `datetime`; DEFAULT: `Date.now()`;
     Time the user successfully entered the event,
     BECAUSE the session start time is recorded for tracking.
 
@@ -502,31 +502,31 @@ BECAUSE an active session must be tracked to enforce single concurrent access.
 A periodic cumulative snapshot of event-wide counts,
 BECAUSE trend visualization of audience size and authentication flow requires regular snapshots.
 
--   ATTRIBUTE: eventStatisticId; TYPE: `unique uuid`;
+-   ATTRIBUTE: eventStatisticId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the event statistic,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: timestamp; TYPE: `datetime`;
+-   ATTRIBUTE: timestamp; TYPE: `datetime`; DEFAULT: `Date.now()`;
     Time the snapshot was created,
     BECAUSE statistics are plotted over time.
 
--   ATTRIBUTE: numberOfIssuedAuthTokens; TYPE: `integer`;
+-   ATTRIBUTE: numberOfIssuedAuthTokens (*); TYPE: `integer`;
     Count of issued authorization tokens at the timestamp,
     BECAUSE debugging statistics track issued tokens.
 
--   ATTRIBUTE: numberOfSentAuthTokens; TYPE: `integer`;
+-   ATTRIBUTE: numberOfSentAuthTokens (*); TYPE: `integer`;
     Count of sent authorization tokens at the timestamp,
     BECAUSE debugging statistics track sent tokens.
 
--   ATTRIBUTE: numberOfUsedAuthTokens; TYPE: `integer`;
+-   ATTRIBUTE: numberOfUsedAuthTokens (*); TYPE: `integer`;
     Count of used authorization tokens at the timestamp,
     BECAUSE debugging statistics track used tokens.
 
--   ATTRIBUTE: numberOfSessionTokens; TYPE: `integer`;
+-   ATTRIBUTE: numberOfSessionTokens (*); TYPE: `integer`;
     Count of session tokens at the timestamp,
     BECAUSE logged-in users are derived from session tokens.
 
--   ATTRIBUTE: numberOfConnections; TYPE: `integer`;
+-   ATTRIBUTE: numberOfConnections (*); TYPE: `integer`;
     Count of active MQTT connections at the timestamp,
     BECAUSE active viewers differ from sessions once an attendee leaves.
 
@@ -535,15 +535,15 @@ BECAUSE trend visualization of audience size and authentication flow requires re
 A periodic count of viewers for a channel,
 BECAUSE organizers need per-channel popularity over time.
 
--   ATTRIBUTE: channelStatisticId; TYPE: `unique uuid`;
+-   ATTRIBUTE: channelStatisticId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the channel statistic,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: timestamp; TYPE: `datetime`;
+-   ATTRIBUTE: timestamp; TYPE: `datetime`; DEFAULT: `Date.now()`;
     Time the snapshot was created,
     BECAUSE channel statistics are plotted over time.
 
--   ATTRIBUTE: numberOfViewers; TYPE: `integer`;
+-   ATTRIBUTE: numberOfViewers (*); TYPE: `integer`;
     Count of viewers of the channel at the timestamp,
     BECAUSE the per-channel viewer count is the tracked metric.
 
@@ -552,30 +552,30 @@ BECAUSE organizers need per-channel popularity over time.
 Tracked viewer information about a user,
 BECAUSE audience composition informs reporting and default localization.
 
--   ATTRIBUTE: userStatisticId; TYPE: `unique uuid`;
+-   ATTRIBUTE: userStatisticId; TYPE: `unique uuid`; DEFAULT: `uuid()`;
     Unique identifier of the user statistic,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: timestamp; TYPE: `datetime`;
+-   ATTRIBUTE: timestamp; TYPE: `datetime`; DEFAULT: `Date.now()`;
     Time the snapshot was created,
     BECAUSE user statistics are recorded over time.
 
--   ATTRIBUTE: country; TYPE: `string`;
+-   ATTRIBUTE: country (*); TYPE: `string`;
     ISO country code from GeoIP tracking,
     BECAUSE country selects the default application language on first use.
 
--   ATTRIBUTE: browserType; TYPE: `string`;
+-   ATTRIBUTE: browserType (*); TYPE: `string`;
     Type of browser used,
     BECAUSE browser distribution informs compatibility decisions.
 
--   ATTRIBUTE: deviceType; TYPE: `string`;
+-   ATTRIBUTE: deviceType (*); TYPE: `string`;
     Type of device used,
     BECAUSE device distribution informs responsive design priorities.
 
--   ATTRIBUTE: viewportWidth; TYPE: `integer`;
+-   ATTRIBUTE: viewportWidth (*); TYPE: `integer`;
     Width in pixels of the browser viewport,
     BECAUSE viewport sizing informs layout decisions.
 
--   ATTRIBUTE: viewportHeight; TYPE: `integer`;
+-   ATTRIBUTE: viewportHeight (*); TYPE: `integer`;
     Height in pixels of the browser viewport,
     BECAUSE viewport sizing informs layout decisions.

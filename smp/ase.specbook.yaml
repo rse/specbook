@@ -248,16 +248,6 @@
                         Reference to the DATA-MODEL entity whose lifecycle
                         this models.
                     value: "[[DM.ENTITY:*]]"
-                -   name: INITIAL
-                    desc: >
-                        The single state every instance of the entity
-                        enters upon creation.
-                    value: /^[A-Z][a-zA-Z0-9]*$/
-                -   name: FINAL
-                    desc: >
-                        Comma-separated list of one or more states in which
-                        the entity may legally come to rest permanently.
-                    value: list(/^[A-Z][a-zA-Z0-9]*$/)
             childs:
                 -   kind: STATE
                     name: "[A-Z][a-zA-Z0-9]*"
@@ -265,6 +255,15 @@
                         A single state the entity can occupy, carrying a
                         short, Pascal-cased, per-lifecycle unique name and
                         described by what holds true in it.
+                    props:
+                        -   name: INITIAL
+                            desc: Whether the state is an initial one.
+                            value: /^(?:true|false)$/
+                            optional: true
+                        -   name: FINAL
+                            desc: Whether the state is a final one.
+                            value: /^(?:true|false)$/
+                            optional: true
                 -   kind: TRANSITION
                     name: "[a-z]+"
                     desc: >

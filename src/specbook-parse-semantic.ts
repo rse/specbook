@@ -73,7 +73,7 @@ const matchAlternatives = (ctx: ParseContext, alternatives: ValueExpr[], item: s
 
 /*  validate a single object (and recursively its childs) against its schema  */
 const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObject, level: number) => {
-    const meta  = ctx.objectMeta.get(object) ?? { file: "", line: 1, tokens: undefined }
+    const meta  = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
     const props = schema.props ?? []
 
     /*  check the name convention (the configured name of non-artifact
@@ -92,9 +92,9 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
     const findProp = (name: string) =>
         object.properties.find((p) => plainKey(p.key) === name)
 
-    /*  assign the pending inline tokens of grouped items to the still
-        unset configured properties by matching their patterns  */
-    const tokens        = [ ...(meta.tokens ?? []) ]
+    /*  the tokens split off multi-token property values below, assigned
+        to the still unset configured properties by matching their patterns  */
+    const tokens        = new Array<string>()
     const tokenAssigned = new Set<string>()
 
     /*  explode a multi-token property value whose direct pattern check

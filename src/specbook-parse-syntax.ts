@@ -178,47 +178,12 @@ const parseList = (ctx: ParseContext, list: Tokens.List, object: SpecObject, fil
     }
 }
 
-/*  parse a grouped object item of the forms
-    "`<name>`: <description>",
-    "`<from>` ─(<name>)─► `<to>`: <description>",
-    "`<name>`: `<token> ...`:<br/> <description>", and
-    "`<name>`: [`<type>`](#<ref>)(`<arity>`):<br/> <description>"  */
+/*  parse a grouped list of concise-format object items of the form
+    "`<name>`; <key>: <value>; ...; <statement>, BECAUSE <rationale>.",
+    whose kind is given by the enclosing grouping container heading  */
 const parseGrouped = (ctx: ParseContext, list: Tokens.List, group: Group, file: string, line: number) => {
     for (const item of list.items) {
-        const lines = itemLines(item)
-        const m = lines[0].match(
-            /^`?([^`:]+?)`?(?:\s+─\(([^)]+)\)─►\s+`?([^`:]+?)`?)?:\s*(?:`([^`]+)`:\s*(?:<br\s*\/?>)?|\[`?([^`\]]+)`?\]\(#[^)]*\)(?:\(`?([^`)]+)`?\))?:\s*(?:<br\s*\/?>)?)?\s*(.*)$/)
-        if (m === null) {
-            ctx.diagnose(file, line, `unrecognized ${group.kind} item "${lines[0]}"`)
-            line += (item.raw.match(/\n/g) ?? []).length
-            continue
-        }
-        const name = (m[2] ?? m[1]).trim()
-        const object: SpecObject = {
-            kind:       group.kind,
-            id:         slugify(name),
-            name,
-            properties: [],
-            childs:     []
-        }
-        if (m[2] !== undefined) {
-            /*  a transition-style arrow decoration encodes
-                the FROM and TO properties  */
-            object.properties.push({ key: "FROM", value: m[1].trim() })
-            object.properties.push({ key: "TO",   value: m[3].trim() })
-        }
-        let tokens
-        if (m[4] !== undefined)
-            tokens = m[4].trim().split(/\s+/)
-        else if (m[5] !== undefined)
-            tokens = [ m[5].trim(), ...(m[6] !== undefined ? [ m[6].trim() ] : []) ]
-        ctx.objectMeta.set(object, { file, line, tokens })
-        const description = [ m[7], ...lines.slice(1) ].join(" ").trim()
-        if (description !== "") {
-            object.description = splitDescription(description.replace(/\.\s*$/, ""))
-            embed(ctx, object, file)
-        }
-        group.parent.childs.push(object)
+        parseConcise(ctx, item, group.parent, file, line, group.kind)
         line += (item.raw.match(/\n/g) ?? []).length
     }
 }
@@ -249,16 +214,32 @@ const parseFrames = (ctx: ParseContext, list: Tokens.List, parent: SpecObject, f
 
 /*  parse a concise-format object item of the form
     "<kind>: <name>; <key>: <value>; ...; <statement>, BECAUSE <rationale>.",
-    which may continue on the following lines of the item  */
-const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObject, file: string, line: number) => {
+    which may continue on the following lines of the item; a grouped item
+    omits the leading "<kind>: " and receives its kind from the group  */
+const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObject, file: string, line: number, group?: string) => {
     const text     = itemLines(item).join(" ").trim()
     const segments = text.split(/;\s*/).filter((segment) => segment !== "")
-    const head     = segments.shift()?.match(/^([^:]+):\s*(.*)$/)
-    if (head === null || head === undefined) {
-        ctx.diagnose(file, line, `invalid concise object item "${text}"`)
-        return
+    const head     = segments.shift() ?? ""
+    let   kind:  string
+    let   name:  string
+    if (group !== undefined) {
+        const nm = head.match(/^`([^`]+)`$|^([^`:]+)$/)
+        if (nm === null) {
+            ctx.diagnose(file, line, `unrecognized ${group} item "${text}"`)
+            return
+        }
+        kind = group
+        name = (nm[1] ?? nm[2]).trim()
     }
-    let name = head[2].trim()
+    else {
+        const km = head.match(/^([^:]+):\s*(.*)$/)
+        if (km === null) {
+            ctx.diagnose(file, line, `invalid concise object item "${text}"`)
+            return
+        }
+        kind = km[1].trim()
+        name = km[2].trim()
+    }
     let anchor:  string | undefined
     let paren:   string | undefined
     let primary = false
@@ -284,7 +265,7 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
         break
     }
     const object: SpecObject = {
-        kind:       head[1].trim(),
+        kind,
         id:         anchor ?? slugify(name),
         name,
         properties: [],

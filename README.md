@@ -38,7 +38,7 @@ optional unique anchor *id*, optional *properties* (key/value pairs),
 an optional *description* statement with an optional rationale, and
 optional *child* objects.
 
-Two concrete syntaxes exist:
+Three concrete syntaxes exist:
 
 ### Complex Format
 
@@ -62,6 +62,24 @@ indented list items below their parent item:
 -   <kind/>: <name/>; <key/>: <value/>; [...];
     <statement/>, BECAUSE <rationale/>.
 ```
+
+### Grouped Format
+
+A heading carrying just a *kind* and no `<kind/>: <name/>` pair opens a
+*grouping container* instead of an object. The list items below it are
+Concise Format items whose kind comes from that heading, so they start
+with the (optionally backquoted) name directly:
+
+```
+### <kinds/>
+
+-   `<name/>`; <key/>: <value/>; [...];
+    <statement/>, BECAUSE <rationale/>.
+```
+
+The heading kind is singularized by stripping one trailing `S`, so both
+`### STATES` and `### STATE` group objects of kind `STATE`. The grouped
+objects become childs of the object the heading is nested under.
 
 When **SpecBook** itself generates specification Markdown, it emits
 the Complex Format on levels 1-3 and the Concise Format from level 4

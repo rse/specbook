@@ -3,121 +3,121 @@ Created:  2026-06-18 10:18
 Modified: 2026-06-18 10:18
 ---
 
-#   SPEC: State Model (SM)
+SPEC: State Model (SM)
+======================
 
-##  LIFECYCLE: Event {{event}}
+LIFECYCLE: Event {{event}}
+--------------------------
 
 -   ENTITY:  [[ENTITY:Event]]
--   INITIAL: Planning
--   FINAL:   Finished
 
-### STATES
+The primary entity [[ENTITY:Event]] has a distinct lifecycle.
 
--   `Planning`:
+### STATE
+
+-   Planning; INITIAL: true;
     The event is created and configured but not visible to attendees.
 
--   `Published`:
+-   Published;
     The event is visible to attendees but not yet started.
 
--   `Running`:
+-   Running;
     The event is live and attendees can attend and interact.
 
--   `Finished`:
+-   Finished; FINAL: true;
     The event has ended, access is closed, and data is anonymized.
 
-### TRANSITIONS
+### TRANSITION
 
--   `Planning` ─(publish)─► `Published`:
+-   publish; FROM: Planning; TO: Published;
     The event becomes visible to invited attendees,
     **WHEN** the manager publishes the configured event.
 
--   `Published` ─(start)─► `Running`:
+-   start; FROM: Published; TO: Running;
     The live stream and interaction channels open for attendees,
     **WHEN** the manager starts the event.
 
--   `Planning` ─(start)─► `Running`:
+-   start; FROM: Planning; TO: Running;
     The event goes live directly from planning,
     **WHEN** the manager starts an unpublished event.
 
--   `Running` ─(finish)─► `Finished`:
+-   finish; FROM: Running; TO: Finished;
     The anonymization procedure runs and access is closed,
     **WHEN** the manager finishes the event.
 
-##  LIFECYCLE: Message {{message}}
+LIFECYCLE: Message {{message}}
+------------------------------
 
 -   ENTITY:  [[ENTITY:Message]]
--   INITIAL: Pending
--   FINAL:   Rejected, Answered, Suspended, Accepted
 
-### STATES
+### STATE
 
--   `Pending`:
+-   `Pending`; INITIAL: true;
     The attendee has submitted the message and it awaits moderation.
 
--   `Accepted`:
+-   `Accepted`; FINAL: true;
     The message is approved and visible to the audience if configured.
 
--   `Rejected`:
+-   `Rejected`; FINAL: true;
     The message is declined and will be deleted entirely on event finish.
 
--   `Forwarded`:
+-   `Forwarded`;
     The accepted message is handed to the presenter as a work item.
 
--   `Answered`:
+-   `Answered`; FINAL: true;
     The presenter has processed and answered the message in the live event.
 
--   `Suspended`:
+-   `Suspended`; FINAL: true;
     The presenter will not process the message in the live event.
 
-### TRANSITIONS
+### TRANSITION
 
--   `Pending` ─(accept)─► `Accepted`:
+-   `accept`; FROM: `Pending`; TO: `Accepted`;
     The message becomes visible to the audience,
     **WHEN** a moderator approves it or sentiment auto-accept applies.
 
--   `Pending` ─(reject)─► `Rejected`:
+-   `reject`; FROM: `Pending`; TO: `Rejected`;
     The message is hidden and marked for deletion,
     **WHEN** a moderator declines it or sentiment auto-reject applies.
 
--   `Accepted` ─(forward)─► `Forwarded`:
+-   `forward`; FROM: `Accepted`; TO: `Forwarded`;
     The message enters the presenter's work basket and becomes immutable,
     **WHEN** a moderator forwards it to the presenter.
 
--   `Forwarded` ─(answer)─► `Answered`:
+-   `answer`; FROM: `Forwarded`; TO: `Answered`;
     The answered timestamp is recorded,
     **WHEN** the presenter or moderator marked the message as answered on stage.
 
--   `Forwarded` ─(suspend)─► `Suspended`:
+-   `suspend`; FROM: `Forwarded`; TO: `Suspended`;
     The message is set aside for the live event,
     **WHEN** the presenter or moderator decided not to process it.
 
-##  LIFECYCLE: AuthorizationToken {{authtoken}}
+LIFECYCLE: AuthorizationToken {{authtoken}}
+-------------------------------------------
 
 -   ENTITY:  [[ENTITY:AuthorizationToken]]
--   INITIAL: Issued
--   FINAL:   Used
 
-### STATES
+### STATE
 
--   `Issued`:
+-   `Issued`; INITIAL: true;
     The token has been generated, typically at event creation.
 
--   `Sent`:
+-   `Sent`;
     The token has been delivered to the user by email.
 
--   `Used`:
+-   `Used`; FINAL: true;
     The token has been consumed in a login attempt.
 
-### TRANSITIONS
+### TRANSITION
 
--   `Issued` ─(send)─► `Sent`:
+-   `send`; FROM: `Issued`; TO: `Sent`;
     The token is emailed to the user,
     **WHEN** the user requests a login challenge.
 
--   `Sent` ─(consume)─► `Used`:
+-   `consume`; FROM: `Sent`; TO: `Used`;
     The token is marked spent,
     **WHEN** the user submits it in a successful or unsuccessful login attempt.
 
--   `Issued` ─(consume)─► `Used`:
+-   `consume`; FROM: `Issued`; TO: `Used`;
     The pre-generated token is marked spent,
     **WHEN** an automatic-access URL carrying the token is used.

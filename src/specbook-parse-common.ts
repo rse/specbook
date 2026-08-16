@@ -25,9 +25,8 @@ export interface ParseResult {
 
 /*  per-object parsing meta information, kept outside the AST  */
 export interface ObjectMeta {
-    file:    string
-    line:    number
-    tokens?: string[]
+    file: string
+    line: number
 }
 
 /*  the state shared between the syntactic and semantic parsing phases  */
