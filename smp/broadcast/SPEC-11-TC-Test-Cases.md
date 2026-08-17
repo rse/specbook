@@ -3,7 +3,8 @@ Created:  2026-06-18 10:18
 Modified: 2026-06-18 10:18
 ---
 
-#   SPEC: Test Cases (TC)
+SPEC: Test Cases (TC)
+=====================
 
 ##  TEST CASE: Valid Token Grants Access {{valid-token}}
 

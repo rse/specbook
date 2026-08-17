@@ -9,7 +9,7 @@ Modified: 2026-06-18 10:18
 
 -   KIND:     Device
 -   PLATFORM: Recent web browser on desktop, tablet, or mobile
--   HOSTS:    ARCH-FV-client, ARCH-FV-client-nlp
+-   HOSTS:    [[FV.client]], [[FV.client-nlp]]
 -   NETWORK:  Public internet over HTTPS and WSS
 
 The attendee and operator devices run the web client and local NLP entirely in the browser, BECAUSE the solution requires
@@ -28,7 +28,7 @@ be delivered quickly and stably to a large, distributed audience.
 
 -   KIND:     Server
 -   PLATFORM: Linux with HAProxy and NFTables
--   HOSTS:    ARCH-FV-router
+-   HOSTS:    [[FV.router]]
 -   NETWORK:  Public ingress, TLS 443, environment separation
 
 The edge router terminates inbound HTTP and WebSocket traffic and round-robins it to per-environment proxies, BECAUSE a
@@ -38,7 +38,7 @@ single hardened entry point must balance load and isolate environments.
 
 -   KIND:     Server
 -   PLATFORM: Linux with HAProxy
--   HOSTS:    ARCH-FV-proxy
+-   HOSTS:    [[FV.proxy]]
 -   NETWORK:  Private network behind the router
 
 The proxy tier runs several HAProxy instances per environment forwarding to the relay tier, BECAUSE per-environment scaling
@@ -48,7 +48,7 @@ of request handling needs multiple proxy instances.
 
 -   KIND:     Server
 -   PLATFORM: Linux with Mosquitto and MQTT-Plus
--   HOSTS:    ARCH-FV-relay
+-   HOSTS:    [[FV.relay]]
 -   NETWORK:  Private network, WSS upstream
 
 The relay tier runs several MQTT broker instances per environment holding the live WebSocket connections, BECAUSE
@@ -58,7 +58,7 @@ sustaining thousands of bidirectional connections requires a dedicated, scalable
 
 -   KIND:     Container
 -   PLATFORM: Junction container running Node.js
--   HOSTS:    ARCH-FV-service, ARCH-FV-auth, ARCH-FV-translation, ARCH-FV-statistics, ARCH-FV-junction
+-   HOSTS:    [[FV.service]], [[FV.auth]], [[FV.translation]], [[FV.statistics]], [[FV.junction]]
 -   NETWORK:  Private network to relay and database
 
 The service tier runs the Node.js business services and the Junction orchestrator in containers per environment, BECAUSE
@@ -68,7 +68,7 @@ containerized services give reproducible, independently scalable business logic.
 
 -   KIND:     Server
 -   PLATFORM: Linux with PostgreSQL and filesystem storage
--   HOSTS:    ARCH-FV-database
+-   HOSTS:    [[FV.database]]
 -   NETWORK:  Private network, no public exposure
 
 The database tier runs PostgreSQL with filesystem asset storage as the authoritative persistence node, BECAUSE durable
@@ -78,7 +78,7 @@ state must reside on a protected, non-public node.
 
 -   KIND:     Cluster
 -   PLATFORM: Hetzner infrastructure in Nürnberg, Germany
--   HOSTS:    ARCH-FV-router, ARCH-FV-proxy, ARCH-FV-relay, ARCH-FV-service, ARCH-FV-database
+-   HOSTS:    [[FV.router]], [[FV.proxy]], [[FV.relay]], [[FV.service]], [[FV.database]]
 -   NETWORK:  EU-resident private network with public ingress
 
 All server-side tiers are hosted in the Hetzner Nürnberg data center separated into dev, QA, and production environments,

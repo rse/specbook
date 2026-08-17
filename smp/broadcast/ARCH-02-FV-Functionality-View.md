@@ -12,7 +12,7 @@ Modified: 2026-06-18 10:18
 -   KIND:           Subsystem
 -   RESPONSIBILITY: Render the attendee and operator UI and drive all user interaction.
 -   INTERFACE:      Browser application over HTTPS and MQTT-over-WebSocket
--   DEPENDS-ON:     ARCH-FV-relay, ARCH-FV-client-nlp
+-   DEPENDS-ON:     [[FV.relay]], [[FV.client-nlp]]
 
 The Vue.js single-page application renders the panel, attendee, studio, moderator, and manager screens, plays the video
 stream, and exchanges live data over MQTT, BECAUSE msg.Broadcast delivers its entire experience in the browser.
@@ -40,7 +40,7 @@ separates the dev, QA, and production environments, BECAUSE traffic must be bala
 -   KIND:           Connector
 -   RESPONSIBILITY: Proxy environment HTTP and WebSocket requests to the relay layer.
 -   INTERFACE:      HTTP/WS reverse proxy
--   DEPENDS-ON:     ARCH-FV-relay
+-   DEPENDS-ON:     [[FV.relay]]
 
 The proxy layer (HAProxy) forwards requests of a specific environment to the relay layer and scales horizontally per
 environment, BECAUSE request handling must scale independently of the messaging layer.
@@ -50,7 +50,7 @@ environment, BECAUSE request handling must scale independently of the messaging 
 -   KIND:           Connector
 -   RESPONSIBILITY: Maintain thousands of bidirectional WebSocket/MQTT connections.
 -   INTERFACE:      MQTT broker over WebSocket (Mosquitto, MQTT-Plus)
--   DEPENDS-ON:     ARCH-FV-service
+-   DEPENDS-ON:     [[FV.service]]
 
 The relay layer brokers MQTT messages between clients and the service layer over many concurrent WebSockets and scales
 horizontally, BECAUSE real-time fan-out to up to 10000 attendees is the central performance challenge.
@@ -60,7 +60,7 @@ horizontally, BECAUSE real-time fan-out to up to 10000 attendees is the central 
 -   KIND:           Service
 -   RESPONSIBILITY: Execute all business logic for events, messages, auth, and statistics.
 -   INTERFACE:      MQTT topics and REST API
--   DEPENDS-ON:     ARCH-FV-database, ARCH-FV-translation, ARCH-FV-auth, ARCH-FV-statistics
+-   DEPENDS-ON:     [[FV.database]], [[FV.translation]], [[FV.auth]], [[FV.statistics]]
 
 The service layer is the main server holding event, moderation, access, and configuration logic, reacting to MQTT messages
 and persisting state, BECAUSE the authoritative business rules must live in a single server tier.
@@ -70,7 +70,7 @@ and persisting state, BECAUSE the authoritative business rules must live in a si
 -   KIND:           Module
 -   RESPONSIBILITY: Issue and validate authorization and session tokens.
 -   INTERFACE:      Service-internal API
--   DEPENDS-ON:     ARCH-FV-database
+-   DEPENDS-ON:     [[FV.database]]
 
 The authentication module generates one-time tokens, sends them via the email gateway, validates logins, and enforces a
 single active session per user per event, BECAUSE email-verified, single-session access is the core security mechanism.
@@ -89,7 +89,7 @@ BECAUSE chat and questions must be available in both German and English.
 -   KIND:           Module
 -   RESPONSIBILITY: Generate periodic event, channel, and user statistics snapshots.
 -   INTERFACE:      Service-internal scheduled API
--   DEPENDS-ON:     ARCH-FV-database
+-   DEPENDS-ON:     [[FV.database]]
 
 The statistics module periodically captures cumulative counts of tokens, sessions, connections, and viewers during a running
 event, BECAUSE trend dashboards require regular snapshots over the event's lifetime.

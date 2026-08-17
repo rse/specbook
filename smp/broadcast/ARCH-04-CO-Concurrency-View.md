@@ -3,12 +3,13 @@ Created:  2026-06-18 10:18
 Modified: 2026-06-18 10:18
 ---
 
-#   ARCH: Concurrency View (CO)
+ARCH: Concurrency View (CO)
+===========================
 
 ##  UNIT: Router Process {{router}}
 
 -   KIND:         Process
--   HOSTS:        ARCH-FV-router
+-   HOSTS:        [[FV.router]]
 -   MULTIPLICITY: 1 per data center entry point
 -   COORDINATION: stateless round-robin distribution
 
@@ -18,7 +19,7 @@ instances, BECAUSE a stateless balancer can spread load without holding per-conn
 ##  UNIT: Proxy Pool {{proxy-pool}}
 
 -   KIND:         Pool
--   HOSTS:        ARCH-FV-proxy
+-   HOSTS:        [[FV.proxy]]
 -   MULTIPLICITY: 0..n instances per environment
 -   COORDINATION: shared-nothing behind the router
 
@@ -28,7 +29,7 @@ must scale out horizontally to absorb connection spikes.
 ##  UNIT: Relay Pool {{relay-pool}}
 
 -   KIND:         Pool
--   HOSTS:        ARCH-FV-relay
+-   HOSTS:        [[FV.relay]]
 -   MULTIPLICITY: 0..n MQTT broker instances per environment
 -   COORDINATION: MQTT topic subscriptions and broker bridging
 
@@ -38,7 +39,7 @@ fanning out per-event topics, BECAUSE sustaining up to 10000 concurrent connecti
 ##  UNIT: Service Event Loop {{service-loop}}
 
 -   KIND:         EventLoop
--   HOSTS:        ARCH-FV-service, ARCH-FV-auth, ARCH-FV-translation
+-   HOSTS:        [[FV.service]], [[FV.auth]], [[FV.translation]]
 -   MULTIPLICITY: 0..n Node.js instances per environment
 -   COORDINATION: MQTT message passing and database transactions
 
@@ -49,7 +50,7 @@ races.
 ##  UNIT: Statistics Scheduler {{stats-scheduler}}
 
 -   KIND:         Thread
--   HOSTS:        ARCH-FV-statistics
+-   HOSTS:        [[FV.statistics]]
 -   MULTIPLICITY: 1 active per running event
 -   COORDINATION: timer-driven, writes via database transactions
 
@@ -59,7 +60,7 @@ periodic cumulative counts must be produced on a fixed cadence independent of us
 ##  UNIT: Database Server {{database}}
 
 -   KIND:         Process
--   HOSTS:        ARCH-FV-database
+-   HOSTS:        [[FV.database]]
 -   MULTIPLICITY: 1 primary per environment
 -   COORDINATION: ACID transactions with optimistic concurrency via the ORM
 

@@ -406,6 +406,10 @@
             desc: >
                 A single interaction principle, described by how it
                 governs the user's experience across the solution.
+            props:
+                -   name: CATEGORY
+                    desc: The aspect of interaction the principle governs.
+                    value: enum(Onboarding,Navigation,Input,Feedback,Workflow,Personalization,Awareness,Resilience,Privacy)
 
 -   kind: SPEC
     name: Language Conventions
@@ -463,12 +467,6 @@
                 A single depicted dialog flow, comprised of sequentially
                 numbered frames.
             props:
-                -   name: PATTERN
-                    desc: >
-                        Reference to the DIALOG-PATTERNS object the
-                        storyboard instantiates.
-                    value: "[[PATTERN:*]]"
-                    optional: true
                 -   name: USE-CASE
                     desc: >
                         Reference to the USE-CASES object the storyboard
@@ -480,6 +478,12 @@
                         Reference to the USE-CASES scenario object the
                         storyboard visualizes.
                     value: "[[SCENARIO:*]]"
+                    optional: true
+                -   name: PATTERN
+                    desc: >
+                        Reference to the DIALOG-PATTERNS object the
+                        storyboard instantiates.
+                    value: "[[PATTERN:*]]"
                     optional: true
             childs:
                 -   kind: FRAME
@@ -503,8 +507,8 @@
                 font family, scale).
             props:
                 -   name: CATEGORY
-                    desc: The aspect of visual design the element governs.
-                    value: enum(Color,Typography,Iconography,Imagery,Layout,Animation)
+                    desc: The aspects of visual design the element governs.
+                    value: tags(Color,Typography,Iconography,Imagery,Layout,Animation)
 
 -   kind: ARCH
     name: Context View
@@ -563,7 +567,7 @@
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW objects this component depends
                         on at runtime.
-                    value: list(/^ARCH-FV-.+$/)
+                    value: list([[FV.COMPONENT:*]])
                     optional: true
 
 -   kind: ARCH
@@ -596,7 +600,7 @@
                     desc: >
                         Reference to the FUNCTIONALITY-VIEW object that
                         owns this information.
-                    value: /^ARCH-FV-.+$/
+                    value: "[[FV.COMPONENT:*]]"
                     optional: true
                 -   name: LIFECYCLE
                     desc: >
@@ -626,7 +630,7 @@
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW objects that run inside this
                         concurrency unit.
-                    value: list(/^ARCH-FV-.+$/)
+                    value: list([[FV.COMPONENT:*]])
                     optional: true
                 -   name: MULTIPLICITY
                     desc: How many instances of the unit run.
@@ -677,7 +681,7 @@
                     desc: >
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW objects deployed onto this node.
-                    value: list(/^ARCH-FV-.+$/)
+                    value: list([[FV.COMPONENT:*]])
                     optional: true
                 -   name: NETWORK
                     desc: >
@@ -707,7 +711,7 @@
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW objects the
                         concern applies to.
-                    value: list(/^ARCH-(?:FV|DP)-.+$/)
+                    value: list([[FV.COMPONENT:*]], [[DP.NODE:*]])
                     optional: true
 
 -   kind: ARCH
@@ -744,7 +748,7 @@
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW objects the
                         tactic affects.
-                    value: list(/^ARCH-(?:FV|DP)-.+$/)
+                    value: list([[FV.COMPONENT:*]], [[DP.NODE:*]])
                     optional: true
 
 -   kind: ARCH
@@ -771,19 +775,15 @@
                         Comma-separated references to the
                         FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW objects the
                         decision affects.
-                    value: list(/^ARCH-(?:FV|DP)-.+$/)
+                    value: list([[FV.COMPONENT:*]], [[DP.NODE:*]])
                     optional: true
                 -   name: SUPERSEDED-BY
                     desc: >
                         Reference to the DECISION-RECORD object that
                         supersedes this decision. Present if and only if
                         STATUS is "superseded".
-                    value: /^ARCH-DR-.+$/
+                    value: "[[DR.DECISION:*]]"
                     optional: true
-                -   name: CREATED
-                    desc: ISO-style timestamp when the decision was created.
-                -   name: MODIFIED
-                    desc: ISO-style timestamp when the decision was last modified.
                 -   name: WHEN
                     desc: >
                         The context: the situation that forces the

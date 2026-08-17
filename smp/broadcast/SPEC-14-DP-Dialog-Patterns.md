@@ -3,7 +3,8 @@ Created:  2026-06-18 10:18
 Modified: 2026-06-18 10:34
 ---
 
-#   SPEC: Dialog Patterns (DP)
+SPEC: Dialog Patterns (DP)
+==========================
 
 ##  PATTERN: Two-Factor Login {{two-factor-login}}
 
