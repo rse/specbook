@@ -29,12 +29,12 @@
             optional: true
         -   name: LANG
             desc: The language of the specification texts (ISO 639-1 code).
-            optional: true
             value: /^[a-z]{2}(-[A-Za-z0-9]+)?$/
+            optional: true
         -   name: CHARSET
             desc: The character set the embedded fonts are subsetted to.
-            optional: true
             value: enum(US-ASCII,ISO-8859-1,ISO-Latin-1,ISO-8859-15,ISO-Latin-15,UTF-8)
+            optional: true
 
 -   kind: SPEC
     name: Solution Vision
