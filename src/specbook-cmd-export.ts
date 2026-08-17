@@ -8,7 +8,7 @@ import { minify }                    from "@swc/html"
 
 import type { Specification }        from "./specbook-struct-spec.js"
 import type { SchemaSpecification }  from "./specbook-struct-schema.js"
-import { documentTitle }             from "./specbook-export-common.js"
+import { documentTitle, documentLogo } from "./specbook-export-common.js"
 import { renderAst, type AstFormat } from "./specbook-export-ast.js"
 import { renderMarkdown }            from "./specbook-export-md.js"
 import { renderHtml }                from "./specbook-export-html.js"
@@ -72,6 +72,6 @@ export const exportSpecification = async (
     }
     else
         return htmlToPdf((tocPages) => renderHtml(specification, maxTableColumns, config, tocPages),
-            documentTitle(specification), verbose)
+            { ...documentTitle(specification), logo: documentLogo(specification) }, verbose)
 }
 

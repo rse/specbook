@@ -38,3 +38,16 @@ export const documentTitle = (specification: Specification): { title: string, su
         object?.properties.find((property) => property.key === name)?.value
     return { title: prop("TITLE") ?? object?.name ?? "Specification", subtitle: prop("SUBTITLE") }
 }
+
+/*  determine the document logo as a self-contained data: URL, taken from the
+    embedded image of the LOGO property of the title object, and falling back
+    onto the built-in SpecBook logo (for use in isolated rendering contexts,
+    like the print header/footer, which load no external resources)  */
+export const documentLogo = (specification: Specification): string => {
+    const object  = specification.artifacts.flatMap((artifact) => artifact.objects).find(isTitleObject)
+    const content = object?.properties.find((property) => property.key === "LOGO")?.embedding?.[0]
+    if (content === undefined)
+        return fallbackLogo()
+    return content.startsWith("data:") ? content :
+        `data:image/svg+xml;base64,${Buffer.from(content, "utf8").toString("base64")}`
+}

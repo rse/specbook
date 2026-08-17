@@ -31,7 +31,7 @@ const anchorPages = async (pdf: Uint8Array): Promise<Map<string, number>> => {
 /*  render a self-contained HTML document into a PDF via Playwright,
     re-rendering the HTML with the discovered ToC page numbers  */
 export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>) => string,
-    heading: { title: string, subtitle?: string },
+    heading: { title: string, subtitle?: string, logo: string },
     verbose: (msg: string) => void): Promise<Buffer> => {
     const { chromium } = await import("playwright")
 
@@ -100,9 +100,11 @@ export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>)
                 "<div style=\"margin: 0 2cm; " +
                 "font-family: 'Source Sans 3', sans-serif; " +
                 "font-size: 8pt; color: #c0c0c0; border-bottom: 1px solid #d0d0d0; " +
-                "padding-bottom: 1mm; display: flex; justify-content: space-between;\">" +
+                "padding-bottom: 1mm; display: flex; justify-content: space-between; " +
+                "align-items: flex-end;\">" +
                 `<span>${headText}</span>` +
-                "<span class=\"pageNumber\" style=\"color: #303030\"></span></div></div>",
+                `<img src="${heading.logo}" alt="" style="height: 3.5mm;"/>` +
+                "</div></div>",
             footerTemplate:
                 `<style>${fontFace}</style>` +
                 "<div style=\"width: 100%; margin-bottom: 0.8cm;\">" +
