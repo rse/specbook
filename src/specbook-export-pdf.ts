@@ -4,7 +4,7 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import { escapeHtml, stylesheet }
+import { escapeHtml }
     from "./specbook-export-common.js"
 
 /*  extract the per-anchor page numbers from a Chromium-generated PDF,
@@ -32,12 +32,12 @@ const anchorPages = async (pdf: Uint8Array): Promise<Map<string, number>> => {
     re-rendering the HTML with the discovered ToC page numbers  */
 export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>) => string,
     heading: { title: string, subtitle?: string, logo: string },
-    verbose: (msg: string) => void): Promise<Buffer> => {
+    verbose: (msg: string) => void, css: string): Promise<Buffer> => {
     const { chromium } = await import("playwright")
 
     /*  the regular font face and the title/subtitle
         text for the header/footer templates  */
-    const fontFace = stylesheet().match(/@font-face\s*\{[^}]*\}/)?.[0] ?? ""
+    const fontFace = css.match(/@font-face\s*\{[^}]*\}/)?.[0] ?? ""
     const headText = escapeHtml(heading.title) +
         (heading.subtitle !== undefined ? ` &mdash; ${escapeHtml(heading.subtitle)}` : "")
 

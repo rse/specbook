@@ -10,4 +10,6 @@ Modified: 2026-06-22 18:56
 -   SUBTITLE: Requirements and Architecture Specification
 -   AUTHOR:   Dr. Ralf S. Engelschall
 -   VERSION:  0.9.0
+-   LANG:     en
+-   CHARSET:  US-ASCII
 

@@ -4,7 +4,7 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-/*  Adobe Source Sans 3 font faces (url() references inlined at build time via PostCSS)  */
+/*  Adobe Source Sans 3 font faces  */
 @font-face                  { font-family: "Source Sans 3"; font-style: normal; font-weight: normal;
                               src: url("../node_modules/source-sans/WOFF2/TTF/SourceSans3-Regular.ttf.woff2") format("woff2"); }
 @font-face                  { font-family: "Source Sans 3"; font-style: italic; font-weight: normal;
@@ -13,18 +13,22 @@
                               src: url("../node_modules/source-sans/WOFF2/TTF/SourceSans3-Bold.ttf.woff2") format("woff2"); }
 @font-face                  { font-family: "Source Sans 3"; font-style: italic; font-weight: bold;
                               src: url("../node_modules/source-sans/WOFF2/TTF/SourceSans3-BoldIt.ttf.woff2") format("woff2"); }
+
+/*  Noto Sans Symbols font faces  */
 @font-face                  { font-family: "Noto Sans Symbols"; font-style: normal; font-weight: normal;
                               src: url("../node_modules/@fontsource/noto-sans-symbols/files/noto-sans-symbols-symbols-400-normal.woff2") format("woff2"); }
 
-/*  Adobe Source Code Pro font faces (url() references inlined at build time via PostCSS)  */
+/*  Adobe Source Code Pro font faces  */
 @font-face                  { font-family: "Source Code Pro"; font-style: normal; font-weight: normal;
                               src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-Regular.ttf.woff2") format("woff2"); }
+/*
 @font-face                  { font-family: "Source Code Pro"; font-style: italic; font-weight: normal;
                               src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-It.ttf.woff2") format("woff2"); }
 @font-face                  { font-family: "Source Code Pro"; font-style: normal; font-weight: bold;
                               src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-Bold.ttf.woff2") format("woff2"); }
 @font-face                  { font-family: "Source Code Pro"; font-style: italic; font-weight: bold;
                               src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-BoldIt.ttf.woff2") format("woff2"); }
+*/
 
 html, body                  { font-size: 12pt; }
 

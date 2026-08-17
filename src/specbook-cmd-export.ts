@@ -8,7 +8,8 @@ import { minify }                    from "@swc/html"
 
 import type { Specification }        from "./specbook-struct-spec.js"
 import type { SchemaSpecification }  from "./specbook-struct-schema.js"
-import { documentTitle, documentLogo } from "./specbook-export-common.js"
+import { documentTitle, documentLogo, documentCharset, subsetStylesheet }
+    from "./specbook-export-common.js"
 import { renderAst, type AstFormat } from "./specbook-export-ast.js"
 import { renderMarkdown }            from "./specbook-export-md.js"
 import { renderHtml }                from "./specbook-export-html.js"
@@ -60,9 +61,15 @@ export const exportSpecification = async (
         return renderAst(specification, format satisfies AstFormat)
     else if (format === "md")
         return Buffer.from(renderMarkdown(specification), "utf8")
-    else if (format === "html") {
+    /*  the HTML-based formats share the stylesheet, with the embedded
+        fonts subsetted to the CHARSET of the specification (if any)  */
+    const charset = documentCharset(specification)
+    if (charset !== undefined)
+        verbose(`subsetting embedded fonts to charset "${charset}"`)
+    const css = await subsetStylesheet(charset)
+    if (format === "html") {
         /*  compress the rendered HTML (whitespace, comments, and inline CSS)  */
-        const html     = renderHtml(specification, maxTableColumns, config)
+        const html     = renderHtml(specification, maxTableColumns, config, undefined, css)
         const minified = await minify(Buffer.from(html, "utf8"), {
             collapseWhitespaces: "smart",
             removeComments:      true,
@@ -71,7 +78,7 @@ export const exportSpecification = async (
         return Buffer.from(minified.code, "utf8")
     }
     else
-        return htmlToPdf((tocPages) => renderHtml(specification, maxTableColumns, config, tocPages),
-            { ...documentTitle(specification), logo: documentLogo(specification) }, verbose)
+        return htmlToPdf((tocPages) => renderHtml(specification, maxTableColumns, config, tocPages, css),
+            { ...documentTitle(specification), logo: documentLogo(specification) }, verbose, css)
 }
 

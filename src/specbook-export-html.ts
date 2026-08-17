@@ -20,7 +20,7 @@ import { compileValueExpr, splitItems }
     from "./specbook-parse-value.js"
 import { embeddingRegex, embeddingMimeType }
     from "./specbook-parse-common.js"
-import { escapeHtml, stylesheet, fallbackLogo, isTitleObject, documentTitle }
+import { escapeHtml, stylesheet, fallbackLogo, isTitleObject, documentTitle, documentLang }
     from "./specbook-export-common.js"
 
 /*  ==== Templates ====  */
@@ -30,7 +30,7 @@ const templates: { [ name: string ]: string } = {
     /*  <Document/>  */
     "Document": textframe`
         <!DOCTYPE html>
-        <html>
+        <html{% if Document.lang %} lang="{{ Document.lang }}"{% endif %}>
             <head>
                 <meta charset="utf-8"/>
                 <title>{{ Document.title }}</title>
@@ -141,13 +141,40 @@ const templates: { [ name: string ]: string } = {
 
 /*  ==== Rendering ====  */
 
+/*  the per-language double quote styles for the smart typography
+    (single quotes stay curly, as smartypants cannot distinguish a
+    closing single quote from an apostrophe)  */
+const quoteStyles: { [ lang: string ]: [ string, string ] } = {
+    "en": [ "&#8220;",      "&#8221;"      ],  /*  “...”    */
+    "nl": [ "&#8220;",      "&#8221;"      ],  /*  “...”    */
+    "de": [ "&#8222;",      "&#8220;"      ],  /*  „...“    */
+    "cs": [ "&#8222;",      "&#8220;"      ],  /*  „...“    */
+    "sk": [ "&#8222;",      "&#8220;"      ],  /*  „...“    */
+    "pl": [ "&#8222;",      "&#8221;"      ],  /*  „...”    */
+    "fr": [ "&#171;&#160;", "&#160;&#187;" ],  /*  « ... »  */
+    "it": [ "&#171;",       "&#187;"       ],  /*  «...»    */
+    "es": [ "&#171;",       "&#187;"       ],  /*  «...»    */
+    "pt": [ "&#171;",       "&#187;"       ],  /*  «...»    */
+    "no": [ "&#171;",       "&#187;"       ],  /*  «...»    */
+    "da": [ "&#187;",       "&#171;"       ],  /*  »...«    */
+    "sv": [ "&#8221;",      "&#8221;"      ],  /*  ”...”    */
+    "fi": [ "&#8221;",      "&#8221;"      ]   /*  ”...”    */
+}
+
+/*  the active double quote style (set per document during rendering)  */
+let quotes: [ string, string ] = quoteStyles.en
+
 /*  improve the typography of all rendered Markdown text (curly quotes,
     "--" as the em dash, ellipsis); as smartypants requires unescaped text,
     the extension switches off the text escaping of marked, so the stray
-    ampersands left behind have to be re-escaped afterwards  */
-marked.use(markedSmartypants({ config: 1 }))
+    ampersands left behind have to be re-escaped afterwards; the English
+    double quotes of smartypants are remapped to the document language;
+    as marked runs later-registered pass-through hooks first, the
+    post-processing hook has to be registered before smartypants  */
 marked.use({ hooks: { postprocess: (html) =>
-    html.replace(/&(?![a-zA-Z][a-zA-Z0-9]*;|#\d+;|#x[0-9a-fA-F]+;)/g, "&amp;") } })
+    html.replace(/&#8220;/g, quotes[0]).replace(/&#8221;/g, quotes[1])
+        .replace(/&(?![a-zA-Z][a-zA-Z0-9]*;|#\d+;|#x[0-9a-fA-F]+;)/g, "&amp;") } })
+marked.use(markedSmartypants({ config: 1 }))
 
 /*  the Nunjucks environment with the @rse/nunjucks-addons extensions  */
 const env = new nunjucks.Environment(null, { autoescape: true })
@@ -343,7 +370,7 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
     const prop = (name: string) =>
         object.properties.find((property) => property.key === name)?.value
     const rest = object.properties.filter((property) =>
-        ![ "LOGO", "TITLE", "SUBTITLE", "AUTHOR", "VERSION" ].includes(property.key))
+        ![ "LOGO", "TITLE", "SUBTITLE", "AUTHOR", "VERSION", "LANG", "CHARSET" ].includes(property.key))
 
     /*  the logo is rendered above the title, from the embedded image content
         of the LOGO property or, for a non-embeddable reference, as its inline
@@ -376,7 +403,11 @@ const renderArtifact = (artifact: Artifact, maxColumns: number): string =>
     artifact timestamps aggregated into min(Created)/max(Modified), and
     optional per-anchor page numbers attached to the ToC entries  */
 export const renderHtml = (specification: Specification, maxColumns: number,
-    config?: SchemaSpecification, tocPages?: Map<string, number>): string => {
+    config?: SchemaSpecification, tocPages?: Map<string, number>, css?: string): string => {
+    /*  the document language selects the smart typography quote style  */
+    const lang = documentLang(specification)
+    quotes = quoteStyles[lang?.toLowerCase().split(/[-_]/)[0] ?? "en"] ?? quoteStyles.en
+
     /*  expand "[[xxx]]" references into hyperlinks (an unresolvable or
         ambiguous reference stays literal, marked as broken), targeting
         the fully-qualified anchor paths of the objects  */
@@ -406,7 +437,8 @@ export const renderHtml = (specification: Specification, maxColumns: number,
             page: tocPages?.get(anchorOf(object)) }))
     return render("Document", { Document: {
         title:     documentTitle(specification).title,
-        css:       safe(stylesheet()),
+        lang,
+        css:       safe(css ?? stylesheet()),
         created:   created.toISOString(),
         modified:  modified.toISOString(),
         titlepage: title !== undefined ?
