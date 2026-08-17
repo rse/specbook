@@ -21,6 +21,12 @@ export const stylesheet = (): string =>
     fs.readFileSync(path.join(
         path.dirname(fileURLToPath(import.meta.url)), "specbook-export-html.css"), "utf8")
 
+/*  provide the build-time bundled fallback logo of SpecBook itself
+    (as a self-contained data: URL, to keep its styles isolated)  */
+export const fallbackLogo = (): string =>
+    "data:image/svg+xml;base64," + fs.readFileSync(path.join(
+        path.dirname(fileURLToPath(import.meta.url)), "specbook-export-logo.svg")).toString("base64")
+
 /*  check whether an object is the specification title object  */
 export const isTitleObject = (object: SpecObject): boolean =>
     object.kind === "META" && object.name.toUpperCase() === "TITLE"

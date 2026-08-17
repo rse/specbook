@@ -19,7 +19,7 @@ import { compileValueExpr, splitItems }
     from "./specbook-parse-value.js"
 import { embeddingRegex, embeddingMimeType }
     from "./specbook-parse-common.js"
-import { escapeHtml, stylesheet, isTitleObject, documentTitle }
+import { escapeHtml, stylesheet, fallbackLogo, isTitleObject, documentTitle }
     from "./specbook-export-common.js"
 
 /*  ==== Templates ====  */
@@ -49,6 +49,7 @@ const templates: { [ name: string ]: string } = {
     /*  <TitlePage/>  */
     "TitlePage": textframe`
         <div class="titlepage">
+            {% if TitlePage.logo %}<div class="logo">{{ TitlePage.logo }}</div>{% endif %}
             <div class="title">{{ TitlePage.title }}</div>
             {% if TitlePage.subtitle %}<div class="subtitle">{{ TitlePage.subtitle }}</div>{% endif %}
             {% if TitlePage.author %}<div class="author">{{ TitlePage.author }}</div>{% endif %}
@@ -178,21 +179,28 @@ const isBlock = (text: string): boolean => {
     return tokens.length > 0 && !(tokens.length === 1 && tokens[0].type === "paragraph")
 }
 
-/*  render a description into HTML, expanding its inline Markdown and
-    moving the file embeddings to the end of the description
-    (SVG inlined as-is, PNG/JPEG placed onto <img> tags)  */
-const renderDescription = (description: Description): string => {
-    const alts = [ ...description.description.matchAll(embeddingRegex) ]
+/*  render the embedded image files of a text into HTML (SVG inlined
+    as-is, PNG/JPEG placed onto <img> tags), taking the image alternate
+    texts from the corresponding "![alt](file)" markups  */
+const renderEmbeddings = (text: string, embedding: string[]): string[] => {
+    const alts = [ ...text.matchAll(embeddingRegex) ]
         .filter((m) => embeddingMimeType(m[2].trim()) !== undefined)
         .map((m) => m[1].trim())
+    return embedding.map((content, i) =>
+        content.startsWith("data:") ?
+            `<img src="${content}" alt="${escapeHtml(alts[i] ?? "")}"/>` :
+            content.replace(/^\s*<\?xml[^>]*\?>\s*(?:<!DOCTYPE[^>]*>\s*)?/i, ""))
+}
+
+/*  render a description into HTML, expanding its inline Markdown and
+    moving the file embeddings to the end of the description  */
+const renderDescription = (description: Description): string => {
     const text = description.description
         .replace(embeddingRegex, (markup, _alt, reference: string) =>
             embeddingMimeType(reference.trim()) !== undefined ? "" : markup)
         .replace(/(?<=\S)[ \t]{2,}/g, " ").trim()
-    const embeddings = (description.embedding ?? []).map((content, i) =>
-        content.startsWith("data:") ?
-            safe(`<img src="${content}" alt="${escapeHtml(alts[i] ?? "")}"/>`) :
-            safe(content.replace(/^\s*<\?xml[^>]*\?>\s*(?:<!DOCTYPE[^>]*>\s*)?/i, "")))
+    const embeddings = renderEmbeddings(description.description,
+        description.embedding ?? []).map((content) => safe(content))
     const blocked = isBlock(text)
     return render("Description", { Description: {
         block:       blocked,
@@ -326,8 +334,16 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
     const prop = (name: string) =>
         object.properties.find((property) => property.key === name)?.value
     const rest = object.properties.filter((property) =>
-        ![ "TITLE", "SUBTITLE", "AUTHOR", "VERSION" ].includes(property.key))
+        ![ "LOGO", "TITLE", "SUBTITLE", "AUTHOR", "VERSION" ].includes(property.key))
+
+    /*  the logo is rendered above the title, from the embedded image content
+        of the LOGO property or, for a non-embeddable reference, as its inline
+        Markdown; without a LOGO property the built-in SpecBook logo is used  */
+    const logo  = object.properties.find((property) => property.key === "LOGO")
+    const image = logo !== undefined ? renderEmbeddings(logo.value, logo.embedding ?? []) : []
     return render("TitlePage", { TitlePage: {
+        logo:        logo === undefined ? safe(`<img src="${fallbackLogo()}" alt="SpecBook"/>`) :
+            (image.length > 0 ? safe(image.join("")) : inline(logo.value)),
         title:       inline(prop("TITLE") ?? object.name),
         subtitle:    prop("SUBTITLE") !== undefined ? inline(prop("SUBTITLE") ?? "") : "",
         author:      prop("AUTHOR")   !== undefined ? inline(prop("AUTHOR")   ?? "") : "",

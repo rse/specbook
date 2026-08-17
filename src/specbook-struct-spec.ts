@@ -35,13 +35,15 @@ export type Description = {
 export type Property = {
     key:               string
     value:             string
+    embedding?:        string[]
 }
 
 /*  ==== Schema ====  */
 
 const Property: v.GenericSchema<Property> = v.object({
     key:               v.string(),
-    value:             v.string()
+    value:             v.string(),
+    embedding:         v.optional(v.array(v.string()))
 })
 const Description: v.GenericSchema<Description> = v.object({
     description:       v.string(),

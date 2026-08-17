@@ -127,30 +127,35 @@ const parseFrontmatter = (text: string) => {
     }
 }
 
-/*  load the image files embedded via "![alt](file)" into the description
-    of an object (SVG as-is, PNG/JPEG as base64 data: URLs), resolving
-    the references relative to the source file  */
+/*  recursively load the image files embedded via "![alt](file)" into the
+    description and the property values of an object (SVG as-is, PNG/JPEG
+    as base64 data: URLs), resolving the references relative to the source file  */
 const embed = (ctx: ParseContext, object: SpecObject, file: string) => {
-    const description = object.description
-    if (description === undefined)
-        return
-    const line = ctx.objectMeta.get(object)?.line ?? 1
-    for (const m of description.description.matchAll(embeddingRegex)) {
-        const reference = m[2].trim()
-        const type = embeddingMimeType(reference)
-        if (type === undefined)
-            continue
-        try {
-            const data = fs.readFileSync(path.resolve(path.dirname(file), reference))
-            description.embedding ??= []
-            description.embedding.push(type === "image/svg+xml" ?
-                data.toString("utf8") : `data:${type};base64,${data.toString("base64")}`)
-        }
-        catch (err) {
-            ctx.diagnose(file, line, `unreadable embedding file "${reference}": ` +
-                (err instanceof Error ? err.message : String(err)))
+    const load = (target: { embedding?: string[] }, text: string, line: number) => {
+        for (const m of text.matchAll(embeddingRegex)) {
+            const reference = m[2].trim()
+            const type = embeddingMimeType(reference)
+            if (type === undefined)
+                continue
+            try {
+                const data = fs.readFileSync(path.resolve(path.dirname(file), reference))
+                target.embedding ??= []
+                target.embedding.push(type === "image/svg+xml" ?
+                    data.toString("utf8") : `data:${type};base64,${data.toString("base64")}`)
+            }
+            catch (err) {
+                ctx.diagnose(file, line, `unreadable embedding file "${reference}": ` +
+                    (err instanceof Error ? err.message : String(err)))
+            }
         }
     }
+    const line = ctx.objectMeta.get(object)?.line ?? 1
+    if (object.description !== undefined)
+        load(object.description, object.description.description, line)
+    for (const property of object.properties)
+        load(property, property.value, ctx.propMeta.get(property)?.line ?? line)
+    for (const child of object.childs)
+        embed(ctx, child, file)
 }
 
 /*  parse an unordered list of key-values and/or concise-format objects  */
@@ -269,10 +274,8 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
         else
             statements.push(segment)
     }
-    if (statements.length > 0) {
+    if (statements.length > 0)
         object.description = splitDescription(statements.join("; ").replace(/\.\s*$/, ""))
-        embed(ctx, object, file)
-    }
 
     /*  recurse into nested concise-format child objects  */
     for (const sub of item.tokens)
@@ -300,10 +303,8 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
 
     /*  flush the accumulated description parts into the current object  */
     const flush = () => {
-        if (current !== null && parts.length > 0 && current.description === undefined) {
+        if (current !== null && parts.length > 0 && current.description === undefined)
             current.description = splitDescription(parts.join("\n\n").trim())
-            embed(ctx, current, source.file)
-        }
         parts = []
     }
 
@@ -384,6 +385,11 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
         line += (token.raw.match(/\n/g) ?? []).length
     }
     flush()
+
+    /*  load the embedded image files of all fully parsed objects  */
+    for (const artifact of artifacts)
+        for (const object of artifact.objects)
+            embed(ctx, object, source.file)
     if (artifacts.length === 0)
         ctx.diagnose(source.file, 1, "no artifact (level 1 heading) found")
     return artifacts
