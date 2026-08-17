@@ -4,10 +4,11 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import { marked }        from "marked"
-import nunjucks          from "nunjucks"
-import nunjucksAddons    from "@rse/nunjucks-addons"
-import textframe         from "textframe"
+import { marked }            from "marked"
+import { markedSmartypants } from "marked-smartypants"
+import nunjucks              from "nunjucks"
+import nunjucksAddons        from "@rse/nunjucks-addons"
+import textframe             from "textframe"
 
 import type { Specification, Artifact, Object as SpecObject, Property, Description }
     from "./specbook-struct-spec.js"
@@ -139,6 +140,14 @@ const templates: { [ name: string ]: string } = {
 }
 
 /*  ==== Rendering ====  */
+
+/*  improve the typography of all rendered Markdown text (curly quotes,
+    "--" as the em dash, ellipsis); as smartypants requires unescaped text,
+    the extension switches off the text escaping of marked, so the stray
+    ampersands left behind have to be re-escaped afterwards  */
+marked.use(markedSmartypants({ config: 1 }))
+marked.use({ hooks: { postprocess: (html) =>
+    html.replace(/&(?![a-zA-Z][a-zA-Z0-9]*;|#\d+;|#x[0-9a-fA-F]+;)/g, "&amp;") } })
 
 /*  the Nunjucks environment with the @rse/nunjucks-addons extensions  */
 const env = new nunjucks.Environment(null, { autoescape: true })
