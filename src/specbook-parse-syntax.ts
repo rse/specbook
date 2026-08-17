@@ -192,30 +192,6 @@ const parseGrouped = (ctx: ParseContext, list: Tokens.List, group: Group, file: 
     }
 }
 
-/*  parse a frame-style ordered list of items of the form
-    "**<name>**: <description>" into child objects  */
-const parseFrames = (ctx: ParseContext, list: Tokens.List, parent: SpecObject, file: string, line: number) => {
-    for (const item of list.items) {
-        const m = itemLines(item).join(" ").match(/^\*\*(.+?)\*\*:\s*(.*)$/)
-        if (m !== null) {
-            const object: SpecObject = {
-                kind:       "",
-                id:         slugify(m[1]),
-                name:       m[1],
-                properties: [],
-                childs:     []
-            }
-            ctx.objectMeta.set(object, { file, line })
-            if (m[2] !== "") {
-                object.description = splitDescription(m[2])
-                embed(ctx, object, file)
-            }
-            parent.childs.push(object)
-        }
-        line += (item.raw.match(/\n/g) ?? []).length
-    }
-}
-
 /*  parse a concise-format object item of the form
     "<kind>: <name>; <key>: <value>; ...; <statement>, BECAUSE <rationale>.",
     which may continue on the following lines of the item; a grouped item
@@ -396,8 +372,6 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
                 parseGrouped(ctx, list, group, source.file, line)
             else if (!list.ordered)
                 parseList(ctx, list, current, source.file, line)
-            else if (list.items.every((item) => /^\*\*(.+?)\*\*:/.test(item.text.trim())))
-                parseFrames(ctx, list, current, source.file, line)
             else
                 parts.push(token.raw.trim())
         }

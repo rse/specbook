@@ -102,8 +102,13 @@ const templates: { [ name: string ]: string } = {
 
     /*  <Description/>  */
     "Description": textframe`
+        {%- if Description.block %}
+        <div class="description">{{ Description.description }}{% if Description.rationale %}
+            <p class="rationale">&mdash; <span class="keyword">BECAUSE</span> {{ Description.rationale }}</p>{% endif %}</div>
+        {%- else %}
         <p class="description">{{ Description.description }}{% if Description.rationale %}
             <span class="rationale">&mdash; <span class="keyword">BECAUSE</span> {{ Description.rationale }}</span>{% endif %}</p>
+        {%- endif %}
         {%- for embedding in Description.embeddings %}
         <div class="embedding">{{ embedding }}</div>
         {%- endfor %}
@@ -161,6 +166,18 @@ const anchorOf = (object: SpecObject): string =>
 const inline = (text: string) =>
     safe(marked.parseInline(linker !== null ? linker(text) : text) as string)
 
+/*  expand the full Markdown of a text, keeping its block-level
+    constructs (lists, quotes, code blocks, tables) intact  */
+const block = (text: string) =>
+    safe(marked.parse(linker !== null ? linker(text) : text) as string)
+
+/*  check whether a text carries any block-level Markdown, i.e. is
+    anything else than the single paragraph a description usually is  */
+const isBlock = (text: string): boolean => {
+    const tokens = marked.lexer(text).filter((token) => token.type !== "space")
+    return tokens.length > 0 && !(tokens.length === 1 && tokens[0].type === "paragraph")
+}
+
 /*  render a description into HTML, expanding its inline Markdown and
     moving the file embeddings to the end of the description
     (SVG inlined as-is, PNG/JPEG placed onto <img> tags)  */
@@ -171,13 +188,15 @@ const renderDescription = (description: Description): string => {
     const text = description.description
         .replace(embeddingRegex, (markup, _alt, reference: string) =>
             embeddingMimeType(reference.trim()) !== undefined ? "" : markup)
-        .replace(/[ \t]{2,}/g, " ").trim()
+        .replace(/(?<=\S)[ \t]{2,}/g, " ").trim()
     const embeddings = (description.embedding ?? []).map((content, i) =>
         content.startsWith("data:") ?
             safe(`<img src="${content}" alt="${escapeHtml(alts[i] ?? "")}"/>`) :
             safe(content.replace(/^\s*<\?xml[^>]*\?>\s*(?:<!DOCTYPE[^>]*>\s*)?/i, "")))
+    const blocked = isBlock(text)
     return render("Description", { Description: {
-        description: inline(text),
+        block:       blocked,
+        description: blocked ? block(text) : inline(text),
         rationale:   description.rationale !== undefined ?
             inline(description.rationale) : undefined,
         embeddings

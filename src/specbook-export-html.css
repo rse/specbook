@@ -97,13 +97,22 @@ table.objects td:first-child { border-left: 0; }
 table.objects td:first-child { font-weight: bold; }
 table.objects th            { background-color: #f0f8ff; }
 table.objects tbody tr:nth-child(even) td { background-color: #f8f8f8; }
-table.objects p.description { margin: 0; }
+table.objects p.description,
+table.objects div.description { margin: 0; }
+table.objects div.description > :first-child { margin-top: 0; }
+table.objects div.description > :last-child  { margin-bottom: 0; }
 
-p.description               { margin: 1.0rem 0 0.5rem 0; }
+p.description,
+div.description             { margin: 1.0rem 0 0.5rem 0; }
+div.description p           { margin: 0.5rem 0; }
+div.description ol,
+div.description ul          { margin: 0.5rem 0; padding-left: 1.6rem; }
+div.description li          { margin: 0.1rem 0; }
 div.embedding               { margin: 0.5rem 0; }
 div.embedding img,
 div.embedding svg           { max-width: 100%; height: auto; }
 span.rationale              { color: #999999; }
+p.rationale                 { color: #999999; margin: 0.5rem 0 0 0; }
 span.keyword                { font-weight: bold; }
 code                        { font-family: "Source Code Pro", monospace; font-size: 1.0em; letter-spacing: -0.030rem; }
 div.meta                    { color: #909090; font-size: 0.8rem; }

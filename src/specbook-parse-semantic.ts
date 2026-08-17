@@ -212,11 +212,6 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
     const childs = schema.childs ?? []
     for (const child of object.childs) {
         const childMeta = ctx.objectMeta.get(child) ?? { file: "", line: 1 }
-
-        /*  adopt the sole configured kind for objects whose
-            syntax carries no explicit kind (e.g. frames)  */
-        if (child.kind === "" && childs.length === 1)
-            child.kind = childs[0].kind
         const childSchema = childs.find((c) => c.kind === child.kind)
         if (childSchema === undefined) {
             ctx.diagnose(childMeta.file, childMeta.line,
