@@ -8,8 +8,10 @@ import { minify }                    from "@swc/html"
 
 import type { Specification }        from "./specbook-struct-spec.js"
 import type { SchemaSpecification }  from "./specbook-struct-schema.js"
-import { documentTitle, documentLogo, documentCharset, subsetStylesheet }
+import { documentTitle, documentLogo, documentCharset, documentThemeTone, subsetStylesheet }
     from "./specbook-export-common.js"
+import { themeColors, themeStylesheet, themeMapping }
+    from "./specbook-theme.js"
 import { renderAst, type AstFormat } from "./specbook-export-ast.js"
 import { renderMarkdown }            from "./specbook-export-md.js"
 import { renderHtml }                from "./specbook-export-html.js"
@@ -66,7 +68,13 @@ export const exportSpecification = async (
     const charset = documentCharset(specification)
     if (charset !== undefined)
         verbose(`subsetting embedded fonts to charset "${charset}"`)
-    const css = await subsetStylesheet(charset)
+
+    /*  the theme tone (THEME-TONE) drives the layer-1 color spread
+        variables and the PDF decoration colors  */
+    const tone = documentThemeTone(specification) ?? "#336699"
+    verbose(`generating theme color spreads (tone "${tone}")`)
+    const colors = themeColors(tone)
+    const css    = themeStylesheet(colors) + await subsetStylesheet(charset)
     if (format === "html") {
         /*  compress the rendered HTML (whitespace, comments, and inline CSS)  */
         const html     = renderHtml(specification, maxTableColumns, config, undefined, css)
@@ -78,7 +86,10 @@ export const exportSpecification = async (
         return Buffer.from(minified.code, "utf8")
     }
     else
+        /*  the PDF export (like print in general) always uses the light
+            theme, so its decoration colors are the light mapping, too  */
         return htmlToPdf((tocPages) => renderHtml(specification, maxTableColumns, config, tocPages, css),
-            { ...documentTitle(specification), logo: documentLogo(specification) }, verbose, css)
+            { ...documentTitle(specification), logo: documentLogo(specification) }, verbose, css,
+            themeMapping(colors, "light"))
 }
 

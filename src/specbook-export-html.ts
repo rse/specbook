@@ -20,7 +20,7 @@ import { compileValueExpr, splitItems }
     from "./specbook-parse-value.js"
 import { embeddingRegex, embeddingMimeType }
     from "./specbook-parse-common.js"
-import { escapeHtml, stylesheet, fallbackLogo, isTitleObject, documentTitle, documentLang }
+import { escapeHtml, stylesheet, fallbackLogo, isTitleObject, documentTitle, documentLang, documentThemeStyle }
     from "./specbook-export-common.js"
 
 /*  ==== Templates ====  */
@@ -30,15 +30,34 @@ const templates: { [ name: string ]: string } = {
     /*  <Document/>  */
     "Document": textframe`
         <!DOCTYPE html>
-        <html{% if Document.lang %} lang="{{ Document.lang }}"{% endif %}>
+        <html{% if Document.lang %} lang="{{ Document.lang }}"{% endif %}{% if Document.theme %} class="theme-{{ Document.theme }}"{% endif %}>
             <head>
                 <meta charset="utf-8"/>
                 <title>{{ Document.title }}</title>
                 <style>
                     {{ Document.css }}
                 </style>
+                <script>
+                    (function () {
+                        let style = null
+                        try { style = localStorage.getItem("specbook-theme") } catch (ex) {}
+                        if (style === null) {
+                            const m = document.documentElement.className.match(/theme-(light|dark)/)
+                            style = m !== null ? m[1] : null
+                        }
+                        if (style === null)
+                            style = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+                        document.documentElement.className = "theme-" + style
+                    })()
+                    function themeSwitch () {
+                        const style = document.documentElement.className === "theme-dark" ? "light" : "dark"
+                        document.documentElement.className = "theme-" + style
+                        try { localStorage.setItem("specbook-theme", style) } catch (ex) {}
+                    }
+                </script>
             </head>
             <body>
+                <div class="theme-switch" onclick="themeSwitch()" title="switch color theme">&#x25D0;</div>
                 {{ Document.titlepage }}
                 {% if not Document.titlepage %}<div class="meta">created: {{ Document.created }}, modified: {{ Document.modified }}</div>{% endif %}
                 {{ Document.toc }}
@@ -370,7 +389,8 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
     const prop = (name: string) =>
         object.properties.find((property) => property.key === name)?.value
     const rest = object.properties.filter((property) =>
-        ![ "LOGO", "TITLE", "SUBTITLE", "AUTHOR", "VERSION", "LANG", "CHARSET" ].includes(property.key))
+        ![ "LOGO", "TITLE", "SUBTITLE", "AUTHOR", "VERSION",
+            "LANG", "CHARSET", "THEME-STYLE", "THEME-TONE" ].includes(property.key))
 
     /*  the logo is rendered above the title, from the embedded image content
         of the LOGO property or, for a non-embeddable reference, as its inline
@@ -438,6 +458,7 @@ export const renderHtml = (specification: Specification, maxColumns: number,
     return render("Document", { Document: {
         title:     documentTitle(specification).title,
         lang,
+        theme:     documentThemeStyle(specification)?.toLowerCase(),
         css:       safe(css ?? stylesheet()),
         created:   created.toISOString(),
         modified:  modified.toISOString(),

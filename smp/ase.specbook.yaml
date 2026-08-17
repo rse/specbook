@@ -35,6 +35,14 @@
             desc: The character set the embedded fonts are subsetted to.
             value: enum(US-ASCII,ISO-8859-1,ISO-Latin-1,ISO-8859-15,ISO-Latin-15,UTF-8)
             optional: true
+        -   name: THEME-STYLE
+            desc: The theme style.
+            value: enum(dark,light)
+            optional: true
+        -   name: THEME-TONE
+            desc: The theme color tone.
+            value: /^#[0-9a-fA-F]{6}$/
+            optional: true
 
 -   kind: SPEC
     name: Solution Vision

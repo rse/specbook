@@ -44,6 +44,14 @@ export const documentLang = (specification: Specification): string | undefined =
 export const documentCharset = (specification: Specification): string | undefined =>
     titleProperty(specification, "CHARSET")?.trim()
 
+/*  determine the document theme style (THEME-STYLE) from the title object  */
+export const documentThemeStyle = (specification: Specification): string | undefined =>
+    titleProperty(specification, "THEME-STYLE")?.trim()
+
+/*  determine the document theme color tone (THEME-TONE) from the title object  */
+export const documentThemeTone = (specification: Specification): string | undefined =>
+    titleProperty(specification, "THEME-TONE")?.trim()
+
 /*  generate a contiguous codepoint range  */
 const range = (from: number, to: number): number[] =>
     Array.from({ length: to - from + 1 }, (_, i) => from + i)
@@ -76,9 +84,9 @@ export const charsetCodepoints = (charset: string): number[] | undefined => {
 }
 
 /*  the symbol glyphs used by the HTML/PDF rendering (kind and property
-    bullets, link symbol, primary marker, anchor symbol plus its text
-    presentation variation selector)  */
-const symbolGlyphs = [ 0x25CF, 0x25CB, 0x26AD, 0x2318, 0x2693, 0xFE0E ]
+    bullets, link symbol, primary marker, theme switch icon, anchor
+    symbol plus its text presentation variation selector)  */
+const symbolGlyphs = [ 0x25CF, 0x25CB, 0x26AD, 0x2318, 0x25D0, 0x2693, 0xFE0E ]
 
 /*  the typographic glyphs producible by the smart typography rendering
     (language-specific quotes, dashes, ellipsis, bullet, nbsp)  */

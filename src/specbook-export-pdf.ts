@@ -6,6 +6,8 @@
 
 import { escapeHtml }
     from "./specbook-export-common.js"
+import type { ThemeMapping }
+    from "./specbook-theme.js"
 
 /*  extract the per-anchor page numbers from a Chromium-generated PDF,
     which records the internal link targets as named PDF destinations  */
@@ -32,7 +34,7 @@ const anchorPages = async (pdf: Uint8Array): Promise<Map<string, number>> => {
     re-rendering the HTML with the discovered ToC page numbers  */
 export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>) => string,
     heading: { title: string, subtitle?: string, logo: string },
-    verbose: (msg: string) => void, css: string): Promise<Buffer> => {
+    verbose: (msg: string) => void, css: string, theme: ThemeMapping): Promise<Buffer> => {
     const { chromium } = await import("playwright")
 
     /*  the regular font face and the title/subtitle
@@ -99,7 +101,7 @@ export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>)
                 "<div style=\"width: 100%; margin-top: 0.8cm;\">" +
                 "<div style=\"margin: 0 2cm; " +
                 "font-family: 'Source Sans 3', sans-serif; " +
-                "font-size: 8pt; color: #c0c0c0; border-bottom: 1px solid #d0d0d0; " +
+                `font-size: 8pt; color: ${theme.symbol}; border-bottom: 1px solid ${theme.border}; ` +
                 "padding-bottom: 1mm; display: flex; justify-content: space-between; " +
                 "align-items: flex-end;\">" +
                 `<span>${headText}</span>` +
@@ -110,11 +112,11 @@ export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>)
                 "<div style=\"width: 100%; margin-bottom: 0.8cm;\">" +
                 "<div style=\"margin: 0 2cm; " +
                 "font-family: 'Source Sans 3', sans-serif; " +
-                "font-size: 8pt; color: #303030; display: flex; " +
-                "justify-content: space-between; border-top: 1px solid #d0d0d0; " +
+                `font-size: 8pt; color: ${theme.text}; display: flex; ` +
+                `justify-content: space-between; border-top: 1px solid ${theme.border}; ` +
                 "padding-top: 1mm;\">" +
-                `<span style="color: #c0c0c0">${headText}</span>` +
-                "<span style=\"color: #999999; font-weight: bold;\" class=\"pageNumber\"></span></div></div>"
+                `<span style="color: ${theme.symbol}">${headText}</span>` +
+                `<span style="color: ${theme.muted}; font-weight: bold;" class="pageNumber"></span></div></div>`
         })
 
         /*  a title page carries no header/footer: as Chromium decorates
@@ -135,9 +137,11 @@ export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>)
         /*  draw the vertical brand bar onto the left edge of the
             physical paper of every page, as Chromium clips print
             content to the page box (0.6rem at the 9pt print root)  */
+        const [ r, g, b ] = (theme.accent.match(/[0-9a-f]{2}/gi) ?? [])
+            .map((hex) => parseInt(hex, 16) / 255)
         for (const pdfPage of merged.getPages())
             pdfPage.drawRectangle({ x: 0, y: 0, width: 5.4,
-                height: pdfPage.getHeight(), color: rgb(0.2, 0.4, 0.6) })
+                height: pdfPage.getHeight(), color: rgb(r, g, b) })
         return Buffer.from(await merged.save())
     }
     finally {
