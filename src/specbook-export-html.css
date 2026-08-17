@@ -50,7 +50,7 @@ html.theme-light            { --theme-color-specbook-background:  var(--theme-co
 /*  the dark theme applies on screen only, so print (and hence the
     PDF export) always falls back onto the light mapping above  */
 @media screen {
-html.theme-dark             { --theme-color-specbook-background:  var(--theme-color-base-1);
+html.theme-dark             { --theme-color-specbook-background:  var(--theme-color-base-7);
                               --theme-color-specbook-text:        var(--theme-color-base-28);
                               --theme-color-specbook-muted:       var(--theme-color-base-22);
                               --theme-color-specbook-symbol:      var(--theme-color-base-20);
