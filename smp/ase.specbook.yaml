@@ -13,6 +13,9 @@
     id:   TI
     file: META-01-TI-Title.md
     props:
+        -   name: LOGO
+            desc: The logo of the specification.
+            optional: true
         -   name: TITLE
             desc: The title of the specification.
         -   name: SUBTITLE
