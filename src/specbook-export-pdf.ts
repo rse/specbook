@@ -32,7 +32,7 @@ const anchorPages = async (pdf: Uint8Array): Promise<Map<string, number>> => {
 
 /*  render a self-contained HTML document into a PDF via Playwright,
     re-rendering the HTML with the discovered ToC page numbers  */
-export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>) => string,
+export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>) => Promise<string>,
     heading: { title: string, subtitle?: string, logo: string },
     verbose: (msg: string) => void, css: string, theme: ThemeMapping): Promise<Buffer> => {
     const { chromium } = await import("playwright")
@@ -80,10 +80,10 @@ export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>)
             re-render until the HTML is stable, as the ToC page number
             column itself can shift the pagination  */
         verbose("determining ToC page numbers")
-        let html  = renderHtmlPass()
+        let html  = await renderHtmlPass()
         let plain = await renderPdf(html)
         for (let i = 0; i < 3; i++) {
-            const next = renderHtmlPass(await anchorPages(plain))
+            const next = await renderHtmlPass(await anchorPages(plain))
             if (next === html)
                 break
             html  = next

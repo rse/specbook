@@ -60,9 +60,9 @@ export const exportSpecification = async (
         throw new Error(`unknown export format "${format}"`)
     verbose(`exporting specification as "${format}"`)
     if (format === "json" || format === "json5" || format === "yaml" || format === "toon")
-        return renderAst(specification, format satisfies AstFormat)
+        return renderAst(specification, format satisfies AstFormat, config)
     else if (format === "md")
-        return Buffer.from(renderMarkdown(specification), "utf8")
+        return Buffer.from(await renderMarkdown(specification, config), "utf8")
     /*  the HTML-based formats share the stylesheet, with the embedded
         fonts subsetted to the CHARSET of the specification (if any)  */
     const charset = documentCharset(specification)
@@ -77,7 +77,7 @@ export const exportSpecification = async (
     const css    = themeStylesheet(colors) + await subsetStylesheet(charset)
     if (format === "html") {
         /*  compress the rendered HTML (whitespace, comments, and inline CSS/JS)  */
-        const html     = renderHtml(specification, maxTableColumns, config, undefined, css)
+        const html     = await renderHtml(specification, maxTableColumns, config, undefined, css)
         const minified = await minify(Buffer.from(html, "utf8"), {
             collapseWhitespaces: "smart",
             removeComments:      true,

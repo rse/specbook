@@ -9,6 +9,7 @@ import { markedSmartypants } from "marked-smartypants"
 import nunjucks              from "nunjucks"
 import nunjucksAddons        from "@rse/nunjucks-addons"
 import textframe             from "textframe"
+import { Gradia }            from "@rse/gradia"
 
 import type { Specification, Artifact, Object as SpecObject, Property, Description }
     from "./specbook-struct-spec.js"
@@ -22,6 +23,8 @@ import { embeddingRegex, embeddingMimeType }
     from "./specbook-parse-common.js"
 import { escapeHtml, stylesheet, searchScript, fallbackLogo, isTitleObject, documentTitle, documentLang, documentThemeStyle }
     from "./specbook-export-common.js"
+import { specDiagrams }
+    from "./specbook-diagram.js"
 
 /*  ==== Templates ====  */
 
@@ -111,6 +114,7 @@ const templates: { [ name: string ]: string } = {
     "Object": textframe`
         <section>
             <h{{ Object.level }} id="{{ Object.id }}"><span class="object-kind">{{ Object.kind }}:</span> {{ Object.name }}{% if Object.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if Object.paren %} <span class="anchor-paren">({{ Object.paren }})</span>{% endif %} <a href="#{{ Object.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></h{{ Object.level }}>
+            {{ Object.diagram }}
             {{ Object.properties }}
             {{ Object.description }}
             {{ Object.childs }}
@@ -212,11 +216,12 @@ const render = (name: string, context: object): string =>
     env.renderString(templates[name], context)
 
 /*  the active per-document reference expander, fully-qualified
-    anchor paths, and enum/tags property value kinds
-    (all set during HTML rendering)  */
+    anchor paths, enum/tags property value kinds, and pre-rendered
+    diagram SVGs (all set during HTML rendering)  */
 let linker: ((text: string) => string) | null = null
 let anchors: Map<SpecObject, string> | null  = null
 let members: Map<string, "enum" | "tags"> | null = null
+let diagrams: Map<SpecObject, string> | null = null
 
 /*  determine the fully-qualified anchor path of an object  */
 const anchorOf = (object: SpecObject): string =>
@@ -380,6 +385,8 @@ const renderObject = (object: SpecObject, level: number, maxColumns: number): st
         paren:       object.paren,
         primary:     object.primary,
         name:        inline(object.name),
+        diagram:     diagrams?.has(object) === true ?
+            safe(`<div class="diagram">${diagrams.get(object) ?? ""}</div>`) : "",
         properties:  object.properties.length > 0 ?
             safe(render("Properties", { Properties: inlineProperties(object.kind, object.properties) })) : "",
         description: object.description !== undefined ?
@@ -427,11 +434,36 @@ const renderArtifact = (artifact: Artifact, maxColumns: number): string =>
     with the build-time pre-assembled stylesheet embedded inline, the
     artifact timestamps aggregated into min(Created)/max(Modified), and
     optional per-anchor page numbers attached to the ToC entries  */
-export const renderHtml = (specification: Specification, maxColumns: number,
-    config?: SchemaSpecification, tocPages?: Map<string, number>, css?: string): string => {
+export const renderHtml = async (specification: Specification, maxColumns: number,
+    config?: SchemaSpecification, tocPages?: Map<string, number>, css?: string): Promise<string> => {
     /*  the document language selects the smart typography quote style  */
     const lang = documentLang(specification)
     quotes = quoteStyles[lang?.toLowerCase().split(/[-_]/)[0] ?? "en"] ?? quoteStyles.en
+
+    /*  pre-render the configured diagrams as embeddable SVGs (a runtime
+        rendering failure omits the diagram, as the statically detectable
+        invalid situations are already reported as lint diagnostics),
+        displayed at a reduced coordinate scale, as the Gradia geometry
+        (node boxes, font sizes) is dimensioned for a stand-alone
+        canvas and would dwarf the document text at 1:1  */
+    const scale = 0.75
+    diagrams = null
+    if (config !== undefined) {
+        diagrams = new Map<SpecObject, string>()
+        for (const [ object, result ] of specDiagrams(specification, config)) {
+            if (result.spec === undefined)
+                continue
+            try {
+                const svg = await Gradia.render(result.spec, { format: "svg:embedded" })
+                diagrams.set(object, svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
+                    (_, head: string, w: string, h: string) =>
+                        `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"`))
+            }
+            catch {
+                /*  intentionally omitted  */
+            }
+        }
+    }
 
     /*  expand "[[xxx]]" references into hyperlinks (an unresolvable or
         ambiguous reference stays literal, marked as broken), targeting

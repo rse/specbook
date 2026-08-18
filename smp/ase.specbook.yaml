@@ -138,6 +138,9 @@
         The concrete behaviors and capabilities the solution must
         provide, describing what the system does in terms of functions,
         features, and operations.
+    diagram:
+        type: grid
+        nodes: "[[SPEC:FR.REQUIREMENT:*]]"
     childs:
         -   kind: REQUIREMENT
             desc: >
@@ -185,6 +188,11 @@
         always hold true in the problem domain, independent of any single
         feature, constraining the Functional and Non-Functional
         Requirements.
+    diagram:
+        type: graph
+        nodes: "[[SPEC:FR.REQUIREMENT:*]], [[SPEC:NR.REQUIREMENT:*]], [[SPEC:BR.RULE:*]]"
+        onlyConnected: true
+        qualified: true
     childs:
         -   kind: RULE
             desc: >
@@ -211,12 +219,20 @@
         The structure of named entities, with named attributes and
         directed relationships, of the data the solution manages,
         defining how information is organized and connected.
+    diagram:
+        type: graph
+        nodes: "[[DM.ENTITY:*]]"
+        edges: "[[DM.ENTITY:*.RELATION:*]]"
     childs:
         -   kind: ENTITY
             name: "[A-Z][a-zA-Z0-9]*"
             desc: >
                 A named entity of the data model, carrying a
                 Pascal-cased, per-artifact unique name.
+            diagram:
+                type: hub
+                nodes: "[[DM.ENTITY:*]]"
+                edges: "[[DM.ENTITY:*.RELATION:*]]"
             childs:
                 -   kind: ATTRIBUTE
                     name: "[a-z][a-zA-Z0-9]*"

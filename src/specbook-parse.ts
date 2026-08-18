@@ -18,6 +18,8 @@ import { parseFile }
     from "./specbook-parse-syntax.js"
 import { validate, validateReferences }
     from "./specbook-parse-semantic.js"
+import { validateDiagrams }
+    from "./specbook-diagram.js"
 
 /*  re-export the public parsing types and embedding helpers  */
 export { type SourceFile, type ParseResult, embeddingRegex, embeddingMimeType }
@@ -39,6 +41,8 @@ export class Parser {
             if (config !== undefined)
                 validate(this.ctx, specification, config)
             validateReferences(this.ctx, specification)
+            if (config !== undefined)
+                validateDiagrams(this.ctx, specification, config)
             const result = v.safeParse(Specification, specification)
             if (!result.success)
                 for (const issue of result.issues) {

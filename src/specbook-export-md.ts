@@ -6,6 +6,10 @@
 
 import type { Specification, Object as SpecObject, Property, Description }
     from "./specbook-struct-spec.js"
+import type { SchemaSpecification }
+    from "./specbook-struct-schema.js"
+import { specDiagrams }
+    from "./specbook-diagram.js"
 
 /*  format a timestamp in the frontmatter format  */
 const formatTimestamp = (date: Date): string => {
@@ -46,12 +50,17 @@ const renderConciseMd = (object: SpecObject, level: number): string => {
 }
 
 /*  render an object in the Complex Format (levels 1-3),
-    with childs from level 4 upwards in the Concise Format  */
-const renderObjectMd = (object: SpecObject, level: number): string => {
+    with childs from level 4 upwards in the Concise Format
+    and the optionally derived Gradia diagram spec embedded
+    as a "gradia" fenced code block below the heading  */
+const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecObject, string>): string => {
     const heading = level === 1 ?
         `#   ${object.kind}: ${object.name}${nameSuffixMd(object)}` :
         `${"#".repeat(level)}${" ".repeat(4 - level)}${object.kind}: ${object.name}${nameSuffixMd(object)}`
     const parts = [ heading ]
+    const spec  = diagrams?.get(object)
+    if (spec !== undefined)
+        parts.push(`\`\`\`gradia\n${spec}\`\`\``)
     if (object.properties.length > 0)
         parts.push(renderKeyValuesMd(object.properties))
     if (object.description !== undefined)
@@ -59,18 +68,28 @@ const renderObjectMd = (object: SpecObject, level: number): string => {
     if (level >= 3)
         parts.push(object.childs.map((child) => renderConciseMd(child, level + 1)).join("\n"))
     else
-        parts.push(...object.childs.map((child) => renderObjectMd(child, level + 1)))
+        parts.push(...object.childs.map((child) => renderObjectMd(child, level + 1, diagrams)))
     return parts.filter((part) => part !== "").join("\n\n")
 }
 
 /*  render the entire specification into normalized Markdown  */
-export const renderMarkdown = (specification: Specification): string =>
-    specification.artifacts.map((artifact) =>
+export const renderMarkdown = async (specification: Specification,
+    config?: SchemaSpecification): Promise<string> => {
+    /*  derive the Gradia specs of the diagram-configured objects
+        (an invalid diagram situation omits the diagram, as it is
+        already reported as a lint diagnostic)  */
+    const diagrams = new Map<SpecObject, string>()
+    if (config !== undefined)
+        for (const [ object, result ] of specDiagrams(specification, config))
+            if (result.spec !== undefined)
+                diagrams.set(object, result.spec)
+    return specification.artifacts.map((artifact) =>
         artifact.objects.map((object) =>
             "---\n" +
             `Created:  ${formatTimestamp(artifact.created)}\n` +
             `Modified: ${formatTimestamp(artifact.modified)}\n` +
             "---\n\n" +
-            renderObjectMd(object, 1)
+            renderObjectMd(object, 1, diagrams)
         ).join("\n\n")
     ).join("\n\n") + "\n"
+}
