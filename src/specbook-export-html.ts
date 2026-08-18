@@ -20,7 +20,7 @@ import { compileValueExpr, splitItems }
     from "./specbook-parse-value.js"
 import { embeddingRegex, embeddingMimeType }
     from "./specbook-parse-common.js"
-import { escapeHtml, stylesheet, fallbackLogo, isTitleObject, documentTitle, documentLang, documentThemeStyle }
+import { escapeHtml, stylesheet, searchScript, fallbackLogo, isTitleObject, documentTitle, documentLang, documentThemeStyle }
     from "./specbook-export-common.js"
 
 /*  ==== Templates ====  */
@@ -62,6 +62,7 @@ const templates: { [ name: string ]: string } = {
                 {% if not Document.titlepage %}<div class="meta">created: {{ Document.created }}, modified: {{ Document.modified }}</div>{% endif %}
                 {{ Document.toc }}
                 {{ Document.artifacts }}
+                {% if Document.search %}<script>{{ Document.search }}</script>{% endif %}
             </body>
         </html>
     `,
@@ -80,6 +81,10 @@ const templates: { [ name: string ]: string } = {
             </table>
             {{ TitlePage.description }}
             {{ TitlePage.properties }}
+            <div class="search">
+                <input type="text" id="search-input" placeholder="Search&hellip;" autocomplete="off" spellcheck="false"/>
+                <span class="search-clear" id="search-clear" title="clear search">&#x00D7;</span>
+            </div>
         </div>
     `,
 
@@ -466,6 +471,7 @@ export const renderHtml = (specification: Specification, maxColumns: number,
             safe(renderTitlePage(title,
                 created.toISOString().slice(0, 10),
                 modified.toISOString().slice(0, 10))) : "",
+        search:    title !== undefined ? safe(searchScript()) : "",
         toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
         artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact, maxColumns)).join(""))
     } })

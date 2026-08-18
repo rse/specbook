@@ -21,6 +21,11 @@ export const stylesheet = (): string =>
     fs.readFileSync(path.join(
         path.dirname(fileURLToPath(import.meta.url)), "specbook-export-html.css"), "utf8")
 
+/*  provide the build-time bundled client-side fuzzy search script  */
+export const searchScript = (): string =>
+    fs.readFileSync(path.join(
+        path.dirname(fileURLToPath(import.meta.url)), "specbook-export-html-search.js"), "utf8")
+
 /*  provide the build-time bundled fallback logo of SpecBook itself
     (as a self-contained data: URL, to keep its styles isolated)  */
 export const fallbackLogo = (): string =>
@@ -85,8 +90,9 @@ export const charsetCodepoints = (charset: string): number[] | undefined => {
 
 /*  the symbol glyphs used by the HTML/PDF rendering (kind and property
     bullets, link symbol, primary marker, theme switch icon, anchor
-    symbol plus its text presentation variation selector)  */
-const symbolGlyphs = [ 0x25CF, 0x25CB, 0x26AD, 0x2318, 0x25D0, 0x2693, 0xFE0E ]
+    symbol plus its text presentation variation selector, and the
+    search field clearing icon)  */
+const symbolGlyphs = [ 0x25CF, 0x25CB, 0x26AD, 0x2318, 0x25D0, 0x2693, 0xFE0E, 0x00D7 ]
 
 /*  the typographic glyphs producible by the smart typography rendering
     (language-specific quotes, dashes, ellipsis, bullet, nbsp)  */

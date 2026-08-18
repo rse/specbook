@@ -76,12 +76,13 @@ export const exportSpecification = async (
     const colors = themeColors(tone)
     const css    = themeStylesheet(colors) + await subsetStylesheet(charset)
     if (format === "html") {
-        /*  compress the rendered HTML (whitespace, comments, and inline CSS)  */
+        /*  compress the rendered HTML (whitespace, comments, and inline CSS/JS)  */
         const html     = renderHtml(specification, maxTableColumns, config, undefined, css)
         const minified = await minify(Buffer.from(html, "utf8"), {
             collapseWhitespaces: "smart",
             removeComments:      true,
-            minifyCss:           true
+            minifyCss:           true,
+            minifyJs:            true
         })
         return Buffer.from(minified.code, "utf8")
     }

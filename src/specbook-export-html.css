@@ -45,6 +45,8 @@ html.theme-light            { --theme-color-specbook-background:  var(--theme-co
                               --theme-color-specbook-tint-stripe: var(--theme-color-accent-30);
                               --theme-color-specbook-accent:      var(--theme-color-accent-12);
                               --theme-color-specbook-accent-soft: var(--theme-color-accent-18);
+                              --theme-color-specbook-mark-text:   var(--theme-color-search-32);
+                              --theme-color-specbook-mark-back:   var(--theme-color-search-16);
                               --theme-color-specbook-error:       #cc0000; }
 
 /*  the dark theme applies on screen only, so print (and hence the
@@ -60,6 +62,8 @@ html.theme-dark             { --theme-color-specbook-background:  var(--theme-co
                               --theme-color-specbook-tint-stripe: var(--theme-color-accent-3);
                               --theme-color-specbook-accent:      var(--theme-color-accent-24);
                               --theme-color-specbook-accent-soft: var(--theme-color-accent-16);
+                              --theme-color-specbook-mark-text:   var(--theme-color-search-32);
+                              --theme-color-specbook-mark-back:   var(--theme-color-search-4);
                               --theme-color-specbook-error:       #cc0000; }
 }
 
@@ -182,6 +186,30 @@ div.titlepage p.description { margin-top: 2rem; }
 div.titlepage table.meta    { margin: 1rem auto 0 auto; color: var(--theme-color-specbook-muted);
                               font-size: 1.0rem; border-collapse: collapse; }
 div.titlepage table.meta td { padding: 0.0rem 0.5rem; text-align: left; }
+
+/*  the fuzzy search field at the end of the title page (screen-only)  */
+div.search                  { margin-top: 2.0rem; position: relative; display: inline-block; }
+div.search input            { font-family: inherit; font-size: 1.0rem; width: 20rem;
+                              padding: 0.4rem 2.0rem 0.4rem 0.6rem;
+                              border: 1px solid var(--theme-color-specbook-border); border-radius: 0.25rem;
+                              color: var(--theme-color-specbook-text);
+                              background-color: var(--theme-color-specbook-background); }
+div.search input:focus      { outline: none; border-color: var(--theme-color-specbook-accent); }
+div.search span.search-clear { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%);
+                              color: var(--theme-color-specbook-symbol); cursor: pointer; user-select: none; }
+div.search span.search-clear:hover { color: var(--theme-color-specbook-accent); }
+@media print {
+div.search                  { display: none; }
+}
+
+/*  the search result filtering and matched word highlighting  */
+.search-hide                { display: none; }
+body.searching nav.toc,
+body.searching div.meta,
+body.searching div.embedding { display: none; }
+mark.search-hit             { color: var(--theme-color-specbook-mark-text);
+                              background-color: var(--theme-color-specbook-mark-back);
+                              border-radius: 0.2rem; padding: 0 0.1em; }
 
 nav.toc                     { page-break-after: always; counter-reset: toc; }
 nav.toc h1                  { color: var(--theme-color-specbook-accent); }

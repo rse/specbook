@@ -87,22 +87,29 @@ export function generate (spec: ThemeSpec): string[] {
 export type ThemeStyle  = "light" | "dark"
 export type ThemeColors = {
     base:   string[],
-    accent: string[]
+    accent: string[],
+    search: string[]
 }
 
 /*  generate the theme color spreads from the theme color tone:
-    a grey base spread and a tone-derived accent spread  */
-export const themeColors = (tone: string): ThemeColors => ({
-    base:   generate(parseSpec("#000000/32")),
-    accent: generate(parseSpec(`${tone}+40-5/32`))
-})
+    a grey base spread, a tone-derived accent spread, and a search
+    spread derived from the complement-transposed tone  */
+export const themeColors = (tone: string): ThemeColors => {
+    const transposed = tone.endsWith("^") ? tone.slice(0, -1) : `${tone}^`
+    return {
+        base:   generate(parseSpec("#000000/32")),
+        accent: generate(parseSpec(`${tone}+40-5/32`)),
+        search: generate(parseSpec(`${transposed}+40-5/32`))
+    }
+}
 
 /*  render the theme colors into the layer-1 ":root" CSS variable
-    block "--theme-color-{base,accent}-{1..32}"  */
+    block "--theme-color-{base,accent,search}-{1..32}"  */
 export const themeStylesheet = (colors: ThemeColors): string =>
     ":root {\n" +
     colors.base.map((color, i)   => `    --theme-color-base-${i + 1}: ${color};\n`).join("") +
     colors.accent.map((color, i) => `    --theme-color-accent-${i + 1}: ${color};\n`).join("") +
+    colors.search.map((color, i) => `    --theme-color-search-${i + 1}: ${color};\n`).join("") +
     "}\n"
 
 /*  ==== Theme Mapping (layer 2, code-side subset) ====  */
