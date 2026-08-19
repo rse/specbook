@@ -453,7 +453,7 @@ BECAUSE questions are categorized by topic or addressed person for routing and g
 
 ##  ENTITY: AuthorizationToken
 
-A one-time second factor proving an attendee controls the email address used as first factor,
+A one-time second factor proving an attendee controls the email address used as the first factor,
 BECAUSE email-verified access is the core mechanism limiting the audience.
 
 -   ATTRIBUTE: token (*); TYPE: `string`;

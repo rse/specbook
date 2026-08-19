@@ -75,7 +75,7 @@ be accepted, BECAUSE each message type has a different interaction lifecycle.
 -   CONSTRAINS: [[FR.server-sentiment]]
 
 When server-side sentiment analysis is enabled, a sentiment score below -0.1 MUST be treated as improper and a score at or
-above as proper for auto-accept and auto-reject decisions, BECAUSE a defined threshold makes automated moderation
+above it as proper for auto-accept and auto-reject decisions, BECAUSE a defined threshold makes automated moderation
 predictable.
 
 ##  RULE: Anonymization on Event Finish {{anonymize}}

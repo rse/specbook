@@ -49,7 +49,7 @@ STORYBOARD: Attendee Reads and Posts Chat {{chat-interaction}}
 -   Read Mixed Stream; Others' messages show name, time, and like count, an amber moderator message stands out, and a deleted message reads "This message was deleted".
 -   Like and Reply; The attendee likes a message, raising its count, and follows a quoted original link back to its source.
 -   Compose and Send; The attendee types in the bottom composer, optionally adds an emoji, and sends the message.
--   Under Review; The own message appears right-aligned marked "pending… / under review" until moderation resolves it.
+-   Under Review; The attendee's own message appears right-aligned marked "pending… / under review" until moderation resolves it.
 
 STORYBOARD: Moderator Forwards to Presenter {{moderate-forward}}
 -------------------------------------------

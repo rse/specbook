@@ -13,7 +13,7 @@ ARCH: Concurrency View (CO)
 -   MULTIPLICITY: 1 per data center entry point
 -   COORDINATION: stateless round-robin distribution
 
-The router runs as a single front-door process per data center distributing connections across environments and proxy
+The router runs as a single front-door process per data center, distributing connections across environments and proxy
 instances, BECAUSE a stateless balancer can spread load without holding per-connection state.
 
 ##  UNIT: Proxy Pool {{proxy-pool}}
@@ -33,7 +33,7 @@ must scale out horizontally to absorb connection spikes.
 -   MULTIPLICITY: 0..n MQTT broker instances per environment
 -   COORDINATION: MQTT topic subscriptions and broker bridging
 
-The relay layer runs as a pool of Mosquitto/MQTT-Plus broker instances each maintaining thousands of WebSocket connections and
+The relay layer runs as a pool of Mosquitto/MQTT-Plus broker instances, each maintaining thousands of WebSocket connections and
 fanning out per-event topics, BECAUSE sustaining up to 10000 concurrent connections requires horizontal broker scaling.
 
 ##  UNIT: Service Event Loop {{service-loop}}
@@ -64,5 +64,5 @@ periodic cumulative counts must be produced on a fixed cadence independent of us
 -   MULTIPLICITY: 1 primary per environment
 -   COORDINATION: ACID transactions with optimistic concurrency via the ORM
 
-PostgreSQL runs as the single authoritative persistence process per environment serializing concurrent writes through
+PostgreSQL runs as the single authoritative persistence process per environment, serializing concurrent writes through
 transactions, BECAUSE a single source of truth with ACID guarantees keeps event state consistent under concurrency.

@@ -131,7 +131,7 @@ with the (optionally backquoted) name directly:
 
 The heading kind is singularized by stripping one trailing `S`, so both
 `### STATES` and `### STATE` group objects of kind `STATE`. The grouped
-objects become childs of the object the heading is nested under. An
+objects become children of the object the heading is nested under. An
 unquoted name must not contain a `:` (else the item would look like a
 key/value pair) -- backquote it in this case.
 
@@ -238,7 +238,7 @@ constrain reference-valued properties (e.g. `[[PERSONA:*]]` or
 
 A Markdown image `![<alt/>](<file/>)` inside a description or property
 value embeds a local image file, resolved relative to the artifact file:
-SVG files are inlined as-is, PNG/JPEG files are embedded as base64
+SVG files are inlined as-is; PNG/JPEG files are embedded as base64
 `data:` URLs. URLs and other file types are left untouched.
 
 ### Normalization
@@ -285,7 +285,7 @@ descriptions as well. As the *nesting* of the objects carries no such
 reference, `hierarchy: true` additionally derives a containment edge
 from every node object to each of its child objects which is part of the
 node set. This is what turns a parent object into the hub of its own
-childs, as the `TIER` objects of the sample schema configuration
+children, as the `TIER` objects of the sample schema configuration
 demonstrate:
 
 ```yaml
@@ -304,7 +304,7 @@ how the HTML/PDF export renders the child objects of every object of
 that kind. Its `type` selects the rendering: `complex` (nested
 sections), `concise` (compact per-kind tables), or the default `auto`,
 which collapses only the deepest level into tables. Below a `concise`
-object, unconfigured childs implicitly stay `concise` and render as
+object, unconfigured children implicitly stay `concise` and render as
 sub-tables inside the description cells, while an explicitly configured
 `type` is always honored, even a `complex` rendering pressed into a
 cell. `maxTableColumns` (default: `4`) bounds the columns of the compact

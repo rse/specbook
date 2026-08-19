@@ -27,7 +27,7 @@ ARCH: Decision Record (DR)
 -   AFFECTS:  [[DP.datacenter]]
 -   WHEN:
     The solution must be GDPR-compliant with EU data residency, and a primary economic goal is to minimize recurring cost per
-    event, having been built specifically to replace a costlier third-party platform.
+    event, the solution having been built specifically to replace a costlier third-party platform.
 -   WHAT:
     We operate all server tiers on self-managed Hetzner infrastructure in Nürnberg, Germany, separated into dev, QA, and
     production environments, rather than on Azure or AWS.

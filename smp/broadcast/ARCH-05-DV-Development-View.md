@@ -19,7 +19,7 @@ agree on contracts without duplicating them.
 
 -   CATEGORY: Standardization
 
-All client-side and server-side code is written in strongly-typed
+All client-side and server-side code is written in strongly typed
 TypeScript against shared type definitions, BECAUSE a single typed
 language across the stack catches contract mismatches at compile time.
 

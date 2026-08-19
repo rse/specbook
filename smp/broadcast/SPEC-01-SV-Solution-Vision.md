@@ -17,7 +17,7 @@ who may watch and interact.
 
 The solution serves event organizers (Managers), live-event moderators
 and presenters, and large invited audiences of attendees, ranging from
-small internal lectures of 75 people up to digital townhalls of 10000
+small internal lectures of 75 people up to digital town halls of 10000
 simultaneous participants.
 
 ##  ASPECT: Value Proposition {{value-proposition}}

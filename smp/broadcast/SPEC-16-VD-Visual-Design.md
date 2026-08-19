@@ -21,7 +21,7 @@ The interface uses the msg corporate palette with a primary msg blue
 for actions, the active channel, and own outgoing messages, neutral
 surfaces for others' messages, a warm amber tint for moderator-authored
 messages and the "under review" state, and muted italic styling for
-deleted messages, BECAUSE colour-coded message provenance and state give
+deleted messages, BECAUSE color-coded message provenance and state give
 attendees and moderators instant visual feedback.
 
 ##  ELEMENT: Light and Dark Theme {{theme}}

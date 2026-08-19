@@ -34,7 +34,7 @@ stays reachable.
 ##  PATTERN: Live Message Stream {{message-stream}}
 
 -   CONTEXT: The chat and Q&A tabs where attendees read and post a continuous flow of messages.
--   PROBLEM: Messages of mixed provenance and state arrive continuously and the attendee must follow them without losing place.
+-   PROBLEM: Messages of mixed provenance and state arrive continuously and the attendee must follow them without losing their place.
 
 Messages render as a scrolling list of bubbles distinguished by provenance and state, with own messages right-aligned, others
 left-aligned, moderator messages tinted, quoted originals linking back to their source, deleted messages shown as a

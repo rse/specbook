@@ -29,7 +29,7 @@ through hoops."
 -   AGE:    42
 -   ROLE:   Event Q&A Moderator
 
-"I keep the Q&A funnel clean and feed the presenter only question which
+"I keep the Q&A funnel clean and feed the presenter only questions which
 truly matter."
 
 ##  PERSONA: Petra {{presenter}}
