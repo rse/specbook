@@ -24,6 +24,7 @@ export type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid"
     nodes?:            string
     edges?:            string
+    center?:           string
     links?:            "props" | "all"
     edgeTarget?:       string
     edgeArity?:        string
@@ -49,6 +50,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.object({
     type:              v.optional(v.picklist([ "graph", "hub", "grid" ])),
     nodes:             v.optional(v.string()),
     edges:             v.optional(v.string()),
+    center:            v.optional(v.string()),
     links:             v.optional(v.picklist([ "props", "all" ])),
     edgeTarget:        v.optional(v.string()),
     edgeArity:         v.optional(v.string()),
