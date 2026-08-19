@@ -5,6 +5,7 @@ ChangeLog
 0.9.3 (2026-08-19)
 ------------------
 
+-   FEATURE [code]: render over-wide concise object groups as chunked tables honoring "--max-table-columns"
 -   FEATURE [code, othr]: support "properties" in diagram schema to attach property values to nodes
 -   IMPROVEMENT [code]: resolve "[[...]]" references in diagram property values to object names
 -   IMPROVEMENT [othr]: limit diagram node width in sample schema configuration

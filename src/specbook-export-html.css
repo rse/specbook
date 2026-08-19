@@ -192,6 +192,13 @@ table.objects div.description { margin: 0; }
 table.objects div.description > :first-child { margin-top: 0; }
 table.objects div.description > :last-child  { margin-bottom: 0; }
 
+/*  the embedded per-object chunk tables of the over-wide compact tables  */
+table.objects td.chunks     { padding: 0; }
+table.chunks                { border-collapse: collapse; table-layout: fixed;
+                              width: 100%; }
+table.objects table.chunks tr td { background-color: transparent; }
+table.objects table.chunks td:first-child { font-weight: normal; }
+
 p.description,
 div.description             { margin: 1.0rem 0 0.5rem 0; }
 div.description p           { margin: 0.5rem 0; }

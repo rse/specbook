@@ -164,6 +164,33 @@ const templates: { [ name: string ]: string } = {
                 {% endfor %}
             </tbody>
         </table>
+    `,
+
+    /*  <TableChunked/>  */
+    "TableChunked": textframe`
+        <table class="objects">
+            <thead>
+                <tr>
+                    <th class="object-kind" style="width: {{ Table.width }}%">{{ Table.head }}</th>
+                    <th class="description">Properties</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in Table.rows %}
+                <tr id="{{ row.id }}">
+                    <td>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
+                    <td class="chunks">
+                        <table class="chunks">
+                            {% for chunk in row.chunks %}
+                            <tr>{% for cell in chunk %}<th{% if not cell.desc %} class="property-name"{% endif %}{% if cell.span > 1 %} colspan="{{ cell.span }}"{% endif %}>{{ cell.key }}</th>{% endfor %}</tr>
+                            <tr>{% for cell in chunk %}<td{% if cell.span > 1 %} colspan="{{ cell.span }}"{% endif %}>{{ cell.value }}</td>{% endfor %}</tr>
+                            {% endfor %}
+                        </table>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     `
 }
 
@@ -323,18 +350,11 @@ const tableShape = (childs: SpecObject[]) => {
     return { keys, desc: childs.some((child) => child.description !== undefined) }
 }
 
-/*  check whether the childs of an object form the deepest level and every
-    per-kind group is compact enough (at most maxColumns name/property/
-    description columns) for a tabular rendering  */
-const tabularChilds = (object: SpecObject, maxColumns: number): boolean => {
-    if (object.childs.length === 0
-        || !object.childs.every((child) => child.childs.length === 0))
-        return false
-    return groupChilds(object.childs).every((group) => {
-        const { keys, desc } = tableShape(group)
-        return 1 + keys.length + (desc ? 1 : 0) <= maxColumns
-    })
-}
+/*  check whether the childs of an object form the deepest level,
+    so every per-kind group collapses into a tabular rendering  */
+const tabularChilds = (object: SpecObject): boolean =>
+    object.childs.length > 0
+    && object.childs.every((child) => child.childs.length === 0)
 
 /*  group the childs of an object by their kind, preserving order  */
 const groupChilds = (childs: SpecObject[]): SpecObject[][] => {
@@ -350,29 +370,64 @@ const groupChilds = (childs: SpecObject[]): SpecObject[][] => {
 }
 
 /*  render a single-kind group of leaf childs into one compact table:
-    the name first, then the property columns, then the description  */
-const renderTable = (childs: SpecObject[]): string => {
+    the name first, then the property columns, then the description;
+    a group wider than maxColumns instead chunks the property and
+    description cells of every object into an embedded per-object table  */
+const renderTable = (childs: SpecObject[], maxColumns: number): string => {
     const { keys, desc } = tableShape(childs)
-    return render("Table", { Table: {
-        head: childs[0].kind !== "" ? childs[0].kind : "Name",
-        keys,
-        desc,
+    if (1 + keys.length + (desc ? 1 : 0) <= maxColumns)
+        return render("Table", { Table: {
+            head: childs[0].kind !== "" ? childs[0].kind : "Name",
+            keys,
+            desc,
 
-        /*  under the fixed table layout the description column claims
-            twice the share of a regular column, compressing the others  */
-        width: Math.round(200 / (keys.length + 3)),
-        rows: childs.map((child) => ({
-            id:          anchorOf(child),
-            paren:       child.paren,
-            primary:     child.primary,
-            name:        inline(child.name),
-            values:      keys.map((key) => {
+            /*  under the fixed table layout the description column claims
+                twice the share of a regular column, compressing the others  */
+            width: Math.round(200 / (keys.length + 3)),
+            rows: childs.map((child) => ({
+                id:          anchorOf(child),
+                paren:       child.paren,
+                primary:     child.primary,
+                name:        inline(child.name),
+                values:      keys.map((key) => {
+                    const value = child.properties.find((property) => property.key === key)?.value
+                    return value !== undefined ? inlineValue(child.kind, key, value) : ""
+                }),
+                description: child.description !== undefined ?
+                    safe(renderDescription(child.description)) : ""
+            }))
+        } })
+
+    /*  the embedded rows hold at most maxColumns - 1 cells (of the
+        group-wide union of property keys, plus the trailing description),
+        with the last cell spanning the leftover columns of the final row  */
+    const size = Math.max(1, maxColumns - 1)
+    return render("TableChunked", { Table: {
+        head:  childs[0].kind !== "" ? childs[0].kind : "Name",
+        width: Math.round(100 / maxColumns),
+        rows:  childs.map((child) => {
+            const cells = keys.map((key) => {
                 const value = child.properties.find((property) => property.key === key)?.value
-                return value !== undefined ? inlineValue(child.kind, key, value) : ""
-            }),
-            description: child.description !== undefined ?
-                safe(renderDescription(child.description)) : ""
-        }))
+                return { key, desc: false, span: 1,
+                    value: value !== undefined ? inlineValue(child.kind, key, value) : safe("") }
+            })
+            if (desc)
+                cells.push({ key: "Description", desc: true, span: 1,
+                    value: child.description !== undefined ?
+                        safe(renderDescription(child.description)) : safe("") })
+            const chunks = new Array<typeof cells>()
+            for (let i = 0; i < cells.length; i += size)
+                chunks.push(cells.slice(i, i + size))
+            const last = chunks[chunks.length - 1]
+            last[last.length - 1].span = size - last.length + 1
+            return {
+                id:      anchorOf(child),
+                paren:   child.paren,
+                primary: child.primary,
+                name:    inline(child.name),
+                chunks
+            }
+        })
     } })
 }
 
@@ -391,8 +446,8 @@ const renderObject = (object: SpecObject, level: number, maxColumns: number): st
             safe(render("Properties", { Properties: inlineProperties(object.kind, object.properties) })) : "",
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
-        childs:      tabularChilds(object, maxColumns) ?
-            safe(groupChilds(object.childs).map(renderTable).join("")) :
+        childs:      tabularChilds(object) ?
+            safe(groupChilds(object.childs).map((group) => renderTable(group, maxColumns)).join("")) :
             safe(object.childs.map((child) => renderObject(child, level + 1, maxColumns)).join(""))
     } })
 
@@ -437,12 +492,12 @@ export type OutlineEntry = { title: string, anchor: string, childs: OutlineEntry
 
 /*  derive the hierarchy of the rendered object headings, skipping the
     title page object and the leaf childs collapsing into compact tables  */
-export const htmlOutline = (specification: Specification, maxColumns: number): OutlineEntry[] => {
+export const htmlOutline = (specification: Specification): OutlineEntry[] => {
     const paths = anchorPaths(buildLinkIndex(specification))
     const entry = (object: SpecObject): OutlineEntry => ({
         title:  (object.kind !== "" ? `${object.kind}: ` : "") + object.name,
         anchor: paths.get(object) ?? object.id,
-        childs: tabularChilds(object, maxColumns) ? [] : object.childs.map(entry)
+        childs: tabularChilds(object) ? [] : object.childs.map(entry)
     })
     return specification.artifacts
         .filter((artifact) => !artifact.objects.some(isTitleObject))

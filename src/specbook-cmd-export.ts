@@ -96,7 +96,7 @@ export const exportSpecification = async (
             theme, so its decoration colors are the light mapping, too  */
         return htmlToPdf((tocPages) => renderHtml(specification, maxTableColumns, config, tocPages, css),
             { ...documentTitle(specification), logo: documentLogo(specification) },
-            htmlOutline(specification, maxTableColumns), verbose, css,
+            htmlOutline(specification), verbose, css,
             themeMapping(colors, "light"), paper)
 }
 
