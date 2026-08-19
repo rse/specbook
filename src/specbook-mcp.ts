@@ -79,14 +79,12 @@ export const serveMcp = async (verbose: (msg: string) => void): Promise<void> =>
             config:  z.string().optional().describe("YAML schema configuration file"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
             format:  z.enum(formats).optional().describe("output format (default: json)"),
-            output:  z.string().optional().describe("output file path"),
-            maxTableColumns: z.number().optional().describe("maximum name/property/description " +
-                "columns for the compact table rendering (default: 4)")
+            output:  z.string().optional().describe("output file path")
         }
     }, async (args) => {
         try {
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
-                formats: [ args.format ?? "json" ], maxTableColumns: args.maxTableColumns })
+                formats: [ args.format ?? "json" ] })
             if (args.output !== undefined) {
                 await fs.promises.writeFile(args.output, data)
                 return { content: [ { type: "text", text: `exported specification into "${args.output}" (${data.length} bytes)` } ] }

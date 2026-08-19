@@ -111,12 +111,8 @@ common(program.command("export"))
         "output file (\"-\" for stdout, repeatable), with the format inferred " +
         "from the filename extension unless explicitly prefixed",
         (value: string, previous: string[]) => previous.concat(value), [] as string[])
-    .option("--max-table-columns <count>",
-        "maximum name/property/description columns for the compact table rendering",
-        (value) => parseInt(value, 10),
-        parseInt(envDefault("max-table-columns", "4") ?? "4", 10))
     .action(async (opts: { verbose: boolean, config?: string, basedir: string,
-        output: string[], maxTableColumns: number }) => {
+        output: string[] }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const outputs = (opts.output.length > 0 ? opts.output : [ envDefault("output") ?? "-" ])
             .map((spec) => parseOutputSpec(spec))
@@ -124,7 +120,7 @@ common(program.command("export"))
         /*  parse the input once and export each distinct format once  */
         const distinct = Array.from(new Set(outputs.map(({ format }) => format)))
         const buffers  = await specbook.export({ config: opts.config, basedir: opts.basedir,
-            formats: distinct, maxTableColumns: opts.maxTableColumns })
+            formats: distinct })
         for (const { format, output } of outputs)
             await writeOutput(output, buffers[distinct.indexOf(format)], verboseOf(opts))
     })

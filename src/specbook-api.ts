@@ -62,8 +62,7 @@ export class SpecBook {
         parsing the input just once and returning one buffer per
         requested format (best-effort: diagnostics do not prevent the
         export, as validation is the concern of lint)  */
-    async export (options: { config?: string, basedir?: string, formats?: ExportFormat[],
-        maxTableColumns?: number }): Promise<Buffer[]> {
+    async export (options: { config?: string, basedir?: string, formats?: ExportFormat[] }): Promise<Buffer[]> {
         const result = lint({ config: options.config, basedir: options.basedir ?? ".", verbose: this.verbose })
         for (const diagnostic of result.diagnostics)
             this.verbose(`diagnostic: ${renderDiagnostic(diagnostic)}`)
@@ -73,7 +72,7 @@ export class SpecBook {
         const buffers = [] as Buffer[]
         for (const format of options.formats ?? [ "json" ])
             buffers.push(await exportSpecification(result.specification, format,
-                this.verbose, options.maxTableColumns, result.config))
+                this.verbose, result.config))
         return buffers
     }
 

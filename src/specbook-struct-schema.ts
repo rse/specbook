@@ -18,6 +18,7 @@ export type SchemaObject = {
     desc?:             string
     optional?:         boolean
     diagram?:          SchemaDiagram
+    format?:           SchemaFormat
     props?:            SchemaProperty[]
     childs?:           SchemaObject[]
 }
@@ -35,6 +36,11 @@ export type SchemaDiagram = {
     qualified?:        boolean
     properties?:       string[]
     config?:           Partial<GradiaConfig>
+}
+export type SchemaFormat = {
+    type?:             "auto" | "complex" | "concise"
+    maxTableColumns?:  number
+    withUnusedProps?:  boolean
 }
 export type SchemaProperty = {
     name:              string
@@ -78,6 +84,11 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.object({
     properties:        v.optional(v.array(v.string())),
     config:            v.optional(SchemaDiagramConfig)
 })
+const SchemaFormat: v.GenericSchema<SchemaFormat> = v.object({
+    type:              v.optional(v.picklist([ "auto", "complex", "concise" ])),
+    maxTableColumns:   v.optional(v.number()),
+    withUnusedProps:   v.optional(v.boolean())
+})
 const SchemaObject: v.GenericSchema<SchemaObject> = v.object({
     kind:              v.string(),
     name:              v.optional(v.string()),
@@ -86,6 +97,7 @@ const SchemaObject: v.GenericSchema<SchemaObject> = v.object({
     desc:              v.optional(v.string()),
     optional:          v.optional(v.boolean()),
     diagram:           v.optional(SchemaDiagram),
+    format:            v.optional(SchemaFormat),
     props:             v.optional(v.array(SchemaProperty)),
     childs:            v.optional(v.array(v.lazy(() => SchemaObject)))
 })

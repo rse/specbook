@@ -54,7 +54,6 @@ export const exportSpecification = async (
     specification:   Specification,
     format:          ExportFormat,
     verbose:         (msg: string) => void,
-    maxTableColumns = 4,
     config?:         SchemaSpecification
 ): Promise<Buffer> => {
     if (!(formats as readonly string[]).includes(format))
@@ -82,7 +81,7 @@ export const exportSpecification = async (
     const css    = themeStylesheet(colors) + await subsetStylesheet(charset) + paperStylesheet(paper)
     if (format === "html") {
         /*  compress the rendered HTML (whitespace, comments, and inline CSS/JS)  */
-        const html     = await renderHtml(specification, maxTableColumns, config, undefined, css)
+        const html     = await renderHtml(specification, config, undefined, css)
         const minified = await minify(Buffer.from(html, "utf8"), {
             collapseWhitespaces: "smart",
             removeComments:      true,
@@ -94,9 +93,9 @@ export const exportSpecification = async (
     else
         /*  the PDF export (like print in general) always uses the light
             theme, so its decoration colors are the light mapping, too  */
-        return htmlToPdf((tocPages) => renderHtml(specification, maxTableColumns, config, tocPages, css),
+        return htmlToPdf((tocPages) => renderHtml(specification, config, tocPages, css),
             { ...documentTitle(specification), logo: documentLogo(specification) },
-            htmlOutline(specification), verbose, css,
+            htmlOutline(specification, config), verbose, css,
             themeMapping(colors, "light"), paper)
 }
 

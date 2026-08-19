@@ -79,7 +79,6 @@ No test target is defined.
 specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
-                  [--max-table-columns <count>]
 specbook describe [-v] [-c <yaml-file>] [-o <markdown-file>]
 specbook import   [-v] [-c <yaml-file>] [-b <basedir>] <input-files...>
 specbook edit     [-v] [-c <yaml-file>] [-b <basedir>] <query>

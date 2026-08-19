@@ -199,6 +199,13 @@ table.chunks                { border-collapse: collapse; table-layout: fixed;
 table.objects table.chunks tr td { background-color: transparent; }
 table.objects table.chunks td:first-child { font-weight: normal; }
 
+/*  the nested renderings inside the description cells of the compact
+    tables ("concise" sub-tables and pressed-in "complex" objects),
+    reduced in size to fit into the cell  */
+table.objects td table.objects { font-size: 85%; margin: 0.5rem 0; }
+table.objects td section    { font-size: 85%; margin: 0.5rem 0; }
+table.objects td section h6 { margin: 0.5rem 0 0.25rem 0; }
+
 p.description,
 div.description             { margin: 1.0rem 0 0.5rem 0; }
 div.description p           { margin: 0.5rem 0; }

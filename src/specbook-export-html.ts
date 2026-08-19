@@ -13,7 +13,7 @@ import { Gradia }            from "@rse/gradia"
 
 import type { Specification, Artifact, Object as SpecObject, Property, Description }
     from "./specbook-struct-spec.js"
-import type { SchemaSpecification, SchemaObject }
+import type { SchemaSpecification, SchemaObject, SchemaFormat }
     from "./specbook-struct-schema.js"
 import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths }
     from "./specbook-link.js"
@@ -243,11 +243,12 @@ const render = (name: string, context: object): string =>
     env.renderString(templates[name], context)
 
 /*  the active per-document reference expander, fully-qualified
-    anchor paths, enum/tags property value kinds, and pre-rendered
-    diagram SVGs (all set during HTML rendering)  */
+    anchor paths, enum/tags property value kinds, object schema nodes,
+    and pre-rendered diagram SVGs (all set during HTML rendering)  */
 let linker: ((text: string) => string) | null = null
 let anchors: Map<SpecObject, string> | null  = null
 let members: Map<string, "enum" | "tags"> | null = null
+let schemas: Map<SpecObject, SchemaObject> | null = null
 let diagrams: Map<SpecObject, string> | null = null
 
 /*  determine the fully-qualified anchor path of an object  */
@@ -324,6 +325,37 @@ const collectMembers = (schemas: SchemaObject[], result: Map<string, "enum" | "t
     return result
 }
 
+/*  map the specification objects onto their schema configuration
+    nodes (the schema resolution mirrors the semantic validation)  */
+const collectSchemas = (specification: Specification,
+    config: SchemaSpecification): Map<SpecObject, SchemaObject> => {
+    const result = new Map<SpecObject, SchemaObject>()
+    const walk = (object: SpecObject, schema: SchemaObject) => {
+        result.set(object, schema)
+        for (const child of object.childs) {
+            const childSchema = (schema.childs ?? []).find((c) => c.kind === child.kind)
+            if (childSchema !== undefined)
+                walk(child, childSchema)
+        }
+    }
+    for (const artifact of specification.artifacts) {
+        for (const object of artifact.objects) {
+            const schema = config.find((s) =>
+                (s.kind === object.kind && s.id === object.id) || `${s.kind}-${s.id}` === object.id) ??
+                config.find((s) => (s.name ?? "").toUpperCase() ===
+                    object.name.replace(/`/g, "").toUpperCase())
+            if (schema !== undefined)
+                walk(object, schema)
+        }
+    }
+    return result
+}
+
+/*  strip a trailing parenthesized annotation from a
+    property key (e.g. "WHEN (Context)")  */
+const plainKey = (key: string): string =>
+    key.replace(/\s*\([^)]*\)\s*$/, "").trim()
+
 /*  render a property value, badging the individual members of an
     "enum(...)" (a single member) or "tags(...)" (a member set) value  */
 const inlineValue = (kind: string, key: string, value: string) => {
@@ -340,21 +372,62 @@ const inlineProperties = (kind: string, properties: Property[]) =>
     properties.map((property) => ({ key: property.key,
         value: inlineValue(kind, property.key, property.value) }))
 
-/*  determine the column shape of a potential compact table  */
+/*  resolve the format configuration of an object  */
+const formatOf = (object: SpecObject): SchemaFormat | undefined =>
+    schemas?.get(object)?.format
+
+/*  determine the maximum table columns configured on an object  */
+const maxColumnsOf = (object: SpecObject): number =>
+    formatOf(object)?.maxTableColumns ?? 4
+
+/*  determine the effective properties of an object, with
+    "withUnusedProps" injecting the defined but still unused schema
+    properties (in schema order) as empty key/value entries  */
+const effectiveProperties = (object: SpecObject): Property[] => {
+    const schema = schemas?.get(object)
+    if (schema?.format?.withUnusedProps !== true)
+        return object.properties
+    const merged = (schema.props ?? []).flatMap((prop) => {
+        const present = object.properties.filter((property) => plainKey(property.key) === prop.name)
+        return present.length > 0 ? present : [ { key: prop.name, value: "" } ]
+    })
+    return [ ...merged, ...object.properties.filter((property) => !merged.includes(property)) ]
+}
+
+/*  determine the column shape of a potential compact table, with
+    "withUnusedProps" injecting the defined but still unused schema
+    properties (in schema order) as additional columns  */
 const tableShape = (childs: SpecObject[]) => {
-    const keys = new Array<string>()
+    let keys = new Array<string>()
     for (const child of childs)
         for (const property of child.properties)
             if (!keys.includes(property.key))
                 keys.push(property.key)
-    return { keys, desc: childs.some((child) => child.description !== undefined) }
+    const schema = schemas?.get(childs[0])
+    if (schema?.format?.withUnusedProps === true) {
+        const merged = (schema.props ?? []).flatMap((prop) => {
+            const present = keys.filter((key) => plainKey(key) === prop.name)
+            return present.length > 0 ? present : [ prop.name ]
+        })
+        keys = [ ...merged, ...keys.filter((key) => !merged.includes(key)) ]
+    }
+    return { keys, desc: childs.some((child) =>
+        child.description !== undefined || child.childs.length > 0) }
 }
 
-/*  check whether the childs of an object form the deepest level,
-    so every per-kind group collapses into a tabular rendering  */
-const tabularChilds = (object: SpecObject): boolean =>
-    object.childs.length > 0
-    && object.childs.every((child) => child.childs.length === 0)
+/*  decide whether the childs of an object collapse into the concise
+    (tabular) rendering: an explicit "format" type wins, "auto" collapses
+    the deepest level only, and inside an already concise rendering
+    context "auto" childs implicitly stay concise, too  */
+const conciseChilds = (object: SpecObject, schemaMap: Map<SpecObject, SchemaObject> | null,
+    concise: boolean): boolean => {
+    if (object.childs.length === 0)
+        return false
+    const type = schemaMap?.get(object)?.format?.type ?? "auto"
+    if (type !== "auto")
+        return type === "concise"
+    return concise || object.childs.every((child) => child.childs.length === 0)
+}
 
 /*  group the childs of an object by their kind, preserving order  */
 const groupChilds = (childs: SpecObject[]): SpecObject[][] => {
@@ -369,7 +442,20 @@ const groupChilds = (childs: SpecObject[]): SpecObject[][] => {
     return [ ...groups.values() ]
 }
 
-/*  render a single-kind group of leaf childs into one compact table:
+/*  render the description cell of a table row: the description of the
+    object followed by its recursively rendered childs (implicitly or
+    explicitly concise childs as nested sub-tables, explicitly complex
+    ones as regular nested object renderings pressed into the cell)  */
+const renderCell = (child: SpecObject): string => {
+    let html = child.description !== undefined ? renderDescription(child.description) : ""
+    if (child.childs.length > 0)
+        html += conciseChilds(child, schemas, true) ?
+            groupChilds(child.childs).map((group) => renderTable(group, maxColumnsOf(child))).join("") :
+            child.childs.map((sub) => renderObject(sub, 6, true)).join("")
+    return html
+}
+
+/*  render a single-kind group of childs into one compact table:
     the name first, then the property columns, then the description;
     a group wider than maxColumns instead chunks the property and
     description cells of every object into an embedded per-object table  */
@@ -393,8 +479,7 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
                     const value = child.properties.find((property) => property.key === key)?.value
                     return value !== undefined ? inlineValue(child.kind, key, value) : ""
                 }),
-                description: child.description !== undefined ?
-                    safe(renderDescription(child.description)) : ""
+                description: safe(renderCell(child))
             }))
         } })
 
@@ -413,8 +498,7 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
             })
             if (desc)
                 cells.push({ key: "Description", desc: true, span: 1,
-                    value: child.description !== undefined ?
-                        safe(renderDescription(child.description)) : safe("") })
+                    value: safe(renderCell(child)) })
             const chunks = new Array<typeof cells>()
             for (let i = 0; i < cells.length; i += size)
                 chunks.push(cells.slice(i, i + size))
@@ -432,8 +516,9 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
 }
 
 /*  recursively render an object into HTML  */
-const renderObject = (object: SpecObject, level: number, maxColumns: number): string =>
-    render("Object", { Object: {
+const renderObject = (object: SpecObject, level: number, concise: boolean): string => {
+    const properties = effectiveProperties(object)
+    return render("Object", { Object: {
         level:       Math.min(level, 6),
         kind:        object.kind,
         id:          anchorOf(object),
@@ -442,14 +527,15 @@ const renderObject = (object: SpecObject, level: number, maxColumns: number): st
         name:        inline(object.name),
         diagram:     diagrams?.has(object) === true ?
             safe(`<div class="diagram">${diagrams.get(object) ?? ""}</div>`) : "",
-        properties:  object.properties.length > 0 ?
-            safe(render("Properties", { Properties: inlineProperties(object.kind, object.properties) })) : "",
+        properties:  properties.length > 0 ?
+            safe(render("Properties", { Properties: inlineProperties(object.kind, properties) })) : "",
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
-        childs:      tabularChilds(object) ?
-            safe(groupChilds(object.childs).map((group) => renderTable(group, maxColumns)).join("")) :
-            safe(object.childs.map((child) => renderObject(child, level + 1, maxColumns)).join(""))
+        childs:      conciseChilds(object, schemas, concise) ?
+            safe(groupChilds(object.childs).map((group) => renderTable(group, maxColumnsOf(object))).join("")) :
+            safe(object.childs.map((child) => renderObject(child, level + 1, concise)).join(""))
     } })
+}
 
 /*  render the title object into a title page  */
 const renderTitlePage = (object: SpecObject, created: string, modified: string): string => {
@@ -480,9 +566,9 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
 }
 
 /*  render an artifact into HTML  */
-const renderArtifact = (artifact: Artifact, maxColumns: number): string =>
+const renderArtifact = (artifact: Artifact): string =>
     render("Artifact", { Artifact: {
-        objects:  safe(artifact.objects.map((object) => renderObject(object, 1, maxColumns)).join(""))
+        objects:  safe(artifact.objects.map((object) => renderObject(object, 1, false)).join(""))
     } })
 
 /*  ==== Outline ====  */
@@ -491,13 +577,15 @@ const renderArtifact = (artifact: Artifact, maxColumns: number): string =>
 export type OutlineEntry = { title: string, anchor: string, childs: OutlineEntry[] }
 
 /*  derive the hierarchy of the rendered object headings, skipping the
-    title page object and the leaf childs collapsing into compact tables  */
-export const htmlOutline = (specification: Specification): OutlineEntry[] => {
-    const paths = anchorPaths(buildLinkIndex(specification))
+    title page object and the childs collapsing into compact tables  */
+export const htmlOutline = (specification: Specification,
+    config?: SchemaSpecification): OutlineEntry[] => {
+    const paths     = anchorPaths(buildLinkIndex(specification))
+    const schemaMap = config !== undefined ? collectSchemas(specification, config) : null
     const entry = (object: SpecObject): OutlineEntry => ({
         title:  (object.kind !== "" ? `${object.kind}: ` : "") + object.name,
         anchor: paths.get(object) ?? object.id,
-        childs: tabularChilds(object) ? [] : object.childs.map(entry)
+        childs: conciseChilds(object, schemaMap, false) ? [] : object.childs.map(entry)
     })
     return specification.artifacts
         .filter((artifact) => !artifact.objects.some(isTitleObject))
@@ -509,7 +597,7 @@ export const htmlOutline = (specification: Specification): OutlineEntry[] => {
     with the build-time pre-assembled stylesheet embedded inline, the
     artifact timestamps aggregated into min(Created)/max(Modified), and
     optional per-anchor page numbers attached to the ToC entries  */
-export const renderHtml = async (specification: Specification, maxColumns: number,
+export const renderHtml = async (specification: Specification,
     config?: SchemaSpecification, tocPages?: Map<string, number>, css?: string): Promise<string> => {
     /*  the document language selects the smart typography quote style  */
     const lang = documentLang(specification)
@@ -546,6 +634,7 @@ export const renderHtml = async (specification: Specification, maxColumns: numbe
     const index = buildLinkIndex(specification)
     anchors = anchorPaths(index)
     members = config !== undefined ? collectMembers(config, new Map()) : null
+    schemas = config !== undefined ? collectSchemas(specification, config) : null
     linker  = (text) => expandReferences(text, (reference) => {
         const target = resolveUnique(index, reference).target
         if (target === undefined)
@@ -580,6 +669,6 @@ export const renderHtml = async (specification: Specification, maxColumns: numbe
                 modified.toISOString().slice(0, 10))) : "",
         search:    title !== undefined ? safe(searchScript()) : "",
         toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
-        artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact, maxColumns)).join(""))
+        artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
     } })
 }

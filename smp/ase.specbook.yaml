@@ -71,6 +71,8 @@
     desc: >
         The archetypal user profiles representing distinct user groups,
         capturing their goals, needs, behaviors, and context.
+    format:
+        maxTableColumns: 5
     childs:
         -   kind: PERSONA
             desc: >
@@ -874,6 +876,8 @@
     diagram:
         type: grid
         nodes: "[[ARCH:OV.CONCERN:*]]"
+        properties:
+            -   CATEGORY
     childs:
         -   kind: CONCERN
             desc: >
@@ -954,6 +958,8 @@
     diagram:
         type: grid
         nodes: "[[ARCH:DR.DECISION:*]]"
+        properties:
+            -   STATUS
         config:
             size-node-width-max: 440
             grid-columns-max: 5
@@ -1030,6 +1036,8 @@
             desc: >
                 The system architecture Tier this component belongs to.
                 One of "Client", "Server", "Middleware", or "Database".
+            format:
+                maxTableColumns: 5
             diagram:
                 type: hub
                 center: self

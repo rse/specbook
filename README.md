@@ -299,6 +299,22 @@ demonstrate:
 A `grid` is edge-less by definition and hence accepts neither `edges`
 nor `hierarchy`.
 
+An object kind can furthermore carry a `format` field, which controls
+how the HTML/PDF export renders the child objects of every object of
+that kind. Its `type` selects the rendering: `complex` (nested
+sections), `concise` (compact per-kind tables), or the default `auto`,
+which collapses only the deepest level into tables. Below a `concise`
+object, unconfigured childs implicitly stay `concise` and render as
+sub-tables inside the description cells, while an explicitly configured
+`type` is always honored, even a `complex` rendering pressed into a
+cell. `maxTableColumns` (default: `4`) bounds the columns of the compact
+tables below the object (wider groups chunk their properties into
+embedded per-object tables), and `withUnusedProps` (default: `false`)
+unconditionally renders the defined but unused properties of that kind,
+as empty property table lines or table columns. Objects collapsed into
+tables carry no headings and hence leave the table of contents and the
+PDF outline.
+
 Usage
 -----
 
@@ -308,7 +324,6 @@ Usage
 $ specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 $ specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
 $ specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
-                    [--max-table-columns <count>]
 $ specbook describe [-v] [-c <yaml-file>] [-o <markdown-file>]
 $ specbook import   [-v] [-c <yaml-file>] [-b <basedir>] <input-files...>
 $ specbook edit     [-v] [-c <yaml-file>] [-b <basedir>] <query>
