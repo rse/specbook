@@ -31,6 +31,7 @@ export type SchemaDiagram = {
     edgeArity?:        string
     hierarchy?:        boolean
     onlyConnected?:    boolean
+    collapse?:         boolean
     qualified?:        boolean
     config?:           Partial<GradiaConfig>
 }
@@ -71,6 +72,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.object({
     edgeArity:         v.optional(v.string()),
     hierarchy:         v.optional(v.boolean()),
     onlyConnected:     v.optional(v.boolean()),
+    collapse:          v.optional(v.boolean()),
     qualified:         v.optional(v.boolean()),
     config:            v.optional(SchemaDiagramConfig)
 })

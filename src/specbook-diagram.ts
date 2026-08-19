@@ -235,6 +235,12 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     if (errors.length > 0)
         return { errors }
 
+    /*  the "collapse" handling (enabled by default) silently omits a
+        degenerated diagram, consisting of a single node only, as such a
+        diagram carries no information beyond the object itself  */
+    if (diagram.collapse !== false && nodes.length === 1 && edges.length === 0)
+        return { errors }
+
     /*  generate the Gradia spec text, opened by a "#type" directive and
         the configured "#config" directives so every embedded spec is
         self-contained: one node statement per object (the unique anchor
