@@ -24,7 +24,7 @@
         "pdf-lib":                         "1.17.1",
         "subset-font":                     "2.5.0",
         "@rse/mrcs":                       "0.9.1",
-        "@rse/gradia":                     "0.9.4",
+        "@rse/gradia":                     "0.9.5",
         "@toon-format/toon":               "4.1.1",
         "valibot":                         "1.4.2",
         "nunjucks":                        "3.2.4",
