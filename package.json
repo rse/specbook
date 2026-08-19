@@ -9,12 +9,12 @@
         "url":                             "http://engelschall.com"
     },
     "type":                                "module",
-    "main":                                "dist/specbook-api.js",
-    "types":                               "dist/specbook-api.d.ts",
+    "main":                                "dst/specbook-api.js",
+    "types":                               "dst/specbook-api.d.ts",
     "bin": {
-        "specbook":                        "dist/specbook-cli.js"
+        "specbook":                        "dst/specbook-cli.js"
     },
-    "files":                               [ "dist" ],
+    "files":                               [ "dst" ],
     "dependencies": {
         "marked":                          "18.0.10",
         "marked-smartypants":              "1.1.12",

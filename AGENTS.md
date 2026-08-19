@@ -1,3 +1,4 @@
+
 ## About
 
 **Specification Book (SpecBook)** is the opinionated tooling of *Dr.
@@ -51,8 +52,8 @@ a CLI `specbook <cmd>`, and an MCP service `specbook mcp` with tools
 -   `etc/`: the tool configurations (`eslint.mjs`, `tsconfig.json`, `stx.conf`)
 -   `smp/`: the sample YAML schema configuration (`ase.specbook.yaml`)
     and the sample specification corpus (`broadcast/`)
--   `dist/`: the compiled output (`main` is `dist/specbook-api.js`,
-    `bin` `specbook` is `dist/specbook-cli.js`) -- never edit it, it is regenerated
+-   `dst/`: the compiled output (`main` is `dst/specbook-api.js`,
+    `bin` `specbook` is `dst/specbook-cli.js`) -- never edit it, it is regenerated
 
 ## Build System
 
@@ -61,7 +62,7 @@ script is `npm start`, which invokes stx with `etc/stx.conf`:
 
 ```
 npm start build         # lint + build-cmd
-npm start build-cmd     # tsc --project etc/tsconfig.json (emits into dist/)
+npm start build-cmd     # tsc --project etc/tsconfig.json (emits into dst/)
 npm start lint          # eslint --config etc/eslint.mjs src/*.ts
 npm start build-watch   # nodemon rebuild on src/**/*.ts
 npm start lint-watch    # nodemon relint on src/**/*.ts
@@ -108,3 +109,4 @@ on similar consecutive lines, `/* ... */` block comments with two
 leading/trailing spaces, parens around all arrow parameters, and line
 breaks before `else`/`catch`/`finally`. Match existing formatting
 exactly when editing.
+

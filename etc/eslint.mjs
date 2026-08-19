@@ -12,7 +12,7 @@ import pluginTS      from "typescript-eslint"
 import globals       from "globals"
 
 export default [
-    { ignores: [ "etc/eslint.mjs", "dist" ] },
+    { ignores: [ "etc/eslint.mjs", "dst" ] },
     pluginJs.configs.recommended,
     ...pluginTS.configs.strict,
     ...pluginTS.configs.stylistic,
