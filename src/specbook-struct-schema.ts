@@ -29,6 +29,7 @@ export type SchemaDiagram = {
     links?:            "props" | "all"
     edgeTarget?:       string
     edgeArity?:        string
+    hierarchy?:        boolean
     onlyConnected?:    boolean
     qualified?:        boolean
     config?:           Partial<GradiaConfig>
@@ -68,6 +69,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.object({
     links:             v.optional(v.picklist([ "props", "all" ])),
     edgeTarget:        v.optional(v.string()),
     edgeArity:         v.optional(v.string()),
+    hierarchy:         v.optional(v.boolean()),
     onlyConnected:     v.optional(v.boolean()),
     qualified:         v.optional(v.boolean()),
     config:            v.optional(SchemaDiagramConfig)

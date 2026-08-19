@@ -159,9 +159,20 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
             edges.push({ source, target, name: plainText(edgeObject.name),
                 arity: arity !== undefined ? plainText(arity) : undefined })
         }
+
+        /*  derive the containment edges from the object hierarchy, as
+            the nesting of the objects carries no "[[...]]" reference  */
+        if (diagram.hierarchy === true)
+            for (const node of nodes) {
+                const parent = parents.get(node)
+                if (parent !== undefined && nodeSet.has(parent))
+                    edges.push({ source: parent, target: node })
+            }
     }
     else if (diagram.edges !== undefined)
         errors.push("\"grid\" diagram cannot carry an \"edges\" configuration")
+    else if (diagram.hierarchy === true)
+        errors.push("\"grid\" diagram cannot carry a \"hierarchy\" configuration")
 
     /*  deduplicate the edges (the same reference can occur in
         multiple texts of the same node object)  */

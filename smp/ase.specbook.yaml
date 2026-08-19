@@ -604,6 +604,9 @@
         The relationships, dependencies, and interactions between the
         solution and its environment, defining the system's scope,
         external entities, and boundaries.
+    diagram:
+        type: grid
+        nodes: "[[ARCH:CV.ENTITY:*]]"
     childs:
         -   kind: ENTITY
             desc: >
@@ -633,11 +636,18 @@
         The functional components of the solution, their
         responsibilities, interfaces, and primary interactions,
         describing what the system does at runtime.
+    diagram:
+        type: graph
+        nodes: "[[ARCH:FV.COMPONENT:*]]"
     childs:
         -   kind: COMPONENT
             desc: >
                 A single functional component, described by what it does
                 and how it collaborates with the components it depends on.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:FV.COMPONENT:*]]"
             props:
                 -   name: KIND
                     desc: The kind of functional component.
@@ -664,12 +674,20 @@
         The way the solution stores, manages, manipulates, and
         distributes information, defining the static data structure and
         dynamic information flow.
+    diagram:
+        type: grid
+        nodes: "[[ARCH:IV.ASPECT:*]]"
     childs:
         -   kind: ASPECT
             desc: >
                 A single information aspect, described by how the solution
                 stores, manages, or distributes the information and how
                 its consistency is upheld.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:IV.ASPECT:*]], [[SPEC:DM.ENTITY:*]], [[ARCH:FV.COMPONENT:*]]"
+                qualified: true
             props:
                 -   name: CONCERN
                     desc: >
@@ -701,12 +719,20 @@
         The concurrency structure of the solution, mapping functional
         components to processes and threads, and defining how they
         coordinate and communicate.
+    diagram:
+        type: grid
+        nodes: "[[ARCH:CO.UNIT:*]]"
     childs:
         -   kind: UNIT
             desc: >
                 A single concurrency unit, described by how it executes
                 and how it avoids or manages contention, races, and
                 deadlocks.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]]"
+                qualified: true
             props:
                 -   name: KIND
                     desc: The kind of concurrency unit.
@@ -733,6 +759,9 @@
         The architecture supporting the software development process,
         defining the module organization, build approach, and codeline
         conventions.
+    diagram:
+        type: grid
+        nodes: "[[ARCH:DV.ASPECT:*]]"
     childs:
         -   kind: ASPECT
             desc: >
@@ -752,11 +781,19 @@
         The environment into which the solution is deployed, mapping
         software elements to the runtime platform, hardware, and network
         topology.
+    diagram:
+        type: grid
+        nodes: "[[ARCH:DP.NODE:*]]"
     childs:
         -   kind: NODE
             desc: >
                 A single deployment node, described by its sizing and its
                 place in the deployment topology.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DP.NODE:*]], [[ARCH:FV.COMPONENT:*]]"
+                qualified: true
             props:
                 -   name: KIND
                     desc: The kind of deployment node.
@@ -782,6 +819,9 @@
         The way the solution is operated, administered, and supported in
         production, defining installation, monitoring, and management
         concerns.
+    diagram:
+        type: grid
+        nodes: "[[ARCH:OV.CONCERN:*]]"
     childs:
         -   kind: CONCERN
             desc: >
@@ -806,12 +846,20 @@
     file: ARCH-08-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed.
+    diagram:
+        type: grid
+        nodes: "[[ARCH:QP.PERSPECTIVE:*]]"
     childs:
         -   kind: PERSPECTIVE
             desc: >
                 A single quality perspective, described by how the
                 architecture satisfies the quality attribute across the
                 affected elements.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:QP.PERSPECTIVE:*]], [[SPEC:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
+                qualified: true
             props:
                 -   name: QUALITY
                     desc: >
@@ -845,6 +893,12 @@
         The major decisions related to the architecture, each recording
         the forces at play, the chosen response, and the reasoning that
         justifies it.
+    diagram:
+        type: grid
+        nodes: "[[ARCH:DR.DECISION:*]]"
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 5
     childs:
         -   kind: DECISION
             desc: >
@@ -852,6 +906,11 @@
                 of the decision, not longer than 80 characters. It must be
                 hard to reverse, surprising without context, and the
                 result of a real trade-off.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DR.DECISION:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
+                qualified: true
             props:
                 -   name: STATUS
                     desc: The status of the decision.
@@ -900,12 +959,19 @@
         organized by tier and lifecycle phase, recording for each
         component its chosen product, its purpose, and the alternatives
         that were considered but not chosen.
+    diagram:
+        type: grid
+        nodes: "[[ARCH:TS.TIER:*]]"
     childs:
         -   kind: TIER
             name: ^(?:Client|Server|Middleware|Database)$
             desc: >
                 The system architecture Tier this component belongs to.
                 One of "Client", "Server", "Middleware", or "Database".
+            diagram:
+                type: hub
+                center: self
+                hierarchy: true
             childs:
                 -   kind: COMPONENT
                     desc: A single software component
