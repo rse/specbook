@@ -92,6 +92,9 @@
         The end-to-end experience a user has while discovering,
         adopting, and using the solution, mapping their steps,
         touchpoints, and emotions over time.
+    diagram:
+        type: grid
+        nodes: "[[SPEC:UJ.JOURNEY:*]]"
     childs:
         -   kind: JOURNEY
             desc: >
@@ -160,6 +163,9 @@
         The quality attributes and constraints the solution must satisfy,
         such as performance, security, scalability, reliability, and
         usability.
+    diagram:
+        type: grid
+        nodes: "[[SPEC:NR.REQUIREMENT:*]]"
     childs:
         -   kind: REQUIREMENT
             desc: >
@@ -231,6 +237,7 @@
                 Pascal-cased, per-artifact unique name.
             diagram:
                 type: hub
+                center: self
                 nodes: "[[DM.ENTITY:*]]"
                 edges: "[[DM.ENTITY:*.RELATION:*]]"
             childs:
