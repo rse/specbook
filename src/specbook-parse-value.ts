@@ -115,9 +115,9 @@ export const compileValueExpr = (source: string): ValueExpr => {
 /*  split a property value at top-level commas, honoring double-quoted
     sections and "[[...]]" reference bracketing  */
 export const splitItems = (text: string): string[] => {
-    const parts = [ "" ]
-    let quoted    = false
-    let bracketed = false
+    const parts     = [ "" ]
+    let   quoted    = false
+    let   bracketed = false
     for (let i = 0; i < text.length; i++) {
         const char = text[i]
         if (char === "\"")

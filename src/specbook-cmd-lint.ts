@@ -40,7 +40,7 @@ export const lint = (options: LintOptions): LintResult => {
     const diagnostics = new Array<Diagnostic>()
 
     /*  load the optional YAML schema configuration  */
-    let config
+    let config: SchemaSpecification | undefined
     if (options.config !== undefined) {
         options.verbose(`loading configuration "${options.config}"`)
         const loaded = loadConfig(options.config)
@@ -49,11 +49,13 @@ export const lint = (options: LintOptions): LintResult => {
     }
 
     /*  parse and validate the specification Markdown files  */
-    const files = scanMarkdown(options.basedir)
+    const exists = fs.existsSync(options.basedir) && fs.statSync(options.basedir).isDirectory()
+    const files  = exists ? scanMarkdown(options.basedir) : []
     options.verbose(`parsing ${files.length} specification file(s) below "${options.basedir}"`)
     if (files.length === 0)
         diagnostics.push({ file: options.basedir, line: 1, column: 1,
-            message: "no Markdown files found below base directory" })
+            message: exists ? "no Markdown files found below base directory" :
+                "base directory does not exist" })
     const sources = new Array<SourceFile>()
     for (const file of files) {
         try {

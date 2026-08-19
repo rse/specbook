@@ -6,6 +6,8 @@
 
 import type { PDFDocument, PDFArray, PDFRef }
     from "pdf-lib"
+import type { Browser }
+    from "playwright"
 
 import { escapeHtml, paperSetup, paperLength, paperSizeDefault }
     from "./specbook-export-common.js"
@@ -114,7 +116,7 @@ export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>)
 
     /*  launch the Playwright Chromium browser, falling back to a
         system-installed Google Chrome if the Chromium download is missing  */
-    let browser
+    let browser: Browser
     try {
         browser = await chromium.launch()
     }
@@ -214,8 +216,9 @@ export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>)
         /*  draw the vertical brand bar onto the left edge of the
             physical paper of every page, as Chromium clips print
             content to the page box (0.6rem at the 9pt print root)  */
-        const [ r, g, b ] = (theme.accent.match(/[0-9a-f]{2}/gi) ?? [])
-            .map((hex) => parseInt(hex, 16) / 255)
+        const hex = theme.accent.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
+        const [ r, g, b ] = (hex !== null ? hex.slice(1) : [ "00", "00", "00" ])
+            .map((component) => parseInt(component, 16) / 255)
         for (const pdfPage of merged.getPages())
             pdfPage.drawRectangle({ x: 0, y: 0, width: 5.4,
                 height: pdfPage.getHeight(), color: rgb(r, g, b) })

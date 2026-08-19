@@ -42,8 +42,8 @@ export const buildLinkIndex = (specification: Specification): LinkIndex => {
 /*  split a text at a separator character, honoring double-quoted
     sections (the quotes are retained for a later unquote())  */
 const splitQuoted = (text: string, separator: string): string[] => {
-    const parts = [ "" ]
-    let quoted = false
+    const parts  = [ "" ]
+    let   quoted = false
     for (const char of text) {
         if (char === "\"")
             quoted = !quoted
@@ -106,7 +106,7 @@ export const resolveSet = (index: LinkIndex, reference: string): SpecObject[] =>
     ambiguity), while a hierarchical path resolves via its full match set  */
 export const resolveUnique = (index: LinkIndex, reference: string): LinkTarget => {
     const segments = segmentsOf(reference)
-    let matches: SpecObject[] = []
+    let   matches: SpecObject[] = []
     if (segments.length === 1) {
         const segment  = segments[0]
         const plain    = unquote(segment)

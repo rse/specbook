@@ -4,7 +4,7 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import * as fs from "node:fs"
+import * as fs         from "node:fs"
 import sourceCodeError from "source-code-error"
 
 /*  a single parse/validation diagnostic  */

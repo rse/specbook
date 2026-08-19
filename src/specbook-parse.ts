@@ -32,6 +32,9 @@ export class Parser {
     /*  parse all source files into the specification AST and
         optionally validate the result against a configuration  */
     parse (sources: SourceFile[], config?: SchemaSpecification): ParseResult {
+        /*  reset the parsing context to allow a reuse of the parser  */
+        this.ctx = new ParseContext()
+
         const artifacts = new Array<Artifact>()
         for (const source of sources)
             artifacts.push(...parseFile(this.ctx, source))

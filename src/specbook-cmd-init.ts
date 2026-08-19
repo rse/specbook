@@ -39,8 +39,9 @@ export const initSpecification = (options: InitOptions): string[] => {
             `Modified: ${now}\n` +
             "---\n" +
             "\n" +
-            `#   ${artifact.kind}: ${name} (${artifact.kind}-${artifact.id})\n` +
+            `#   ${artifact.kind}: ${name} (${artifact.kind}-${artifact.id ?? ""})\n` +
             "\n"
+        fs.mkdirSync(path.dirname(file), { recursive: true })
         fs.writeFileSync(file, text, "utf8")
         options.verbose(`created artifact file "${artifact.file}"`)
         created.push(artifact.file)

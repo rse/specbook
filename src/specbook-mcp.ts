@@ -26,7 +26,7 @@ const errorResult = (err: unknown) => {
 
 /*  serve the SpecBook functionality as "specbook_<cmd>" MCP tools over stdio  */
 export const serveMcp = async (verbose: (msg: string) => void): Promise<void> => {
-    const server   = new McpServer({ name: "specbook", version: "0.9.0" })
+    const server   = new McpServer({ name: "specbook", version: "0.9.3" })
     const specbook = new SpecBook({ verbose })
 
     server.registerTool("specbook_init", {

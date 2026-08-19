@@ -11,9 +11,10 @@ import { fileURLToPath } from "node:url"
 import type { Specification, Object as SpecObject }
     from "./specbook-struct-spec.js"
 
-/*  escape a text for embedding into template HTML  */
+/*  escape a text for embedding into template HTML (text and attributes)  */
 export const escapeHtml = (text: string): string =>
     text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;")
 
 /*  provide the build-time pre-assembled stylesheet (with the
     font faces already inlined as base64 data: URIs)  */
@@ -36,10 +37,13 @@ export const fallbackLogo = (): string =>
 export const isTitleObject = (object: SpecObject): boolean =>
     object.kind === "META" && object.name.toUpperCase() === "TITLE"
 
+/*  determine the title object of the specification  */
+const titleObject = (specification: Specification): SpecObject | undefined =>
+    specification.artifacts.flatMap((artifact) => artifact.objects).find(isTitleObject)
+
 /*  determine a property value of the title object  */
 const titleProperty = (specification: Specification, name: string): string | undefined =>
-    specification.artifacts.flatMap((artifact) => artifact.objects).find(isTitleObject)
-        ?.properties.find((property) => property.key === name)?.value
+    titleObject(specification)?.properties.find((property) => property.key === name)?.value
 
 /*  determine the document language (LANG) from the title object  */
 export const documentLang = (specification: Specification): string | undefined =>
@@ -133,7 +137,7 @@ export const charsetCodepoints = (charset: string): number[] | undefined => {
     else if (name === "utf8" || name === "utf16" || name === "unicode")
         return undefined
     throw new Error(`unknown charset "${charset}" ` +
-        "(expected US-ASCII, ISO-8859-1/ISO-Latin-1, ISO-8859-15/ISO-Latin-15, or UTF-8)")
+        "(expected US-ASCII, ISO-8859-1/ISO-Latin-1, ISO-8859-15/ISO-Latin-9, or UTF-8)")
 }
 
 /*  the symbol glyphs used by the HTML/PDF rendering (kind and property
@@ -172,20 +176,19 @@ export const subsetStylesheet = async (charset?: string): Promise<string> => {
 }
 
 /*  determine the document title and subtitle from the title object  */
-export const documentTitle = (specification: Specification): { title: string, subtitle?: string } => {
-    const object = specification.artifacts.flatMap((artifact) => artifact.objects).find(isTitleObject)
-    const prop = (name: string) =>
-        object?.properties.find((property) => property.key === name)?.value
-    return { title: prop("TITLE") ?? object?.name ?? "Specification", subtitle: prop("SUBTITLE") }
-}
+export const documentTitle = (specification: Specification): { title: string, subtitle?: string } => ({
+    title:    titleProperty(specification, "TITLE") ??
+        titleObject(specification)?.name ?? "Specification",
+    subtitle: titleProperty(specification, "SUBTITLE")
+})
 
 /*  determine the document logo as a self-contained data: URL, taken from the
     embedded image of the LOGO property of the title object, and falling back
     onto the built-in SpecBook logo (for use in isolated rendering contexts,
     like the print header/footer, which load no external resources)  */
 export const documentLogo = (specification: Specification): string => {
-    const object  = specification.artifacts.flatMap((artifact) => artifact.objects).find(isTitleObject)
-    const content = object?.properties.find((property) => property.key === "LOGO")?.embedding?.[0]
+    const content = titleObject(specification)
+        ?.properties.find((property) => property.key === "LOGO")?.embedding?.[0]
     if (content === undefined)
         return fallbackLogo()
     return content.startsWith("data:") ? content :

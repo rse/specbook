@@ -120,6 +120,9 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
         parts.splice(idx, 1)
         tokens.push(...parts)
     }
+
+    /*  assign the collected tokens to the still unset configured
+        properties whose pattern they match  */
     for (const prop of props) {
         if (prop.value === undefined || findProp(prop.name) !== undefined)
             continue
@@ -133,6 +136,8 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
             tokens.splice(idx, 1)
         }
     }
+
+    /*  report the tokens which no configured property accepts  */
     for (const token of tokens)
         ctx.diagnose(meta.file, meta.line,
             `unassignable inline token "${token}" on ${object.kind} "${object.name}"`)
@@ -211,7 +216,7 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
     /*  check the configured child objects  */
     const childs = schema.childs ?? []
     for (const child of object.childs) {
-        const childMeta = ctx.objectMeta.get(child) ?? { file: "", line: 1 }
+        const childMeta   = ctx.objectMeta.get(child) ?? { file: "", line: 1 }
         const childSchema = childs.find((c) => c.kind === child.kind)
         if (childSchema === undefined) {
             ctx.diagnose(childMeta.file, childMeta.line,
@@ -249,7 +254,8 @@ export const validate = (ctx: ParseContext, specification: Specification, config
             const meta   = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
             const schema = config.find((s) =>
                 (s.kind === object.kind && s.id === object.id) || `${s.kind}-${s.id}` === object.id) ??
-                config.find((s) => (s.name ?? "").toUpperCase() === plainText(object.name).toUpperCase())
+                config.find((s) => s.name !== undefined
+                    && s.name.toUpperCase() === plainText(object.name).toUpperCase())
             if (schema === undefined) {
                 ctx.diagnose(meta.file, meta.line,
                     `unknown artifact "${object.kind}: ${object.name}" (id "${object.id}")`)
@@ -281,7 +287,7 @@ export const validate = (ctx: ParseContext, specification: Specification, config
 export const validateReferences = (ctx: ParseContext, specification: Specification) => {
     const check = (text: string, file: string, line: number) => {
         for (const m of text.matchAll(referenceRegex)) {
-            const ref = m[1].trim()
+            const ref        = m[1].trim()
             const resolution = resolveUnique(ctx.linkIndex, ref)
             if (resolution.ambiguous)
                 ctx.diagnose(file, line, `ambiguous link reference "[[${ref}]]"`)

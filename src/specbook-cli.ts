@@ -6,6 +6,8 @@
 */
 
 import * as fs             from "node:fs"
+import * as path           from "node:path"
+import { fileURLToPath }   from "node:url"
 import { Command }         from "commander"
 
 import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, parseOutputSpec } from "./specbook-api.js"
@@ -38,7 +40,7 @@ const writeOutput = async (output: string, data: Buffer | string, verbose: (msg:
         await writeStdout(data)
     else {
         await fs.promises.writeFile(output, data)
-        verbose(`wrote "${output}" (${data.length} bytes)`)
+        verbose(`wrote "${output}" (${Buffer.byteLength(data)} bytes)`)
     }
 }
 
@@ -55,15 +57,21 @@ const envDefaultFlag = (name: string, fallback: boolean): boolean => {
 }
 
 /*  provide the common options of all sub-commands  */
-const common = (command: Command): Command => command
+const withCommonOptions = (command: Command): Command => command
     .option("-v, --verbose", "print verbose processing information to stderr", envDefaultFlag("verbose", false))
     .option("-c, --config <yaml-file>", "YAML schema configuration file", envDefault("config"))
+
+/*  determine the own version from the package manifest, which resides
+    one level above both the source and the compiled module directory  */
+const manifest = path.join(
+    path.dirname(fileURLToPath(import.meta.url)), "..", "package.json")
+const version  = (JSON.parse(fs.readFileSync(manifest, "utf8")) as { version: string }).version
 
 /*  parse the command line  */
 const program = new Command()
 program.name("specbook")
     .description("Markdown-based Specification Format")
-    .version("0.9.0")
+    .version(version)
     .action(() => {
         program.help()
     })
@@ -76,7 +84,7 @@ program.command("mcp")
         await serveMcp(verboseOf(opts))
     })
 
-common(program.command("init"))
+withCommonOptions(program.command("init"))
     .description("initialize the configured specification artifact files below the base directory")
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
     .action(async (opts: { verbose: boolean, config?: string, basedir: string }) => {
@@ -87,7 +95,7 @@ common(program.command("init"))
             "no artifact files were created\n")
     })
 
-common(program.command("lint"))
+withCommonOptions(program.command("lint"))
     .description("lint the specification Markdown files below the base directory")
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
     .action(async (opts: { verbose: boolean, config?: string, basedir: string }) => {
@@ -103,7 +111,7 @@ common(program.command("lint"))
             verboseOf(opts)("specification valid")
     })
 
-common(program.command("export"))
+withCommonOptions(program.command("export"))
     .description("export the specification Markdown files below the base directory " +
         "as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown")
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
@@ -125,7 +133,7 @@ common(program.command("export"))
             await writeOutput(output, buffers[distinct.indexOf(format)], verboseOf(opts))
     })
 
-common(program.command("describe"))
+withCommonOptions(program.command("describe"))
     .description("describe the configured specification format as Markdown")
     .option("-o, --output <markdown-file>", "output file (\"-\" for stdout)", envDefault("output", "-"))
     .action(async (opts: { verbose: boolean, config?: string, output: string }) => {
@@ -134,7 +142,7 @@ common(program.command("describe"))
         await writeOutput(opts.output, text, verboseOf(opts))
     })
 
-common(program.command("import"))
+withCommonOptions(program.command("import"))
     .description("import foreign sources into the specification artifact files below the base directory")
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
     .option("--provider <provider>", "AI provider (\"anthropic\", \"openai\", \"openrouter\" or \"ollama\")", envDefault("provider"))
@@ -150,7 +158,7 @@ common(program.command("import"))
             "no artifact files were changed\n")
     })
 
-common(program.command("edit"))
+withCommonOptions(program.command("edit"))
     .description("apply a free-text edit request to the specification artifact files below the base directory")
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
     .option("--provider <provider>", "AI provider (\"anthropic\", \"openai\", \"openrouter\" or \"ollama\")", envDefault("provider"))

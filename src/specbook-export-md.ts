@@ -45,7 +45,13 @@ const renderConciseMd = (object: SpecObject, level: number): string => {
     segments.push(...object.properties.map((property) => `${property.key}: ${property.value}`))
     if (object.description !== undefined)
         segments.push(renderDescriptionMd(object.description))
-    const item = `${indent}-   ${segments.join("; ").replace(/\.?$/, ".")}`
+
+    /*  a description terminates the item with ".", while without one the
+        ";" segment terminator has to remain, as only it lets the item be
+        recognized as a concise object again on re-parsing  */
+    const item = object.description !== undefined ?
+        `${indent}-   ${segments.join("; ").replace(/\.?$/, ".")}` :
+        `${indent}-   ${segments.join("; ")};`
     return [ item, ...object.childs.map((child) => renderConciseMd(child, level + 1)) ].join("\n")
 }
 
@@ -54,9 +60,8 @@ const renderConciseMd = (object: SpecObject, level: number): string => {
     and the optionally derived Gradia diagram spec embedded
     as a "gradia" fenced code block below the heading  */
 const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecObject, string>): string => {
-    const heading = level === 1 ?
-        `#   ${object.kind}: ${object.name}${nameSuffixMd(object)}` :
-        `${"#".repeat(level)}${" ".repeat(4 - level)}${object.kind}: ${object.name}${nameSuffixMd(object)}`
+    const heading = `${"#".repeat(level)}${" ".repeat(4 - level)}` +
+        `${object.kind}: ${object.name}${nameSuffixMd(object)}`
     const parts = [ heading ]
     const spec  = diagrams?.get(object)
     if (spec !== undefined)

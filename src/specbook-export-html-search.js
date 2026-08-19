@@ -45,7 +45,7 @@
                             return
                         parent = parent.parentElement
                     }
-                    const text  = (el.textContent || "").toLowerCase()
+                    const text  = (el.textContent ?? "").toLowerCase()
                     const words = new Set(text.split(/[^\p{L}\p{N}]+/u).filter((w) => w !== ""))
                     words.forEach((w) => { vocab.add(w) })
                     units.push({ el, text, words, keep: false })

@@ -43,7 +43,8 @@ const templates: { [ name: string ]: string } = {
                 <script>
                     (function () {
                         let style = null
-                        try { style = localStorage.getItem("specbook-theme") } catch (ex) {}
+                        try { style = localStorage.getItem("specbook-theme") }
+                        catch { /*  an inaccessible storage just means no stored choice  */ }
                         if (style === null) {
                             const m = document.documentElement.className.match(/theme-(light|dark)/)
                             style = m !== null ? m[1] : null
@@ -55,7 +56,8 @@ const templates: { [ name: string ]: string } = {
                     function themeSwitch () {
                         const style = document.documentElement.className === "theme-dark" ? "light" : "dark"
                         document.documentElement.className = "theme-" + style
-                        try { localStorage.setItem("specbook-theme", style) } catch (ex) {}
+                        try { localStorage.setItem("specbook-theme", style) }
+                        catch { /*  an inaccessible storage just loses the choice  */ }
                     }
                 </script>
             </head>
@@ -251,6 +253,11 @@ let members: Map<string, "enum" | "tags"> | null = null
 let schemas: Map<SpecObject, SchemaObject> | null = null
 let diagrams: Map<SpecObject, string> | null = null
 
+/*  the cache of the pre-rendered diagram SVGs, keyed by specification,
+    as the PDF export renders the very same document multiple times  */
+const diagramCache = new WeakMap<Specification,
+    { config: SchemaSpecification, diagrams: Map<SpecObject, string> }>()
+
 /*  determine the fully-qualified anchor path of an object  */
 const anchorOf = (object: SpecObject): string =>
     anchors?.get(object) ?? object.id
@@ -359,7 +366,7 @@ const plainKey = (key: string): string =>
 /*  render a property value, badging the individual members of an
     "enum(...)" (a single member) or "tags(...)" (a member set) value  */
 const inlineValue = (kind: string, key: string, value: string) => {
-    const member = members?.get(`${kind} ${key.replace(/\s*\([^)]*\)\s*$/, "").trim()}`)
+    const member = members?.get(`${kind} ${plainKey(key)}`)
     if (member === undefined)
         return inline(value)
     const items = member === "tags" ? splitItems(value) : [ value.trim() ]
@@ -376,9 +383,10 @@ const inlineProperties = (kind: string, properties: Property[]) =>
 const formatOf = (object: SpecObject): SchemaFormat | undefined =>
     schemas?.get(object)?.format
 
-/*  determine the maximum table columns configured on an object  */
+/*  determine the maximum table columns configured on an object (at
+    least two, as a single column cannot carry a name and a value)  */
 const maxColumnsOf = (object: SpecObject): number =>
-    formatOf(object)?.maxTableColumns ?? 4
+    Math.max(2, formatOf(object)?.maxTableColumns ?? 4)
 
 /*  determine the effective properties of an object, with
     "withUnusedProps" injecting the defined but still unused schema
@@ -609,9 +617,12 @@ export const renderHtml = async (specification: Specification,
         displayed at a reduced coordinate scale, as the Gradia geometry
         (node boxes, font sizes) is dimensioned for a stand-alone
         canvas and would dwarf the document text at 1:1  */
-    const scale = 0.75
+    const scale  = 0.75
+    const cached = diagramCache.get(specification)
     diagrams = null
-    if (config !== undefined) {
+    if (cached !== undefined && cached.config === config)
+        diagrams = cached.diagrams
+    else if (config !== undefined) {
         diagrams = new Map<SpecObject, string>()
         for (const [ object, result ] of specDiagrams(specification, config)) {
             if (result.spec === undefined)
@@ -626,6 +637,7 @@ export const renderHtml = async (specification: Specification,
                 /*  intentionally omitted  */
             }
         }
+        diagramCache.set(specification, { config, diagrams })
     }
 
     /*  expand "[[xxx]]" references into hyperlinks (an unresolvable or

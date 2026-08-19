@@ -4,7 +4,7 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import * as v  from "valibot"
+import * as v from "valibot"
 import { Gradia, type Config as GradiaConfig } from "@rse/gradia"
 
 /*  ==== Types ====  */
@@ -86,7 +86,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.object({
 })
 const SchemaFormat: v.GenericSchema<SchemaFormat> = v.object({
     type:              v.optional(v.picklist([ "auto", "complex", "concise" ])),
-    maxTableColumns:   v.optional(v.number()),
+    maxTableColumns:   v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
     withUnusedProps:   v.optional(v.boolean())
 })
 const SchemaObject: v.GenericSchema<SchemaObject> = v.object({

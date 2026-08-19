@@ -31,9 +31,9 @@ export interface ObjectMeta {
 
 /*  the state shared between the syntactic and semantic parsing phases  */
 export class ParseContext {
-    diagnostics = new Array<Diagnostic>()
-    objectMeta  = new WeakMap<SpecObject, ObjectMeta>()
-    propMeta    = new WeakMap<Property, { line: number }>()
+    diagnostics          = new Array<Diagnostic>()
+    objectMeta           = new WeakMap<SpecObject, ObjectMeta>()
+    propMeta             = new WeakMap<Property, { line: number }>()
     linkIndex: LinkIndex = []
 
     /*  record a single diagnostic  */
@@ -46,7 +46,7 @@ export class ParseContext {
 export const embeddingRegex = /!\[([^\]]*)\]\(([^()]+)\)/g
 
 /*  the embeddable file types and their MIME types  */
-const embeddingTypes: { [ extension: string ]: string } = {
+const embeddingTypes: Record<string, string> = {
     svg:  "image/svg+xml",
     png:  "image/png",
     jpg:  "image/jpeg",

@@ -16,6 +16,10 @@ import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths 
 import { type ParseContext }
     from "./specbook-parse-common.js"
 
+/*  the single Wiki-style reference match (the non-global sibling of
+    the imported, global "referenceRegex")  */
+const referenceOnce = /\[\[([^[\]]+)\]\]/
+
 /*  the result of a per-object Gradia spec derivation: either the spec
     text or the reasons why the diagram has to be omitted  */
 export interface DiagramResult {
@@ -64,6 +68,59 @@ interface DiagramEdge {
     target: SpecObject
     name?:  string
     arity?: string
+}
+
+/*  generate the Gradia spec text of a derived diagram, opened by a
+    "#type" directive and the configured "#config" directives so every
+    embedded spec is self-contained: one node statement per object (the
+    unique anchor path as the node id, the object name as the displayed
+    label) and one edge statement per derived edge  */
+const renderSpec = (diagram: SchemaDiagram, type: string, center: SpecObject,
+    nodes: SpecObject[], edges: DiagramEdge[], index: ReturnType<typeof buildLinkIndex>,
+    anchors: Map<SpecObject, string>): string => {
+    const lines  = [ `#type ${type}` ]
+    const config = diagram.config ?? {}
+    for (const key of Object.keys(config) as (keyof GradiaConfig)[]) {
+        const value = config[key]
+        if (value !== undefined)
+            lines.push(`#config ${key} ${configValue(value)}`)
+    }
+    lines.push("")
+    for (const node of nodes) {
+        const anchor = anchors.get(node) ?? node.id
+        const attrs  = [ `url: ${atom(`#${anchor}`)}` ]
+        if (diagram.qualified === true && node.kind !== "")
+            attrs.push(`type: ${atom(node.kind)}`)
+        if (type === "hub" ? node === center : node.primary === true)
+            attrs.push("primary: true")
+
+        /*  attach the values of the configured properties as Gradia
+            key/value attributes (a node lacking a property is fine, as
+            the node set can mix objects of different kinds), with every
+            "[[...]]" reference stripped to its target object name  */
+        for (const key of diagram.properties ?? []) {
+            const value = node.properties.find((property) => plainKey(property.key) === key)?.value
+            if (value !== undefined) {
+                const text = value.replace(referenceRegex, (_, reference: string) => {
+                    const target = resolveUnique(index, reference.trim()).target
+                    return target !== undefined ? target.name : reference.trim()
+                })
+                attrs.push(`${atom(key)}: ${atom(plainText(text))}`)
+            }
+        }
+        lines.push(`${atom(anchor)}: ${atom(plainText(node.name))} [ ${attrs.join(", ")} ]`)
+    }
+    if (edges.length > 0) {
+        lines.push("")
+        for (const edge of edges) {
+            const op = "--" +
+                (edge.name  !== undefined && edge.name  !== "" ? `(${nameToken(edge.name)})--` : "") + ">" +
+                (edge.arity !== undefined && edge.arity !== "" ? `[${arityToken(edge.arity)}]` : "")
+            lines.push(`${atom(anchors.get(edge.source) ?? edge.source.id)} ${op} ` +
+                atom(anchors.get(edge.target) ?? edge.target.id))
+        }
+    }
+    return lines.join("\n") + "\n"
 }
 
 /*  derive the Gradia spec of a single object from its "diagram:"
@@ -141,8 +198,8 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
                 edgeObject.properties.find((property) =>
                     plainKey(property.key) === diagram.edgeTarget)?.value :
                 edgeObject.properties.map((property) => property.value)
-                    .find((v) => /\[\[[^[\]]+\]\]/.test(v))
-            const reference = value?.match(/\[\[([^[\]]+)\]\]/)?.[1].trim()
+                    .find((v) => referenceOnce.test(v))
+            const reference = value?.match(referenceOnce)?.[1].trim()
             const target    = reference !== undefined ? resolveUnique(index, reference).target : undefined
             if (source === undefined) {
                 errors.push(`diagram edge object "${edgeObject.name}" has no parent object as source`)
@@ -169,10 +226,12 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
                     edges.push({ source: parent, target: node })
             }
     }
-    else if (diagram.edges !== undefined)
-        errors.push("\"grid\" diagram cannot carry an \"edges\" configuration")
-    else if (diagram.hierarchy === true)
-        errors.push("\"grid\" diagram cannot carry a \"hierarchy\" configuration")
+    else {
+        if (diagram.edges !== undefined)
+            errors.push("\"grid\" diagram cannot carry an \"edges\" configuration")
+        if (diagram.hierarchy === true)
+            errors.push("\"grid\" diagram cannot carry a \"hierarchy\" configuration")
+    }
 
     /*  deduplicate the edges (the same reference can occur in
         multiple texts of the same node object)  */
@@ -191,7 +250,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         resolved object of an explicit "[[...]]" reference otherwise  */
     let center = object
     if (type === "hub" && diagram.center !== undefined && diagram.center !== "self") {
-        const reference = diagram.center.match(/\[\[([^[\]]+)\]\]/)?.[1].trim()
+        const reference = diagram.center.match(referenceOnce)?.[1].trim()
         const resolved  = reference !== undefined ? resolveUnique(index, reference) : undefined
         if (resolved?.target === undefined) {
             errors.push(`${resolved?.ambiguous === true ? "ambiguous" : "unresolvable"}` +
@@ -241,54 +300,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     if (diagram.collapse !== false && nodes.length === 1 && edges.length === 0)
         return { errors }
 
-    /*  generate the Gradia spec text, opened by a "#type" directive and
-        the configured "#config" directives so every embedded spec is
-        self-contained: one node statement per object (the unique anchor
-        path as the node id, the object name as the displayed label)
-        and one edge statement per derived edge  */
-    const lines = [ `#type ${type}` ]
-    const config = diagram.config ?? {}
-    for (const key of Object.keys(config) as (keyof GradiaConfig)[]) {
-        const value = config[key]
-        if (value !== undefined)
-            lines.push(`#config ${key} ${configValue(value)}`)
-    }
-    lines.push("")
-    for (const node of nodes) {
-        const anchor = anchors.get(node) ?? node.id
-        const attrs  = [ `url: ${atom(`#${anchor}`)}` ]
-        if (diagram.qualified === true && node.kind !== "")
-            attrs.push(`type: ${atom(node.kind)}`)
-        if (type === "hub" ? node === center : node.primary === true)
-            attrs.push("primary: true")
-
-        /*  attach the values of the configured properties as Gradia
-            key/value attributes (a node lacking a property is fine, as
-            the node set can mix objects of different kinds), with every
-            "[[...]]" reference stripped to its target object name  */
-        for (const key of diagram.properties ?? []) {
-            const value = node.properties.find((property) => plainKey(property.key) === key)?.value
-            if (value !== undefined) {
-                const text = value.replace(referenceRegex, (_, reference: string) => {
-                    const target = resolveUnique(index, reference.trim()).target
-                    return target !== undefined ? target.name : reference.trim()
-                })
-                attrs.push(`${atom(key)}: ${atom(plainText(text))}`)
-            }
-        }
-        lines.push(`${atom(anchor)}: ${atom(plainText(node.name))} [ ${attrs.join(", ")} ]`)
-    }
-    if (edges.length > 0) {
-        lines.push("")
-        for (const edge of edges) {
-            const op = "--" +
-                (edge.name  !== undefined && edge.name  !== "" ? `(${nameToken(edge.name)})--` : "") + ">" +
-                (edge.arity !== undefined && edge.arity !== "" ? `[${arityToken(edge.arity)}]` : "")
-            lines.push(`${atom(anchors.get(edge.source) ?? edge.source.id)} ${op} ` +
-                atom(anchors.get(edge.target) ?? edge.target.id))
-        }
-    }
-    return { spec: lines.join("\n") + "\n", errors }
+    return { spec: renderSpec(diagram, type, center, nodes, edges, index, anchors), errors }
 }
 
 /*  collect the objects whose schema configuration carries a "diagram:"

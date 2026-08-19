@@ -9,6 +9,6 @@ import postcssUrl from "postcss-url"
 export default {
     plugins: [
         /*  inline all url() asset references as base64 data: URIs  */
-        postcssUrl({ url: "inline", maxSize: 4096 })
+        postcssUrl({ url: "inline" })
     ]
 }

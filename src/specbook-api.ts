@@ -69,7 +69,7 @@ export class SpecBook {
         if (result.specification.artifacts.length === 0)
             throw new Error("unexportable specification:\n" +
                 result.diagnostics.map(renderDiagnostic).join("\n"))
-        const buffers = [] as Buffer[]
+        const buffers = new Array<Buffer>()
         for (const format of options.formats ?? [ "json" ])
             buffers.push(await exportSpecification(result.specification, format,
                 this.verbose, result.config))

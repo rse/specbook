@@ -6,7 +6,7 @@
 
 import textframe from "textframe"
 
-import { type SchemaSpecification, type SchemaObject } from "./specbook-struct-schema.js"
+import { type SchemaSpecification, type SchemaObject, type SchemaProperty } from "./specbook-struct-schema.js"
 
 /*  collapse folded YAML prose into a single line  */
 const collapse = (text?: string): string =>
@@ -68,7 +68,7 @@ const syntax = textframe`
 `
 
 /*  describe a single configured property  */
-const describeProperty = (prop: { name: string, desc?: string, value?: string, optional?: boolean }, indent: string): string => {
+const describeProperty = (prop: SchemaProperty, indent: string): string => {
     let line = `${indent}-   property \`${prop.name}\` (${prop.optional === true ? "optional" : "required"}`
     if (prop.value !== undefined)
         line += `, constraint \`${prop.value}\``
@@ -93,7 +93,7 @@ export const describeConfiguration = (config: SchemaSpecification): string => {
     const sections = new Array<string>()
     for (const artifact of config) {
         const lines = new Array<string>()
-        lines.push(`### ${artifact.kind}: ${artifact.name} (${artifact.kind}-${artifact.id})`)
+        lines.push(`### ${artifact.kind}: ${artifact.name ?? ""} (${artifact.kind}-${artifact.id ?? ""})`)
         lines.push("")
         if (artifact.file !== undefined)
             lines.push(`-   file: \`${artifact.file}\``)

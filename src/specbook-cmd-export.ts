@@ -42,9 +42,10 @@ export const parseOutputSpec = (spec: string): { format: ExportFormat, output: s
         return { format: prefixed[1] as ExportFormat, output: prefixed[2] }
     if (spec === "-")
         return { format: "json", output: spec }
-    const ext = spec.match(/\.([a-zA-Z0-9]+)$/)
-    if (ext !== null && extensions[ext[1].toLowerCase()] !== undefined)
-        return { format: extensions[ext[1].toLowerCase()], output: spec }
+    const ext    = spec.match(/\.([a-zA-Z0-9]+)$/)
+    const format = ext !== null ? extensions[ext[1].toLowerCase()] : undefined
+    if (format !== undefined)
+        return { format, output: spec }
     throw new Error(`unable to infer export format from output "${spec}" ` +
         "(use an explicit \"<format>:<filename>\" specification)")
 }

@@ -61,6 +61,10 @@ export const importSpecification = async (options: ImportOptions): Promise<strin
     const basedir = options.basedir ?? "."
     const files   = options.config.map((artifact) => artifact.file).filter((file) => file !== undefined)
 
+    /*  ensure at least one foreign source was given  */
+    if (options.inputs.length === 0)
+        throw new Error("no foreign sources given to import")
+
     /*  gather the existing artifact files and the foreign sources  */
     const existing = files
         .filter((file) => fs.existsSync(path.join(basedir, file)))
@@ -83,7 +87,9 @@ export const importSpecification = async (options: ImportOptions): Promise<strin
             options.verbose(`ignoring unconfigured file "${block.name}"`)
             continue
         }
-        fs.writeFileSync(path.join(basedir, block.name), block.content, "utf8")
+        const file = path.join(basedir, block.name)
+        fs.mkdirSync(path.dirname(file), { recursive: true })
+        fs.writeFileSync(file, block.content, "utf8")
         options.verbose(`wrote artifact file "${block.name}"`)
         written.push(block.name)
     }

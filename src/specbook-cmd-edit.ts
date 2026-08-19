@@ -79,7 +79,9 @@ export const editSpecification = async (options: EditOptions): Promise<string[]>
             options.verbose(`ignoring unconfigured file "${block.name}"`)
             continue
         }
-        fs.writeFileSync(path.join(basedir, block.name), block.content, "utf8")
+        const file = path.join(basedir, block.name)
+        fs.mkdirSync(path.dirname(file), { recursive: true })
+        fs.writeFileSync(file, block.content, "utf8")
         options.verbose(`wrote artifact file "${block.name}"`)
         written.push(block.name)
     }

@@ -29,7 +29,16 @@ const lineColOfPath = (yaml: string, cst: ReturnType<typeof parseDocument>, path
 /*  load and validate a YAML schema configuration file  */
 export const loadConfig = (file: string): { config: SchemaSpecification | null, diagnostics: Diagnostic[] } => {
     const diagnostics: Diagnostic[] = []
-    const yaml = fs.readFileSync(file, "utf8")
+    let yaml: string
+    try {
+        yaml = fs.readFileSync(file, "utf8")
+    }
+    catch (err) {
+        diagnostics.push({ file, line: 1, column: 1,
+            message: "cannot read configuration file: " +
+                (err instanceof Error ? err.message : String(err)) })
+        return { config: null, diagnostics }
+    }
 
     /*  syntactically parse the YAML content  */
     let obj: unknown
@@ -43,7 +52,7 @@ export const loadConfig = (file: string): { config: SchemaSpecification | null, 
             line:    e?.linePos?.[0]?.line ?? 1,
             column:  e?.linePos?.[0]?.col  ?? 1,
             message: "invalid YAML syntax: " +
-                (err instanceof Error ? err.message.replace(/:(?:.|\r?\n)*$/, "") : String(err))
+                (err instanceof Error ? err.message.replace(/:[\s\S]*$/, "") : String(err))
         })
         return { config: null, diagnostics }
     }

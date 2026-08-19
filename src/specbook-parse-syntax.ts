@@ -116,7 +116,7 @@ const parseFrontmatter = (text: string) => {
         const line  = 2 + (m[1].slice(0, km.index).match(/\n/g) ?? []).length
         const value = km[1].trim()
         const date  = new Date(value)
-        return { date: isNaN(date.getTime()) ? null : date, line, value }
+        return { date: Number.isNaN(date.getTime()) ? null : date, line, value }
     }
     return {
         present:  true,
@@ -266,7 +266,7 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
     const statements = new Array<string>()
     for (const segment of segments) {
         const km = segment.match(/^([^:;]+):\s+(.+)$/)
-        if (km !== null && !(/\sBECAUSE\s/.test(segment))) {
+        if (km !== null && !(/\s(?:\*\*BECAUSE\*\*|BECAUSE)\s/.test(segment))) {
             const property: Property = { key: km[1].trim(), value: km[2].trim() }
             ctx.propMeta.set(property, { line })
             object.properties.push(property)
@@ -295,6 +295,8 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
                 ctx.diagnose(source.file, info.line, info.value === null ?
                     `missing "${key}:" frontmatter key` :
                     `invalid "${key}:" frontmatter timestamp "${info.value}"`)
+
+    /*  the state tracked while walking the Markdown tokens  */
     const artifacts = new Array<Artifact>()
     const stack     = new Array<SpecObject>()
     let   current: SpecObject | null = null
