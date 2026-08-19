@@ -6,7 +6,7 @@ Modified: 2026-06-18 10:18
 SPEC: Test Cases (TC)
 =====================
 
-##  TEST CASE: Valid Token Grants Access {{valid-token}}
+##  TEST-CASE: Valid Token Grants Access {{valid-token}}
 
 -   VERIFIES:       [[FR.authentication]]
 -   PRE-CONDITION:  An invited user with a sent, unexpired authorization token exists for a running event.
@@ -14,14 +14,14 @@ SPEC: Test Cases (TC)
 -   EXPECTED:       The system issues a session token and grants access to the stream.
 -   POST-CONDITION: The authorization token is in state used.
 
-##  TEST CASE: Unauthorized Email Rejected {{unauthorized}}
+##  TEST-CASE: Unauthorized Email Rejected {{unauthorized}}
 
 -   VERIFIES:      [[FR.authentication]]
 -   PRE-CONDITION: An email not on the access list and not matching the access pattern.
 -   INPUT:         The user enters that email in the login dialog.
 -   EXPECTED:      The system denies access and shows a not-authorized notice.
 
-##  TEST CASE: Second Login Closes First Session {{single-session}}
+##  TEST-CASE: Second Login Closes First Session {{single-session}}
 
 -   VERIFIES:       [[FR.parallel-access]]
 -   PRE-CONDITION:  A user holds an active session for an event from one device.
@@ -29,35 +29,35 @@ SPEC: Test Cases (TC)
 -   EXPECTED:       The first connection is closed and only the new session remains active.
 -   POST-CONDITION: Exactly one active session token exists for the user and event.
 
-##  TEST CASE: Moderated Question Starts Pending {{moderated-pending}}
+##  TEST-CASE: Moderated Question Starts Pending {{moderated-pending}}
 
 -   VERIFIES:      [[FR.moderation]]
 -   PRE-CONDITION: An event with question moderation enabled is running.
 -   INPUT:         An attendee submits a question.
 -   EXPECTED:      The question is stored in state pending and is not visible to the audience.
 
-##  TEST CASE: Unmoderated Chat Starts Accepted {{unmoderated-accepted}}
+##  TEST-CASE: Unmoderated Chat Starts Accepted {{unmoderated-accepted}}
 
 -   VERIFIES:      [[FR.moderation]]
 -   PRE-CONDITION: An event with chat moderation disabled is running.
 -   INPUT:         An attendee submits a chat message.
 -   EXPECTED:      The message is stored in state accepted and is immediately visible.
 
-##  TEST CASE: Forwarded Message Is Locked {{forward-lock}}
+##  TEST-CASE: Forwarded Message Is Locked {{forward-lock}}
 
 -   VERIFIES:      [[FR.message-editing]]
 -   PRE-CONDITION: An accepted question has been forwarded to the presenter.
 -   INPUT:         The original attendee attempts to edit or delete the message.
 -   EXPECTED:      The system refuses the edit and the message remains unchanged.
 
-##  TEST CASE: Sentiment Auto-Reject Below Threshold {{sentiment-reject}}
+##  TEST-CASE: Sentiment Auto-Reject Below Threshold {{sentiment-reject}}
 
 -   VERIFIES:      [[FR.server-sentiment]]
 -   PRE-CONDITION: Server-side sentiment analysis and auto-reject are enabled.
 -   INPUT:         An attendee submits a message scoring -0.5.
 -   EXPECTED:      The system stores the message directly in state rejected.
 
-##  TEST CASE: Live Provider Switch Propagates {{provider-switch}}
+##  TEST-CASE: Live Provider Switch Propagates {{provider-switch}}
 
 -   VERIFIES:       [[FR.provider-switch]]
 -   PRE-CONDITION:  A running event with two configured resources and connected clients.
@@ -65,28 +65,28 @@ SPEC: Test Cases (TC)
 -   EXPECTED:       All connected clients switch to the new stream without user interaction.
 -   POST-CONDITION: Exactly one resource of the channel is active.
 
-##  TEST CASE: Config Change Reaches Clients {{config-propagation}}
+##  TEST-CASE: Config Change Reaches Clients {{config-propagation}}
 
 -   VERIFIES:      [[FR.config-propagation]]
 -   PRE-CONDITION: A running event with connected clients and chat disabled.
 -   INPUT:         The manager enables chat for the event.
 -   EXPECTED:      Connected clients show the chat panel within 2 seconds without a reload.
 
-##  TEST CASE: Ventari Import Avoids Duplicates {{ventari-dedup}}
+##  TEST-CASE: Ventari Import Avoids Duplicates {{ventari-dedup}}
 
 -   VERIFIES:      [[FR.ventari-import]]
 -   PRE-CONDITION: An event whose access list already contains some imported emails.
 -   INPUT:         The manager imports a Ventari sheet overlapping the existing emails.
 -   EXPECTED:      Existing users are not duplicated and their prior tokens are returned.
 
-##  TEST CASE: Returned URL Format {{url-format}}
+##  TEST-CASE: Returned URL Format {{url-format}}
 
 -   VERIFIES:      [[FR.ventari-export]]
 -   PRE-CONDITION: A Ventari import has generated tokens for new users.
 -   INPUT:         The manager exports the access URLs.
 -   EXPECTED:      Each URL contains event, user, and a six-digit "NNN-NNN" token in the URL column.
 
-##  TEST CASE: Anonymization Removes Personal Data {{anonymize}}
+##  TEST-CASE: Anonymization Removes Personal Data {{anonymize}}
 
 -   VERIFIES:       [[FR.user-consent]]
 -   PRE-CONDITION:  A running event with messages, likes, tokens, and an access list.
@@ -94,14 +94,14 @@ SPEC: Test Cases (TC)
 -   EXPECTED:       Sender names become "Anonymous", likes become bare counts, and tokens, users, and Moderator roles are deleted.
 -   POST-CONDITION: No personal attendee data remains and Manager roles are retained.
 
-##  TEST CASE: Export Contains Required Fields {{export-fields}}
+##  TEST-CASE: Export Contains Required Fields {{export-fields}}
 
 -   VERIFIES:      [[FR.export-inputs]]
 -   PRE-CONDITION: A finished, anonymized event with messages.
 -   INPUT:         The manager exports the attendee inputs.
 -   EXPECTED:      The export includes at least timestamp, state, number of likes, and message text per message.
 
-##  TEST CASE: Concurrent Attendee Load {{load}}
+##  TEST-CASE: Concurrent Attendee Load {{load}}
 
 -   VERIFIES:      [[NR.attendee-scale]]
 -   PRE-CONDITION: A running event deployed with scaled proxy, relay, and server instances.

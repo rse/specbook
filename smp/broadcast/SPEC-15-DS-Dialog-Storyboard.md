@@ -9,7 +9,7 @@ SPEC: Dialog Storyboard (DS)
 STORYBOARD: Attendee Joins and Watches {{attendee-join}}
 --------------------------------------
 
--   USE-CASE: [[USE CASE:join-event]]
+-   USE-CASE: [[USE-CASE:join-event]]
 -   SCENARIO: [[SCENARIO:join-event-token-login]]
 -   PATTERN:  [[PATTERN:two-factor-login]]
 
@@ -24,7 +24,7 @@ STORYBOARD: Attendee Joins and Watches {{attendee-join}}
 STORYBOARD: Attendee Asks a Tagged Question {{ask-question}}
 -------------------------------------------
 
--   USE-CASE: [[USE CASE:ask-question]]
+-   USE-CASE: [[USE-CASE:ask-question]]
 -   SCENARIO: [[SCENARIO:ask-question-moderated]]
 -   PATTERN:  [[PATTERN:video-sidebar]]
 
@@ -39,7 +39,7 @@ STORYBOARD: Attendee Asks a Tagged Question {{ask-question}}
 STORYBOARD: Attendee Reads and Posts Chat {{chat-interaction}}
 -----------------------------------------
 
--   USE-CASE: [[USE CASE:ask-question]]
+-   USE-CASE: [[USE-CASE:ask-question]]
 -   SCENARIO: [[SCENARIO:ask-question-moderated]]
 -   PATTERN:  [[PATTERN:message-stream]]
 
@@ -54,7 +54,7 @@ STORYBOARD: Attendee Reads and Posts Chat {{chat-interaction}}
 STORYBOARD: Moderator Forwards to Presenter {{moderate-forward}}
 -------------------------------------------
 
--   USE-CASE: [[USE CASE:moderate]]
+-   USE-CASE: [[USE-CASE:moderate]]
 -   SCENARIO: [[SCENARIO:moderate-forward]]
 -   PATTERN:  [[PATTERN:kanban-board]]
 
@@ -69,7 +69,7 @@ STORYBOARD: Moderator Forwards to Presenter {{moderate-forward}}
 STORYBOARD: Manager Switches Provider Live {{switch-provider}}
 ------------------------------------------
 
--   USE-CASE: [[USE CASE:switch-provider]]
+-   USE-CASE: [[USE-CASE:switch-provider]]
 -   SCENARIO: [[SCENARIO:switch-provider-failover]]
 -   PATTERN:  [[PATTERN:master-detail]]
 
@@ -84,7 +84,7 @@ STORYBOARD: Manager Switches Provider Live {{switch-provider}}
 STORYBOARD: Manager Imports Ventari Sheet {{ventari-import}}
 -----------------------------------------
 
--   USE-CASE: [[USE CASE:create-event]]
+-   USE-CASE: [[USE-CASE:create-event]]
 -   SCENARIO: [[SCENARIO:create-event-import]]
 -   PATTERN:  [[PATTERN:master-detail]]
 

@@ -4,7 +4,8 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import * as v from "valibot"
+import * as v  from "valibot"
+import { Gradia, type Config as GradiaConfig } from "@rse/gradia"
 
 /*  ==== Types ====  */
 
@@ -30,7 +31,7 @@ export type SchemaDiagram = {
     edgeArity?:        string
     onlyConnected?:    boolean
     qualified?:        boolean
-    config?:           { [ key: string ]: string | number | boolean }
+    config?:           Partial<GradiaConfig>
 }
 export type SchemaProperty = {
     name:              string
@@ -40,6 +41,18 @@ export type SchemaProperty = {
 }
 
 /*  ==== Schema ====  */
+
+/*  the Gradia rendering options, derived from the configuration
+    defaults of Gradia: the option names constrain the allowed keys and
+    the types of the default values constrain the allowed value types  */
+const GradiaConfigSchemas = Object.fromEntries(
+    Object.entries(Gradia.config).map(([ key, value ]) => [ key,
+        typeof value === "boolean" ? v.boolean() : typeof value === "number" ? v.number() : v.string() ])
+) as unknown as { [ K in keyof GradiaConfig ]: v.GenericSchema<GradiaConfig[K]> }
+const SchemaDiagramConfig: v.GenericSchema<Partial<GradiaConfig>> =
+    v.partial(v.strictObject(GradiaConfigSchemas, (issue) =>
+        issue.expected === "never" ? "unknown Gradia rendering option" :
+            "expected a map of Gradia rendering options"))
 
 const SchemaProperty: v.GenericSchema<SchemaProperty> = v.object({
     name:              v.string(),
@@ -57,8 +70,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.object({
     edgeArity:         v.optional(v.string()),
     onlyConnected:     v.optional(v.boolean()),
     qualified:         v.optional(v.boolean()),
-    config:            v.optional(v.record(v.string(),
-        v.union([ v.string(), v.number(), v.boolean() ])))
+    config:            v.optional(SchemaDiagramConfig)
 })
 const SchemaObject: v.GenericSchema<SchemaObject> = v.object({
     kind:              v.string(),

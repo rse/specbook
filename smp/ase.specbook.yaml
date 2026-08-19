@@ -144,6 +144,9 @@
     diagram:
         type: grid
         nodes: "[[SPEC:FR.REQUIREMENT:*]]"
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 5
     childs:
         -   kind: REQUIREMENT
             desc: >
@@ -166,6 +169,9 @@
     diagram:
         type: grid
         nodes: "[[SPEC:NR.REQUIREMENT:*]]"
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 5
     childs:
         -   kind: REQUIREMENT
             desc: >
@@ -195,10 +201,11 @@
         feature, constraining the Functional and Non-Functional
         Requirements.
     diagram:
-        type: graph
-        nodes: "[[SPEC:FR.REQUIREMENT:*]], [[SPEC:NR.REQUIREMENT:*]], [[SPEC:BR.RULE:*]]"
-        onlyConnected: true
-        qualified: true
+        type: grid
+        nodes: "[[SPEC:BR.RULE:*]]"
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 5
     childs:
         -   kind: RULE
             desc: >
@@ -279,6 +286,12 @@
         can occupy and the permitted transitions between them over its
         lifetime, making the forbidden moves as explicit as the allowed
         ones.
+    diagram:
+        type: grid
+        nodes: "[[SPEC:SM.LIFECYCLE:*]]"
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 5
     childs:
         -   kind: LIFECYCLE
             desc: >
@@ -331,6 +344,12 @@
         each domain term in business language, together with its synonyms
         and the ambiguities to avoid, shared consistently across all
         Artifacts.
+    diagram:
+        type: grid
+        nodes: "[[SPEC:GL.TERM:*]]"
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 5
     childs:
         -   kind: TERM
             desc: >
@@ -354,11 +373,19 @@
         describing an actor's interaction to achieve a specific outcome,
         together with the concrete step-by-step flows for main,
         alternative, and exceptional paths.
+    diagram:
+        type: grid
+        nodes: "[[SPEC:UC.USE-CASE:*]]"
     childs:
-        -   kind: USE CASE
+        -   kind: USE-CASE
             desc: >
                 A discrete goal a user pursues with the solution, named
                 as an actor goal.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[UC.USE-CASE:*]], [[PERSONA:*]], [[SPEC:FR.REQUIREMENT:*]]"
+                qualified: true
             props:
                 -   name: ACTOR
                     desc: >
@@ -407,9 +434,17 @@
         requirements are correctly implemented, with mandatory defined
         inputs, mandatory expected outcomes, and optional pre- and
         post-conditions.
+    diagram:
+        type: grid
+        nodes: "[[SPEC:TC.TEST-CASE:*]]"
     childs:
-        -   kind: TEST CASE
+        -   kind: TEST-CASE
             desc: A single verifiable test case.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[SPEC:TC.TEST-CASE:*]], [[SPEC:FR.REQUIREMENT:*]], [[SPEC:NR.REQUIREMENT:*]]"
+                qualified: true
             props:
                 -   name: VERIFIES
                     desc: >
@@ -503,17 +538,26 @@
         The sequenced visual or textual depiction of a specific dialog
         flow, illustrating how an interaction unfolds screen by screen or
         turn by turn.
+    diagram:
+        type: grid
+        nodes: "[[SPEC:DS.STORYBOARD:*]]"
     childs:
         -   kind: STORYBOARD
             desc: >
                 A single depicted dialog flow, comprised of sequentially
                 numbered frames.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[SPEC:DS.STORYBOARD:*]], [[SPEC:UC.USE-CASE:*]],
+                    [[SPEC:UC.USE-CASE:*.SCENARIO:*]], [[SPEC:DP.PATTERN:*]]"
+                qualified: true
             props:
                 -   name: USE-CASE
                     desc: >
                         Reference to the USE-CASES object the storyboard
                         visualizes.
-                    value: "[[USE CASE:*]]"
+                    value: "[[USE-CASE:*]]"
                     optional: true
                 -   name: SCENARIO
                     desc: >

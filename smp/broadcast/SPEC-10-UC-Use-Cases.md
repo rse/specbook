@@ -6,7 +6,7 @@ Modified: 2026-06-18 10:18
 SPEC: Use Cases (UC)
 ====================
 
-USE CASE: Join Event and Watch Stream {{join-event}}
+USE-CASE: Join Event and Watch Stream {{join-event}}
 -------------------------------------
 
 -   ACTOR:          [[PERSONA:attendee]]
@@ -44,7 +44,8 @@ closed.
 2.  The system finds the email neither on the access list nor matching the access pattern.
 3.  The system denies access and informs the attendee that they are not authorized.
 
-##  USE CASE: Ask a Question {{ask-question}}
+USE-CASE: Ask a Question {{ask-question}}
+------------------------
 
 -   ACTOR:          [[PERSONA:attendee]]
 -   REQUIREMENTS:   [[FR.questions]], [[FR.question-tags]], [[FR.moderation]]
@@ -76,7 +77,8 @@ the event requires approval before it becomes visible.
 2.  The system detects the per-minute limit is exceeded.
 3.  The system rejects the new submission and informs the attendee to wait.
 
-##  USE CASE: Moderate and Forward Messages {{moderate}}
+USE-CASE: Moderate and Forward Messages {{moderate}}
+---------------------------------------
 
 -   ACTOR:          [[PERSONA:moderator-qa]]
 -   REQUIREMENTS:   [[FR.moderation]], [[FR.forward-presenter]], [[FR.sort-filter]], [[FR.presenter-hints]]
@@ -101,7 +103,8 @@ the presenter in a chosen order, and may attach hints or raise a presenter alert
 2.  The moderator rejects the message.
 3.  The system sets the message to rejected and hides it from the audience.
 
-##  USE CASE: Switch Streaming Provider {{switch-provider}}
+USE-CASE: Switch Streaming Provider {{switch-provider}}
+-----------------------------------
 
 -   ACTOR:          [[PERSONA:manager]]
 -   REQUIREMENTS:   [[FR.multi-provider]], [[FR.provider-switch]], [[FR.config-propagation]]
@@ -120,7 +123,8 @@ so attendee clients switch streams without any user interaction.
 4.  The system propagates the change to all connected clients.
 5.  The attendee clients switch to the new stream without user interaction.
 
-##  USE CASE: Create Event from Ventari Import {{create-event}}
+USE-CASE: Create Event from Ventari Import {{create-event}}
+------------------------------------------
 
 -   ACTOR:          [[PERSONA:manager]]
 -   REQUIREMENTS:   [[FR.ventari-import]], [[FR.ventari-export]], [[FR.event-portability]]
@@ -139,7 +143,8 @@ Excel sheet of personal access URLs back to Ventari, avoiding duplicate invitati
 4.  The system composes each user's personal access URL with event, user, and token.
 5.  The system returns an Excel sheet with the URL column filled to Ventari.
 
-##  USE CASE: Export Anonymized Event Data {{export-data}}
+USE-CASE: Export Anonymized Event Data {{export-data}}
+--------------------------------------
 
 -   ACTOR:          [[PERSONA:manager]]
 -   REQUIREMENTS:   [[FR.export-inputs]], [[FR.event-stats]]
@@ -157,7 +162,8 @@ like counts, and texts, together with the event statistics.
 3.  The system produces a file containing timestamp, state, likes, and text per message.
 4.  The manager downloads the export file.
 
-##  USE CASE: Present Forwarded Questions {{present}}
+USE-CASE: Present Forwarded Questions {{present}}
+-------------------------------------
 
 -   ACTOR:          [[PERSONA:presenter]]
 -   REQUIREMENTS:   [[FR.forward-presenter]], [[FR.presenter-dashboard]], [[FR.presenter-hints]]

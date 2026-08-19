@@ -4,6 +4,9 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
+import type { Config as GradiaConfig }
+    from "@rse/gradia"
+
 import type { Specification, Object as SpecObject }
     from "./specbook-struct-spec.js"
 import type { SchemaSpecification, SchemaObject, SchemaDiagram }
@@ -71,13 +74,6 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     parents: Map<SpecObject, SpecObject | undefined>): DiagramResult => {
     const type   = diagram.type ?? "graph"
     const errors = new Array<string>()
-
-    /*  validate the Gradia rendering options against the option name
-        grammar of Gradia (an ill-named option would be silently
-        dropped by Gradia and hence stay unnoticed otherwise)  */
-    for (const key of Object.keys(diagram.config ?? {}))
-        if (!/^[a-z][a-z0-9-]*$/.test(key))
-            errors.push(`invalid diagram "config" option name "${key}"`)
 
     /*  resolve a comma-separated "[[...]]" reference pattern string
         into its (deduplicated, order-preserving) object match set  */
@@ -234,8 +230,12 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         path as the node id, the object name as the displayed label)
         and one edge statement per derived edge  */
     const lines = [ `#type ${type}` ]
-    for (const [ key, value ] of Object.entries(diagram.config ?? {}))
-        lines.push(`#config ${key} ${configValue(value)}`)
+    const config = diagram.config ?? {}
+    for (const key of Object.keys(config) as (keyof GradiaConfig)[]) {
+        const value = config[key]
+        if (value !== undefined)
+            lines.push(`#config ${key} ${configValue(value)}`)
+    }
     lines.push("")
     for (const node of nodes) {
         const anchor = anchors.get(node) ?? node.id
