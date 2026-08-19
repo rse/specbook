@@ -376,7 +376,11 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
             else
                 parts.push(token.raw.trim())
         }
-        else if (token.type === "paragraph" || token.type === "blockquote" || token.type === "code") {
+        else if (token.type === "paragraph" || token.type === "blockquote"
+            || (token.type === "code" && (token as Tokens.Code).lang !== "gradia")) {
+            /*  notice: a "gradia" code block is skipped entirely, as it is
+                the derived diagram of the Markdown renderer and hence must
+                not become authored content on a re-parse of exported files  */
             if (current === null)
                 ctx.diagnose(source.file, line, "content outside of any object")
             else

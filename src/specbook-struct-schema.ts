@@ -30,6 +30,7 @@ export type SchemaDiagram = {
     edgeArity?:        string
     onlyConnected?:    boolean
     qualified?:        boolean
+    config?:           { [ key: string ]: string | number | boolean }
 }
 export type SchemaProperty = {
     name:              string
@@ -55,7 +56,9 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.object({
     edgeTarget:        v.optional(v.string()),
     edgeArity:         v.optional(v.string()),
     onlyConnected:     v.optional(v.boolean()),
-    qualified:         v.optional(v.boolean())
+    qualified:         v.optional(v.boolean()),
+    config:            v.optional(v.record(v.string(),
+        v.union([ v.string(), v.number(), v.boolean() ])))
 })
 const SchemaObject: v.GenericSchema<SchemaObject> = v.object({
     kind:              v.string(),

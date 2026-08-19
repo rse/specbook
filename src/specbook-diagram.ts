@@ -47,6 +47,14 @@ const nameToken = (text: string): string =>
 const arityToken = (text: string): string =>
     /^[^\s[\]"]+$/.test(text) ? text : quoted(text)
 
+/*  render a value as a Gradia "#config" directive value: a bareword
+    where possible, a quoted string otherwise (with the whitespace
+    collapsed, as a directive is a single line)  */
+const configValue = (value: string | number | boolean): string => {
+    const text = String(value).replace(/\s+/g, " ").trim()
+    return /^\S+$/.test(text) ? text : quoted(text)
+}
+
 /*  a derived diagram edge between two specification objects  */
 interface DiagramEdge {
     source: SpecObject
@@ -63,6 +71,13 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     parents: Map<SpecObject, SpecObject | undefined>): DiagramResult => {
     const type   = diagram.type ?? "graph"
     const errors = new Array<string>()
+
+    /*  validate the Gradia rendering options against the option name
+        grammar of Gradia (an ill-named option would be silently
+        dropped by Gradia and hence stay unnoticed otherwise)  */
+    for (const key of Object.keys(diagram.config ?? {}))
+        if (!/^[a-z][a-z0-9-]*$/.test(key))
+            errors.push(`invalid diagram "config" option name "${key}"`)
 
     /*  resolve a comma-separated "[[...]]" reference pattern string
         into its (deduplicated, order-preserving) object match set  */
@@ -213,11 +228,15 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     if (errors.length > 0)
         return { errors }
 
-    /*  generate the Gradia spec text, opened by a "#type" directive so
-        every embedded spec is self-contained: one node statement per
-        object (the unique anchor path as the node id, the object name
-        as the displayed label) and one edge statement per derived edge  */
-    const lines = [ `#type ${type}`, "" ]
+    /*  generate the Gradia spec text, opened by a "#type" directive and
+        the configured "#config" directives so every embedded spec is
+        self-contained: one node statement per object (the unique anchor
+        path as the node id, the object name as the displayed label)
+        and one edge statement per derived edge  */
+    const lines = [ `#type ${type}` ]
+    for (const [ key, value ] of Object.entries(diagram.config ?? {}))
+        lines.push(`#config ${key} ${configValue(value)}`)
+    lines.push("")
     for (const node of nodes) {
         const anchor = anchors.get(node) ?? node.id
         const attrs  = [ `url: ${atom(`#${anchor}`)}` ]
