@@ -99,6 +99,8 @@
     diagram:
         type: grid
         nodes: "[[SPEC:UJ.JOURNEY:*]]"
+        properties:
+            -   ACTOR
     childs:
         -   kind: JOURNEY
             desc: >
@@ -302,6 +304,8 @@
     diagram:
         type: grid
         nodes: "[[SPEC:SM.LIFECYCLE:*]]"
+        properties:
+            -   ENTITY
         config:
             size-node-width-max: 440
             grid-columns-max: 5
