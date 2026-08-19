@@ -14,4 +14,5 @@ Modified: 2026-06-22 18:56
 -   CHARSET:         US-ASCII
 -   THEME-STYLE:     dark
 -   THEME-TONE:      #336699
+-   PAPER-SIZE:      A4
 

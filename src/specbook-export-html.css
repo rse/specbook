@@ -203,10 +203,6 @@ div.embedding img,
 div.embedding svg           { max-width: 100%; height: auto; }
 div.diagram                 { margin: 1.0rem 0; }
 div.diagram svg             { max-width: 100%; height: auto; }
-@media print {
-div.diagram                 { break-inside: avoid; }
-div.diagram svg             { max-height: 240mm; width: auto; height: auto; }
-}
 span.rationale              { color: var(--theme-color-specbook-muted); }
 p.rationale                 { color: var(--theme-color-specbook-muted); margin: 0.5rem 0 0 0; }
 span.keyword                { font-weight: bold; }

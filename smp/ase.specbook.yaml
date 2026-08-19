@@ -35,6 +35,10 @@
             desc: The character set the embedded fonts are subsetted to.
             value: enum(US-ASCII,ISO-8859-1,ISO-Latin-1,ISO-8859-15,ISO-Latin-15,UTF-8)
             optional: true
+        -   name: PAPER-SIZE
+            desc: The paper size the print/PDF rendering is targeted at.
+            value: enum(A4,Letter,Legal)
+            optional: true
         -   name: THEME-STYLE
             desc: The theme style.
             value: enum(dark,light)

@@ -8,13 +8,14 @@ import { minify }                    from "@swc/html"
 
 import type { Specification }        from "./specbook-struct-spec.js"
 import type { SchemaSpecification }  from "./specbook-struct-schema.js"
-import { documentTitle, documentLogo, documentCharset, documentThemeTone, subsetStylesheet }
+import { documentTitle, documentLogo, documentCharset, documentThemeTone, subsetStylesheet,
+    documentPaperSize, paperStylesheet }
     from "./specbook-export-common.js"
 import { themeColors, themeStylesheet, themeMapping }
     from "./specbook-theme.js"
 import { renderAst, type AstFormat } from "./specbook-export-ast.js"
 import { renderMarkdown }            from "./specbook-export-md.js"
-import { renderHtml }                from "./specbook-export-html.js"
+import { renderHtml, htmlOutline }   from "./specbook-export-html.js"
 import { htmlToPdf }                 from "./specbook-export-pdf.js"
 
 /*  the supported export formats  */
@@ -74,7 +75,11 @@ export const exportSpecification = async (
     const tone = documentThemeTone(specification) ?? "#336699"
     verbose(`generating theme color spreads (tone "${tone}")`)
     const colors = themeColors(tone)
-    const css    = themeStylesheet(colors) + await subsetStylesheet(charset)
+
+    /*  the paper size (PAPER-SIZE) drives the PDF page setup and the
+        print-time height constraint of the diagrams  */
+    const paper  = documentPaperSize(specification)
+    const css    = themeStylesheet(colors) + await subsetStylesheet(charset) + paperStylesheet(paper)
     if (format === "html") {
         /*  compress the rendered HTML (whitespace, comments, and inline CSS/JS)  */
         const html     = await renderHtml(specification, maxTableColumns, config, undefined, css)
@@ -90,7 +95,8 @@ export const exportSpecification = async (
         /*  the PDF export (like print in general) always uses the light
             theme, so its decoration colors are the light mapping, too  */
         return htmlToPdf((tocPages) => renderHtml(specification, maxTableColumns, config, tocPages, css),
-            { ...documentTitle(specification), logo: documentLogo(specification) }, verbose, css,
-            themeMapping(colors, "light"))
+            { ...documentTitle(specification), logo: documentLogo(specification) },
+            htmlOutline(specification, maxTableColumns), verbose, css,
+            themeMapping(colors, "light"), paper)
 }
 

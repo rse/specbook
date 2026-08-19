@@ -402,7 +402,7 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
         object.properties.find((property) => property.key === name)?.value
     const rest = object.properties.filter((property) =>
         ![ "LOGO", "TITLE", "SUBTITLE", "AUTHOR", "VERSION",
-            "LANG", "CHARSET", "THEME-STYLE", "THEME-TONE" ].includes(property.key))
+            "LANG", "CHARSET", "PAPER-SIZE", "THEME-STYLE", "THEME-TONE" ].includes(property.key))
 
     /*  the logo is rendered above the title, from the embedded image content
         of the LOGO property or, for a non-embeddable reference, as its inline
@@ -429,6 +429,26 @@ const renderArtifact = (artifact: Artifact, maxColumns: number): string =>
     render("Artifact", { Artifact: {
         objects:  safe(artifact.objects.map((object) => renderObject(object, 1, maxColumns)).join(""))
     } })
+
+/*  ==== Outline ====  */
+
+/*  an entry of the hierarchical document outline  */
+export type OutlineEntry = { title: string, anchor: string, childs: OutlineEntry[] }
+
+/*  derive the hierarchy of the rendered object headings, skipping the
+    title page object and the leaf childs collapsing into compact tables  */
+export const htmlOutline = (specification: Specification, maxColumns: number): OutlineEntry[] => {
+    const paths = anchorPaths(buildLinkIndex(specification))
+    const entry = (object: SpecObject): OutlineEntry => ({
+        title:  (object.kind !== "" ? `${object.kind}: ` : "") + object.name,
+        anchor: paths.get(object) ?? object.id,
+        childs: tabularChilds(object, maxColumns) ? [] : object.childs.map(entry)
+    })
+    return specification.artifacts
+        .filter((artifact) => !artifact.objects.some(isTitleObject))
+        .flatMap((artifact) => artifact.objects)
+        .map(entry)
+}
 
 /*  render the entire specification into a self-contained HTML document,
     with the build-time pre-assembled stylesheet embedded inline, the

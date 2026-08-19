@@ -57,6 +57,54 @@ export const documentThemeStyle = (specification: Specification): string | undef
 export const documentThemeTone = (specification: Specification): string | undefined =>
     titleProperty(specification, "THEME-TONE")?.trim()
 
+/*  the setup of a paper size for print: its physical height and its
+    print margins, both expressed in the unit native to the paper  */
+export type PaperSetup = {
+    unit:   "mm" | "in"
+    height: number
+    margin: { top: number, bottom: number, left: number, right: number }
+}
+
+/*  the supported paper sizes for print: ISO A4 in millimeters and the
+    two US sizes closest to it in inches, each with the default margins
+    of 1in (25mm) at the top/bottom and 0.8in (20mm) at the left/right  */
+const papers: { [ name: string ]: PaperSetup } = {
+    "A4":     { unit: "mm", height: 297, margin: { top: 25, bottom: 25, left: 20,  right: 20  } },
+    "Letter": { unit: "in", height: 11,  margin: { top: 1,  bottom: 1,  left: 0.8, right: 0.8 } },
+    "Legal":  { unit: "in", height: 14,  margin: { top: 1,  bottom: 1,  left: 0.8, right: 0.8 } }
+}
+export const paperSizes = Object.keys(papers)
+export const paperSizeDefault = "A4"
+
+/*  provide the setup of a paper size, falling back onto the default  */
+export const paperSetup = (paper: string): PaperSetup =>
+    papers[paper] ?? papers[paperSizeDefault]
+
+/*  render a paper dimension as its CSS length  */
+export const paperLength = (setup: PaperSetup, value: number): string =>
+    `${value}${setup.unit}`
+
+/*  determine the document paper size (PAPER-SIZE) from the title object,
+    matched case-insensitively and falling back onto the default  */
+export const documentPaperSize = (specification: Specification): string => {
+    const value = titleProperty(specification, "PAPER-SIZE")?.trim().toLowerCase()
+    return paperSizes.find((name) => name.toLowerCase() === value) ?? paperSizeDefault
+}
+
+/*  provide the paper-dependent print stylesheet: a diagram is scaled
+    down to still fit onto a single page (the paper height less the
+    print margins and the own vertical margins of the diagram) and is
+    never broken across a page boundary  */
+export const paperStylesheet = (paper: string): string => {
+    const setup = paperSetup(paper)
+    const avail = setup.height - setup.margin.top - setup.margin.bottom
+    return "@media print {\n" +
+        "div.diagram { break-inside: avoid; }\n" +
+        `div.diagram svg { max-height: calc(${paperLength(setup, avail)} - 2rem);` +
+        " width: auto; height: auto; }\n" +
+        "}\n"
+}
+
 /*  generate a contiguous codepoint range  */
 const range = (from: number, to: number): number[] =>
     Array.from({ length: to - from + 1 }, (_, i) => from + i)
