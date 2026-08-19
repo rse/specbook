@@ -264,11 +264,17 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
 
         /*  attach the values of the configured properties as Gradia
             key/value attributes (a node lacking a property is fine, as
-            the node set can mix objects of different kinds)  */
+            the node set can mix objects of different kinds), with every
+            "[[...]]" reference stripped to its target object name  */
         for (const key of diagram.properties ?? []) {
             const value = node.properties.find((property) => plainKey(property.key) === key)?.value
-            if (value !== undefined)
-                attrs.push(`${atom(key)}: ${atom(plainText(value))}`)
+            if (value !== undefined) {
+                const text = value.replace(referenceRegex, (_, reference: string) => {
+                    const target = resolveUnique(index, reference.trim()).target
+                    return target !== undefined ? target.name : reference.trim()
+                })
+                attrs.push(`${atom(key)}: ${atom(plainText(text))}`)
+            }
         }
         lines.push(`${atom(anchor)}: ${atom(plainText(node.name))} [ ${attrs.join(", ")} ]`)
     }

@@ -111,7 +111,8 @@ object itself plus all objects below it), `center` names the object a
 edge-less nodes of a `graph`, `collapse` (default: `true`) omits a
 degenerated diagram consisting of a single node only, `qualified` labels
 every node with its object kind, `properties` lists the property names
-whose values are attached to the nodes as key/value annotations, and
+whose values are attached to the nodes as key/value annotations (with
+every `[[xxx]]` reference stripped to its target object name), and
 `config` passes arbitrary Gradia rendering options (e.g.
 `grid-columns-max: 5`) through to the diagram.
 

@@ -148,6 +148,8 @@
     diagram:
         type: grid
         nodes: "[[SPEC:FR.REQUIREMENT:*]]"
+        properties:
+            -   PRIORITY
         config:
             size-node-width-max: 440
             grid-columns-max: 5
@@ -173,6 +175,9 @@
     diagram:
         type: grid
         nodes: "[[SPEC:NR.REQUIREMENT:*]]"
+        properties:
+            -   PRIORITY
+            -   CATEGORY
         config:
             size-node-width-max: 440
             grid-columns-max: 5
@@ -207,6 +212,8 @@
     diagram:
         type: grid
         nodes: "[[SPEC:BR.RULE:*]]"
+        properties:
+            -   CATEGORY
         config:
             size-node-width-max: 440
             grid-columns-max: 5
@@ -619,6 +626,9 @@
     diagram:
         type: grid
         nodes: "[[ARCH:CV.ENTITY:*]]"
+        properties:
+            -   KIND
+            -   DIRECTION
     childs:
         -   kind: ENTITY
             desc: >
@@ -651,6 +661,8 @@
     diagram:
         type: graph
         nodes: "[[ARCH:FV.COMPONENT:*]]"
+        properties:
+            -   KIND
     childs:
         -   kind: COMPONENT
             desc: >
@@ -660,6 +672,8 @@
                 type: hub
                 center: self
                 nodes: "[[ARCH:FV.COMPONENT:*]]"
+                properties:
+                    -   KIND
                 config:
                     size-node-width-max: 440
             props:
@@ -691,6 +705,8 @@
     diagram:
         type: grid
         nodes: "[[ARCH:IV.ASPECT:*]]"
+        properties:
+            -   CONCERN
     childs:
         -   kind: ASPECT
             desc: >
@@ -702,6 +718,8 @@
                 center: self
                 nodes: "[[ARCH:IV.ASPECT:*]], [[SPEC:DM.ENTITY:*]], [[ARCH:FV.COMPONENT:*]]"
                 qualified: true
+                properties:
+                    -   CONCERN
                 config:
                     size-node-width-max: 440
             props:
@@ -738,6 +756,8 @@
     diagram:
         type: grid
         nodes: "[[ARCH:CO.UNIT:*]]"
+        properties:
+            -   KIND
     childs:
         -   kind: UNIT
             desc: >
@@ -749,6 +769,8 @@
                 center: self
                 nodes: "[[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]]"
                 qualified: true
+                properties:
+                    -   KIND
                 config:
                     size-node-width-max: 440
             props:
@@ -802,6 +824,9 @@
     diagram:
         type: grid
         nodes: "[[ARCH:DP.NODE:*]]"
+        properties:
+            -   KIND
+            -   PLATFORM
     childs:
         -   kind: NODE
             desc: >
@@ -812,6 +837,9 @@
                 center: self
                 nodes: "[[ARCH:DP.NODE:*]], [[ARCH:FV.COMPONENT:*]]"
                 qualified: true
+                properties:
+                    -   KIND
+                    -   PLATFORM
                 config:
                     size-node-width-max: 440
             props:
@@ -869,6 +897,8 @@
     diagram:
         type: grid
         nodes: "[[ARCH:QP.PERSPECTIVE:*]]"
+        properties:
+            -   QUALITY
     childs:
         -   kind: PERSPECTIVE
             desc: >
@@ -880,6 +910,8 @@
                 center: self
                 nodes: "[[ARCH:QP.PERSPECTIVE:*]], [[SPEC:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
                 qualified: true
+                properties:
+                    -   QUALITY
                 config:
                     size-node-width-max: 440
             props:
@@ -933,6 +965,8 @@
                 center: self
                 nodes: "[[ARCH:DR.DECISION:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
                 qualified: true
+                properties:
+                    -   STATUS
                 config:
                     size-node-width-max: 440
             props:
