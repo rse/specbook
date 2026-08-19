@@ -137,6 +137,13 @@ section                     { margin: 0.5rem 0; }
 h1                          { margin: 3.0rem 0 2.0rem 0; border-bottom: 1px solid var(--theme-color-specbook-border); }
 h2, h3, h4                  { margin: 2.0rem 0 1.0rem 0; }
 
+/*  bundle a heading with the content it introduces (diagram, property
+    table, description), so no heading is left orphaned at the very
+    bottom of a page while its content starts on the next one  */
+@media print {
+h1, h2, h3, h4, h5, h6      { page-break-after: avoid; break-after: avoid; }
+}
+
 body                        { counter-reset: sec1; }
 article h1                  { counter-increment: sec1; counter-reset: sec2; }
 article h2                  { counter-increment: sec2; counter-reset: sec3; }

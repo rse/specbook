@@ -97,14 +97,19 @@ export const documentPaperSize = (specification: Specification): string => {
 
 /*  provide the paper-dependent print stylesheet: a diagram is scaled
     down to still fit onto a single page (the paper height less the
-    print margins and the own vertical margins of the diagram) and is
-    never broken across a page boundary  */
+    print margins, the own vertical margins of the diagram, and the
+    room its introducing heading claims above it) and is never broken
+    across a page boundary; without the heading reserve a maximally
+    sized diagram could not share its page with the heading, which
+    would defeat the "break-after: avoid" bundling of the stylesheet  */
+const headingReserve = 6
+
 export const paperStylesheet = (paper: string): string => {
     const setup = paperSetup(paper)
     const avail = setup.height - setup.margin.top - setup.margin.bottom
     return "@media print {\n" +
         "div.diagram { break-inside: avoid; }\n" +
-        `div.diagram svg { max-height: calc(${paperLength(setup, avail)} - 2rem);` +
+        `div.diagram svg { max-height: calc(${paperLength(setup, avail)} - ${headingReserve}rem);` +
         " width: auto; height: auto; }\n" +
         "}\n"
 }
