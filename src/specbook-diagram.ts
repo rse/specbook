@@ -261,6 +261,15 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
             attrs.push(`type: ${atom(node.kind)}`)
         if (type === "hub" ? node === center : node.primary === true)
             attrs.push("primary: true")
+
+        /*  attach the values of the configured properties as Gradia
+            key/value attributes (a node lacking a property is fine, as
+            the node set can mix objects of different kinds)  */
+        for (const key of diagram.properties ?? []) {
+            const value = node.properties.find((property) => plainKey(property.key) === key)?.value
+            if (value !== undefined)
+                attrs.push(`${atom(key)}: ${atom(plainText(value))}`)
+        }
         lines.push(`${atom(anchor)}: ${atom(plainText(node.name))} [ ${attrs.join(", ")} ]`)
     }
     if (edges.length > 0) {

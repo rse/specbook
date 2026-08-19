@@ -33,6 +33,7 @@ export type SchemaDiagram = {
     onlyConnected?:    boolean
     collapse?:         boolean
     qualified?:        boolean
+    properties?:       string[]
     config?:           Partial<GradiaConfig>
 }
 export type SchemaProperty = {
@@ -74,6 +75,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.object({
     onlyConnected:     v.optional(v.boolean()),
     collapse:          v.optional(v.boolean()),
     qualified:         v.optional(v.boolean()),
+    properties:        v.optional(v.array(v.string())),
     config:            v.optional(SchemaDiagramConfig)
 })
 const SchemaObject: v.GenericSchema<SchemaObject> = v.object({

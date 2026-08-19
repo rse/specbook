@@ -110,8 +110,10 @@ object itself plus all objects below it), `center` names the object a
 `hub` is projected onto (default: `self`), `onlyConnected` drops the
 edge-less nodes of a `graph`, `collapse` (default: `true`) omits a
 degenerated diagram consisting of a single node only, `qualified` labels
-every node with its object kind, and `config` passes arbitrary Gradia
-rendering options (e.g. `grid-columns-max: 5`) through to the diagram.
+every node with its object kind, `properties` lists the property names
+whose values are attached to the nodes as key/value annotations, and
+`config` passes arbitrary Gradia rendering options (e.g.
+`grid-columns-max: 5`) through to the diagram.
 
 The edges are derived from the `[[xxx]]` references of the node objects
 -- from their property values only, or, with `links: all`, from their

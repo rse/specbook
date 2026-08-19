@@ -996,6 +996,8 @@
                 type: hub
                 center: self
                 hierarchy: true
+                properties:
+                    -   PRODUCT
                 config:
                     size-node-width-max: 440
             childs:
