@@ -167,7 +167,7 @@ corresponding `SPECBOOK_XXX` environment variable (e.g.
 ### API
 
 ```ts
-import { SpecBook } from "specbook"
+import { SpecBook } from "@rse/specbook"
 
 const specbook = new SpecBook({ verbose: (msg) => console.error(msg) })
 const result   = await specbook.lint({ config: "smp/ase.specbook.yaml", basedir: "smp/broadcast" })
