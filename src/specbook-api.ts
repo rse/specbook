@@ -4,6 +4,10 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
+import * as fs                                           from "node:fs"
+import * as path                                         from "node:path"
+import { fileURLToPath }                                  from "node:url"
+
 import { loadConfig }                                    from "./specbook-config.js"
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic } from "./specbook-diagnostic.js"
 import { initSpecification }                             from "./specbook-cmd-init.js"
@@ -20,6 +24,14 @@ export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic }
 export { type LintResult }
 export type { Specification, Artifact, Object, Description, Property } from "./specbook-struct-spec.js"
 export type { SchemaSpecification, SchemaObject, SchemaProperty }      from "./specbook-struct-schema.js"
+
+/*  the own version, taken from the package manifest, which resides one
+    level above both the source and the compiled module directory  */
+export const version: string = (() => {
+    const manifest = path.join(
+        path.dirname(fileURLToPath(import.meta.url)), "..", "package.json")
+    return (JSON.parse(fs.readFileSync(manifest, "utf8")) as { version: string }).version
+})()
 
 /*  the constructor options of the SpecBook API  */
 export interface SpecBookOptions {

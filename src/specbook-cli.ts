@@ -6,11 +6,9 @@
 */
 
 import * as fs             from "node:fs"
-import * as path           from "node:path"
-import { fileURLToPath }   from "node:url"
 import { Command }         from "commander"
 
-import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, parseOutputSpec } from "./specbook-api.js"
+import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, parseOutputSpec, version } from "./specbook-api.js"
 import { serveMcp }        from "./specbook-mcp.js"
 
 /*  route verbose messages to stderr, keeping stdout reserved
@@ -60,12 +58,6 @@ const envDefaultFlag = (name: string, fallback: boolean): boolean => {
 const withCommonOptions = (command: Command): Command => command
     .option("-v, --verbose", "print verbose processing information to stderr", envDefaultFlag("verbose", false))
     .option("-c, --config <yaml-file>", "YAML schema configuration file", envDefault("config"))
-
-/*  determine the own version from the package manifest, which resides
-    one level above both the source and the compiled module directory  */
-const manifest = path.join(
-    path.dirname(fileURLToPath(import.meta.url)), "..", "package.json")
-const version  = (JSON.parse(fs.readFileSync(manifest, "utf8")) as { version: string }).version
 
 /*  parse the command line  */
 const program = new Command()

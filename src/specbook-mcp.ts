@@ -9,7 +9,7 @@ import { McpServer }            from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z }                    from "zod"
 
-import { SpecBook, renderDiagnostic, formats } from "./specbook-api.js"
+import { SpecBook, renderDiagnostic, formats, version } from "./specbook-api.js"
 
 /*  render an error with its cause chain into a tool error result  */
 const errorResult = (err: unknown) => {
@@ -26,7 +26,7 @@ const errorResult = (err: unknown) => {
 
 /*  serve the SpecBook functionality as "specbook_<cmd>" MCP tools over stdio  */
 export const serveMcp = async (verbose: (msg: string) => void): Promise<void> => {
-    const server   = new McpServer({ name: "specbook", version: "0.9.3" })
+    const server   = new McpServer({ name: "specbook", version })
     const specbook = new SpecBook({ verbose })
 
     server.registerTool("specbook_init", {
