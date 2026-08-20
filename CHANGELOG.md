@@ -2,6 +2,16 @@
 ChangeLog
 =========
 
+0.9.4 (2026-08-20)
+------------------
+
+-   IMPROVEMENT [code]: bundle headings with their following content in HTML/PDF export to avoid orphans
+-   IMPROVEMENT [code]: compress JSON/JSON5 export output by default as it is machine-readable only
+-   IMPROVEMENT [code]: determine own version from package manifest instead of hard-coding it
+-   BUGFIX [othr]: fix proofreading issues in README and sample broadcast specification
+-   UPDATE [infr]: upgrade dependency @rse/gradia to 1.0.0
+-   CLEANUP [code, infr]: various code and tool configuration cleanups
+
 0.9.3 (2026-08-19)
 ------------------
 
