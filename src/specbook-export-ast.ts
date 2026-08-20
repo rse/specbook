@@ -46,11 +46,13 @@ export const renderAst = async (specification: Specification, format: AstFormat,
                 walk(object, plain.artifacts[i].objects[j])))
     }
 
-    /*  serialize the plain specification into the target format  */
+    /*  serialize the plain specification into the target format
+        (JSON and JSON5 in compressed form, as they are intended
+        for machine consumption only)  */
     if (format === "json")
-        return Buffer.from(JSON.stringify(plain, null, 4) + "\n", "utf8")
+        return Buffer.from(JSON.stringify(plain) + "\n", "utf8")
     else if (format === "json5")
-        return Buffer.from(JSON5.stringify(plain, null, 4) + "\n", "utf8")
+        return Buffer.from(JSON5.stringify(plain) + "\n", "utf8")
     else if (format === "yaml")
         return Buffer.from(stringifyYaml(plain), "utf8")
     else
