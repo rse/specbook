@@ -30,6 +30,13 @@ service with tools `specbook_<cmd>()`.
 - PDF output format for printing and archiving
 - CLI, MCP, and API interfaces
 
+Rendering Example
+-----------------
+
+![screenshot-light](etc/screenshot-light.png)
+![screenshot-dark](etc/screenshot-dark.png)
+![screenshot-print](etc/screenshot-print.png)
+
 Specification Format
 --------------------
 
