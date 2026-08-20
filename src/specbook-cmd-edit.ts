@@ -57,6 +57,10 @@ export const editSpecification = async (options: EditOptions): Promise<string[]>
     const basedir = options.basedir ?? "."
     const files   = options.config.map((artifact) => artifact.file).filter((file) => file !== undefined)
 
+    /*  ensure a non-empty edit request was given  */
+    if (options.query.trim() === "")
+        throw new Error("no edit request given")
+
     /*  gather the existing artifact files  */
     const existing = files
         .filter((file) => fs.existsSync(path.join(basedir, file)))

@@ -11,7 +11,7 @@ import type { Specification, Object as SpecObject }
     from "./specbook-struct-spec.js"
 import type { SchemaSpecification, SchemaObject, SchemaDiagram }
     from "./specbook-struct-schema.js"
-import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths }
+import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths, type LinkIndex }
     from "./specbook-link.js"
 import { type ParseContext }
     from "./specbook-parse-common.js"
@@ -59,7 +59,7 @@ const arityToken = (text: string): string =>
     collapsed, as a directive is a single line)  */
 const configValue = (value: string | number | boolean): string => {
     const text = String(value).replace(/\s+/g, " ").trim()
-    return /^\S+$/.test(text) ? text : quoted(text)
+    return /^[^\s"]+$/.test(text) ? text : quoted(text)
 }
 
 /*  a derived diagram edge between two specification objects  */
@@ -76,7 +76,7 @@ interface DiagramEdge {
     unique anchor path as the node id, the object name as the displayed
     label) and one edge statement per derived edge  */
 const renderSpec = (diagram: SchemaDiagram, type: string, center: SpecObject,
-    nodes: SpecObject[], edges: DiagramEdge[], index: ReturnType<typeof buildLinkIndex>,
+    nodes: SpecObject[], edges: DiagramEdge[], index: LinkIndex,
     anchors: Map<SpecObject, string>): string => {
     const lines  = [ `#type ${type}` ]
     const config = diagram.config ?? {}
@@ -127,7 +127,7 @@ const renderSpec = (diagram: SchemaDiagram, type: string, center: SpecObject,
     schema configuration (the returned spec is absent whenever the
     configured diagram situation is invalid)  */
 const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
-    index: ReturnType<typeof buildLinkIndex>, anchors: Map<SpecObject, string>,
+    index: LinkIndex, anchors: Map<SpecObject, string>,
     parents: Map<SpecObject, SpecObject | undefined>): DiagramResult => {
     const type   = diagram.type ?? "graph"
     const errors = new Array<string>()
@@ -167,7 +167,8 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         walk(object)
     }
     const edgeObjects = diagram.edges !== undefined ? resolvePatterns(diagram.edges, "edges") : []
-    nodes = nodes.filter((node) => !edgeObjects.includes(node))
+    const edgeSet     = new Set<SpecObject>(edgeObjects)
+    nodes = nodes.filter((node) => !edgeSet.has(node))
     const nodeSet = new Set<SpecObject>(nodes)
 
     /*  derive the edges: from the "[[...]]" references of the node
@@ -237,7 +238,8 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         multiple texts of the same node object)  */
     const seenEdges = new Set<string>()
     edges = edges.filter((edge) => {
-        const key = `${anchors.get(edge.source)}\u0000${anchors.get(edge.target)}` +
+        const key = `${anchors.get(edge.source) ?? edge.source.id}` +
+            `\u0000${anchors.get(edge.target) ?? edge.target.id}` +
             `\u0000${edge.name ?? ""}\u0000${edge.arity ?? ""}`
         if (seenEdges.has(key))
             return false

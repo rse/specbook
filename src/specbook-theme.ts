@@ -52,7 +52,7 @@ export type ThemeMapping = {
     aligned with the layer-2 CSS mapping of the HTML rendering  */
 export const themeMapping = (colors: ThemeColors, style: ThemeStyle): ThemeMapping => {
     const idx = style === "dark" ?
-        { text: 28, muted: 22, symbol: 20, border: 16, accent: 24 } :
+        { text: 29, muted: 22, symbol: 20, border: 16, accent: 24 } :
         { text: 5,  muted: 22, symbol: 24, border: 28, accent: 12 }
     return {
         text:   colors.base[idx.text     - 1],

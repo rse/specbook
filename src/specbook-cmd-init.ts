@@ -32,14 +32,15 @@ export const initSpecification = (options: InitOptions): string[] => {
             options.verbose(`skipping existing artifact file "${artifact.file}"`)
             continue
         }
-        const name = (artifact.name ?? "").toUpperCase()
-        const text =
+        const name  = artifact.name ?? ""
+        const paren = artifact.id !== undefined ? ` (${artifact.id})` : ""
+        const text  =
             "---\n" +
             `Created:  ${now}\n` +
             `Modified: ${now}\n` +
             "---\n" +
             "\n" +
-            `#   ${artifact.kind}: ${name} (${artifact.kind}-${artifact.id ?? ""})\n` +
+            `#   ${artifact.kind}: ${name}${paren}\n` +
             "\n"
         fs.mkdirSync(path.dirname(file), { recursive: true })
         fs.writeFileSync(file, text, "utf8")

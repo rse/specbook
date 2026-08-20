@@ -4,8 +4,8 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import fs   from "node:fs"
-import path from "node:path"
+import * as fs   from "node:fs"
+import * as path from "node:path"
 
 import { marked, type Tokens } from "marked"
 
@@ -167,8 +167,7 @@ const parseList = (ctx: ParseContext, list: Tokens.List, object: SpecObject, fil
         /*  a concise-format item carries a further segment on its first
             line, or ends it with the segment terminator (the case of an
             object without properties, whose description follows below)  */
-        const cm = first.match(/^([^:;]+):\s+(.+;.*)$/)
-        if (cm !== null)
+        if (/^[^:;]+:\s+.+;.*$/.test(first))
             parseConcise(ctx, item, object, file, line)
         else {
             const km = first.match(/^([^:;]+):\s*(.*)$/)
@@ -301,7 +300,7 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
     const stack     = new Array<SpecObject>()
     let   current: SpecObject | null = null
     let   group:   Group | null      = null
-    let   parts    = new Array<string>()
+    let   parts                      = new Array<string>()
 
     /*  flush the accumulated description parts into the current object  */
     const flush = () => {
@@ -316,15 +315,16 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
         if (token.type === "heading") {
             flush()
             group = null
-            const heading = parseHeadingText(token.text)
+            const { depth, text } = token as Tokens.Heading
+            const heading         = parseHeadingText(text)
             if (heading.malformed !== undefined)
                 ctx.diagnose(source.file, line, `malformed anchor "${heading.malformed}" in heading`)
-            if (heading.name === "" && token.depth > 1) {
+            if (heading.name === "" && depth > 1) {
                 /*  a grouping container heading (e.g. "### STATES") collects
                     objects of its singular kind below the parent object  */
-                const parent = stack[token.depth - 2]
+                const parent = stack[depth - 2]
                 if (parent === undefined)
-                    ctx.diagnose(source.file, line, `heading level ${token.depth} without parent object`)
+                    ctx.diagnose(source.file, line, `heading level ${depth} without parent object`)
                 else {
                     group   = { parent, kind: heading.kind.replace(/S$/, "") }
                     current = parent
@@ -333,7 +333,7 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
             else {
                 const object: SpecObject = {
                     kind:       heading.kind,
-                    id:         heading.id ?? (token.depth === 1 ? heading.paren : undefined) ?? slugify(heading.name),
+                    id:         heading.id ?? (depth === 1 ? heading.paren : undefined) ?? slugify(heading.name),
                     name:       heading.name,
                     properties: [],
                     childs:     []
@@ -345,7 +345,7 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
                 if (heading.primary)
                     object.primary = true
                 ctx.objectMeta.set(object, { file: source.file, line })
-                if (token.depth === 1) {
+                if (depth === 1) {
                     artifacts.push({
                         created:  created.date  ?? new Date(),
                         modified: modified.date ?? new Date(),
@@ -354,16 +354,16 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
                     stack.length = 0
                 }
                 else {
-                    const parent = stack[token.depth - 2]
+                    const parent = stack[depth - 2]
                     if (parent === undefined) {
-                        ctx.diagnose(source.file, line, `heading level ${token.depth} without parent object`)
+                        ctx.diagnose(source.file, line, `heading level ${depth} without parent object`)
                         line += (token.raw.match(/\n/g) ?? []).length
                         continue
                     }
                     parent.childs.push(object)
                 }
-                stack.length = token.depth - 1
-                stack[token.depth - 1] = object
+                stack.length = depth - 1
+                stack[depth - 1] = object
                 current = object
             }
         }

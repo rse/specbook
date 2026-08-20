@@ -29,6 +29,8 @@ const lineColOfPath = (yaml: string, cst: ReturnType<typeof parseDocument>, path
 /*  load and validate a YAML schema configuration file  */
 export const loadConfig = (file: string): { config: SchemaSpecification | null, diagnostics: Diagnostic[] } => {
     const diagnostics: Diagnostic[] = []
+
+    /*  read the configuration file  */
     let yaml: string
     try {
         yaml = fs.readFileSync(file, "utf8")
@@ -57,13 +59,18 @@ export const loadConfig = (file: string): { config: SchemaSpecification | null, 
         return { config: null, diagnostics }
     }
 
-    /*  semantically validate against the schema of the configuration  */
-    const cst    = parseDocument(yaml)
+    /*  semantically validate against the schema of the configuration
+        (the CST is parsed lazily, as it is needed for positions only)  */
+    let   cst: ReturnType<typeof parseDocument> | undefined
+    const posOfPath = (path: (string | number)[]) => {
+        cst ??= parseDocument(yaml)
+        return lineColOfPath(yaml, cst, path)
+    }
     const result = v.safeParse(SchemaSpecification, obj)
     if (!result.success) {
         for (const issue of result.issues) {
             const path = (issue.path ?? []).map((item) => item.key as string | number)
-            const pos  = lineColOfPath(yaml, cst, path)
+            const pos  = posOfPath(path)
             diagnostics.push({ file, line: pos.line, column: pos.column,
                 message: `invalid configuration: ${path.join(".")}: ${issue.message}` })
         }
@@ -74,7 +81,7 @@ export const loadConfig = (file: string): { config: SchemaSpecification | null, 
     const checkFileField = (objects: SchemaObject[], path: (string | number)[], depth: number) => {
         objects.forEach((object, i) => {
             if (depth > 1 && object.file !== undefined) {
-                const pos = lineColOfPath(yaml, cst, [ ...path, i, "file" ])
+                const pos = posOfPath([ ...path, i, "file" ])
                 diagnostics.push({ file, line: pos.line, column: pos.column,
                     message: `"file" field is only allowed on the first (artifact) level (found on level ${depth})` })
             }
@@ -94,7 +101,7 @@ export const loadConfig = (file: string): { config: SchemaSpecification | null, 
                     compileValueExpr(prop.value)
                 }
                 catch (err) {
-                    const pos = lineColOfPath(yaml, cst, [ ...path, i, "props", j, "value" ])
+                    const pos = posOfPath([ ...path, i, "props", j, "value" ])
                     diagnostics.push({ file, line: pos.line, column: pos.column,
                         message: `invalid value expression "${prop.value}": ` +
                             (err instanceof Error ? err.message : String(err)) })
@@ -105,5 +112,6 @@ export const loadConfig = (file: string): { config: SchemaSpecification | null, 
         })
     }
     checkValueExpr(result.output, [])
+
     return { config: diagnostics.length === 0 ? result.output : null, diagnostics }
 }

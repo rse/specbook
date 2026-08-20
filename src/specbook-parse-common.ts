@@ -46,7 +46,7 @@ export class ParseContext {
 export const embeddingRegex = /!\[([^\]]*)\]\(([^()]+)\)/g
 
 /*  the embeddable file types and their MIME types  */
-const embeddingTypes: Record<string, string> = {
+const embeddingTypes: Record<string, string | undefined> = {
     svg:  "image/svg+xml",
     png:  "image/png",
     jpg:  "image/jpeg",

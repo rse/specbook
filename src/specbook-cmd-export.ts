@@ -57,7 +57,7 @@ export const exportSpecification = async (
     verbose:         (msg: string) => void,
     config?:         SchemaSpecification
 ): Promise<Buffer> => {
-    if (!(formats as readonly string[]).includes(format))
+    if (!formats.includes(format))
         throw new Error(`unknown export format "${format}"`)
     verbose(`exporting specification as "${format}"`)
     if (format === "json" || format === "json5" || format === "yaml" || format === "toon")

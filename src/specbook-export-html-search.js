@@ -141,7 +141,7 @@
         keeps the tags and attributes untouched  */
     const highlight = (el, regex) => {
         const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
-        const nodes = []
+        const nodes  = []
         let node
         while ((node = walker.nextNode()) !== null)
             nodes.push(node)
@@ -231,13 +231,15 @@
         })
 
         /*  hide the units not kept, plus the objects and tables which
-            ran entirely empty in the process  */
+            ran entirely empty in the process (a table nested inside a
+            kept unit, like a chunked property table, stays visible)  */
         units.forEach((unit) => {
             if (!unit.el.classList.contains("search-keep"))
                 unit.el.classList.add("search-hide")
         })
         document.querySelectorAll("article section, article table").forEach((el) => {
-            if (el.querySelector(".search-keep") === null)
+            if (el.querySelector(".search-keep") === null
+                && el.closest(".search-keep") === null)
                 el.classList.add("search-hide")
         })
 

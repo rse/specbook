@@ -4,7 +4,7 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import { marked }            from "marked"
+import { Marked }            from "marked"
 import { markedSmartypants } from "marked-smartypants"
 import nunjucks              from "nunjucks"
 import nunjucksAddons        from "@rse/nunjucks-addons"
@@ -221,6 +221,11 @@ const quoteStyles: { [ lang: string ]: [ string, string ] } = {
 /*  the active double quote style (set per document during rendering)  */
 let quotes: [ string, string ] = quoteStyles.en
 
+/*  the private Markdown renderer instance, as the hooks below must not
+    leak into the "marked" singleton shared with the parser and with the
+    application embedding SpecBook as a library  */
+const marked = new Marked()
+
 /*  improve the typography of all rendered Markdown text (curly quotes,
     "--" as the em dash, ellipsis); as smartypants requires unescaped text,
     the extension switches off the text escaping of marked, so the stray
@@ -241,17 +246,18 @@ nunjucksAddons(env)
 const safe = (html: string) =>
     new nunjucks.runtime.SafeString(html)
 
+/*  render one of the built-in Nunjucks templates with a context  */
 const render = (name: string, context: object): string =>
     env.renderString(templates[name], context)
 
 /*  the active per-document reference expander, fully-qualified
     anchor paths, enum/tags property value kinds, object schema nodes,
     and pre-rendered diagram SVGs (all set during HTML rendering)  */
-let linker: ((text: string) => string) | null = null
-let anchors: Map<SpecObject, string> | null  = null
-let members: Map<string, "enum" | "tags"> | null = null
-let schemas: Map<SpecObject, SchemaObject> | null = null
-let diagrams: Map<SpecObject, string> | null = null
+let linker:   ((text: string) => string) | null    = null
+let anchors:  Map<SpecObject, string> | null       = null
+let members:  Map<string, "enum" | "tags"> | null  = null
+let schemas:  Map<SpecObject, SchemaObject> | null = null
+let diagrams: Map<SpecObject, string> | null       = null
 
 /*  the cache of the pre-rendered diagram SVGs, keyed by specification,
     as the PDF export renders the very same document multiple times  */
@@ -549,6 +555,10 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
 const renderTitlePage = (object: SpecObject, created: string, modified: string): string => {
     const prop = (name: string) =>
         object.properties.find((property) => property.key === name)?.value
+    const inlineProp = (name: string) => {
+        const value = prop(name)
+        return value !== undefined ? inline(value) : ""
+    }
     const rest = object.properties.filter((property) =>
         ![ "LOGO", "TITLE", "SUBTITLE", "AUTHOR", "VERSION",
             "LANG", "CHARSET", "PAPER-SIZE", "THEME-STYLE", "THEME-TONE" ].includes(property.key))
@@ -562,9 +572,9 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
         logo:        logo === undefined ? safe(`<img src="${fallbackLogo()}" alt="SpecBook"/>`) :
             (image.length > 0 ? safe(image.join("")) : inline(logo.value)),
         title:       inline(prop("TITLE") ?? object.name),
-        subtitle:    prop("SUBTITLE") !== undefined ? inline(prop("SUBTITLE") ?? "") : "",
-        author:      prop("AUTHOR")   !== undefined ? inline(prop("AUTHOR")   ?? "") : "",
-        version:     prop("VERSION")  !== undefined ? inline(prop("VERSION")  ?? "") : "",
+        subtitle:    inlineProp("SUBTITLE"),
+        author:      inlineProp("AUTHOR"),
+        version:     inlineProp("VERSION"),
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
         properties:  rest.length > 0 ?
@@ -607,10 +617,6 @@ export const htmlOutline = (specification: Specification,
     optional per-anchor page numbers attached to the ToC entries  */
 export const renderHtml = async (specification: Specification,
     config?: SchemaSpecification, tocPages?: Map<string, number>, css?: string): Promise<string> => {
-    /*  the document language selects the smart typography quote style  */
-    const lang = documentLang(specification)
-    quotes = quoteStyles[lang?.toLowerCase().split(/[-_]/)[0] ?? "en"] ?? quoteStyles.en
-
     /*  pre-render the configured diagrams as embeddable SVGs (a runtime
         rendering failure omits the diagram, as the statically detectable
         invalid situations are already reported as lint diagnostics),
@@ -639,6 +645,10 @@ export const renderHtml = async (specification: Specification,
         }
         diagramCache.set(specification, { config, diagrams })
     }
+
+    /*  the document language selects the smart typography quote style  */
+    const lang = documentLang(specification)
+    quotes = quoteStyles[lang?.toLowerCase().split(/[-_]/)[0] ?? "en"] ?? quoteStyles.en
 
     /*  expand "[[xxx]]" references into hyperlinks (an unresolvable or
         ambiguous reference stays literal, marked as broken), targeting

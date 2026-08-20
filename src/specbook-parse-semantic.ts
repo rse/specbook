@@ -4,15 +4,15 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import { type Specification, type Artifact, type Object as SpecObject }
+import { type Specification, type Artifact, type Object as SpecObject, type Property }
     from "./specbook-struct-spec.js"
-import { type SchemaSpecification, type SchemaObject }
+import { type SchemaSpecification, type SchemaObject, type SchemaProperty }
     from "./specbook-struct-schema.js"
 import { referenceRegex, resolveUnique, resolveSet }
     from "./specbook-link.js"
 import { compileValueExpr, splitItems, type ValueExpr }
     from "./specbook-parse-value.js"
-import { ParseContext }
+import { ParseContext, type ObjectMeta }
     from "./specbook-parse-common.js"
 
 /*  strip a trailing parenthesized annotation from a
@@ -71,29 +71,15 @@ const matchAlternatives = (ctx: ParseContext, alternatives: ValueExpr[], item: s
     return false
 }
 
-/*  validate a single object (and recursively its childs) against its schema  */
-const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObject, level: number) => {
-    const meta  = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
-    const props = schema.props ?? []
+/*  find a property of an object by its key (case-sensitive)  */
+const findProp = (object: SpecObject, name: string) =>
+    object.properties.find((p) => plainKey(p.key) === name)
 
-    /*  check the name convention (the configured name of non-artifact
-        objects is a regular expression pattern)  */
-    if (level > 1 && schema.name !== undefined && !anchored(schema.name).test(plainText(object.name)))
-        ctx.diagnose(meta.file, meta.line,
-            `${object.kind} name "${object.name}" does not match pattern "${schema.name}"`)
-
-    /*  a configured id has to be explicitly specified 1:1 in the
-        input, via either "{{<id>}}" or "(<id>)"  */
-    if (schema.id !== undefined && (object.anchor ?? object.paren) !== schema.id)
-        ctx.diagnose(meta.file, meta.line,
-            `configured id "${schema.id}" not explicitly specified on ${object.kind} "${object.name}"`)
-
-    /*  find a property by its key (case-sensitive)  */
-    const findProp = (name: string) =>
-        object.properties.find((p) => plainKey(p.key) === name)
-
-    /*  the tokens split off multi-token property values below, assigned
-        to the still unset configured properties by matching their patterns  */
+/*  distribute the inline tokens split off the multi-token property values
+    of an object across its configured properties and report the
+    unassignable ones (the properties assigned a token are returned)  */
+const assignInlineTokens = (ctx: ParseContext, object: SpecObject,
+    props: SchemaProperty[], meta: ObjectMeta): Set<string> => {
     const tokens        = new Array<string>()
     const tokenAssigned = new Set<string>()
 
@@ -106,7 +92,7 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
         const expr = compileValueExpr(prop.value)
         if (expr.kind !== "regex" && expr.kind !== "enum")
             continue
-        const match = findProp(prop.name)
+        const match = findProp(object, prop.name)
         if (match === undefined || directMatches(expr, plainText(match.value)))
             continue
         const parts = plainText(match.value).split(/\s+/)
@@ -124,7 +110,7 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
     /*  assign the collected tokens to the still unset configured
         properties whose pattern they match  */
     for (const prop of props) {
-        if (prop.value === undefined || findProp(prop.name) !== undefined)
+        if (prop.value === undefined || findProp(object, prop.name) !== undefined)
             continue
         const expr = compileValueExpr(prop.value)
         if (expr.kind !== "regex" && expr.kind !== "enum")
@@ -142,11 +128,80 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
         ctx.diagnose(meta.file, meta.line,
             `unassignable inline token "${token}" on ${object.kind} "${object.name}"`)
 
+    return tokenAssigned
+}
+
+/*  check a property value against the compiled value expression of its
+    configured schema property  */
+const checkPropValue = (ctx: ParseContext, prop: SchemaProperty,
+    expr: ValueExpr, property: Property, meta: ObjectMeta) => {
+    if (expr.kind === "reference") {
+        /*  a reference constraint: the value has to be exactly one
+            reference resolving into the constraint's wildcard match set  */
+        if (!/^\[\[[^[\]]+\]\]$/.test(property.value.trim()))
+            ctx.diagnose(meta.file, meta.line,
+                `property "${prop.name}" value "${property.value}" is not a single link reference`)
+        else {
+            const ref    = property.value.trim().slice(2, -2).trim()
+            const target = resolveUnique(ctx.linkIndex, ref).target
+            if (target !== undefined && !resolveSet(ctx.linkIndex, expr.pattern).includes(target))
+                ctx.diagnose(meta.file, meta.line,
+                    `link reference "[[${ref}]]" does not match constraint "${prop.value}"`)
+        }
+    }
+    else if (expr.kind === "tags") {
+        /*  a tags constraint: the value is a comma-separated set of
+            configured tags, each occurring at most once  */
+        const seen = new Set<string>()
+        for (const item of splitItems(plainText(property.value))) {
+            if (!expr.members.includes(item))
+                ctx.diagnose(meta.file, meta.line,
+                    `tag "${item}" of property "${prop.name}" not allowed by constraint "${prop.value}"`)
+            else if (seen.has(item))
+                ctx.diagnose(meta.file, meta.line,
+                    `duplicate tag "${item}" on property "${prop.name}"`)
+            seen.add(item)
+        }
+    }
+    else if (expr.kind === "list") {
+        /*  a list constraint: the value is a comma-separated list
+            of items, each matching at least one alternative  */
+        for (const item of splitItems(property.value))
+            if (!matchAlternatives(ctx, expr.alternatives, item))
+                ctx.diagnose(meta.file, meta.line,
+                    `list item "${item}" of property "${prop.name}" does not match constraint "${prop.value}"`)
+    }
+    else if (!directMatches(expr, plainText(property.value)))
+        ctx.diagnose(meta.file, meta.line, expr.kind === "enum" ?
+            `property "${prop.name}" value "${property.value}" is not a member of "${prop.value}"` :
+            `property "${prop.name}" value "${property.value}" does not match pattern "${prop.value}"`)
+}
+
+/*  validate a single object (and recursively its childs) against its schema  */
+const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObject, level: number) => {
+    const meta  = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
+    const props = schema.props ?? []
+
+    /*  check the name convention (the configured name of non-artifact
+        objects is a regular expression pattern)  */
+    if (level > 1 && schema.name !== undefined && !anchored(schema.name).test(plainText(object.name)))
+        ctx.diagnose(meta.file, meta.line,
+            `${object.kind} name "${object.name}" does not match pattern "${schema.name}"`)
+
+    /*  a configured id has to be explicitly specified 1:1 in the
+        input, via either "{{<id>}}" or "(<id>)"  */
+    if (schema.id !== undefined && (object.anchor ?? object.paren) !== schema.id)
+        ctx.diagnose(meta.file, meta.line,
+            `configured id "${schema.id}" not explicitly specified on ${object.kind} "${object.name}"`)
+
+    /*  distribute the inline tokens split off the multi-token property values  */
+    const tokenAssigned = assignInlineTokens(ctx, object, props, meta)
+
     /*  check the configured properties  */
     let parenConsumed = false
     for (const prop of props) {
         const expr  = prop.value !== undefined ? compileValueExpr(prop.value) : undefined
-        const match = findProp(prop.name)
+        const match = findProp(object, prop.name)
         if (match === undefined) {
             /*  accept a trailing parenthesized name token as the value of a
                 still missing property when it matches the property pattern  */
@@ -159,50 +214,12 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
                 ctx.diagnose(meta.file, meta.line,
                     `required property "${prop.name}" missing on ${object.kind} "${object.name}"`)
         }
-        else if (expr !== undefined) {
-            const line = ctx.propMeta.get(match)?.line ?? meta.line
-            if (expr.kind === "reference") {
-                /*  a reference constraint: the value has to be exactly one
-                    reference resolving into the constraint's wildcard match set  */
-                if (!/^\[\[[^[\]]+\]\]$/.test(match.value.trim()))
-                    ctx.diagnose(meta.file, line,
-                        `property "${prop.name}" value "${match.value}" is not a single link reference`)
-                else {
-                    const ref    = match.value.trim().slice(2, -2).trim()
-                    const target = resolveUnique(ctx.linkIndex, ref).target
-                    if (target !== undefined && !resolveSet(ctx.linkIndex, expr.pattern).includes(target))
-                        ctx.diagnose(meta.file, line,
-                            `link reference "[[${ref}]]" does not match constraint "${prop.value}"`)
-                }
-            }
-            else if (expr.kind === "tags") {
-                /*  a tags constraint: the value is a comma-separated set of
-                    configured tags, each occurring at most once  */
-                const seen = new Set<string>()
-                for (const item of splitItems(plainText(match.value))) {
-                    if (!expr.members.includes(item))
-                        ctx.diagnose(meta.file, line,
-                            `tag "${item}" of property "${prop.name}" not allowed by constraint "${prop.value}"`)
-                    else if (seen.has(item))
-                        ctx.diagnose(meta.file, line,
-                            `duplicate tag "${item}" on property "${prop.name}"`)
-                    seen.add(item)
-                }
-            }
-            else if (expr.kind === "list") {
-                /*  a list constraint: the value is a comma-separated list
-                    of items, each matching at least one alternative  */
-                for (const item of splitItems(match.value))
-                    if (!matchAlternatives(ctx, expr.alternatives, item))
-                        ctx.diagnose(meta.file, line,
-                            `list item "${item}" of property "${prop.name}" does not match constraint "${prop.value}"`)
-            }
-            else if (!tokenAssigned.has(prop.name) && !directMatches(expr, plainText(match.value)))
-                ctx.diagnose(meta.file, line, expr.kind === "enum" ?
-                    `property "${prop.name}" value "${match.value}" is not a member of "${prop.value}"` :
-                    `property "${prop.name}" value "${match.value}" does not match pattern "${prop.value}"`)
-        }
+        else if (expr !== undefined && !tokenAssigned.has(prop.name))
+            checkPropValue(ctx, prop, expr, match,
+                { file: meta.file, line: ctx.propMeta.get(match)?.line ?? meta.line })
     }
+
+    /*  report the properties not configured by the schema  */
     for (const property of object.properties)
         if (!props.some((p) => p.name === plainKey(property.key)))
             ctx.diagnose(meta.file, ctx.propMeta.get(property)?.line ?? meta.line,
@@ -225,6 +242,8 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
         }
         validateObject(ctx, child, childSchema, level + 1)
     }
+
+    /*  report the configured child object kinds which are missing  */
     for (const child of childs)
         if (child.optional !== true
             && !object.childs.some((c) => c.kind === child.kind))

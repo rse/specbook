@@ -77,7 +77,7 @@ const papers: { [ name: string ]: PaperSetup } = {
     "Letter": { unit: "in", height: 11,  margin: { top: 1,  bottom: 1,  left: 0.8, right: 0.8 } },
     "Legal":  { unit: "in", height: 14,  margin: { top: 1,  bottom: 1,  left: 0.8, right: 0.8 } }
 }
-export const paperSizes = Object.keys(papers)
+const paperSizes = Object.keys(papers)
 export const paperSizeDefault = "A4"
 
 /*  provide the setup of a paper size, falling back onto the default  */
@@ -89,10 +89,17 @@ export const paperLength = (setup: PaperSetup, value: number): string =>
     `${value}${setup.unit}`
 
 /*  determine the document paper size (PAPER-SIZE) from the title object,
-    matched case-insensitively and falling back onto the default  */
+    matched case-insensitively, falling back onto the default if unset
+    and rejecting an unknown size  */
 export const documentPaperSize = (specification: Specification): string => {
-    const value = titleProperty(specification, "PAPER-SIZE")?.trim().toLowerCase()
-    return paperSizes.find((name) => name.toLowerCase() === value) ?? paperSizeDefault
+    const value = titleProperty(specification, "PAPER-SIZE")?.trim()
+    if (value === undefined)
+        return paperSizeDefault
+    const paper = paperSizes.find((name) => name.toLowerCase() === value.toLowerCase())
+    if (paper === undefined)
+        throw new Error(`unknown paper size "${value}" ` +
+            `(expected ${paperSizes.join(", ")})`)
+    return paper
 }
 
 /*  provide the paper-dependent print stylesheet: a diagram is scaled

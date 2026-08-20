@@ -45,6 +45,8 @@ export const renderAst = async (specification: Specification, format: AstFormat,
             artifact.objects.forEach((object, j) =>
                 walk(object, plain.artifacts[i].objects[j])))
     }
+
+    /*  serialize the plain specification into the target format  */
     if (format === "json")
         return Buffer.from(JSON.stringify(plain, null, 4) + "\n", "utf8")
     else if (format === "json5")

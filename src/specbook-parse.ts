@@ -35,10 +35,13 @@ export class Parser {
         /*  reset the parsing context to allow a reuse of the parser  */
         this.ctx = new ParseContext()
 
+        /*  parse all source files into their artifacts  */
         const artifacts = new Array<Artifact>()
         for (const source of sources)
             artifacts.push(...parseFile(this.ctx, source))
         const specification: Specification = { artifacts }
+
+        /*  validate the resulting specification AST  */
         if (artifacts.length > 0) {
             this.ctx.linkIndex = buildLinkIndex(specification)
             if (config !== undefined)

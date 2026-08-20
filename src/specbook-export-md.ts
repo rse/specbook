@@ -89,12 +89,11 @@ export const renderMarkdown = async (specification: Specification,
             if (result.spec !== undefined)
                 diagrams.set(object, result.spec)
     return specification.artifacts.map((artifact) =>
+        "---\n" +
+        `Created:  ${formatTimestamp(artifact.created)}\n` +
+        `Modified: ${formatTimestamp(artifact.modified)}\n` +
+        "---\n\n" +
         artifact.objects.map((object) =>
-            "---\n" +
-            `Created:  ${formatTimestamp(artifact.created)}\n` +
-            `Modified: ${formatTimestamp(artifact.modified)}\n` +
-            "---\n\n" +
-            renderObjectMd(object, 1, diagrams)
-        ).join("\n\n")
+            renderObjectMd(object, 1, diagrams)).join("\n\n")
     ).join("\n\n") + "\n"
 }

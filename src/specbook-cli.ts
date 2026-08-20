@@ -82,7 +82,7 @@ withCommonOptions(program.command("init"))
     .action(async (opts: { verbose: boolean, config?: string, basedir: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const created = await specbook.init({ config: opts.config, basedir: opts.basedir })
-        process.stdout.write(created.length > 0 ?
+        await writeStdout(created.length > 0 ?
             `initialized artifact file(s): ${created.join(", ")}\n` :
             "no artifact files were created\n")
     })
@@ -94,7 +94,7 @@ withCommonOptions(program.command("lint"))
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const result = await specbook.lint({ config: opts.config, basedir: opts.basedir })
         for (const diagnostic of result.diagnostics)
-            process.stdout.write(opts.verbose ?
+            await writeStdout(opts.verbose ?
                 renderDiagnosticVerbose(diagnostic, process.stdout.isTTY === true) :
                 `${renderDiagnostic(diagnostic)}\n`)
         if (result.diagnostics.length > 0)
@@ -145,7 +145,7 @@ withCommonOptions(program.command("import"))
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const written = await specbook.import({ config: opts.config, basedir: opts.basedir,
             inputs, provider: opts.provider, model: opts.model })
-        process.stdout.write(written.length > 0 ?
+        await writeStdout(written.length > 0 ?
             `imported into artifact file(s): ${written.join(", ")}\n` :
             "no artifact files were changed\n")
     })
@@ -161,7 +161,7 @@ withCommonOptions(program.command("edit"))
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const written = await specbook.edit({ config: opts.config, basedir: opts.basedir,
             query, provider: opts.provider, model: opts.model })
-        process.stdout.write(written.length > 0 ?
+        await writeStdout(written.length > 0 ?
             `edited artifact file(s): ${written.join(", ")}\n` :
             "no artifact files were changed\n")
     })

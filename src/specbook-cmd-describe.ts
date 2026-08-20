@@ -98,6 +98,8 @@ export const describeConfiguration = (config: SchemaSpecification): string => {
         if (artifact.file !== undefined)
             lines.push(`-   file: \`${artifact.file}\``)
         lines.push(`-   description: ${collapse(artifact.desc)}`)
+        for (const prop of artifact.props ?? [])
+            lines.push(describeProperty(prop, ""))
         for (const child of artifact.childs ?? [])
             lines.push(describeObject(child, 2, ""))
         sections.push(lines.join("\n"))

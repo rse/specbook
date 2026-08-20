@@ -137,5 +137,11 @@ export const splitItems = (text: string): string[] => {
         else
             parts[parts.length - 1] += char
     }
-    return parts.map((part) => part.trim()).filter((part) => part !== "")
+    return parts.map((part) => {
+        /*  unquote a fully double-quoted item, mirroring the member
+            quoting of the value expression lexer  */
+        const item = part.trim()
+        const m    = item.match(/^"((?:\\"|[^"])*)"$/)
+        return m !== null ? m[1].replace(/\\"/g, "\"") : item
+    }).filter((part) => part !== "")
 }

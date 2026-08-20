@@ -63,13 +63,13 @@ const SchemaDiagramConfig: v.GenericSchema<Partial<GradiaConfig>> =
         issue.expected === "never" ? "unknown Gradia rendering option" :
             "expected a map of Gradia rendering options"))
 
-const SchemaProperty: v.GenericSchema<SchemaProperty> = v.object({
+const SchemaProperty: v.GenericSchema<SchemaProperty> = v.strictObject({
     name:              v.string(),
     desc:              v.optional(v.string()),
     value:             v.optional(v.string()),
     optional:          v.optional(v.boolean())
 })
-const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.object({
+const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     type:              v.optional(v.picklist([ "graph", "hub", "grid" ])),
     nodes:             v.optional(v.string()),
     edges:             v.optional(v.string()),
@@ -84,12 +84,12 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.object({
     properties:        v.optional(v.array(v.string())),
     config:            v.optional(SchemaDiagramConfig)
 })
-const SchemaFormat: v.GenericSchema<SchemaFormat> = v.object({
+const SchemaFormat: v.GenericSchema<SchemaFormat> = v.strictObject({
     type:              v.optional(v.picklist([ "auto", "complex", "concise" ])),
     maxTableColumns:   v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
     withUnusedProps:   v.optional(v.boolean())
 })
-const SchemaObject: v.GenericSchema<SchemaObject> = v.object({
+const SchemaObject: v.GenericSchema<SchemaObject> = v.strictObject({
     kind:              v.string(),
     name:              v.optional(v.string()),
     id:                v.optional(v.string()),

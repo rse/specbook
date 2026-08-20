@@ -9,7 +9,8 @@ import type { Specification, Object as SpecObject } from "./specbook-struct-spec
 /*  the Wiki-style reference syntax ("[[xxx]]")  */
 export const referenceRegex = /\[\[([^[\]]+)\]\]/g
 
-/*  a single indexed object with its direct parent (undefined for artifacts)  */
+/*  a single indexed object with its direct parent (undefined for
+    the top-level objects of an artifact)  */
 interface LinkNode {
     object:  SpecObject
     parent?: LinkNode

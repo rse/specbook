@@ -98,10 +98,15 @@ const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
 
 /*  render a self-contained HTML document into a PDF via Playwright,
     re-rendering the HTML with the discovered ToC page numbers  */
-export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>) => Promise<string>,
-    heading: { title: string, subtitle?: string, logo: string }, outline: OutlineEntry[],
-    verbose: (msg: string) => void, css: string, theme: ThemeMapping,
-    paper = paperSizeDefault): Promise<Buffer> => {
+export const htmlToPdf = async (
+    renderHtmlPass: (tocPages?: Map<string, number>) => Promise<string>,
+    heading:        { title: string, subtitle?: string, logo: string },
+    outline:        OutlineEntry[],
+    verbose:        (msg: string) => void,
+    css:            string,
+    theme:          ThemeMapping,
+    paper:          string = paperSizeDefault
+): Promise<Buffer> => {
     const { chromium } = await import("playwright")
 
     /*  the page geometry of the chosen paper size  */
@@ -134,7 +139,8 @@ export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>)
         const page = await browser.newPage()
 
         /*  render an HTML document into a paginated PDF  */
-        const renderPdf = async (html: string, options: object = {}) => {
+        const renderPdf = async (html: string,
+            options: NonNullable<Parameters<typeof page.pdf>[0]> = {}) => {
             await page.setContent(html, { waitUntil: "networkidle" })
             await page.evaluate(() => document.fonts.ready)
             return page.pdf({
@@ -180,7 +186,7 @@ export const htmlToPdf = async (renderHtmlPass: (tocPages?: Map<string, number>)
                 "padding-bottom: 1mm; display: flex; justify-content: space-between; " +
                 "align-items: flex-end;\">" +
                 `<span>${headText}</span>` +
-                `<img src="${heading.logo}" alt="" style="height: 3.5mm;"/>` +
+                `<img src="${escapeHtml(heading.logo)}" alt="" style="height: 3.5mm;"/>` +
                 "</div></div>",
             footerTemplate:
                 `<style>${fontFace}</style>` +

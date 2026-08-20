@@ -23,7 +23,7 @@ export const renderDiagnostic = (diagnostic: Diagnostic): string =>
     source snippet, falling back to the single-line message when the
     source file is unreadable (e.g. the file is a directory)  */
 export const renderDiagnosticVerbose = (diagnostic: Diagnostic, colors = false): string => {
-    let code
+    let code: string
     try {
         code = fs.readFileSync(diagnostic.file, "utf8")
     }
