@@ -33,8 +33,16 @@ service with tools `specbook_<cmd>()`.
 Rendering Example
 -----------------
 
+### HTML Rendering (Light Theme)
+
 ![screenshot-light](etc/screenshot-light.png)
+
+### HTML Rendering (Dark Theme)
+
 ![screenshot-dark](etc/screenshot-dark.png)
+
+### PDF Rendering
+
 ![screenshot-print](etc/screenshot-print.png)
 
 Specification Format
