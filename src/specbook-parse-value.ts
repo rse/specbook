@@ -59,7 +59,7 @@ const parseValueExpr = (tokens: Token[], pos: { i: number }, nested: boolean): V
         }
         catch (err) {
             throw new Error(`invalid regular expression "/${source}/": ` +
-                (err instanceof Error ? err.message : String(err)))
+                (err instanceof Error ? err.message : String(err)), { cause: err })
         }
     }
     else if (token.type === "reference")

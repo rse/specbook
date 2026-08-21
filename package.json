@@ -44,12 +44,11 @@
         "zod":                             "4.4.3"
     },
     "devDependencies": {
-        "eslint":                          "9.39.5",
-        "@eslint/js":                      "9.39.5",
+        "eslint":                          "10.9.0",
+        "@eslint/js":                      "10.0.1",
         "typescript-eslint":               "8.67.0",
         "eslint-plugin-promise":           "7.3.0",
-        "eslint-plugin-import":            "2.32.0",
-        "neostandard":                     "0.13.0",
+        "neostandard":                     "0.14.0-next.1",
         "globals":                         "17.11.0",
         "@types/node":                     "26.2.0",
         "@types/subset-font":              "2.3.0",
