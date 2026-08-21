@@ -5,7 +5,8 @@ ChangeLog
 0.9.5 (2026-08-21)
 ------------------
 
--   UPGRADE [infr]: upgrade from ESLint 9 to 10
+-   IMPROVEMENT [infr, othr]: show light/dark HTML and PDF rendering screenshots in README
+-   UPDATE [infr]: upgrade from ESLint 9 to 10
 
 0.9.4 (2026-08-20)
 ------------------
