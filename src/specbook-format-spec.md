@@ -251,17 +251,16 @@ list items below it are Concise Format items whose kind comes from that
 heading, so they start with the (optionally backquoted) name directly:
 
 ```
-### <kinds/>
+### <kind/>
 
 -   `<name/>`; <key/>: <value/>; [...];
     <statement/>, BECAUSE <rationale/>.
 ```
 
-The heading kind is singularized by stripping one trailing `S`, so both
-`### STATES` and `### STATE` group objects of kind `STATE`. The grouped
-objects become children of the object the heading is nested under. An
-unquoted name must not contain a `:` (else the item would look like a
-key/value pair) -- backquote it in this case.
+The heading kind is taken literally, so `### STATE` groups objects of
+kind `STATE`. The grouped objects become children of the object the
+heading is nested under. An unquoted name must not contain a `:` (else
+the item would look like a key/value pair) -- backquote it in this case.
 
 When **SpecBook** itself generates specification Markdown, it emits
 the Complex Format on levels 1-3 and the Concise Format from level 4

@@ -14,7 +14,7 @@ import { type SpecArtifact, type SpecObject, type SpecProperty }
 import { ParseContext, embeddingRegex, embeddingMimeType, type SourceFile }
     from "./specbook-parse-common.js"
 
-/*  a grouping container context (e.g. "### STATES")  */
+/*  a grouping container context (e.g. "### STATE")  */
 interface Group {
     parent: SpecObject
     kind:   string
@@ -320,13 +320,13 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
             if (heading.malformed !== undefined)
                 ctx.diagnose(source.file, line, `malformed anchor "${heading.malformed}" in heading`)
             if (heading.name === "" && depth > 1) {
-                /*  a grouping container heading (e.g. "### STATES") collects
-                    objects of its singular kind below the parent object  */
+                /*  a grouping container heading (e.g. "### STATE") collects
+                    objects of its kind below the parent object  */
                 const parent = stack[depth - 2]
                 if (parent === undefined)
                     ctx.diagnose(source.file, line, `heading level ${depth} without parent object`)
                 else {
-                    group   = { parent, kind: heading.kind.replace(/S$/, "") }
+                    group   = { parent, kind: heading.kind }
                     current = parent
                 }
             }
