@@ -20,7 +20,9 @@ email via a one-time token, accepts any required consent, and is
 admitted to the live stream while any prior session for the same user is
 closed.
 
-### SCENARIO: Successful Token Login (Main) {{join-event-token-login}}
+### SCENARIO: Successful Token Login {{join-event-token-login}}
+
+-   TYPE: Main
 
 1.  The attendee opens the individual event URL in a browser.
 2.  The system shows the login dialog and optional login message.
@@ -31,14 +33,18 @@ closed.
 7.  The system issues a session token and closes any prior session of the user.
 8.  The system grants the attendee access to the live video stream.
 
-### SCENARIO: Automatic Token in URL (Alternative) {{join-event-auto}}
+### SCENARIO: Automatic Token in URL {{join-event-auto}}
+
+-   TYPE: Alternative
 
 1.  The attendee opens an event URL containing email and a pre-generated token.
 2.  The system validates the embedded token against the event settings.
 3.  The system issues a session token without showing a login dialog.
 4.  The system grants the attendee access to the live video stream.
 
-### SCENARIO: Email Not Authorized (Exceptional) {{join-event-denied}}
+### SCENARIO: Email Not Authorized {{join-event-denied}}
+
+-   TYPE: Exceptional
 
 1.  The attendee opens the event URL and enters their email.
 2.  The system finds the email neither on the access list nor matching the access pattern.
@@ -56,7 +62,9 @@ USE-CASE: Ask a Question {{ask-question}}
 The attendee writes a question, optionally tags it, and submits it; the system stores it and routes it through moderation if
 the event requires approval before it becomes visible.
 
-### SCENARIO: Submit Moderated Question (Main) {{ask-question-moderated}}
+### SCENARIO: Submit Moderated Question {{ask-question-moderated}}
+
+-   TYPE: Main
 
 1.  The attendee opens the questions panel.
 2.  The attendee types a question and optionally selects predefined tags.
@@ -64,14 +72,18 @@ the event requires approval before it becomes visible.
 4.  The system stores the question in state pending.
 5.  The system shows the question to moderators for approval.
 
-### SCENARIO: Auto-Accepted by Sentiment (Alternative) {{ask-question-auto}}
+### SCENARIO: Auto-Accepted by Sentiment {{ask-question-auto}}
+
+-   TYPE: Alternative
 
 1.  The attendee submits a question.
 2.  The system runs server-side sentiment analysis on the text.
 3.  The system finds the sentiment proper and auto-accept is enabled.
 4.  The system stores the question directly in state accepted.
 
-### SCENARIO: Throttled Submission (Exceptional) {{ask-question-throttled}}
+### SCENARIO: Throttled Submission {{ask-question-throttled}}
+
+-   TYPE: Exceptional
 
 1.  The attendee submits questions in rapid succession.
 2.  The system detects the per-minute limit is exceeded.
@@ -89,7 +101,9 @@ USE-CASE: Moderate and Forward Messages {{moderate}}
 The moderator reviews pending messages on a Kanban board, approves or rejects them, forwards selected approved questions to
 the presenter in a chosen order, and may attach hints or raise a presenter alert.
 
-### SCENARIO: Approve and Forward Question (Main) {{moderate-forward}}
+### SCENARIO: Approve and Forward Question {{moderate-forward}}
+
+-   TYPE: Main
 
 1.  The moderator filters the board to pending questions.
 2.  The moderator approves a relevant question, setting it accepted.
@@ -97,7 +111,9 @@ the presenter in a chosen order, and may attach hints or raise a presenter alert
 4.  The moderator optionally attaches a hint for the presenter.
 5.  The system places the forwarded question in the presenter's work basket and locks it from editing.
 
-### SCENARIO: Reject Improper Message (Alternative) {{moderate-reject}}
+### SCENARIO: Reject Improper Message {{moderate-reject}}
+
+-   TYPE: Alternative
 
 1.  The moderator selects a pending message.
 2.  The moderator rejects the message.
@@ -115,7 +131,9 @@ USE-CASE: Switch Streaming Provider {{switch-provider}}
 When a provider has problems, the manager activates a fallback resource on the channel and the system propagates the change
 so attendee clients switch streams without any user interaction.
 
-### SCENARIO: Live Failover (Main) {{switch-provider-failover}}
+### SCENARIO: Live Failover {{switch-provider-failover}}
+
+-   TYPE: Main
 
 1.  The manager observes streaming problems with the active resource.
 2.  The manager activates a different configured resource on the channel.
@@ -135,7 +153,9 @@ USE-CASE: Create Event from Ventari Import {{create-event}}
 The manager imports the Ventari Excel sheet to fill the event access list and generate authorization tokens, then exports an
 Excel sheet of personal access URLs back to Ventari, avoiding duplicate invitations on repeated imports.
 
-### SCENARIO: Import and Return URLs (Main) {{create-event-import}}
+### SCENARIO: Import and Return URLs {{create-event-import}}
+
+-   TYPE: Main
 
 1.  The manager uploads the Ventari Excel sheet to the event.
 2.  The system creates access-list users for new emails and skips existing ones.
@@ -155,7 +175,9 @@ USE-CASE: Export Anonymized Event Data {{export-data}}
 After the event finishes and personal data is anonymized, the manager exports all attendee inputs with timestamps, states,
 like counts, and texts, together with the event statistics.
 
-### SCENARIO: Export After Finish (Main) {{export-data-after}}
+### SCENARIO: Export After Finish {{export-data-after}}
+
+-   TYPE: Main
 
 1.  The manager opens the finished event in the management screen.
 2.  The manager triggers the export of attendee inputs.
@@ -174,7 +196,9 @@ USE-CASE: Present Forwarded Questions {{present}}
 The presenter views the forwarded questions in their intended order with any moderator hints, addresses them on stage, and
 marks each as answered or suspended.
 
-### SCENARIO: Answer Forwarded Question (Main) {{present-answer}}
+### SCENARIO: Answer Forwarded Question {{present-answer}}
+
+-   TYPE: Main
 
 1.  The presenter views the ordered list of forwarded questions and hints.
 2.  The presenter addresses a question live on stage.
