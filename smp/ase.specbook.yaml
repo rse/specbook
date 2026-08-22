@@ -1248,7 +1248,7 @@
         nodes: "[[ARCH:TS.TIER:*]]"
     childs:
         -   kind: TIER
-            name: ^(?:Client|Server|Middleware|Database)$
+            name: (?:Client|Server|Middleware|Database)
             desc: |
                 The architectural tier grouping the technology components belonging to it, one of:
 
