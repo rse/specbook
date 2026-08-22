@@ -296,15 +296,8 @@ In the Complex Format, each property is an unordered list item of the
 form `<key/>: <value/>`, whose value may continue on the following
 indented lines of the item (joined with spaces). In the Concise Format,
 each property is a `<key/>: <value/>` segment. The key is matched
-against the schema exactly as written.
-
-A multi-token convenience exists for pattern-constrained properties:
-when a property value fails its (regex or enum) constraint as a whole,
-but consists of multiple whitespace-separated tokens of which one
-matches the property's own constraint, that token is kept as the value
-and the remaining tokens are distributed (case-insensitively) across the
-other still unset pattern-constrained properties of the object. Tokens
-assignable to no property are reported as errors.
+against the schema exactly as written, and the value has to satisfy the
+configured constraint as a whole.
 
 ### Descriptions and Rationales
 

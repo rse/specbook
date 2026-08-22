@@ -24,15 +24,6 @@ const plainText = (text: string): string =>
 const anchored = (pattern: string, flags = ""): RegExp =>
     new RegExp(`^(?:${pattern})$`, flags)
 
-/*  match a single inline token against a value expression
-    (case-insensitively, as inline tokens are decorations)  */
-const tokenMatches = (expr: ValueExpr, token: string): boolean =>
-    expr.kind === "regex" ?
-        anchored(expr.source, "i").test(token) :
-        expr.kind === "enum" ?
-            expr.members.some((member) => member.toLowerCase() === token.toLowerCase()) :
-            false
-
 /*  match a full property value directly against a value expression
     (defined for the regex and enum kinds only)  */
 const directMatches = (expr: ValueExpr, text: string): boolean =>
@@ -69,62 +60,6 @@ const matchAlternatives = (ctx: ParseContext, alternatives: ValueExpr[], item: s
 /*  find a property of an object by its key (case-sensitive)  */
 const findProp = (object: SpecObject, name: string) =>
     object.properties.find((p) => p.key === name)
-
-/*  distribute the inline tokens split off the multi-token property values
-    of an object across its configured properties and report the
-    unassignable ones (the properties assigned a token are returned)  */
-const assignInlineTokens = (ctx: ParseContext, object: SpecObject,
-    props: SchemaProperty[], meta: ObjectMeta): Set<string> => {
-    const tokens        = new Array<string>()
-    const tokenAssigned = new Set<string>()
-
-    /*  explode a multi-token property value whose direct pattern check
-        fails: keep the token matching the own pattern and distribute
-        the remaining tokens across the sibling properties  */
-    for (const prop of props) {
-        if (prop.value === undefined)
-            continue
-        const expr = compileValueExpr(prop.value)
-        if (expr.kind !== "regex" && expr.kind !== "enum")
-            continue
-        const match = findProp(object, prop.name)
-        if (match === undefined || directMatches(expr, plainText(match.value)))
-            continue
-        const parts = plainText(match.value).split(/\s+/)
-        if (parts.length < 2)
-            continue
-        const idx = parts.findIndex((part) => tokenMatches(expr, part))
-        if (idx < 0)
-            continue
-        match.value = parts[idx]
-        tokenAssigned.add(prop.name)
-        parts.splice(idx, 1)
-        tokens.push(...parts)
-    }
-
-    /*  assign the collected tokens to the still unset configured
-        properties whose pattern they match  */
-    for (const prop of props) {
-        if (prop.value === undefined || findProp(object, prop.name) !== undefined)
-            continue
-        const expr = compileValueExpr(prop.value)
-        if (expr.kind !== "regex" && expr.kind !== "enum")
-            continue
-        const idx = tokens.findIndex((token) => tokenMatches(expr, token))
-        if (idx >= 0) {
-            object.properties.push({ key: prop.name, value: tokens[idx] })
-            tokenAssigned.add(prop.name)
-            tokens.splice(idx, 1)
-        }
-    }
-
-    /*  report the tokens which no configured property accepts  */
-    for (const token of tokens)
-        ctx.diagnose(meta.file, meta.line,
-            `unassignable inline token "${token}" on ${object.kind} "${object.name}"`)
-
-    return tokenAssigned
-}
 
 /*  check a property value against the compiled value expression of its
     configured schema property  */
@@ -189,9 +124,6 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
         ctx.diagnose(meta.file, meta.line,
             `configured id "${schema.id}" not explicitly specified on ${object.kind} "${object.name}"`)
 
-    /*  distribute the inline tokens split off the multi-token property values  */
-    const tokenAssigned = assignInlineTokens(ctx, object, props, meta)
-
     /*  check the configured properties  */
     let parenConsumed = false
     for (const prop of props) {
@@ -209,7 +141,7 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
                 ctx.diagnose(meta.file, meta.line,
                     `required property "${prop.name}" missing on ${object.kind} "${object.name}"`)
         }
-        else if (expr !== undefined && !tokenAssigned.has(prop.name))
+        else if (expr !== undefined)
             checkPropValue(ctx, prop, expr, match,
                 { file: meta.file, line: ctx.propMeta.get(match)?.line ?? meta.line })
     }
