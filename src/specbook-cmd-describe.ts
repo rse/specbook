@@ -6,7 +6,7 @@
 
 import textframe from "textframe"
 
-import { type SchemaSpecification, type SchemaObject, type SchemaProperty } from "./specbook-format-schema.js"
+import { type Schema, type SchemaObject, type SchemaProperty } from "./specbook-format-schema.js"
 
 /*  collapse folded YAML prose into a single line  */
 const collapse = (text?: string): string =>
@@ -89,7 +89,7 @@ const describeObject = (object: SchemaObject, level: number, indent: string): st
 }
 
 /*  describe the configured specification format as Markdown  */
-export const describeConfiguration = (config: SchemaSpecification): string => {
+export const describeConfiguration = (config: Schema): string => {
     const sections = new Array<string>()
     for (const artifact of config) {
         const lines = new Array<string>()

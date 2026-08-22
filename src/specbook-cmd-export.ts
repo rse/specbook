@@ -6,8 +6,8 @@
 
 import { minify }                    from "@swc/html"
 
-import type { Specification }        from "./specbook-format-spec.js"
-import type { SchemaSpecification }  from "./specbook-format-schema.js"
+import type { Spec }                 from "./specbook-format-spec.js"
+import type { Schema }               from "./specbook-format-schema.js"
 import { documentTitle, documentLogo, documentCharset, documentThemeTone, subsetStylesheet,
     documentPaperSize, paperStylesheet }
     from "./specbook-export-common.js"
@@ -52,10 +52,10 @@ export const parseOutputSpec = (spec: string): { format: ExportFormat, output: s
 
 /*  export a specification into the requested format  */
 export const exportSpecification = async (
-    specification:   Specification,
+    specification:   Spec,
     format:          ExportFormat,
     verbose:         (msg: string) => void,
-    config?:         SchemaSpecification
+    config?:         Schema
 ): Promise<Buffer> => {
     if (!formats.includes(format))
         throw new Error(`unknown export format "${format}"`)

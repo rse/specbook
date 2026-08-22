@@ -9,7 +9,7 @@ import * as path from "node:path"
 
 import { marked, type Tokens } from "marked"
 
-import { type Artifact, type Object as SpecObject, type Property }
+import { type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
 import { ParseContext, embeddingRegex, embeddingMimeType, type SourceFile }
     from "./specbook-parse-common.js"
@@ -175,7 +175,7 @@ const parseList = (ctx: ParseContext, list: Tokens.List, object: SpecObject, fil
                 /*  a key/value property, whose value may continue
                     on the following lines of the item  */
                 const value = [ km[2], ...lines.slice(1) ].join(" ").trim()
-                const property: Property = { key: km[1].trim(), value }
+                const property: SpecProperty = { key: km[1].trim(), value }
                 ctx.propMeta.set(property, { line })
                 object.properties.push(property)
             }
@@ -266,7 +266,7 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
     for (const segment of segments) {
         const km = segment.match(/^([^:;]+):\s+(.+)$/)
         if (km !== null && !(/\s(?:\*\*BECAUSE\*\*|BECAUSE)\s/.test(segment))) {
-            const property: Property = { key: km[1].trim(), value: km[2].trim() }
+            const property: SpecProperty = { key: km[1].trim(), value: km[2].trim() }
             ctx.propMeta.set(property, { line })
             object.properties.push(property)
         }
@@ -284,7 +284,7 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
 }
 
 /*  parse a single source file into its artifacts  */
-export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => {
+export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[] => {
     const { present, created, modified, body, offset } = parseFrontmatter(source.text)
     if (!present)
         ctx.diagnose(source.file, 1, "missing frontmatter (\"Created:\"/\"Modified:\" block)")
@@ -296,7 +296,7 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): Artifact[] => 
                     `invalid "${key}:" frontmatter timestamp "${info.value}"`)
 
     /*  the state tracked while walking the Markdown tokens  */
-    const artifacts = new Array<Artifact>()
+    const artifacts = new Array<SpecArtifact>()
     const stack     = new Array<SpecObject>()
     let   current: SpecObject | null = null
     let   group:   Group | null      = null

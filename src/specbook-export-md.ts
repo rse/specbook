@@ -4,9 +4,9 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import type { Specification, Object as SpecObject, Property, Description }
+import type { Spec, SpecObject, SpecProperty, SpecDescription }
     from "./specbook-format-spec.js"
-import type { SchemaSpecification }
+import type { Schema }
     from "./specbook-format-schema.js"
 import { specDiagrams }
     from "./specbook-diagram.js"
@@ -19,14 +19,14 @@ const formatTimestamp = (date: Date): string => {
 }
 
 /*  render the properties as a value-aligned key/value list  */
-const renderKeyValuesMd = (properties: Property[]): string => {
+const renderKeyValuesMd = (properties: SpecProperty[]): string => {
     const width = Math.max(...properties.map((property) => property.key.length)) + 1
     return properties.map((property) =>
         `-   ${`${property.key}:`.padEnd(width)} ${property.value}`).join("\n")
 }
 
 /*  render a description statement with its optional rationale  */
-const renderDescriptionMd = (description: Description): string =>
+const renderDescriptionMd = (description: SpecDescription): string =>
     description.description + (description.rationale !== undefined ?
         `, BECAUSE ${description.rationale}` : "")
 
@@ -78,8 +78,8 @@ const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecOb
 }
 
 /*  render the entire specification into normalized Markdown  */
-export const renderMarkdown = async (specification: Specification,
-    config?: SchemaSpecification): Promise<string> => {
+export const renderMarkdown = async (specification: Spec,
+    config?: Schema): Promise<string> => {
     /*  derive the Gradia specs of the diagram-configured objects
         (an invalid diagram situation omits the diagram, as it is
         already reported as a lint diagnostic)  */

@@ -16,14 +16,14 @@ import { exportSpecification, parseOutputSpec, formats, type ExportFormat } from
 import { describeConfiguration }                         from "./specbook-cmd-describe.js"
 import { importSpecification }                           from "./specbook-cmd-import.js"
 import { editSpecification }                             from "./specbook-cmd-edit.js"
-import { type SchemaSpecification }                      from "./specbook-format-schema.js"
+import { type Schema }                                   from "./specbook-format-schema.js"
 
 /*  re-export the central types for API consumers  */
 export { formats, parseOutputSpec, type ExportFormat }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic }
 export { type LintResult }
-export type { Specification, Artifact, Object, Description, Property } from "./specbook-format-spec.js"
-export type { SchemaSpecification, SchemaObject, SchemaProperty }      from "./specbook-format-schema.js"
+export type { Spec, SpecArtifact, SpecObject, SpecDescription, SpecProperty } from "./specbook-format-spec.js"
+export type { Schema, SchemaObject, SchemaProperty }                          from "./specbook-format-schema.js"
 
 /*  the own version, taken from the package manifest, which resides one
     level above both the source and the compiled module directory  */
@@ -46,7 +46,7 @@ export class SpecBook {
     }
 
     /*  load a mandatory YAML schema configuration, failing on any problem  */
-    private requireConfig (file?: string): SchemaSpecification {
+    private requireConfig (file?: string): Schema {
         if (file === undefined)
             throw new Error("YAML schema configuration required")
         this.verbose(`loading configuration "${file}"`)

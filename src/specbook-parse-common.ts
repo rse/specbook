@@ -4,7 +4,7 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import { type Specification, type Object as SpecObject, type Property }
+import { type Spec, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
 import { type Diagnostic }
     from "./specbook-diagnostic.js"
@@ -19,7 +19,7 @@ export interface SourceFile {
 
 /*  the result of parsing a set of specification Markdown files  */
 export interface ParseResult {
-    specification: Specification
+    specification: Spec
     diagnostics:   Diagnostic[]
 }
 
@@ -33,7 +33,7 @@ export interface ObjectMeta {
 export class ParseContext {
     diagnostics          = new Array<Diagnostic>()
     objectMeta           = new WeakMap<SpecObject, ObjectMeta>()
-    propMeta             = new WeakMap<Property, { line: number }>()
+    propMeta             = new WeakMap<SpecProperty, { line: number }>()
     linkIndex: LinkIndex = []
 
     /*  record a single diagnostic  */

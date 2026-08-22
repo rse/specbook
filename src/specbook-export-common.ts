@@ -8,7 +8,7 @@ import path              from "node:path"
 import fs                from "node:fs"
 import { fileURLToPath } from "node:url"
 
-import type { Specification, Object as SpecObject }
+import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
 
 /*  escape a text for embedding into template HTML (text and attributes)  */
@@ -38,27 +38,27 @@ export const isTitleObject = (object: SpecObject): boolean =>
     object.kind === "META" && object.name.toUpperCase() === "TITLE"
 
 /*  determine the title object of the specification  */
-const titleObject = (specification: Specification): SpecObject | undefined =>
+const titleObject = (specification: Spec): SpecObject | undefined =>
     specification.artifacts.flatMap((artifact) => artifact.objects).find(isTitleObject)
 
 /*  determine a property value of the title object  */
-const titleProperty = (specification: Specification, name: string): string | undefined =>
+const titleProperty = (specification: Spec, name: string): string | undefined =>
     titleObject(specification)?.properties.find((property) => property.key === name)?.value
 
 /*  determine the document language (LANG) from the title object  */
-export const documentLang = (specification: Specification): string | undefined =>
+export const documentLang = (specification: Spec): string | undefined =>
     titleProperty(specification, "LANG")?.trim()
 
 /*  determine the document character set (CHARSET) from the title object  */
-export const documentCharset = (specification: Specification): string | undefined =>
+export const documentCharset = (specification: Spec): string | undefined =>
     titleProperty(specification, "CHARSET")?.trim()
 
 /*  determine the document theme style (THEME-STYLE) from the title object  */
-export const documentThemeStyle = (specification: Specification): string | undefined =>
+export const documentThemeStyle = (specification: Spec): string | undefined =>
     titleProperty(specification, "THEME-STYLE")?.trim()
 
 /*  determine the document theme color tone (THEME-TONE) from the title object  */
-export const documentThemeTone = (specification: Specification): string | undefined =>
+export const documentThemeTone = (specification: Spec): string | undefined =>
     titleProperty(specification, "THEME-TONE")?.trim()
 
 /*  the setup of a paper size for print: its physical height and its
@@ -91,7 +91,7 @@ export const paperLength = (setup: PaperSetup, value: number): string =>
 /*  determine the document paper size (PAPER-SIZE) from the title object,
     matched case-insensitively, falling back onto the default if unset
     and rejecting an unknown size  */
-export const documentPaperSize = (specification: Specification): string => {
+export const documentPaperSize = (specification: Spec): string => {
     const value = titleProperty(specification, "PAPER-SIZE")?.trim()
     if (value === undefined)
         return paperSizeDefault
@@ -188,7 +188,7 @@ export const subsetStylesheet = async (charset?: string): Promise<string> => {
 }
 
 /*  determine the document title and subtitle from the title object  */
-export const documentTitle = (specification: Specification): { title: string, subtitle?: string } => ({
+export const documentTitle = (specification: Spec): { title: string, subtitle?: string } => ({
     title:    titleProperty(specification, "TITLE") ??
         titleObject(specification)?.name ?? "Specification",
     subtitle: titleProperty(specification, "SUBTITLE")
@@ -198,7 +198,7 @@ export const documentTitle = (specification: Specification): { title: string, su
     embedded image of the LOGO property of the title object, and falling back
     onto the built-in SpecBook logo (for use in isolated rendering contexts,
     like the print header/footer, which load no external resources)  */
-export const documentLogo = (specification: Specification): string => {
+export const documentLogo = (specification: Spec): string => {
     const content = titleObject(specification)
         ?.properties.find((property) => property.key === "LOGO")?.embedding?.[0]
     if (content === undefined)

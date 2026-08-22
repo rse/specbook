@@ -7,9 +7,9 @@
 import type { Config as GradiaConfig }
     from "@rse/gradia"
 
-import type { Specification, Object as SpecObject }
+import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
-import type { SchemaSpecification, SchemaObject, SchemaDiagram }
+import type { Schema, SchemaObject, SchemaDiagram }
     from "./specbook-format-schema.js"
 import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths, type LinkIndex }
     from "./specbook-link.js"
@@ -307,8 +307,8 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
 
 /*  collect the objects whose schema configuration carries a "diagram:"
     field (the schema resolution mirrors the semantic validation)  */
-const collectDiagrams = (specification: Specification,
-    config: SchemaSpecification): Map<SpecObject, SchemaDiagram> => {
+const collectDiagrams = (specification: Spec,
+    config: Schema): Map<SpecObject, SchemaDiagram> => {
     const diagrams = new Map<SpecObject, SchemaDiagram>()
     const walk = (object: SpecObject, schema: SchemaObject) => {
         if (schema.diagram !== undefined)
@@ -333,8 +333,8 @@ const collectDiagrams = (specification: Specification,
 
 /*  derive the Gradia specs of all diagram-configured objects
     of a specification  */
-export const specDiagrams = (specification: Specification,
-    config: SchemaSpecification): Map<SpecObject, DiagramResult> => {
+export const specDiagrams = (specification: Spec,
+    config: Schema): Map<SpecObject, DiagramResult> => {
     const index   = buildLinkIndex(specification)
     const anchors = anchorPaths(index)
     const parents = new Map<SpecObject, SpecObject | undefined>()
@@ -348,8 +348,8 @@ export const specDiagrams = (specification: Specification,
 
 /*  validate all configured diagrams of a specification, reporting
     every invalid diagram situation as a file/line-precise diagnostic  */
-export const validateDiagrams = (ctx: ParseContext, specification: Specification,
-    config: SchemaSpecification) => {
+export const validateDiagrams = (ctx: ParseContext, specification: Spec,
+    config: Schema) => {
     for (const [ object, result ] of specDiagrams(specification, config)) {
         const meta = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
         for (const error of result.errors)

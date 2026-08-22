@@ -11,9 +11,9 @@ import nunjucksAddons        from "@rse/nunjucks-addons"
 import textframe             from "textframe"
 import { Gradia }            from "@rse/gradia"
 
-import type { Specification, Artifact, Object as SpecObject, Property, Description }
+import type { Spec, SpecArtifact, SpecObject, SpecProperty, SpecDescription }
     from "./specbook-format-spec.js"
-import type { SchemaSpecification, SchemaObject, SchemaFormat }
+import type { Schema, SchemaObject, SchemaFormat }
     from "./specbook-format-schema.js"
 import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths }
     from "./specbook-link.js"
@@ -261,8 +261,8 @@ let diagrams: Map<SpecObject, string> | null       = null
 
 /*  the cache of the pre-rendered diagram SVGs, keyed by specification,
     as the PDF export renders the very same document multiple times  */
-const diagramCache = new WeakMap<Specification,
-    { config: SchemaSpecification, diagrams: Map<SpecObject, string> }>()
+const diagramCache = new WeakMap<Spec,
+    { config: Schema, diagrams: Map<SpecObject, string> }>()
 
 /*  determine the fully-qualified anchor path of an object  */
 const anchorOf = (object: SpecObject): string =>
@@ -300,7 +300,7 @@ const renderEmbeddings = (text: string, embedding: string[]): string[] => {
 
 /*  render a description into HTML, expanding its inline Markdown and
     moving the file embeddings to the end of the description  */
-const renderDescription = (description: Description): string => {
+const renderDescription = (description: SpecDescription): string => {
     const text = description.description
         .replace(embeddingRegex, (markup, _alt, reference: string) =>
             embeddingMimeType(reference.trim()) !== undefined ? "" : markup)
@@ -340,8 +340,8 @@ const collectMembers = (schemas: SchemaObject[], result: Map<string, "enum" | "t
 
 /*  map the specification objects onto their schema configuration
     nodes (the schema resolution mirrors the semantic validation)  */
-const collectSchemas = (specification: Specification,
-    config: SchemaSpecification): Map<SpecObject, SchemaObject> => {
+const collectSchemas = (specification: Spec,
+    config: Schema): Map<SpecObject, SchemaObject> => {
     const result = new Map<SpecObject, SchemaObject>()
     const walk = (object: SpecObject, schema: SchemaObject) => {
         result.set(object, schema)
@@ -381,7 +381,7 @@ const inlineValue = (kind: string, key: string, value: string) => {
 }
 
 /*  expand the inline Markdown of the property values  */
-const inlineProperties = (kind: string, properties: Property[]) =>
+const inlineProperties = (kind: string, properties: SpecProperty[]) =>
     properties.map((property) => ({ key: property.key,
         value: inlineValue(kind, property.key, property.value) }))
 
@@ -397,7 +397,7 @@ const maxColumnsOf = (object: SpecObject): number =>
 /*  determine the effective properties of an object, with
     "withUnusedProps" injecting the defined but still unused schema
     properties (in schema order) as empty key/value entries  */
-const effectiveProperties = (object: SpecObject): Property[] => {
+const effectiveProperties = (object: SpecObject): SpecProperty[] => {
     const schema = schemas?.get(object)
     if (schema?.format?.withUnusedProps !== true)
         return object.properties
@@ -584,7 +584,7 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
 }
 
 /*  render an artifact into HTML  */
-const renderArtifact = (artifact: Artifact): string =>
+const renderArtifact = (artifact: SpecArtifact): string =>
     render("Artifact", { Artifact: {
         objects:  safe(artifact.objects.map((object) => renderObject(object, 1, false)).join(""))
     } })
@@ -596,8 +596,8 @@ export type OutlineEntry = { title: string, anchor: string, childs: OutlineEntry
 
 /*  derive the hierarchy of the rendered object headings, skipping the
     title page object and the childs collapsing into compact tables  */
-export const htmlOutline = (specification: Specification,
-    config?: SchemaSpecification): OutlineEntry[] => {
+export const htmlOutline = (specification: Spec,
+    config?: Schema): OutlineEntry[] => {
     const paths     = anchorPaths(buildLinkIndex(specification))
     const schemaMap = config !== undefined ? collectSchemas(specification, config) : null
     const entry = (object: SpecObject): OutlineEntry => ({
@@ -615,8 +615,8 @@ export const htmlOutline = (specification: Specification,
     with the build-time pre-assembled stylesheet embedded inline, the
     artifact timestamps aggregated into min(Created)/max(Modified), and
     optional per-anchor page numbers attached to the ToC entries  */
-export const renderHtml = async (specification: Specification,
-    config?: SchemaSpecification, tocPages?: Map<string, number>, css?: string): Promise<string> => {
+export const renderHtml = async (specification: Spec,
+    config?: Schema, tocPages?: Map<string, number>, css?: string): Promise<string> => {
     /*  pre-render the configured diagrams as embeddable SVGs (a runtime
         rendering failure omits the diagram, as the statically detectable
         invalid situations are already reported as lint diagnostics),

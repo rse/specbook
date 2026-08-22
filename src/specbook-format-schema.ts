@@ -9,7 +9,7 @@ import { Gradia, type Config as GradiaConfig } from "@rse/gradia"
 
 /*  ==== Types ====  */
 
-export type SchemaSpecification = SchemaObject[]
+export type Schema = SchemaObject[]
 export type SchemaObject = {
     kind:              string
     name?:             string
@@ -101,6 +101,6 @@ const SchemaObject: v.GenericSchema<SchemaObject> = v.strictObject({
     props:             v.optional(v.array(SchemaProperty)),
     childs:            v.optional(v.array(v.lazy(() => SchemaObject)))
 })
-export const SchemaSpecification: v.GenericSchema<SchemaSpecification> =
+export const Schema: v.GenericSchema<Schema> =
     v.pipe(v.array(SchemaObject), v.minLength(1))
 

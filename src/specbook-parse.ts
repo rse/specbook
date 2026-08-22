@@ -6,9 +6,9 @@
 
 import * as v from "valibot"
 
-import { Specification, type Artifact }
+import { Spec, type SpecArtifact }
     from "./specbook-format-spec.js"
-import { type SchemaSpecification }
+import { type Schema }
     from "./specbook-format-schema.js"
 import { buildLinkIndex }
     from "./specbook-link.js"
@@ -31,15 +31,15 @@ export class Parser {
 
     /*  parse all source files into the specification AST and
         optionally validate the result against a configuration  */
-    parse (sources: SourceFile[], config?: SchemaSpecification): ParseResult {
+    parse (sources: SourceFile[], config?: Schema): ParseResult {
         /*  reset the parsing context to allow a reuse of the parser  */
         this.ctx = new ParseContext()
 
         /*  parse all source files into their artifacts  */
-        const artifacts = new Array<Artifact>()
+        const artifacts = new Array<SpecArtifact>()
         for (const source of sources)
             artifacts.push(...parseFile(this.ctx, source))
-        const specification: Specification = { artifacts }
+        const specification: Spec = { artifacts }
 
         /*  validate the resulting specification AST  */
         if (artifacts.length > 0) {
@@ -49,7 +49,7 @@ export class Parser {
             validateReferences(this.ctx, specification)
             if (config !== undefined)
                 validateDiagrams(this.ctx, specification, config)
-            const result = v.safeParse(Specification, specification)
+            const result = v.safeParse(Spec, specification)
             if (!result.success)
                 for (const issue of result.issues) {
                     const path = (issue.path ?? []).map((item) => String(item.key)).join(".")
@@ -61,5 +61,5 @@ export class Parser {
 }
 
 /*  convenience wrapper for one-shot parsing  */
-export const parseSpecification = (sources: SourceFile[], config?: SchemaSpecification): ParseResult =>
+export const parseSpecification = (sources: SourceFile[], config?: Schema): ParseResult =>
     new Parser().parse(sources, config)

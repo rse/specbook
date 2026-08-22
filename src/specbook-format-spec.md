@@ -2,12 +2,172 @@
 SpecBook Specification Format
 =============================
 
-Artifact Files
---------------
+```
+╭ ─ ─ ─ ─ ─ ─ ─ ─ ─ ╮      ╭───────────────────╮
+      SpecBook             │     SpecBook      │
+│      SCHEMA       │      │       SPEC        │
+     Meta Model            │    Meta Model     │
+╰ ─ ─ ─ ─ ┬ ─ ─ ─ ─ ╯      ╰─────────┬─────────╯
+          │                          │
+          │                          │
+╭ ─ ─ ─ ─ ▼ ─ ─ ─ ─ ╮      ╭─────────▼─────────╮
+      SpecBook             │     SpecBook      │
+│      SCHEMA       ├──────▶       SPEC        │
+        Model              │       Model       │
+╰ ─ ─ ─ ─ ─ ─ ─ ─ ─ ╯      ╰───────────────────╯
+```
+
+SpecBook SPEC Meta Model
+------------------------
+
+**SpecBook** knows an object model named **SpecBook SPEC Meta Model**,
+described in *TypeScript* inside **SpecBook**, which defines the
+structure/format of all **SpecBook** *Specifications*. It is reusable
+and applied onto the **SpecBook SPEC Model** to validate that it is
+technically well-structured:
+
+```ts
+type Spec = {
+    artifacts:         SpecArtifact[]
+}
+type SpecArtifact = {
+    created:           Date
+    modified:          Date
+    objects:           SpecObject[]
+}
+type SpecObject = {
+    kind:              string
+    id:                string
+    anchor?:           string
+    paren?:            string
+    name:              string
+    primary?:          boolean
+    description?:      SpecDescription
+    properties:        SpecProperty[]
+    childs:            SpecObject[]
+}
+type SpecDescription = {
+    description:       string
+    rationale?:        string
+    embedding?:        string[]
+}
+type SpecProperty = {
+    key:               string
+    value:             string
+    embedding?:        string[]
+}
+```
+
+The individual fields are:
+
+-   **Spec**:
+    whole specification: the artifacts the corpus is comprised of
+    BECAUSE a specification is one corpus of separately authored files
+
+-   **Spec.artifacts: SpecArtifact[]**:
+    all artifacts parsed from the Markdown files of the base directory
+    BECAUSE the corpus is scanned as a whole to resolve references
+
+-   **SpecArtifact**:
+    single artifact: one level 1 heading plus its file timestamps
+    BECAUSE artifacts are the unit of authoring, review, and generation
+
+-   **SpecArtifact.created: Date**:
+    creation timestamp from the `Created:` frontmatter field
+    BECAUSE an origin has to survive Git checkouts and file copies
+
+-   **SpecArtifact.modified: Date**:
+    last modification timestamp from the `Modified:` frontmatter field
+    BECAUSE freshness steers review and reconciliation of an artifact
+
+-   **SpecArtifact.objects: SpecObject[]**:
+    root objects of the artifact, opened by its level 1 heading
+    BECAUSE an artifact is the tree below exactly one root object
+
+-   **SpecObject**:
+    object of the artifact tree: the atom of a specification
+    BECAUSE every statement needs an addressable, kind-typed carrier
+
+-   **SpecObject.kind: string**:
+    kind name of the object (e.g. `ENTITY`), case-sensitive
+    BECAUSE the kind decides which schema rules apply to the object
+
+-   **SpecObject.id: string**:
+    unique anchor id, explicitly given or slugified from the name
+    BECAUSE every object has to be linkable by a stable short handle
+
+-   **SpecObject.anchor?: string**:
+    explicit `{{xxx}}` anchor given in the heading, if any
+    BECAUSE an explicit anchor keeps ids stable when names change
+
+-   **SpecObject.paren?: string**:
+    parenthesized `(xxx)` token trailing the name, if any
+    BECAUSE one token serves as artifact id, property value, or anchor
+
+-   **SpecObject.name: string**:
+    name of the object, as written in its heading or list item
+    BECAUSE the name is the human handle and a reference target
+
+-   **SpecObject.primary?: boolean**:
+    whether the `(*)` marker flags the object as primary
+    BECAUSE some kinds have a distinguished member among their peers
+
+-   **SpecObject.description?: SpecDescription**:
+    description statement of the object, with its rationale
+    BECAUSE the WHAT alone leaves the WHY of an object unrecorded
+
+-   **SpecObject.properties: SpecProperty[]**:
+    key/value properties of the object, in canonical order
+    BECAUSE properties carry the structured, machine-checkable content
+
+-   **SpecObject.childs: SpecObject[]**:
+    child objects nested one level below this object (RECURSION)
+    BECAUSE a specification is a tree, not a flat list of statements
+
+-   **SpecDescription**:
+    description of an object: statement, rationale, and images
+    BECAUSE the WHAT and the WHY are stored apart to be rendered apart
+
+-   **SpecDescription.description: string**:
+    statement text of the description (the WHAT)
+    BECAUSE the WHAT is the substance every object has to carry
+
+-   **SpecDescription.rationale?: string**:
+    rationale text behind the `, BECAUSE ` split (the WHY)
+    BECAUSE a statement without its WHY cannot be judged or revised
+
+-   **SpecDescription.embedding?: string[]**:
+    image files embedded via `![xxx](yyy)`, inlined at parse time
+    BECAUSE the exports have to stand alone, without the image files
+
+-   **SpecProperty**:
+    key/value property attached to an object
+    BECAUSE the structured facts of an object belong beside its prose
+
+-   **SpecProperty.key: string**:
+    property key, optionally carrying a `(xxx)` annotation
+    BECAUSE the key selects the schema rule the value is checked by
+
+-   **SpecProperty.value: string**:
+    property value, joined from its (possibly wrapped) lines
+    BECAUSE constraints and references are checked against this text
+
+-   **SpecProperty.embedding?: string[]**:
+    image files embedded in the value, inlined at parse time
+    BECAUSE the exports have to stand alone, without the image files
+
+SpecBook SPEC Model
+-------------------
+
+This is an object model, described in *Markdown* outside **SpecBook**,
+which defines a particular **SpecBook** *Specification*. It is the
+standalone document of a particular project.
+
+### Artifact Files
 
 A specification consists of Markdown *artifact* files, which are
 scanned recursively from a base directory. Every file has to start with
-a frontmatter block carrying the `Created:` and `Modified:` timestamps
+a "frontmatter" block carrying the `Created:` and `Modified:` timestamps
 (format `yyyy-LL-dd HH:mm`):
 
 ```
@@ -22,8 +182,7 @@ carries exactly one. Both ATX headings (`# <text/>`, `## <text/>`, ...)
 and Setext headings (`<text/>` underlined with `===` or `---`) are
 supported.
 
-Object Model
-------------
+### Object Model
 
 An artifact carries a tree of *objects*. Every object has a mandatory
 *kind* (e.g. `ENTITY`), a mandatory *name*, a unique anchor *id*
@@ -31,25 +190,17 @@ An artifact carries a tree of *objects*. Every object has a mandatory
 marker, optional *properties* (key/value pairs), an optional
 *description* statement with an optional rationale, and optional *child*
 objects. Which kinds, properties, and nestings are allowed is defined by
-the schema configuration (see below); object kinds and property keys are
-case-sensitive and have to be written exactly as configured. Backquotes
-in names and property values are preserved as code markup for rendering,
-but are ignored when matching names, references, and constraints.
+the schema.
 
-Three concrete syntaxes exist:
+### Format Variant: Complex Format
 
-Format Variants
----------------
-
-### Complex Format
-
-Usually used on object hierarchy levels 1-3 (`#`, `##`, `###`). A
-heading opens the object, an optional unordered list carries its
-properties, and the remaining content up to the next heading is its
-description:
+This Markdown format to represent objects is usually used on object
+hierarchy levels 1-3 (`#`, `##`, `###`). A heading opens the object,
+an optional unordered list carries its properties, and the remaining
+content up to the next heading is its description:
 
 ```
-#   <kind/>: <name/> (<id/>)
+#   <kind/>: <name/> (<id/>) {{<id/>}}
 
 -   <key/>: <value/>
 -   [...]
@@ -62,12 +213,13 @@ becomes a child of the preceding `#` object, a `###` object a child of
 the preceding `##` object, etc. Skipping a level (a heading without a
 parent object on the level above) is an error.
 
-### Concise Format
+### Format Variant: Concise Format
 
-Usually used on level 4 and deeper. A single unordered list item carries
-the entire object as `;`-separated segments -- the `<kind/>: <name/>`
-head, the `<key/>: <value/>` properties, and the trailing description --
-and may wrap over multiple (indented) lines:
+This Markdown format to represent objects is usually used on level 4
+and deeper. A single unordered list item carries the entire object as
+`;`-separated segments -- the `<kind/>: <name/>` head, the `<key/>:
+<value/>` properties, and the trailing description -- and may wrap over
+multiple (indented) lines:
 
 ```
 -   <kind/>: <name/>; <key/>: <value/>; [...];
@@ -85,16 +237,18 @@ concise items become child objects of that parent:
 ```
 -   <kind/>: <name/>; <key/>: <value/>;
     <statement/>, BECAUSE <rationale/>.
+
     -   <kind/>: <name/>; <key/>: <value/>;
         <statement/>, BECAUSE <rationale/>.
 ```
 
-### Grouped Format
+### Format Variant: Grouped Format
 
-A heading carrying just a *kind* and no `<kind/>: <name/>` pair opens a
-*grouping container* instead of an object. The list items below it are
-Concise Format items whose kind comes from that heading, so they start
-with the (optionally backquoted) name directly:
+This Markdown format to represent objects is a special variant of the
+Concise Format. Here, a heading carrying just a *kind* and no `<kind/>:
+<name/>` pair opens a *grouping container* instead of an object. The
+list items below it are Concise Format items whose kind comes from that
+heading, so they start with the (optionally backquoted) name directly:
 
 ```
 ### <kinds/>
@@ -114,8 +268,7 @@ the Complex Format on levels 1-3 and the Concise Format from level 4
 upwards. When **SpecBook** edits existing files, it mirrors the format
 each existing object already uses.
 
-Names, Anchors, and Ids
------------------------
+### Names, Anchors, and Ids
 
 In all formats, the `<name/>` may carry trailing decorations, in any
 order:
@@ -144,8 +297,7 @@ When no explicit id is given, the id is derived by slugifying the name
 the schema configures a fixed `id` for an object, it has to be
 explicitly written in the input, via either `{{<id/>}}` or `(<id/>)`.
 
-Properties
-----------
+### Properties
 
 In the Complex Format, each property is an unordered list item of the
 form `<key/>: <value/>`, whose value may continue on the following
@@ -162,8 +314,7 @@ and the remaining tokens are distributed (case-insensitively) across the
 other still unset pattern-constrained properties of the object. Tokens
 assignable to no property are reported as errors.
 
-Descriptions and Rationales
----------------------------
+### Descriptions and Rationales
 
 The description of a Complex Format object is all block content below
 its heading (up to the next heading) except the property list:
@@ -182,8 +333,7 @@ The event is created and configured but not visible to attendees,
 BECAUSE an event needs a private setup phase.
 ```
 
-Wiki-Style References
----------------------
+### Wiki-Style References
 
 A `[[<reference/>]]` anywhere in a name, property value, description, or
 rationale is a Wiki-style reference to another object, which is checked
@@ -212,16 +362,14 @@ resolve into match *sets* and are used in the schema configuration to
 constrain reference-valued properties (e.g. `[[PERSONA:*]]` or
 `[[DM.ENTITY:*]]`).
 
-Image Embeddings
-----------------
+### Image Embeddings
 
 A Markdown image `![<alt/>](<file/>)` inside a description or property
 value embeds a local image file, resolved relative to the artifact file:
 SVG files are inlined as-is; PNG/JPEG files are embedded as base64
 `data:` URLs. URLs and other file types are left untouched.
 
-Normalization
--------------
+### Normalization
 
 The semantic phase validates the parsed objects against the schema
 configuration (unknown kinds and properties, missing required properties

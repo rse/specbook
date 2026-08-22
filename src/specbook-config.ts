@@ -8,7 +8,7 @@ import * as fs from "node:fs"
 import { parse as parseYaml, parseDocument, YAMLParseError } from "yaml"
 import * as v  from "valibot"
 
-import { SchemaSpecification, type SchemaObject } from "./specbook-format-schema.js"
+import { Schema, type SchemaObject } from "./specbook-format-schema.js"
 import { compileValueExpr }  from "./specbook-parse-value.js"
 import { type Diagnostic }   from "./specbook-diagnostic.js"
 
@@ -27,7 +27,7 @@ const lineColOfPath = (yaml: string, cst: ReturnType<typeof parseDocument>, path
 }
 
 /*  load and validate a YAML schema configuration file  */
-export const loadConfig = (file: string): { config: SchemaSpecification | null, diagnostics: Diagnostic[] } => {
+export const loadConfig = (file: string): { config: Schema | null, diagnostics: Diagnostic[] } => {
     const diagnostics: Diagnostic[] = []
 
     /*  read the configuration file  */
@@ -66,7 +66,7 @@ export const loadConfig = (file: string): { config: SchemaSpecification | null, 
         cst ??= parseDocument(yaml)
         return lineColOfPath(yaml, cst, path)
     }
-    const result = v.safeParse(SchemaSpecification, obj)
+    const result = v.safeParse(Schema, obj)
     if (!result.success) {
         for (const issue of result.issues) {
             const path = (issue.path ?? []).map((item) => item.key as string | number)

@@ -8,9 +8,9 @@ import JSON5                                      from "json5"
 import { stringify as stringifyYaml }             from "yaml"
 import { encode as encodeToon, type JsonValue }   from "@toon-format/toon"
 
-import type { Specification, Object as SpecObject }
+import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
-import type { SchemaSpecification }
+import type { Schema }
     from "./specbook-format-schema.js"
 import { specDiagrams }
     from "./specbook-diagram.js"
@@ -24,8 +24,8 @@ interface PlainObject        { diagram?: string, childs: PlainObject[] }
 interface PlainSpecification { artifacts: { objects: PlainObject[] }[] }
 
 /*  render the specification AST into a serialization format  */
-export const renderAst = async (specification: Specification, format: AstFormat,
-    config?: SchemaSpecification): Promise<Buffer> => {
+export const renderAst = async (specification: Spec, format: AstFormat,
+    config?: Schema): Promise<Buffer> => {
     /*  reduce the specification to plain JSON values (ISO date strings)  */
     const plain = JSON.parse(JSON.stringify(specification)) as PlainSpecification
 

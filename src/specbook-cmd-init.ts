@@ -7,12 +7,12 @@
 import * as fs   from "node:fs"
 import * as path from "node:path"
 
-import { type SchemaSpecification } from "./specbook-format-schema.js"
+import { type Schema } from "./specbook-format-schema.js"
 import { timestamp }                from "./specbook-llm.js"
 
 /*  the options of the init command  */
 export interface InitOptions {
-    config:   SchemaSpecification
+    config:   Schema
     basedir?: string
     verbose:  (msg: string) => void
 }

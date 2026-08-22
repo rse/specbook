@@ -4,9 +4,9 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import { type Specification, type Artifact, type Object as SpecObject, type Property }
+import { type Spec, type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
-import { type SchemaSpecification, type SchemaObject, type SchemaProperty }
+import { type Schema, type SchemaObject, type SchemaProperty }
     from "./specbook-format-schema.js"
 import { referenceRegex, resolveUnique, resolveSet }
     from "./specbook-link.js"
@@ -134,7 +134,7 @@ const assignInlineTokens = (ctx: ParseContext, object: SpecObject,
 /*  check a property value against the compiled value expression of its
     configured schema property  */
 const checkPropValue = (ctx: ParseContext, prop: SchemaProperty,
-    expr: ValueExpr, property: Property, meta: ObjectMeta) => {
+    expr: ValueExpr, property: SpecProperty, meta: ObjectMeta) => {
     if (expr.kind === "reference") {
         /*  a reference constraint: the value has to be exactly one
             reference resolving into the constraint's wildcard match set  */
@@ -266,8 +266,8 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
 }
 
 /*  validate the parsed specification against the configuration  */
-export const validate = (ctx: ParseContext, specification: Specification, config: SchemaSpecification) => {
-    const position = new Map<Artifact, number>()
+export const validate = (ctx: ParseContext, specification: Spec, config: Schema) => {
+    const position = new Map<SpecArtifact, number>()
     for (const artifact of specification.artifacts) {
         for (const object of artifact.objects) {
             const meta   = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
@@ -303,7 +303,7 @@ export const validate = (ctx: ParseContext, specification: Specification, config
 
 /*  validate every Wiki-style reference for unique resolvability,
     independent of any configuration  */
-export const validateReferences = (ctx: ParseContext, specification: Specification) => {
+export const validateReferences = (ctx: ParseContext, specification: Spec) => {
     const check = (text: string, file: string, line: number) => {
         for (const m of text.matchAll(referenceRegex)) {
             const ref        = m[1].trim()
