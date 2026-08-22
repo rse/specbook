@@ -200,7 +200,7 @@ an optional unordered list carries its properties, and the remaining
 content up to the next heading is its description:
 
 ```
-#   <kind/>: <name/> (<id/>) {{<id/>}}
+#   <kind/>: <name/>
 
 -   <key/>: <value/>
 -   [...]
@@ -262,6 +262,8 @@ kind `STATE`. The grouped objects become children of the object the
 heading is nested under. An unquoted name must not contain a `:` (else
 the item would look like a key/value pair) -- backquote it in this case.
 
+### Format Usage
+
 When **SpecBook** itself generates specification Markdown, it emits
 the Complex Format on levels 1-3 and the Concise Format from level 4
 upwards. When **SpecBook** edits existing files, it mirrors the format
@@ -275,22 +277,14 @@ order:
 -   `{{<id/>}}`: the explicit Wiki-style anchor, setting the object id
     (e.g. `## ENTITY: Attendee Browser {{attendee}}`).
 
+-   `(<token/>)`: a parenthesized token with three possible roles: on
+    level 1 it becomes the artifact id (e.g. `# SPEC: Data Model (DM)`);
+    on deeper levels it acts as the implicit anchor id.
+
 -   `(*)`: the *primary* marker, flagging the object as primary (e.g.
     the primary attributes of an entity).
 
--   `(<token/>)`: a parenthesized token with three possible roles: on
-    level 1 it becomes the artifact id (e.g. `# SPEC: Data Model (DM)`);
-    on deeper levels it is either accepted as the value of a still
-    missing configured property whose constraint it matches (e.g.
-    `### SCENARIO: Successful Token Login (Main)` satisfying an
-    `enum(Main,Alternative,Exceptional)` property), or else acts as the
-    implicit anchor id.
-
--   `<a id="<id/>"></a>`: an HTML anchor at the very end of a heading,
-    as an alternative to `{{<id/>}}` (emitted by **SpecBook** itself
-    when exporting normalized Markdown).
-
-When no explicit id is given, the id is derived by slugifying the name
+When no explicit id is given, the id is derived by "slugifying" the name
 (lowercased, with non-alphanumeric character runs dashed). An explicit
 `{{<id/>}}` anchor always takes precedence over a `(<token/>)` id. When
 the schema configures a fixed `id` for an object, it has to be
