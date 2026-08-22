@@ -43,9 +43,9 @@ a CLI `specbook <cmd>`, and an MCP service `specbook mcp` with tools
         the AST against the schema configuration and the link references
     -   `src/specbook-parse-value.ts`: property value expression language
         (Tokenizr-based compiler for regex/enum/tags/list/reference constraints)
-    -   `src/specbook-struct-spec.ts`: types/schema of the generic Markdown
+    -   `src/specbook-format-spec.ts`: types/schema of the generic Markdown
         structure (the AST of the specification)
-    -   `src/specbook-struct-schema.ts`: types/schema of the YAML schema
+    -   `src/specbook-format-schema.ts`: types/schema of the YAML schema
         configuration (which domain-specific objects are allowed)
     -   `src/specbook-llm.ts`: AI provider/model resolution and the LLM
         file exchange protocol for `import`/`edit`

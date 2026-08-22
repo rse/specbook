@@ -9,7 +9,7 @@ import fs                from "node:fs"
 import { fileURLToPath } from "node:url"
 
 import type { Specification, Object as SpecObject }
-    from "./specbook-struct-spec.js"
+    from "./specbook-format-spec.js"
 
 /*  escape a text for embedding into template HTML (text and attributes)  */
 export const escapeHtml = (text: string): string =>

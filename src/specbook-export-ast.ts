@@ -9,9 +9,9 @@ import { stringify as stringifyYaml }             from "yaml"
 import { encode as encodeToon, type JsonValue }   from "@toon-format/toon"
 
 import type { Specification, Object as SpecObject }
-    from "./specbook-struct-spec.js"
+    from "./specbook-format-spec.js"
 import type { SchemaSpecification }
-    from "./specbook-struct-schema.js"
+    from "./specbook-format-schema.js"
 import { specDiagrams }
     from "./specbook-diagram.js"
 

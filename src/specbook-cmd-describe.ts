@@ -6,7 +6,7 @@
 
 import textframe from "textframe"
 
-import { type SchemaSpecification, type SchemaObject, type SchemaProperty } from "./specbook-struct-schema.js"
+import { type SchemaSpecification, type SchemaObject, type SchemaProperty } from "./specbook-format-schema.js"
 
 /*  collapse folded YAML prose into a single line  */
 const collapse = (text?: string): string =>

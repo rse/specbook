@@ -8,7 +8,7 @@ import * as fs from "node:fs"
 import { parse as parseYaml, parseDocument, YAMLParseError } from "yaml"
 import * as v  from "valibot"
 
-import { SchemaSpecification, type SchemaObject } from "./specbook-struct-schema.js"
+import { SchemaSpecification, type SchemaObject } from "./specbook-format-schema.js"
 import { compileValueExpr }  from "./specbook-parse-value.js"
 import { type Diagnostic }   from "./specbook-diagnostic.js"
 

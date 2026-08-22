@@ -6,8 +6,8 @@
 
 import { minify }                    from "@swc/html"
 
-import type { Specification }        from "./specbook-struct-spec.js"
-import type { SchemaSpecification }  from "./specbook-struct-schema.js"
+import type { Specification }        from "./specbook-format-spec.js"
+import type { SchemaSpecification }  from "./specbook-format-schema.js"
 import { documentTitle, documentLogo, documentCharset, documentThemeTone, subsetStylesheet,
     documentPaperSize, paperStylesheet }
     from "./specbook-export-common.js"

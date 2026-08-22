@@ -8,7 +8,7 @@ import * as fs   from "node:fs"
 import * as path from "node:path"
 import textframe from "textframe"
 
-import { type SchemaSpecification } from "./specbook-struct-schema.js"
+import { type SchemaSpecification } from "./specbook-format-schema.js"
 import { describeConfiguration }    from "./specbook-cmd-describe.js"
 import { complete, timestamp, renderFileBlock, parseFileBlocks, type AiOptions }
     from "./specbook-llm.js"

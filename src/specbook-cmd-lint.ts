@@ -10,8 +10,8 @@ import * as path from "node:path"
 import { loadConfig }                          from "./specbook-config.js"
 import { type Diagnostic }                     from "./specbook-diagnostic.js"
 import { parseSpecification, type SourceFile } from "./specbook-parse.js"
-import { type Specification }                  from "./specbook-struct-spec.js"
-import { type SchemaSpecification }            from "./specbook-struct-schema.js"
+import { type Specification }                  from "./specbook-format-spec.js"
+import { type SchemaSpecification }            from "./specbook-format-schema.js"
 
 /*  the options of the lint command  */
 export interface LintOptions {

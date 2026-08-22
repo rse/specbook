@@ -10,7 +10,7 @@ import * as path from "node:path"
 import { marked, type Tokens } from "marked"
 
 import { type Artifact, type Object as SpecObject, type Property }
-    from "./specbook-struct-spec.js"
+    from "./specbook-format-spec.js"
 import { ParseContext, embeddingRegex, embeddingMimeType, type SourceFile }
     from "./specbook-parse-common.js"
 

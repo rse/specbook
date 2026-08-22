@@ -12,9 +12,9 @@ import textframe             from "textframe"
 import { Gradia }            from "@rse/gradia"
 
 import type { Specification, Artifact, Object as SpecObject, Property, Description }
-    from "./specbook-struct-spec.js"
+    from "./specbook-format-spec.js"
 import type { SchemaSpecification, SchemaObject, SchemaFormat }
-    from "./specbook-struct-schema.js"
+    from "./specbook-format-schema.js"
 import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths }
     from "./specbook-link.js"
 import { compileValueExpr, splitItems }

@@ -7,7 +7,7 @@
 import * as fs   from "node:fs"
 import * as path from "node:path"
 
-import { type SchemaSpecification } from "./specbook-struct-schema.js"
+import { type SchemaSpecification } from "./specbook-format-schema.js"
 import { timestamp }                from "./specbook-llm.js"
 
 /*  the options of the init command  */

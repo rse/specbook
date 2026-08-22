@@ -5,9 +5,9 @@
 */
 
 import type { Specification, Object as SpecObject, Property, Description }
-    from "./specbook-struct-spec.js"
+    from "./specbook-format-spec.js"
 import type { SchemaSpecification }
-    from "./specbook-struct-schema.js"
+    from "./specbook-format-schema.js"
 import { specDiagrams }
     from "./specbook-diagram.js"
 

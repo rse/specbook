@@ -8,9 +8,9 @@ import type { Config as GradiaConfig }
     from "@rse/gradia"
 
 import type { Specification, Object as SpecObject }
-    from "./specbook-struct-spec.js"
+    from "./specbook-format-spec.js"
 import type { SchemaSpecification, SchemaObject, SchemaDiagram }
-    from "./specbook-struct-schema.js"
+    from "./specbook-format-schema.js"
 import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths, type LinkIndex }
     from "./specbook-link.js"
 import { type ParseContext }

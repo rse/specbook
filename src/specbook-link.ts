@@ -4,7 +4,7 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import type { Specification, Object as SpecObject } from "./specbook-struct-spec.js"
+import type { Specification, Object as SpecObject } from "./specbook-format-spec.js"
 
 /*  the Wiki-style reference syntax ("[[xxx]]")  */
 export const referenceRegex = /\[\[([^[\]]+)\]\]/g

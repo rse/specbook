@@ -16,14 +16,14 @@ import { exportSpecification, parseOutputSpec, formats, type ExportFormat } from
 import { describeConfiguration }                         from "./specbook-cmd-describe.js"
 import { importSpecification }                           from "./specbook-cmd-import.js"
 import { editSpecification }                             from "./specbook-cmd-edit.js"
-import { type SchemaSpecification }                      from "./specbook-struct-schema.js"
+import { type SchemaSpecification }                      from "./specbook-format-schema.js"
 
 /*  re-export the central types for API consumers  */
 export { formats, parseOutputSpec, type ExportFormat }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic }
 export { type LintResult }
-export type { Specification, Artifact, Object, Description, Property } from "./specbook-struct-spec.js"
-export type { SchemaSpecification, SchemaObject, SchemaProperty }      from "./specbook-struct-schema.js"
+export type { Specification, Artifact, Object, Description, Property } from "./specbook-format-spec.js"
+export type { SchemaSpecification, SchemaObject, SchemaProperty }      from "./specbook-format-schema.js"
 
 /*  the own version, taken from the package manifest, which resides one
     level above both the source and the compiled module directory  */

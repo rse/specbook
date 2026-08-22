@@ -7,9 +7,9 @@
 import * as v from "valibot"
 
 import { Specification, type Artifact }
-    from "./specbook-struct-spec.js"
+    from "./specbook-format-spec.js"
 import { type SchemaSpecification }
-    from "./specbook-struct-schema.js"
+    from "./specbook-format-schema.js"
 import { buildLinkIndex }
     from "./specbook-link.js"
 import { ParseContext, type SourceFile, type ParseResult }

@@ -5,7 +5,7 @@
 */
 
 import { type Specification, type Object as SpecObject, type Property }
-    from "./specbook-struct-spec.js"
+    from "./specbook-format-spec.js"
 import { type Diagnostic }
     from "./specbook-diagnostic.js"
 import { type LinkIndex }
