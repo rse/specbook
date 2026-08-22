@@ -32,11 +32,6 @@ export interface DiagramResult {
 const plainText = (text: string): string =>
     text.replace(/`/g, "")
 
-/*  strip a trailing parenthesized annotation from a
-    property key (e.g. "WHEN (Context)")  */
-const plainKey = (key: string): string =>
-    key.replace(/\s*\([^)]*\)\s*$/, "").trim()
-
 /*  render a text as a Gradia atom: a bareword where possible
     (no whitespace, no special characters, no "--"), a quoted
     string otherwise  */
@@ -99,7 +94,7 @@ const renderSpec = (diagram: SchemaDiagram, type: string, center: SpecObject,
             the node set can mix objects of different kinds), with every
             "[[...]]" reference stripped to its target object name  */
         for (const key of diagram.properties ?? []) {
-            const value = node.properties.find((property) => plainKey(property.key) === key)?.value
+            const value = node.properties.find((property) => property.key === key)?.value
             if (value !== undefined) {
                 const text = value.replace(referenceRegex, (_, reference: string) => {
                     const target = resolveUnique(index, reference.trim()).target
@@ -197,7 +192,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
             const source = parents.get(edgeObject)
             const value  = diagram.edgeTarget !== undefined ?
                 edgeObject.properties.find((property) =>
-                    plainKey(property.key) === diagram.edgeTarget)?.value :
+                    property.key === diagram.edgeTarget)?.value :
                 edgeObject.properties.map((property) => property.value)
                     .find((v) => referenceOnce.test(v))
             const reference = value?.match(referenceOnce)?.[1].trim()
@@ -213,7 +208,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
             if (!nodeSet.has(source) || !nodeSet.has(target))
                 continue
             const arity = edgeObject.properties.find((property) =>
-                plainKey(property.key) === (diagram.edgeArity ?? "ARITY"))?.value
+                property.key === (diagram.edgeArity ?? "ARITY"))?.value
             edges.push({ source, target, name: plainText(edgeObject.name),
                 arity: arity !== undefined ? plainText(arity) : undefined })
         }

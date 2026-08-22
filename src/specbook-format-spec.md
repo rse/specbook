@@ -145,7 +145,7 @@ The individual fields are:
     BECAUSE the structured facts of an object belong beside its prose
 
 -   **SpecProperty.key: string**:
-    property key, optionally carrying a `(xxx)` annotation
+    property key, as written in the Markdown content
     BECAUSE the key selects the schema rule the value is checked by
 
 -   **SpecProperty.value: string**:
@@ -295,9 +295,8 @@ explicitly written in the input, via either `{{<id/>}}` or `(<id/>)`.
 In the Complex Format, each property is an unordered list item of the
 form `<key/>: <value/>`, whose value may continue on the following
 indented lines of the item (joined with spaces). In the Concise Format,
-each property is a `<key/>: <value/>` segment. A property key may carry
-a trailing parenthesized annotation (e.g. `WHEN (Context)`), which is
-kept for rendering but ignored when matching the key against the schema.
+each property is a `<key/>: <value/>` segment. The key is matched
+against the schema exactly as written.
 
 A multi-token convenience exists for pattern-constrained properties:
 when a property value fails its (regex or enum) constraint as a whole,

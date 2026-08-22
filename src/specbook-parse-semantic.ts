@@ -15,11 +15,6 @@ import { compileValueExpr, splitItems, type ValueExpr }
 import { ParseContext, type ObjectMeta }
     from "./specbook-parse-common.js"
 
-/*  strip a trailing parenthesized annotation from a
-    property key (e.g. "WHEN (Context)")  */
-const plainKey = (key: string): string =>
-    key.replace(/\s*\([^)]*\)\s*$/, "").trim()
-
 /*  strip the inline code markup of a name or property value
     (preserved in the AST for rendering) for matching purposes  */
 const plainText = (text: string): string =>
@@ -73,7 +68,7 @@ const matchAlternatives = (ctx: ParseContext, alternatives: ValueExpr[], item: s
 
 /*  find a property of an object by its key (case-sensitive)  */
 const findProp = (object: SpecObject, name: string) =>
-    object.properties.find((p) => plainKey(p.key) === name)
+    object.properties.find((p) => p.key === name)
 
 /*  distribute the inline tokens split off the multi-token property values
     of an object across its configured properties and report the
@@ -221,7 +216,7 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
 
     /*  report the properties not configured by the schema  */
     for (const property of object.properties)
-        if (!props.some((p) => p.name === plainKey(property.key)))
+        if (!props.some((p) => p.name === property.key))
             ctx.diagnose(meta.file, ctx.propMeta.get(property)?.line ?? meta.line,
                 `unknown property "${property.key}" on ${object.kind} "${object.name}"`)
 
@@ -259,7 +254,7 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
     }
     object.childs.sort((a, b) => kindPos(a.kind) - kindPos(b.kind))
     const propPos = (key: string) => {
-        const i = props.findIndex((p) => p.name === plainKey(key))
+        const i = props.findIndex((p) => p.name === key)
         return i >= 0 ? i : props.length
     }
     object.properties.sort((a, b) => propPos(a.key) - propPos(b.key))

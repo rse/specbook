@@ -364,15 +364,10 @@ const collectSchemas = (specification: Spec,
     return result
 }
 
-/*  strip a trailing parenthesized annotation from a
-    property key (e.g. "WHEN (Context)")  */
-const plainKey = (key: string): string =>
-    key.replace(/\s*\([^)]*\)\s*$/, "").trim()
-
 /*  render a property value, badging the individual members of an
     "enum(...)" (a single member) or "tags(...)" (a member set) value  */
 const inlineValue = (kind: string, key: string, value: string) => {
-    const member = members?.get(`${kind} ${plainKey(key)}`)
+    const member = members?.get(`${kind} ${key}`)
     if (member === undefined)
         return inline(value)
     const items = member === "tags" ? splitItems(value) : [ value.trim() ]
@@ -402,7 +397,7 @@ const effectiveProperties = (object: SpecObject): SpecProperty[] => {
     if (schema?.format?.withUnusedProps !== true)
         return object.properties
     const merged = (schema.props ?? []).flatMap((prop) => {
-        const present = object.properties.filter((property) => plainKey(property.key) === prop.name)
+        const present = object.properties.filter((property) => property.key === prop.name)
         return present.length > 0 ? present : [ { key: prop.name, value: "" } ]
     })
     return [ ...merged, ...object.properties.filter((property) => !merged.includes(property)) ]
@@ -420,7 +415,7 @@ const tableShape = (childs: SpecObject[]) => {
     const schema = schemas?.get(childs[0])
     if (schema?.format?.withUnusedProps === true) {
         const merged = (schema.props ?? []).flatMap((prop) => {
-            const present = keys.filter((key) => plainKey(key) === prop.name)
+            const present = keys.filter((key) => key === prop.name)
             return present.length > 0 ? present : [ prop.name ]
         })
         keys = [ ...merged, ...keys.filter((key) => !merged.includes(key)) ]
