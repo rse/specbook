@@ -80,6 +80,7 @@ type SchemaDiagram = {
     edges?:            string
     center?:           string
     links?:            "props" | "all"
+    edgeSource?:       string
     edgeTarget?:       string
     edgeArity?:        string
     hierarchy?:        boolean
@@ -163,7 +164,7 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE artifacts are fixed documents, deeper names need a rule only
 
 -   `SchemaObject.id?: string`:
-    short identifier the object explicitly carries in its heading,
+    short locally-unique identifier the object explicitly carries in its heading,
     BECAUSE stable ids keep `[[xxx]]` references free of prose names
 
 -   `SchemaObject.file?: string`:
@@ -218,9 +219,13 @@ type SchemaGradiaConfig = Partial<{
     edge source: property values (`props`) or also texts (`all`),
     BECAUSE prose references are incidental and need an opt-in
 
+-   `SchemaDiagram.edgeSource?: string`:
+    edge property naming the source node (default: the parent object),
+    BECAUSE an edge object is not always nested below its own source
+
 -   `SchemaDiagram.edgeTarget?: string`:
-    edge property naming the target node (default: the first property
-    whose value is a single reference),
+    edge property naming the target node (default: the first non-source
+    property whose value is a single reference),
     BECAUSE the convention breaks on multiple references per object
 
 -   `SchemaDiagram.edgeArity?: string`:
@@ -324,6 +329,11 @@ type SchemaGradiaConfig = Partial<{
 The edges are derived from the `[[xxx]]` references of the node objects
 -- from their property values only, or, with `links: all`, from their
 descriptions as well.
+
+An object acting as an edge (`edges`) connects its parent object to the
+object its target property references. Where an edge object is a sibling
+of its own source instead of a child of it, `edgeSource` names the
+property carrying that source.
 
 As the *nesting* of the objects carries no such reference, `hierarchy:
 true` additionally derives a containment edge from every node object to
@@ -443,8 +453,8 @@ type SpecProperty = {
     BECAUSE the kind decides which schema rules apply to the object
 
 -   `SpecObject.id: string`:
-    unique anchor id, explicitly given or slugified from the name,
-    BECAUSE every object has to be linkable by a stable short handle
+    locally-unique anchor id, explicitly given or "slugified" from the name,
+    BECAUSE every object has to be linkable by a stable handle
 
 -   `SpecObject.anchor?: string`:
     explicit `{{xxx}}` anchor given in the heading, if any,
@@ -707,13 +717,3 @@ A Markdown image `![<alt/>](<file/>)` inside a description or property
 value embeds a local image file, resolved relative to the artifact file:
 SVG files are inlined as-is; PNG/JPEG files are embedded as base64
 `data:` URLs. URLs and other file types are left untouched.
-
-### Normalization
-
-The semantic phase validates the parsed objects against the schema
-configuration (unknown kinds and properties, missing required properties
-and child kinds, and violated value constraints are reported with
-file/line-precise diagnostics) and then normalizes the specification:
-artifacts, child objects, and properties are stably reordered along the
-schema definition, so the exports always present them in their
-configured canonical order.

@@ -170,8 +170,8 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         objects (per the "links" selection) and from the edge objects by
         convention (source: parent object, target: first reference in the
         property values, name: object name, arity: "ARITY" property),
-        overridable via "edgeTarget"/"edgeArity" (a "grid" diagram is
-        edge-less by definition, so no edges are derived for it at all)  */
+        overridable via "edgeSource"/"edgeTarget"/"edgeArity" (a "grid"
+        diagram is edge-less by definition, so no edges are derived at all)  */
     let edges = new Array<DiagramEdge>()
     if (type !== "grid") {
         for (const node of nodes) {
@@ -188,17 +188,25 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
                         edges.push({ source: node, target })
                 }
         }
-        for (const edgeObject of edgeObjects) {
-            const source = parents.get(edgeObject)
-            const value  = diagram.edgeTarget !== undefined ?
-                edgeObject.properties.find((property) =>
-                    property.key === diagram.edgeTarget)?.value :
-                edgeObject.properties.map((property) => property.value)
-                    .find((v) => referenceOnce.test(v))
+        /*  resolve the node an edge object references through a named
+            property, or through its first single-reference property when
+            no name is configured (skipping the source property)  */
+        const edgeNode = (edgeObject: SpecObject, key: string | undefined) => {
+            const value = key !== undefined ?
+                edgeObject.properties.find((property) => property.key === key)?.value :
+                edgeObject.properties.filter((property) => property.key !== diagram.edgeSource)
+                    .map((property) => property.value).find((v) => referenceOnce.test(v))
             const reference = value?.match(referenceOnce)?.[1].trim()
-            const target    = reference !== undefined ? resolveUnique(index, reference).target : undefined
+            return reference !== undefined ? resolveUnique(index, reference).target : undefined
+        }
+        for (const edgeObject of edgeObjects) {
+            const source = diagram.edgeSource !== undefined ?
+                edgeNode(edgeObject, diagram.edgeSource) : parents.get(edgeObject)
+            const target = edgeNode(edgeObject, diagram.edgeTarget)
             if (source === undefined) {
-                errors.push(`diagram edge object "${edgeObject.name}" has no parent object as source`)
+                errors.push(diagram.edgeSource !== undefined ?
+                    `diagram edge object "${edgeObject.name}" carries no resolvable source reference` :
+                    `diagram edge object "${edgeObject.name}" has no parent object as source`)
                 continue
             }
             if (target === undefined) {

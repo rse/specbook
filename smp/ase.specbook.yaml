@@ -112,7 +112,7 @@
                     desc: >
                         Comma-separated references to the User Personas objects experiencing the
                         journey.
-                    value: list([[PERSONA:*]])
+                    value: list([[SPEC:UP.PERSONA:*]])
             childs:
                 -   kind: STEP
                     desc: >
@@ -258,7 +258,7 @@
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
                         NON-FUNCTIONAL-REQUIREMENTS objects the rule constrains.
-                    value: list([[FR.*]], [[NR.*]])
+                    value: list([[SPEC:FR.*]], [[SPEC:NR.*]])
                     optional: true
 
 -   kind: SPEC
@@ -270,8 +270,8 @@
         data the solution manages, defining how information is organized and connected.
     diagram:
         type: graph
-        nodes: "[[DM.ENTITY:*]]"
-        edges: "[[DM.ENTITY:*.RELATION:*]]"
+        nodes: "[[SPEC:DM.ENTITY:*]]"
+        edges: "[[SPEC:DM.ENTITY:*.RELATION:*]]"
     childs:
         -   kind: ENTITY
             name: "[A-Z][a-zA-Z0-9]*"
@@ -282,8 +282,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[DM.ENTITY:*]]"
-                edges: "[[DM.ENTITY:*.RELATION:*]]"
+                nodes: "[[SPEC:DM.ENTITY:*]]"
+                edges: "[[SPEC:DM.ENTITY:*.RELATION:*]]"
                 config:
                     size-node-width-max: 440
             childs:
@@ -302,7 +302,7 @@
                                 `unique` to indicate inclusion into the primary key of the entity,
                                 and optionally suffixed with `?` to indicate an optional (nullable)
                                 value.
-                            value: /^((?:unique|)\s+)?(?:boolean|string|integer|float|uuid|bytes|date|time|datetime|enum\((?:[A-Za-z0-9_]+)(?:,\s*[A-Za-z0-9_]+)*\))(?:\?)?$/
+                            value: /^(?:unique\s+)?(?:boolean|string|integer|float|uuid|bytes|date|time|datetime|enum\((?:[A-Za-z0-9_]+)(?:,\s*[A-Za-z0-9_]+)*\))(?:\?)?$/
                         -   name: DEFAULT
                             desc: The default value of the entity attribute.
                             value: /.*/
@@ -318,7 +318,7 @@
                     props:
                         -   name: TYPE
                             desc: Reference to the DATA-MODEL entity the directed relation targets.
-                            value: "[[DM.ENTITY:*]]"
+                            value: "[[SPEC:DM.ENTITY:*]]"
                         -   name: ARITY
                             desc: >
                                 The arity (cardinality) of the relation at the target entity: `0..1`
@@ -349,11 +349,22 @@
             desc: >
                 The lifecycle of a single entity, named with the short (1-3 word) name of the
                 lifecycle, normally the name of the entity it governs.
+            diagram:
+                type: graph
+                edges: "[[SPEC:SM.LIFECYCLE:*.TRANSITION:*]]"
+                edgeSource: FROM
+                edgeTarget: TO
+                onlyConnected: true
+                properties:
+                    -   INITIAL
+                    -   FINAL
+                config:
+                    size-node-width-max: 440
             props:
                 -   name: ENTITY
                     desc: >
                         Reference to the DATA-MODEL entity whose lifecycle this models.
-                    value: "[[DM.ENTITY:*]]"
+                    value: "[[SPEC:DM.ENTITY:*]]"
             childs:
                 -   kind: STATE
                     name: "[A-Z][a-zA-Z0-9]*"
@@ -394,10 +405,10 @@
                     props:
                         -   name: FROM
                             desc: The state the transition departs from.
-                            value: /^[A-Z][a-zA-Z0-9]*$/
+                            value: "[[SPEC:SM.LIFECYCLE:*.STATE:*]]"
                         -   name: TO
                             desc: The state the transition arrives at.
-                            value: /^[A-Z][a-zA-Z0-9]*$/
+                            value: "[[SPEC:SM.LIFECYCLE:*.STATE:*]]"
 
 -   kind: SPEC
     name: Glossary
@@ -448,7 +459,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[UC.USE-CASE:*]], [[PERSONA:*]], [[SPEC:FR.REQUIREMENT:*]]"
+                nodes: "[[SPEC:UC.USE-CASE:*]], [[SPEC:UP.PERSONA:*]], [[SPEC:FR.REQUIREMENT:*]]"
                 qualified: true
                 config:
                     size-node-width-max: 440
@@ -457,12 +468,12 @@
                     desc: >
                         Reference to the PERSONAS object denoting the primary actor pursuing the
                         goal.
-                    value: "[[PERSONA:*]]"
+                    value: "[[SPEC:UP.PERSONA:*]]"
                 -   name: REQUIREMENTS
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects the use
                         case realizes.
-                    value: list([[FR.*]])
+                    value: list([[SPEC:FR.*]])
                     optional: true
                 -   name: GOAL
                     desc: >
@@ -519,7 +530,7 @@
                     desc: >
                         Reference to the FUNCTIONAL-REQUIREMENTS or NON-FUNCTIONAL-REQUIREMENTS
                         object the test case verifies.
-                    value: "[[REQUIREMENT:*]]"
+                    value: "[[SPEC:*.REQUIREMENT:*]]"
                 -   name: PRE-CONDITION
                     desc: >
                         The state or setup that must hold before the test is executed.
@@ -631,17 +642,17 @@
                 -   name: USE-CASE
                     desc: >
                         Reference to the USE-CASES object the storyboard visualizes.
-                    value: "[[USE-CASE:*]]"
+                    value: "[[SPEC:UC.USE-CASE:*]]"
                     optional: true
                 -   name: SCENARIO
                     desc: >
                         Reference to the USE-CASES scenario object the storyboard visualizes.
-                    value: "[[SCENARIO:*]]"
+                    value: "[[SPEC:UC.USE-CASE:*.SCENARIO:*]]"
                     optional: true
                 -   name: PATTERN
                     desc: >
                         Reference to the DIALOG-PATTERNS object the storyboard instantiates.
-                    value: "[[PATTERN:*]]"
+                    value: "[[SPEC:DP.PATTERN:*]]"
                     optional: true
             childs:
                 -   kind: FRAME
@@ -695,7 +706,6 @@
                 -   name: KIND
                     desc: |
                         The kind of the external entity, one of:
-
                         -   `Person`:       A human actor interacting with the solution.
                         -   `System`:       An external software system the solution integrates
                                             with.
@@ -752,7 +762,6 @@
                 -   name: KIND
                     desc: |
                         The kind of the functional component, one of:
-
                         -   `Component`: Cohesive unit of functionality with a defined interface.
                         -   `Service`:   Independently deployable provider of functionality.
                         -   `Module`:    Logical grouping of related functionality within a
@@ -773,7 +782,7 @@
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW objects this component
                         depends on at runtime.
-                    value: list([[FV.COMPONENT:*]])
+                    value: list([[ARCH:FV.COMPONENT:*]])
                     optional: true
 
 -   kind: ARCH
@@ -815,12 +824,12 @@
                 -   name: ENTITIES
                     desc: >
                         Comma-separated references to the DATA-MODEL entities the aspect governs.
-                    value: list([[DM.ENTITY:*]])
+                    value: list([[SPEC:DM.ENTITY:*]])
                     optional: true
                 -   name: OWNER
                     desc: >
                         Reference to the FUNCTIONALITY-VIEW object that owns this information.
-                    value: "[[FV.COMPONENT:*]]"
+                    value: "[[ARCH:FV.COMPONENT:*]]"
                     optional: true
                 -   name: LIFECYCLE
                     desc: >
@@ -871,7 +880,7 @@
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW objects that run inside
                         this concurrency unit.
-                    value: list([[FV.COMPONENT:*]])
+                    value: list([[ARCH:FV.COMPONENT:*]])
                     optional: true
                 -   name: MULTIPLICITY
                     desc: >
@@ -959,7 +968,7 @@
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW objects deployed onto
                         this node.
-                    value: list([[FV.COMPONENT:*]])
+                    value: list([[ARCH:FV.COMPONENT:*]])
                     optional: true
                 -   name: NETWORK
                     desc: >
@@ -996,7 +1005,7 @@
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW
                         objects the concern applies to.
-                    value: list([[FV.COMPONENT:*]], [[DP.NODE:*]])
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]])
                     optional: true
 
 -   kind: ARCH
@@ -1045,7 +1054,7 @@
                     desc: >
                         Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
                         perspective addresses.
-                    value: list([[NR.*]])
+                    value: list([[SPEC:NR.*]])
                 -   name: TACTIC
                     desc: >
                         The architectural tactic or strategy applied to achieve the quality (e.g.
@@ -1055,7 +1064,7 @@
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW
                         objects the tactic affects.
-                    value: list([[FV.COMPONENT:*]], [[DP.NODE:*]])
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]])
                     optional: true
 
 -   kind: ARCH
@@ -1156,13 +1165,13 @@
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW
                         objects the decision affects.
-                    value: list([[FV.COMPONENT:*]], [[DP.NODE:*]])
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]])
                     optional: true
                 -   name: SUPERSEDED-BY
                     desc: >
                         Reference to the DECISION-RECORD object that supersedes this decision.
-                        Present if and only if `STATUS` is `superseded`.
-                    value: "[[DR.DECISION:*]]"
+                        Should be present if and only if `STATUS` is `superseded`.
+                    value: "[[ARCH:DR.DECISION:*]]"
                     optional: true
                 -   name: WHEN
                     desc: |

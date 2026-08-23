@@ -27,19 +27,19 @@ LIFECYCLE: Event {{event}}
 
 ### TRANSITION
 
--   publish; FROM: Planning; TO: Published;
+-   publish; FROM: [[STATE:Planning]]; TO: [[STATE:Published]];
     The event becomes visible to invited attendees,
     **WHEN** the manager publishes the configured event.
 
--   start; FROM: Published; TO: Running;
+-   start; FROM: [[STATE:Published]]; TO: [[STATE:Running]];
     The live stream and interaction channels open for attendees,
     **WHEN** the manager starts the event.
 
--   start; FROM: Planning; TO: Running;
+-   start; FROM: [[STATE:Planning]]; TO: [[STATE:Running]];
     The event goes live directly from planning,
     **WHEN** the manager starts an unpublished event.
 
--   finish; FROM: Running; TO: Finished;
+-   finish; FROM: [[STATE:Running]]; TO: [[STATE:Finished]];
     The anonymization procedure runs and access is closed,
     **WHEN** the manager finishes the event.
 
@@ -70,23 +70,23 @@ LIFECYCLE: Message {{message}}
 
 ### TRANSITION
 
--   `accept`; FROM: `Pending`; TO: `Accepted`;
+-   `accept`; FROM: [[STATE:Pending]]; TO: [[STATE:Accepted]];
     The message becomes visible to the audience,
     **WHEN** a moderator approves it or sentiment auto-accept applies.
 
--   `reject`; FROM: `Pending`; TO: `Rejected`;
+-   `reject`; FROM: [[STATE:Pending]]; TO: [[STATE:Rejected]];
     The message is hidden and marked for deletion,
     **WHEN** a moderator declines it or sentiment auto-reject applies.
 
--   `forward`; FROM: `Accepted`; TO: `Forwarded`;
+-   `forward`; FROM: [[STATE:Accepted]]; TO: [[STATE:Forwarded]];
     The message enters the presenter's work basket and becomes immutable,
     **WHEN** a moderator forwards it to the presenter.
 
--   `answer`; FROM: `Forwarded`; TO: `Answered`;
+-   `answer`; FROM: [[STATE:Forwarded]]; TO: [[STATE:Answered]];
     The answered timestamp is recorded,
     **WHEN** the presenter or moderator marks the message as answered on stage.
 
--   `suspend`; FROM: `Forwarded`; TO: `Suspended`;
+-   `suspend`; FROM: [[STATE:Forwarded]]; TO: [[STATE:Suspended]];
     The message is set aside for the live event,
     **WHEN** the presenter or moderator decides not to process it.
 
@@ -108,14 +108,14 @@ LIFECYCLE: AuthorizationToken {{authtoken}}
 
 ### TRANSITION
 
--   `send`; FROM: `Issued`; TO: `Sent`;
+-   `send`; FROM: [[STATE:Issued]]; TO: [[STATE:Sent]];
     The token is emailed to the user,
     **WHEN** the user requests a login challenge.
 
--   `consume`; FROM: `Sent`; TO: `Used`;
+-   `consume`; FROM: [[STATE:Sent]]; TO: [[STATE:Used]];
     The token is marked spent,
     **WHEN** the user submits it in a successful or unsuccessful login attempt.
 
--   `consume`; FROM: `Issued`; TO: `Used`;
+-   `consume`; FROM: [[STATE:Issued]]; TO: [[STATE:Used]];
     The pre-generated token is marked spent,
     **WHEN** an automatic-access URL carrying the token is used.
