@@ -4,3 +4,5 @@
 node_modules/
 package-lock.json
 smp/broadcast.*
+smp/sample/sample.html
+smp/sample/sample.pdf

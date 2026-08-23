@@ -2,6 +2,11 @@
 ChangeLog
 =========
 
+0.9.7 (2026-08-24)
+------------------
+
+-   BUGFIX [infr]: do not ship the sample files which were generated
+
 0.9.6 (2026-08-23)
 ------------------
 
