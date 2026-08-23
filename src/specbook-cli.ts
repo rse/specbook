@@ -61,10 +61,14 @@ const envDefaultFlag = (name: string, fallback: boolean): boolean => {
     return value !== undefined ? !(/^(?:|0|false|no|off)$/i).test(value) : fallback
 }
 
-/*  provide the common options of all sub-commands  */
-const withCommonOptions = (command: Command): Command => command
+/*  provide the verbose option of all sub-commands  */
+const withVerboseOption = (command: Command): Command => command
     .option("-v, --verbose", "print verbose processing information to stderr", envDefaultFlag("verbose", false))
-    .option("-c, --config <yaml-file>", "YAML schema configuration file", envDefault("config"))
+
+/*  provide the common options of the specification processing sub-commands,
+    for which the YAML schema configuration is mandatory  */
+const withCommonOptions = (command: Command): Command => withVerboseOption(command)
+    .requiredOption("-c, --config <yaml-file>", "YAML schema configuration file", envDefault("config"))
 
 /*  parse the command line  */
 const program = new Command()
@@ -75,9 +79,8 @@ program.name("specbook")
         program.help()
     })
 
-program.command("mcp")
+withVerboseOption(program.command("mcp"))
     .description("run as MCP stdio server")
-    .option("-v, --verbose", "print verbose processing information to stderr", envDefaultFlag("verbose", false))
     .action(async (opts: { verbose: boolean }) => {
         verboseOf(opts)("mcp", "starting MCP server on stdio")
         await serveMcp(verboseOf(opts, "mcp"))
@@ -86,7 +89,7 @@ program.command("mcp")
 withCommonOptions(program.command("init"))
     .description("initialize the configured specification artifact files below the base directory")
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
-    .action(async (opts: { verbose: boolean, config?: string, basedir: string }) => {
+    .action(async (opts: { verbose: boolean, config: string, basedir: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const created = await specbook.init({ config: opts.config, basedir: opts.basedir })
         await writeStdout(created.length > 0 ?
@@ -97,7 +100,7 @@ withCommonOptions(program.command("init"))
 withCommonOptions(program.command("lint"))
     .description("lint the specification Markdown files below the base directory")
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
-    .action(async (opts: { verbose: boolean, config?: string, basedir: string }) => {
+    .action(async (opts: { verbose: boolean, config: string, basedir: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const result = await specbook.lint({ config: opts.config, basedir: opts.basedir })
         for (const diagnostic of result.diagnostics)
@@ -118,7 +121,7 @@ withCommonOptions(program.command("export"))
         "output file (\"-\" for stdout, repeatable), with the format inferred " +
         "from the filename extension unless explicitly prefixed",
         (value: string, previous: string[]) => previous.concat(value), [] as string[])
-    .action(async (opts: { verbose: boolean, config?: string, basedir: string,
+    .action(async (opts: { verbose: boolean, config: string, basedir: string,
         output: string[] }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const outputs = (opts.output.length > 0 ? opts.output : [ envDefault("output") ?? "-" ])
@@ -132,8 +135,11 @@ withCommonOptions(program.command("export"))
             await writeOutput(output, buffers[distinct.indexOf(format)], "export", verboseOf(opts))
     })
 
-withCommonOptions(program.command("describe"))
+/*  the describe command also describes the generic SpecBook models and
+    formats alone, so its YAML schema configuration stays optional  */
+withVerboseOption(program.command("describe"))
     .description("describe the SpecBook models and formats as Markdown")
+    .option("-c, --config <yaml-file>", "YAML schema configuration file", envDefault("config"))
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir"))
     .option("-e, --embed", "embed the YAML schema configuration instead of just referencing it",
         envDefaultFlag("embed", false))

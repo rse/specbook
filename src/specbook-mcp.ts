@@ -51,10 +51,10 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     server.registerTool("specbook_lint", {
         title:       "Lint Specification",
-        description: "Lint the specification Markdown files below the base directory against the " +
-            "optional YAML schema configuration and return all diagnostics.",
+        description: "Lint the specification Markdown files the YAML schema configuration references " +
+            "below the base directory against this configuration and return all diagnostics.",
         inputSchema: {
-            config:  z.string().optional().describe("YAML schema configuration file"),
+            config:  z.string().describe("YAML schema configuration file"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")")
         }
     }, async (args) => {
@@ -72,11 +72,12 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     server.registerTool("specbook_export", {
         title:       "Export Specification",
-        description: "Export the specification Markdown files below the base directory as JSON, JSON5, " +
+        description: "Export the specification Markdown files the YAML schema configuration references " +
+            "below the base directory as JSON, JSON5, " +
             "YAML, TOON, HTML, PDF, or normalized Markdown. The result is written to the output file " +
             "if an output path is given, else it is returned directly (PDF as a base64-encoded resource).",
         inputSchema: {
-            config:  z.string().optional().describe("YAML schema configuration file"),
+            config:  z.string().describe("YAML schema configuration file"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
             format:  z.enum(formats).optional().describe("output format (default: json)"),
             output:  z.string().optional().describe("output file path")

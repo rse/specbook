@@ -16,7 +16,7 @@ import { type Schema }                         from "./specbook-format-schema.js
 
 /*  the options of the lint command  */
 export interface LintOptions {
-    config?: string
+    config:  string
     basedir: string
     verbose: (msg: string) => void
 }
@@ -28,38 +28,49 @@ export interface LintResult {
     config?:       Schema
 }
 
-/*  recursively scan a base directory for Markdown files  */
-export const scanMarkdown = (basedir: string): string[] =>
-    fs.readdirSync(basedir, { recursive: true, withFileTypes: true })
-        .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
-        .map((entry) => path.join(entry.parentPath, entry.name))
-        .sort()
+/*  collect the distinct artifact files the schema configuration
+    references, in their declaration order, each mapped onto whether
+    all of its artifacts are optional and hence the file may be absent  */
+export const schemaFiles = (config: Schema): Map<string, boolean> => {
+    const files = new Map<string, boolean>()
+    for (const artifact of config) {
+        if (artifact.file === undefined)
+            continue
+        files.set(artifact.file,
+            (files.get(artifact.file) ?? true) && artifact.optional === true)
+    }
+    return files
+}
 
 /*  lint the specification Markdown files below the base directory
-    against the optional configuration  */
+    against the configuration  */
 export const lint = (options: LintOptions): LintResult => {
     const diagnostics = new Array<Diagnostic>()
 
-    /*  load the optional YAML schema configuration  */
-    let config: Schema | undefined
-    if (options.config !== undefined) {
-        options.verbose(`loading configuration "${literal(options.config)}"`)
-        const loaded = loadConfig(options.config)
-        diagnostics.push(...loaded.diagnostics)
-        config = loaded.config ?? undefined
-    }
+    /*  load the mandatory YAML schema configuration  */
+    options.verbose(`loading configuration "${literal(options.config)}"`)
+    const loaded = loadConfig(options.config)
+    diagnostics.push(...loaded.diagnostics)
+    const config = loaded.config ?? undefined
 
-    /*  parse and validate the specification Markdown files  */
-    const exists = fs.existsSync(options.basedir) && fs.statSync(options.basedir).isDirectory()
-    const files  = exists ? scanMarkdown(options.basedir) : []
-    options.verbose(`parsing ${literal(files.length)} specification file(s) ` +
+    /*  read the artifact files the configuration references, resolved
+        against the base directory and tolerating an absent file if all
+        its artifacts are optional  */
+    const files = config !== undefined ? schemaFiles(config) : new Map<string, boolean>()
+    options.verbose(`parsing ${literal(files.size)} specification file(s) ` +
         `below "${literal(options.basedir)}"`)
-    if (files.length === 0)
-        diagnostics.push({ file: options.basedir, line: 1, column: 1,
-            message: exists ? "no Markdown files found below base directory" :
-                "base directory does not exist" })
+    if (config !== undefined && files.size === 0)
+        diagnostics.push({ file: options.config, line: 1, column: 1,
+            message: "no artifact files configured" })
     const sources = new Array<SourceFile>()
-    for (const file of files) {
+    for (const [ name, optional ] of files) {
+        const file = path.join(options.basedir, name)
+        if (!fs.existsSync(file)) {
+            if (!optional)
+                diagnostics.push({ file, line: 1, column: 1,
+                    message: "missing artifact file" })
+            continue
+        }
         try {
             sources.push({ file, text: fs.readFileSync(file, "utf8") })
         }

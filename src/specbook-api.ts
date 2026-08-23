@@ -54,10 +54,16 @@ export class SpecBook {
         return (msg: string) => this.verbose(cmd, msg)
     }
 
-    /*  load a mandatory YAML schema configuration, failing on any problem  */
-    private requireConfig (file: string | undefined, verbose: (msg: string) => void): Schema {
+    /*  require the file of the mandatory YAML schema configuration  */
+    private requireConfigFile (file?: string): string {
         if (file === undefined)
             throw new Error("YAML schema configuration required")
+        return file
+    }
+
+    /*  load a mandatory YAML schema configuration, failing on any problem  */
+    private requireConfig (file: string | undefined, verbose: (msg: string) => void): Schema {
+        file = this.requireConfigFile(file)
         verbose(`loading configuration "${literal(file)}"`)
         const { config, diagnostics } = loadConfig(file)
         if (config === null)
@@ -68,15 +74,16 @@ export class SpecBook {
 
     /*  initialize the configured specification artifact files
         below the base directory  */
-    async init (options: { config?: string, basedir?: string }): Promise<string[]> {
+    async init (options: { config: string, basedir?: string }): Promise<string[]> {
         const verbose = this.verboseOf("init")
         return initSpecification({ ...options,
             config: this.requireConfig(options.config, verbose), verbose })
     }
 
     /*  lint the specification Markdown files below the base directory  */
-    async lint (options: { config?: string, basedir?: string }): Promise<LintResult> {
-        return lint({ config: options.config, basedir: options.basedir ?? ".", verbose: this.verboseOf("lint") })
+    async lint (options: { config: string, basedir?: string }): Promise<LintResult> {
+        return lint({ config: this.requireConfigFile(options.config),
+            basedir: options.basedir ?? ".", verbose: this.verboseOf("lint") })
     }
 
     /*  export the specification Markdown files below the base directory
@@ -84,9 +91,10 @@ export class SpecBook {
         parsing the input just once and returning one buffer per
         requested format (best-effort: diagnostics do not prevent the
         export, as validation is the concern of lint)  */
-    async export (options: { config?: string, basedir?: string, formats?: ExportFormat[] }): Promise<Buffer[]> {
+    async export (options: { config: string, basedir?: string, formats?: ExportFormat[] }): Promise<Buffer[]> {
         const verbose = this.verboseOf("export")
-        const result  = lint({ config: options.config, basedir: options.basedir ?? ".", verbose })
+        const result  = lint({ config: this.requireConfigFile(options.config),
+            basedir: options.basedir ?? ".", verbose })
         for (const diagnostic of result.diagnostics)
             verbose(`diagnostic: ${renderDiagnostic(diagnostic)}`)
         if (result.specification.artifacts.length === 0)

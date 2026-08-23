@@ -58,15 +58,22 @@ Usage
 ### CLI
 
 ```
-$ specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
-$ specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
-$ specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
+$ specbook init     [-v] -c <yaml-file> [-b <basedir>]
+$ specbook lint     [-v] -c <yaml-file> [-b <basedir>]
+$ specbook export   [-v] -c <yaml-file> [-b <basedir>] [-o [<format>:]<output-file>] [...]
 $ specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-o <markdown-file>]
 $ specbook mcp      [-v]
 ```
 
-The base directory `-b`/`--basedir` (default: `.`) is scanned
-recursively for the specification Markdown files, and generated
+The YAML schema configuration `-c`/`--config` is mandatory for `init`,
+`lint`, and `export`, as it determines the specification: exactly the
+artifact files its `file` fields reference are loaded and parsed, all
+other Markdown files below the base directory are ignored. A referenced
+file which is absent is reported, unless all of its artifacts are
+`optional`.
+
+The base directory `-b`/`--basedir` (default: `.`) is the directory the
+referenced artifact files are resolved against, and generated
 specification Markdown files are placed inside it, too.
 
 The export output option `-o`/`--output` (default: `-` for stdout) can
@@ -87,7 +94,9 @@ its own.
 The default value of every CLI option `--xxx` can be overridden by a
 corresponding `SPECBOOK_XXX` environment variable (e.g.
 `SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_OUTPUT`,
-`SPECBOOK_VERBOSE`), while an explicitly supplied option always wins.
+`SPECBOOK_VERBOSE`), while an explicitly supplied option always wins. A
+`SPECBOOK_CONFIG` value also satisfies the otherwise mandatory
+`-c`/`--config` option.
 
 ### API
 

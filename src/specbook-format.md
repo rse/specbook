@@ -429,8 +429,8 @@ type SpecProperty = {
     BECAUSE a specification is one corpus of separately authored files
 
 -   `Spec.artifacts: SpecArtifact[]`:
-    all artifacts parsed from the Markdown files of the base directory,
-    BECAUSE the corpus is scanned as a whole to resolve references
+    all artifacts parsed from the Markdown files the SCHEMA references,
+    BECAUSE the corpus is parsed as a whole to resolve references
 
 -   `SpecArtifact`:
     single artifact: one level 1 heading plus its file timestamps,
@@ -533,8 +533,9 @@ SpecBook SPEC Model
 
 ### Artifacts
 
-A specification consists of Markdown *artifact* files, which are
-scanned recursively from a base directory. Every file has to start with
+A specification consists of Markdown *artifact* files, which the SCHEMA
+Model references by their `file` fields and which are resolved against
+a base directory. Every file has to start with
 a "frontmatter" block carrying the `Created:` and `Modified:` timestamps
 (format `yyyy-LL-dd HH:mm`):
 

@@ -79,15 +79,20 @@ No test target is defined.
 ## CLI Commands
 
 ```
-specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
-specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
-specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
+specbook init     [-v] -c <yaml-file> [-b <basedir>]
+specbook lint     [-v] -c <yaml-file> [-b <basedir>]
+specbook export   [-v] -c <yaml-file> [-b <basedir>] [-o [<format>:]<output-file>] [...]
 specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-o <markdown-file>]
 specbook mcp      [-v]
 ```
 
-The base directory is scanned recursively for the specification Markdown
-files, and generated specification Markdown files are placed inside it.
+The YAML schema configuration is mandatory for `init`, `lint`, and
+`export` (only `describe` also works without it), and exactly the
+artifact files referenced by its `file` fields are loaded and parsed,
+resolved against the base directory, in which generated specification
+Markdown files are placed, too. All other Markdown files below the base
+directory are ignored, while a referenced but absent file is reported
+unless all of its artifacts are optional.
 The export output option `-o`/`--output` (default: `-` for stdout) can
 occur multiple times; the format is inferred from the filename extension,
 unless explicitly given as a `<format>:` prefix, and plain `-` (stdout)
