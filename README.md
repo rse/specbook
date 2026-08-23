@@ -1,5 +1,5 @@
 
-<img src="https://raw.githubusercontent.com/rse/specbook/master/etc/specbook-logo.svg" width="400" align="right" alt=""/>
+<img src="https://raw.githubusercontent.com/rse/specbook/master/etc/specbook-logo-blue.svg" width="400" align="right" alt=""/>
 
 SpecBook
 ========
