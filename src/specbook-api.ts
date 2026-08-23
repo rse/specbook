@@ -14,9 +14,11 @@ import { initSpecification }                             from "./specbook-cmd-in
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
 import { exportSpecification, parseOutputSpec, formats, type ExportFormat } from "./specbook-cmd-export.js"
 import { describeFormat }                                from "./specbook-cmd-describe.js"
+import { literal, renderVerbose }                        from "./specbook-verbose.js"
 import { type Schema }                                   from "./specbook-format-schema.js"
 
 /*  re-export the central types for API consumers  */
+export { literal, renderVerbose }
 export { formats, parseOutputSpec, type ExportFormat }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic }
 export { type LintResult }
@@ -31,23 +33,32 @@ export const version: string = (() => {
     return (JSON.parse(fs.readFileSync(manifest, "utf8")) as { version: string }).version
 })()
 
+/*  the sink of the verbose messages, receiving the emitting command
+    and the message, so consumers can qualify the message themselves  */
+export type VerboseSink = (cmd: string, msg: string) => void
+
 /*  the constructor options of the SpecBook API  */
 export interface SpecBookOptions {
-    verbose?: (msg: string) => void
+    verbose?: VerboseSink
 }
 
 /*  the SpecBook API  */
 export class SpecBook {
-    private verbose: (msg: string) => void
+    private verbose: VerboseSink
     constructor (options: SpecBookOptions = {}) {
         this.verbose = options.verbose ?? (() => { /*  no operation  */ })
     }
 
+    /*  bind the verbose sink to a particular command  */
+    private verboseOf (cmd: string): (msg: string) => void {
+        return (msg: string) => this.verbose(cmd, msg)
+    }
+
     /*  load a mandatory YAML schema configuration, failing on any problem  */
-    private requireConfig (file?: string): Schema {
+    private requireConfig (file: string | undefined, verbose: (msg: string) => void): Schema {
         if (file === undefined)
             throw new Error("YAML schema configuration required")
-        this.verbose(`loading configuration "${file}"`)
+        verbose(`loading configuration "${literal(file)}"`)
         const { config, diagnostics } = loadConfig(file)
         if (config === null)
             throw new Error("invalid configuration:\n" +
@@ -58,13 +69,14 @@ export class SpecBook {
     /*  initialize the configured specification artifact files
         below the base directory  */
     async init (options: { config?: string, basedir?: string }): Promise<string[]> {
+        const verbose = this.verboseOf("init")
         return initSpecification({ ...options,
-            config: this.requireConfig(options.config), verbose: this.verbose })
+            config: this.requireConfig(options.config, verbose), verbose })
     }
 
     /*  lint the specification Markdown files below the base directory  */
     async lint (options: { config?: string, basedir?: string }): Promise<LintResult> {
-        return lint({ config: options.config, basedir: options.basedir ?? ".", verbose: this.verbose })
+        return lint({ config: options.config, basedir: options.basedir ?? ".", verbose: this.verboseOf("lint") })
     }
 
     /*  export the specification Markdown files below the base directory
@@ -73,23 +85,24 @@ export class SpecBook {
         requested format (best-effort: diagnostics do not prevent the
         export, as validation is the concern of lint)  */
     async export (options: { config?: string, basedir?: string, formats?: ExportFormat[] }): Promise<Buffer[]> {
-        const result = lint({ config: options.config, basedir: options.basedir ?? ".", verbose: this.verbose })
+        const verbose = this.verboseOf("export")
+        const result  = lint({ config: options.config, basedir: options.basedir ?? ".", verbose })
         for (const diagnostic of result.diagnostics)
-            this.verbose(`diagnostic: ${renderDiagnostic(diagnostic)}`)
+            verbose(`diagnostic: ${renderDiagnostic(diagnostic)}`)
         if (result.specification.artifacts.length === 0)
             throw new Error("unexportable specification:\n" +
                 result.diagnostics.map(renderDiagnostic).join("\n"))
         const buffers = new Array<Buffer>()
         for (const format of options.formats ?? [ "json" ])
             buffers.push(await exportSpecification(result.specification, format,
-                this.verbose, result.config))
+                verbose, result.config))
         return buffers
     }
 
     /*  describe the generic SpecBook models and formats as Markdown,
         optionally pointing to the artifacts of the particular project  */
     async describe (options: { config?: string, basedir?: string, embed?: boolean }): Promise<string> {
-        this.verbose("describing the SpecBook models and formats")
+        this.verboseOf("describe")("describing the SpecBook models and formats")
         return describeFormat(options)
     }
 }

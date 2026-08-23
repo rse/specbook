@@ -86,9 +86,10 @@ corresponding `SPECBOOK_XXX` environment variable (e.g.
 ### API
 
 ```ts
-import { SpecBook } from "@rse/specbook"
+import { SpecBook, renderVerbose } from "@rse/specbook"
 
-const specbook = new SpecBook({ verbose: (msg) => console.error(msg) })
+const specbook = new SpecBook({ verbose: (cmd, msg) =>
+    console.error(`specbook: ${cmd}: ${renderVerbose(msg)}`) })
 const result   = await specbook.lint({ config: "smp/ase.specbook.yaml", basedir: "smp/broadcast" })
 ```
 

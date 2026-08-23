@@ -17,6 +17,7 @@ import { renderAst, type AstFormat } from "./specbook-export-ast.js"
 import { renderMarkdown }            from "./specbook-export-md.js"
 import { renderHtml, htmlOutline }   from "./specbook-export-html.js"
 import { htmlToPdf }                 from "./specbook-export-pdf.js"
+import { literal }                   from "./specbook-verbose.js"
 
 /*  the supported export formats  */
 export const formats = [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ] as const
@@ -59,7 +60,7 @@ export const exportSpecification = async (
 ): Promise<Buffer> => {
     if (!formats.includes(format))
         throw new Error(`unknown export format "${format}"`)
-    verbose(`exporting specification as "${format}"`)
+    verbose(`exporting specification as "${literal(format)}"`)
     if (format === "json" || format === "json5" || format === "yaml" || format === "toon")
         return renderAst(specification, format satisfies AstFormat, config)
     else if (format === "md")
@@ -68,12 +69,12 @@ export const exportSpecification = async (
         fonts subsetted to the CHARSET of the specification (if any)  */
     const charset = documentCharset(specification)
     if (charset !== undefined)
-        verbose(`subsetting embedded fonts to charset "${charset}"`)
+        verbose(`subsetting embedded fonts to charset "${literal(charset)}"`)
 
     /*  the theme tone (THEME-TONE) drives the layer-1 color spread
         variables and the PDF decoration colors  */
     const tone = documentThemeTone(specification) ?? "#336699"
-    verbose(`generating theme color spreads (tone "${tone}")`)
+    verbose(`generating theme color spreads (tone "${literal(tone)}")`)
     const colors = themeColors(tone)
 
     /*  the paper size (PAPER-SIZE) drives the PDF page setup and the

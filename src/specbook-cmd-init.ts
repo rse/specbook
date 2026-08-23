@@ -7,6 +7,7 @@
 import * as fs   from "node:fs"
 import * as path from "node:path"
 
+import { literal }                        from "./specbook-verbose.js"
 import { type Schema, type SchemaObject } from "./specbook-format-schema.js"
 
 /*  the current time in the frontmatter timestamp format  */
@@ -50,7 +51,7 @@ export const initSpecification = (options: InitOptions): string[] => {
     for (const [ file, artifacts ] of groups) {
         const target = path.join(basedir, file)
         if (fs.existsSync(target)) {
-            options.verbose(`skipping existing artifact file "${file}"`)
+            options.verbose(`skipping existing artifact file "${literal(file)}"`)
             continue
         }
         const headings = artifacts.map((artifact) => {
@@ -67,7 +68,8 @@ export const initSpecification = (options: InitOptions): string[] => {
             headings
         fs.mkdirSync(path.dirname(target), { recursive: true })
         fs.writeFileSync(target, text, "utf8")
-        options.verbose(`created artifact file "${file}" with ${artifacts.length} artifact(s)`)
+        options.verbose(`created artifact file "${literal(file)}" ` +
+            `with ${literal(artifacts.length)} artifact(s)`)
         created.push(file)
     }
     return created

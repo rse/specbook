@@ -33,6 +33,9 @@ API.
     -   `src/specbook-config.ts`: YAML schema configuration loading and validation (Valibot)
     -   `src/specbook-diagnostic.ts`: the `Diagnostic` type and its
         single-line/verbose renderers, shared by all layers
+    -   `src/specbook-verbose.ts`: the marking (`literal`) and rendering
+        (`renderVerbose`) of the literal values inside verbose messages,
+        which the CLI styles with Chalk
     -   `src/specbook-link.ts`: Wiki-style reference (`[[xxx]]`) syntax,
         link index building, reference resolution, and anchor path derivation
     -   `src/specbook-parse.ts`: parser facade class `Parser`, wiring the

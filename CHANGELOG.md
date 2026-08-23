@@ -9,6 +9,8 @@ ChangeLog
 -   FEATURE [code, docs]: support multiple level 1 artifacts in a single Markdown file by configuring the same "file" field on them
 -   IMPROVEMENT [code, infr]: render the built-in fallback logo theme-aware and drop the plain "specbook-export-logo.svg" in favor of the "specbook-export-logo-{light,dark}.svg" pair
 -   IMPROVEMENT [code]: render the title page only if a "TITLE" property exists and render "Created"/"Modified" exclusively on it
+-   IMPROVEMENT [code, docs]: qualify all verbose output lines with the emitting command as in "specbook: lint: xxx", nesting the MCP scope as in "specbook: mcp: lint: xxx"
+-   IMPROVEMENT [code, infr]: colorize the verbose output lines with Chalk (bold command scope, blue literal values), but only if the terminal supports colors
 -   IMPROVEMENT [docs, othr]: space out the edges of the sample data model diagram via the new Gradia "size-edge-port-gap" option
 
 0.9.5 (2026-08-21)

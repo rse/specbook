@@ -8,6 +8,7 @@ import * as fs   from "node:fs"
 import * as path from "node:path"
 
 import { loadConfig }                          from "./specbook-config.js"
+import { literal }                             from "./specbook-verbose.js"
 import { type Diagnostic }                     from "./specbook-diagnostic.js"
 import { parseSpecification, type SourceFile } from "./specbook-parse.js"
 import { type Spec }                           from "./specbook-format-spec.js"
@@ -42,7 +43,7 @@ export const lint = (options: LintOptions): LintResult => {
     /*  load the optional YAML schema configuration  */
     let config: Schema | undefined
     if (options.config !== undefined) {
-        options.verbose(`loading configuration "${options.config}"`)
+        options.verbose(`loading configuration "${literal(options.config)}"`)
         const loaded = loadConfig(options.config)
         diagnostics.push(...loaded.diagnostics)
         config = loaded.config ?? undefined
@@ -51,7 +52,8 @@ export const lint = (options: LintOptions): LintResult => {
     /*  parse and validate the specification Markdown files  */
     const exists = fs.existsSync(options.basedir) && fs.statSync(options.basedir).isDirectory()
     const files  = exists ? scanMarkdown(options.basedir) : []
-    options.verbose(`parsing ${files.length} specification file(s) below "${options.basedir}"`)
+    options.verbose(`parsing ${literal(files.length)} specification file(s) ` +
+        `below "${literal(options.basedir)}"`)
     if (files.length === 0)
         diagnostics.push({ file: options.basedir, line: 1, column: 1,
             message: exists ? "no Markdown files found below base directory" :

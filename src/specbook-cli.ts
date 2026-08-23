@@ -7,16 +7,23 @@
 
 import * as fs             from "node:fs"
 import { Command }         from "commander"
+import chalk               from "chalk"
 
-import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, parseOutputSpec, version } from "./specbook-api.js"
+import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, renderVerbose, literal,
+    parseOutputSpec, version, type VerboseSink } from "./specbook-api.js"
 import { serveMcp }        from "./specbook-mcp.js"
 
-/*  route verbose messages to stderr, keeping stdout reserved
-    for the command outputs and the MCP protocol  */
-const verboseOf = (opts: { verbose: boolean }) => (msg: string): void => {
-    if (opts.verbose)
-        process.stderr.write(`specbook: ${msg}\n`)
-}
+/*  route verbose messages to stderr, keeping stdout reserved for the
+    command outputs and the MCP protocol, and qualify every message with
+    the tool name plus the scope path of the emitting command, where
+    Chalk styles the output only if the terminal supports colors  */
+const verboseOf = (opts: { verbose: boolean }, ...scope: string[]): VerboseSink =>
+    (cmd: string, msg: string): void => {
+        if (opts.verbose) {
+            const scopePath = [ ...scope, cmd ].map((segment) => chalk.bold(segment)).join(": ")
+            process.stderr.write(`specbook: ${scopePath}: ${renderVerbose(msg, chalk.blue)}\n`)
+        }
+    }
 
 /*  write a buffer to stdout, awaiting the write callback which only
     fires once the data has been flushed to the underlying pipe, so a
@@ -33,12 +40,12 @@ const writeStdout = (data: Buffer | string): Promise<void> => {
 }
 
 /*  write a command result to the output file or stdout  */
-const writeOutput = async (output: string, data: Buffer | string, verbose: (msg: string) => void) => {
+const writeOutput = async (output: string, data: Buffer | string, cmd: string, verbose: VerboseSink) => {
     if (output === "-")
         await writeStdout(data)
     else {
         await fs.promises.writeFile(output, data)
-        verbose(`wrote "${output}" (${Buffer.byteLength(data)} bytes)`)
+        verbose(cmd, `wrote "${literal(output)}" (${literal(Buffer.byteLength(data))} bytes)`)
     }
 }
 
@@ -72,8 +79,8 @@ program.command("mcp")
     .description("run as MCP stdio server")
     .option("-v, --verbose", "print verbose processing information to stderr", envDefaultFlag("verbose", false))
     .action(async (opts: { verbose: boolean }) => {
-        verboseOf(opts)("starting MCP server on stdio")
-        await serveMcp(verboseOf(opts))
+        verboseOf(opts)("mcp", "starting MCP server on stdio")
+        await serveMcp(verboseOf(opts, "mcp"))
     })
 
 withCommonOptions(program.command("init"))
@@ -100,7 +107,7 @@ withCommonOptions(program.command("lint"))
         if (result.diagnostics.length > 0)
             process.exitCode = 1
         else
-            verboseOf(opts)("specification valid")
+            verboseOf(opts)("lint", "specification valid")
     })
 
 withCommonOptions(program.command("export"))
@@ -122,7 +129,7 @@ withCommonOptions(program.command("export"))
         const buffers  = await specbook.export({ config: opts.config, basedir: opts.basedir,
             formats: distinct })
         for (const { format, output } of outputs)
-            await writeOutput(output, buffers[distinct.indexOf(format)], verboseOf(opts))
+            await writeOutput(output, buffers[distinct.indexOf(format)], "export", verboseOf(opts))
     })
 
 withCommonOptions(program.command("describe"))
@@ -135,7 +142,7 @@ withCommonOptions(program.command("describe"))
         embed: boolean, output: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const text = await specbook.describe({ config: opts.config, basedir: opts.basedir, embed: opts.embed })
-        await writeOutput(opts.output, text, verboseOf(opts))
+        await writeOutput(opts.output, text, "describe", verboseOf(opts))
     })
 
 try {
