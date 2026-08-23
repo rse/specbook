@@ -27,11 +27,11 @@ export const searchScript = (): string =>
     fs.readFileSync(path.join(
         path.dirname(fileURLToPath(import.meta.url)), "specbook-export-html-search.js"), "utf8")
 
-/*  provide the build-time bundled fallback logo of SpecBook itself
-    (as a self-contained data: URL, to keep its styles isolated)  */
-export const fallbackLogo = (): string =>
+/*  provide a theme variant of the build-time bundled fallback logo of
+    SpecBook itself (as a self-contained data: URL, to keep its styles isolated)  */
+export const fallbackLogo = (theme: string): string =>
     "data:image/svg+xml;base64," + fs.readFileSync(path.join(
-        path.dirname(fileURLToPath(import.meta.url)), "specbook-export-logo.svg")).toString("base64")
+        path.dirname(fileURLToPath(import.meta.url)), `specbook-export-logo-${theme}.svg`)).toString("base64")
 
 /*  check whether an object is the specification title object  */
 export const isTitleObject = (object: SpecObject): boolean =>
@@ -207,14 +207,15 @@ export const documentTitle = (specification: Spec): { title: string, subtitle?: 
 })
 
 /*  determine the document logo as a self-contained data: URL, taken from the
-    embedded image of the LOGO property of the title object, and falling back
-    onto the built-in SpecBook logo (for use in isolated rendering contexts,
-    like the print header/footer, which load no external resources)  */
+    first embedded image of the LOGO property of the title object -- the light
+    variant of a "{theme}" reference -- and falling back onto the built-in
+    SpecBook logo (for use in isolated rendering contexts, like the print
+    header/footer, which load no external resources and are always light)  */
 export const documentLogo = (specification: Spec): string => {
     const content = titleObject(specification)
         ?.properties.find((property) => property.key === "LOGO")?.embedding?.[0]
     if (content === undefined)
-        return fallbackLogo()
+        return fallbackLogo("light")
     return content.startsWith("data:") ? content :
         `data:image/svg+xml;base64,${Buffer.from(content, "utf8").toString("base64")}`
 }

@@ -19,7 +19,7 @@ import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths }
     from "./specbook-link.js"
 import { compileValueExpr, splitItems }
     from "./specbook-parse-value.js"
-import { embeddingRegex, embeddingMimeType }
+import { embeddingRegex, embeddingMimeType, embeddingThemes, embeddingVariants }
     from "./specbook-parse-common.js"
 import { escapeHtml, stylesheet, searchScript, fallbackLogo, isTitleObject, titleObject, documentTitle, documentLang, documentThemeStyle }
     from "./specbook-export-common.js"
@@ -284,17 +284,40 @@ const isBlock = (text: string): boolean => {
     return tokens.length > 0 && !(tokens.length === 1 && tokens[0].type === "paragraph")
 }
 
-/*  render the embedded image files of a text into HTML (SVG inlined
-    as-is, PNG/JPEG placed onto <img> tags), taking the image alternate
-    texts from the corresponding "![alt](file)" markups  */
+/*  render a single embedded image file into HTML (SVG inlined as-is,
+    PNG/JPEG placed onto an <img> tag)  */
+const renderImage = (content: string, alt: string): string =>
+    content.startsWith("data:") ?
+        `<img src="${content}" alt="${escapeHtml(alt)}"/>` :
+        content.replace(/^\s*<\?xml[^>]*\?>\s*(?:<!DOCTYPE[^>]*>\s*)?/i, "")
+
+/*  wrap the theme variants of an image into their layout-neutral theme
+    containers, of which the stylesheet shows just the one matching the
+    color theme currently active in the document  */
+const renderThemed = (images: string[]): string =>
+    images.map((image, i) =>
+        `<span class="theme-${embeddingThemes[i]}-only">${image}</span>`).join("")
+
+/*  render the embedded image files of a text into HTML, taking the image
+    alternate texts from the corresponding "![alt](file)" markups and
+    pairing up the consecutive theme variants of a "{theme}" markup  */
 const renderEmbeddings = (text: string, embedding: string[]): string[] => {
-    const alts = [ ...text.matchAll(embeddingRegex) ]
-        .filter((m) => embeddingMimeType(m[2].trim()) !== undefined)
-        .map((m) => m[1].trim())
-    return embedding.map((content, i) =>
-        content.startsWith("data:") ?
-            `<img src="${content}" alt="${escapeHtml(alts[i] ?? "")}"/>` :
-            content.replace(/^\s*<\?xml[^>]*\?>\s*(?:<!DOCTYPE[^>]*>\s*)?/i, ""))
+    const result = new Array<string>()
+    let i = 0
+    for (const m of text.matchAll(embeddingRegex)) {
+        const reference = m[2].trim()
+        if (embeddingMimeType(reference) === undefined)
+            continue
+        const variants = embeddingVariants(reference)
+        const images   = embedding.slice(i, i + variants.length)
+            .map((content) => renderImage(content, m[1].trim()))
+        i += variants.length
+        if (variants.length > 1 && images.length === variants.length)
+            result.push(renderThemed(images))
+        else
+            result.push(...images)
+    }
+    return result
 }
 
 /*  render a description into HTML, expanding its inline Markdown and
@@ -567,11 +590,14 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
 
     /*  the logo is rendered above the title, from the embedded image content
         of the LOGO property or, for a non-embeddable reference, as its inline
-        Markdown; without a LOGO property the built-in SpecBook logo is used  */
+        Markdown; without a LOGO property the built-in SpecBook logo is used,
+        in both its theme variants  */
     const logo  = object.properties.find((property) => property.key === "LOGO")
     const image = logo !== undefined ? renderEmbeddings(logo.value, logo.embedding ?? []) : []
     return render("TitlePage", { TitlePage: {
-        logo:        logo === undefined ? safe(`<img src="${fallbackLogo()}" alt="SpecBook"/>`) :
+        logo:        logo === undefined ?
+            safe(renderThemed(embeddingThemes.map((theme) =>
+                `<img src="${fallbackLogo(theme)}" alt="SpecBook"/>`))) :
             (image.length > 0 ? safe(image.join("")) : inline(logo.value)),
         title:       inline(prop("TITLE") ?? object.name),
         subtitle:    inlineProp("SUBTITLE"),

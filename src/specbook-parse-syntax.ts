@@ -11,7 +11,7 @@ import { marked, type Tokens } from "marked"
 
 import { type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
-import { ParseContext, embeddingRegex, embeddingMimeType, type SourceFile }
+import { ParseContext, embeddingRegex, embeddingMimeType, embeddingVariants, type SourceFile }
     from "./specbook-parse-common.js"
 
 /*  a grouping container context (e.g. "### STATE")  */
@@ -129,7 +129,9 @@ const parseFrontmatter = (text: string) => {
 
 /*  recursively load the image files embedded via "![alt](file)" into the
     description and the property values of an object (SVG as-is, PNG/JPEG
-    as base64 data: URLs), resolving the references relative to the source file  */
+    as base64 data: URLs), resolving the references relative to the source
+    file and expanding a "{theme}" reference into its theme variants,
+    which are loaded into consecutive embedding entries  */
 const embed = (ctx: ParseContext, object: SpecObject, file: string) => {
     const load = (target: { embedding?: string[] }, text: string, line: number) => {
         for (const m of text.matchAll(embeddingRegex)) {
@@ -137,15 +139,17 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string) => {
             const type = embeddingMimeType(reference)
             if (type === undefined)
                 continue
-            try {
-                const data = fs.readFileSync(path.resolve(path.dirname(file), reference))
-                target.embedding ??= []
-                target.embedding.push(type === "image/svg+xml" ?
-                    data.toString("utf8") : `data:${type};base64,${data.toString("base64")}`)
-            }
-            catch (err) {
-                ctx.diagnose(file, line, `unreadable embedding file "${reference}": ` +
-                    (err instanceof Error ? err.message : String(err)))
+            for (const variant of embeddingVariants(reference)) {
+                try {
+                    const data = fs.readFileSync(path.resolve(path.dirname(file), variant))
+                    target.embedding ??= []
+                    target.embedding.push(type === "image/svg+xml" ?
+                        data.toString("utf8") : `data:${type};base64,${data.toString("base64")}`)
+                }
+                catch (err) {
+                    ctx.diagnose(file, line, `unreadable embedding file "${variant}": ` +
+                        (err instanceof Error ? err.message : String(err)))
+                }
             }
         }
     }

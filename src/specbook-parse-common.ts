@@ -45,6 +45,17 @@ export class ParseContext {
 /*  the Markdown image embedding syntax ("![alt](file)")  */
 export const embeddingRegex = /!\[([^\]]*)\]\(([^()]+)\)/g
 
+/*  the theme variants of a theme-aware image embedding  */
+export const embeddingThemes = [ "light", "dark" ]
+
+/*  expand an image embedding reference into its variants: a reference
+    carrying the "{theme}" placeholder yields one variant per theme,
+    while every other reference stays its own single variant  */
+export const embeddingVariants = (reference: string): string[] =>
+    reference.includes("{theme}") ?
+        embeddingThemes.map((theme) => reference.replace(/\{theme\}/g, theme)) :
+        [ reference ]
+
 /*  the embeddable file types and their MIME types  */
 const embeddingTypes: Record<string, string | undefined> = {
     svg:  "image/svg+xml",

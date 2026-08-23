@@ -723,3 +723,11 @@ A Markdown image `![<alt/>](<file/>)` inside a description or property
 value embeds a local image file, resolved relative to the artifact file:
 SVG files are inlined as-is; PNG/JPEG files are embedded as base64
 `data:` URLs. URLs and other file types are left untouched.
+
+A reference carrying the `{theme}` placeholder -- e.g.
+`![Logo](logo-{theme}.svg)` -- is a *theme-aware* embedding: it expands
+into the two variants `light` and `dark`, both of which have to exist and
+both of which are embedded, as two consecutive entries in this order. The
+HTML export shows just the variant matching the color theme currently
+active in the document, while the PDF export (like print in general)
+always uses the `light` variant.

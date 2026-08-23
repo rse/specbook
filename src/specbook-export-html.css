@@ -222,6 +222,18 @@ div.description li          { margin: 0.1rem 0; }
 div.embedding               { margin: 0.5rem 0; }
 div.embedding img,
 div.embedding svg           { max-width: 100%; height: auto; }
+
+/*  the two theme variants of a "{theme}" image embedding: the containers
+    are layout-neutral and only the variant matching the active theme stays
+    visible, where print (like the theme mapping above) always falls back
+    onto the light variant  */
+span.theme-light-only       { display: contents; }
+span.theme-dark-only        { display: none; }
+@media screen {
+html.theme-dark span.theme-light-only { display: none; }
+html.theme-dark span.theme-dark-only  { display: contents; }
+}
+
 div.diagram                 { margin: 1.0rem 0; }
 div.diagram svg             { max-width: 100%; height: auto; }
 span.rationale              { color: var(--theme-color-specbook-muted); }

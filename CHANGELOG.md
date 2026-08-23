@@ -5,7 +5,9 @@ ChangeLog
 0.9.6 (2026-08-23)
 ------------------
 
+-   FEATURE [code, docs]: support theme-aware image embeddings by expanding a "{theme}" placeholder in "![xxx](yyy)" references into their light/dark variants, of which the HTML export shows just the one of the active color theme
 -   FEATURE [code, docs]: support multiple level 1 artifacts in a single Markdown file by configuring the same "file" field on them
+-   IMPROVEMENT [code, infr]: render the built-in fallback logo theme-aware and drop the plain "specbook-export-logo.svg" in favor of the "specbook-export-logo-{light,dark}.svg" pair
 -   IMPROVEMENT [code]: render the title page only if a "TITLE" property exists and render "Created"/"Modified" exclusively on it
 -   IMPROVEMENT [docs, othr]: space out the edges of the sample data model diagram via the new Gradia "size-edge-port-gap" option
 

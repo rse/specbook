@@ -22,7 +22,8 @@ import { validateDiagrams }
     from "./specbook-diagram.js"
 
 /*  re-export the public parsing types and embedding helpers  */
-export { type SourceFile, type ParseResult, embeddingRegex, embeddingMimeType }
+export { type SourceFile, type ParseResult, embeddingRegex, embeddingMimeType,
+    embeddingThemes, embeddingVariants }
     from "./specbook-parse-common.js"
 
 /*  parser for a set of specification Markdown files  */
