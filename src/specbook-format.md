@@ -131,7 +131,9 @@ type SchemaGradiaConfig = Partial<{
     "group-box-gap":             number
     "graph-columns-max":         number
     "graph-channel-width-max":   number
+    "graph-channel-width-min":   number
     "graph-gutter-height-max":   number
+    "graph-gutter-height-min":   number
     "graph-node-separation":     number
     "graph-rank-separation":     number
     "graph-node-degree-max":     number
@@ -313,7 +315,7 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE the geometry has to fit both the page and the text lengths
 
 -   `SchemaGradiaConfig."graph-*": number`:
-    layout of a `graph`: columns, channels, gutters, and separations,
+    layout of a `graph`: columns, channel and gutter bounds, and separations,
     BECAUSE a free network needs room for its edges, not just its nodes
 
 -   `SchemaGradiaConfig."hub-*": number`:
