@@ -7,7 +7,7 @@
 import * as fs   from "node:fs"
 import * as path from "node:path"
 
-import { type Schema } from "./specbook-format-schema.js"
+import { type Schema, type SchemaObject } from "./specbook-format-schema.js"
 
 /*  the current time in the frontmatter timestamp format  */
 const timestamp = (): string => {
@@ -25,34 +25,50 @@ export interface InitOptions {
 }
 
 /*  initialize the configured specification artifact files below the
-    base directory with their frontmatter and artifact heading  */
+    base directory with their frontmatter and artifact headings, where
+    all artifacts configured onto the same file reside in it side by
+    side, following each other on level 1  */
 export const initSpecification = (options: InitOptions): string[] => {
     const basedir = options.basedir ?? "."
     fs.mkdirSync(basedir, { recursive: true })
     const now     = timestamp()
     const created = new Array<string>()
+
+    /*  group the configured artifacts by their file, preserving the
+        schema order both of the files and of the artifacts within  */
+    const groups = new Map<string, SchemaObject[]>()
     for (const artifact of options.config) {
         if (artifact.file === undefined)
             continue
-        const file = path.join(basedir, artifact.file)
-        if (fs.existsSync(file)) {
-            options.verbose(`skipping existing artifact file "${artifact.file}"`)
+        const group = groups.get(artifact.file)
+        if (group === undefined)
+            groups.set(artifact.file, [ artifact ])
+        else
+            group.push(artifact)
+    }
+
+    for (const [ file, artifacts ] of groups) {
+        const target = path.join(basedir, file)
+        if (fs.existsSync(target)) {
+            options.verbose(`skipping existing artifact file "${file}"`)
             continue
         }
-        const name  = artifact.name ?? ""
-        const paren = artifact.id !== undefined ? ` (${artifact.id})` : ""
-        const text  =
+        const headings = artifacts.map((artifact) => {
+            const name  = artifact.name ?? ""
+            const paren = artifact.id !== undefined ? ` (${artifact.id})` : ""
+            return `#   ${artifact.kind}: ${name}${paren}\n` + "\n"
+        }).join("")
+        const text =
             "---\n" +
             `Created:  ${now}\n` +
             `Modified: ${now}\n` +
             "---\n" +
             "\n" +
-            `#   ${artifact.kind}: ${name}${paren}\n` +
-            "\n"
-        fs.mkdirSync(path.dirname(file), { recursive: true })
-        fs.writeFileSync(file, text, "utf8")
-        options.verbose(`created artifact file "${artifact.file}"`)
-        created.push(artifact.file)
+            headings
+        fs.mkdirSync(path.dirname(target), { recursive: true })
+        fs.writeFileSync(target, text, "utf8")
+        options.verbose(`created artifact file "${file}" with ${artifacts.length} artifact(s)`)
+        created.push(file)
     }
     return created
 }

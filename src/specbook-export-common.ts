@@ -37,9 +37,21 @@ export const fallbackLogo = (): string =>
 export const isTitleObject = (object: SpecObject): boolean =>
     object.kind === "META" && object.name.toUpperCase() === "TITLE"
 
-/*  determine the title object of the specification  */
-const titleObject = (specification: Spec): SpecObject | undefined =>
-    specification.artifacts.flatMap((artifact) => artifact.objects).find(isTitleObject)
+/*  determine the title object of the specification, searched at any
+    nesting level in document order, where the first match wins  */
+export const titleObject = (specification: Spec): SpecObject | undefined => {
+    const search = (objects: SpecObject[]): SpecObject | undefined => {
+        for (const object of objects) {
+            if (isTitleObject(object))
+                return object
+            const found = search(object.childs)
+            if (found !== undefined)
+                return found
+        }
+        return undefined
+    }
+    return search(specification.artifacts.flatMap((artifact) => artifact.objects))
+}
 
 /*  determine a property value of the title object  */
 const titleProperty = (specification: Spec, name: string): string | undefined =>

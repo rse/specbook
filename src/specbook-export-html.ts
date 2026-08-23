@@ -21,7 +21,7 @@ import { compileValueExpr, splitItems }
     from "./specbook-parse-value.js"
 import { embeddingRegex, embeddingMimeType }
     from "./specbook-parse-common.js"
-import { escapeHtml, stylesheet, searchScript, fallbackLogo, isTitleObject, documentTitle, documentLang, documentThemeStyle }
+import { escapeHtml, stylesheet, searchScript, fallbackLogo, isTitleObject, titleObject, documentTitle, documentLang, documentThemeStyle }
     from "./specbook-export-common.js"
 import { specDiagrams }
     from "./specbook-diagram.js"
@@ -424,18 +424,25 @@ const tableShape = (childs: SpecObject[]) => {
         child.description !== undefined || child.childs.length > 0) }
 }
 
+/*  provide the childs of an object taking part in the regular document
+    flow: a nested title object leaves the flow, as it is rendered as the
+    title page instead (a top-level one instead removes its whole artifact)  */
+const flowChilds = (object: SpecObject): SpecObject[] =>
+    object.childs.filter((child) => !isTitleObject(child))
+
 /*  decide whether the childs of an object collapse into the concise
     (tabular) rendering: an explicit "format" type wins, "auto" collapses
     the deepest level only, and inside an already concise rendering
     context "auto" childs implicitly stay concise, too  */
 const conciseChilds = (object: SpecObject, schemaMap: Map<SpecObject, SchemaObject> | null,
     concise: boolean): boolean => {
-    if (object.childs.length === 0)
+    const childs = flowChilds(object)
+    if (childs.length === 0)
         return false
     const type = schemaMap?.get(object)?.format?.type ?? "auto"
     if (type !== "auto")
         return type === "concise"
-    return concise || object.childs.every((child) => child.childs.length === 0)
+    return concise || childs.every((child) => child.childs.length === 0)
 }
 
 /*  group the childs of an object by their kind, preserving order  */
@@ -457,10 +464,11 @@ const groupChilds = (childs: SpecObject[]): SpecObject[][] => {
     ones as regular nested object renderings pressed into the cell)  */
 const renderCell = (child: SpecObject): string => {
     let html = child.description !== undefined ? renderDescription(child.description) : ""
-    if (child.childs.length > 0)
+    const childs = flowChilds(child)
+    if (childs.length > 0)
         html += conciseChilds(child, schemas, true) ?
-            groupChilds(child.childs).map((group) => renderTable(group, maxColumnsOf(child))).join("") :
-            child.childs.map((sub) => renderObject(sub, 6, true)).join("")
+            groupChilds(childs).map((group) => renderTable(group, maxColumnsOf(child))).join("") :
+            childs.map((sub) => renderObject(sub, 6, true)).join("")
     return html
 }
 
@@ -541,8 +549,8 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
         childs:      conciseChilds(object, schemas, concise) ?
-            safe(groupChilds(object.childs).map((group) => renderTable(group, maxColumnsOf(object))).join("")) :
-            safe(object.childs.map((child) => renderObject(child, level + 1, concise)).join(""))
+            safe(groupChilds(flowChilds(object)).map((group) => renderTable(group, maxColumnsOf(object))).join("")) :
+            safe(flowChilds(object).map((child) => renderObject(child, level + 1, concise)).join(""))
     } })
 }
 
@@ -598,7 +606,7 @@ export const htmlOutline = (specification: Spec,
     const entry = (object: SpecObject): OutlineEntry => ({
         title:  (object.kind !== "" ? `${object.kind}: ` : "") + object.name,
         anchor: paths.get(object) ?? object.id,
-        childs: conciseChilds(object, schemaMap, false) ? [] : object.childs.map(entry)
+        childs: conciseChilds(object, schemaMap, false) ? [] : flowChilds(object).map(entry)
     })
     return specification.artifacts
         .filter((artifact) => !artifact.objects.some(isTitleObject))
@@ -666,8 +674,7 @@ export const renderHtml = async (specification: Spec,
         ...specification.artifacts.map((artifact) => artifact.modified.getTime())))
 
     /*  a "META: Title" object becomes the title page and leaves the regular flow  */
-    const title     = specification.artifacts
-        .flatMap((artifact) => artifact.objects).find(isTitleObject)
+    const title     = titleObject(specification)
     const artifacts = specification.artifacts
         .filter((artifact) => !artifact.objects.some(isTitleObject))
     const entries = artifacts.flatMap((artifact) => artifact.objects)

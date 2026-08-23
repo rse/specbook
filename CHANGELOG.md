@@ -2,6 +2,11 @@
 ChangeLog
 =========
 
+0.9.6 (2026-08-23)
+------------------
+
+-   FEATURE [code, docs]: support multiple level 1 artifacts in a single Markdown file by configuring the same "file" field on them
+
 0.9.5 (2026-08-21)
 ------------------
 

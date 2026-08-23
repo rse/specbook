@@ -171,6 +171,7 @@ type SchemaGradiaConfig = Partial<{
 
 -   `SchemaObject.file?: string`:
     Markdown file the level 1 artifact is generated into and resides in,
+    optionally shared with the other artifacts carrying the same file,
     BECAUSE artifacts must map deterministically onto files
 
 -   `SchemaObject.desc?: string`:
@@ -544,9 +545,11 @@ Modified: 2026-06-18 10:18
 ```
 
 Every level 1 heading opens a new *artifact*, so usually each file
-carries exactly one. Both ATX headings (`# <text/>`, `## <text/>`, ...)
-and Setext headings (`<text/>` underlined with `===` or `---`) are
-supported.
+carries exactly one. Several artifacts nevertheless reside in one file
+whenever the schema configures the same `file` for them: they then
+follow each other on level 1, below the single frontmatter block of that
+file. Both ATX headings (`# <text/>`, `## <text/>`, ...) and Setext
+headings (`<text/>` underlined with `===` or `---`) are supported.
 
 ### Object Model
 
