@@ -33,7 +33,7 @@ BECAUSE the organization is structured into nested units which group the people 
     The unit this unit is nested in,
     BECAUSE the units form a hierarchy whose top-most unit has no parent.
 
--   RELATION: members; TYPE: [[ENTITY:Person]]; ARITY: `*`;
+-   RELATION: members; TYPE: [[ENTITY:Person]]; ARITY: `0..N`;
     The people assigned to this unit,
     BECAUSE a unit is staffed by an arbitrary number of people.
 
