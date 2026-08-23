@@ -94,7 +94,7 @@ html.theme-dark             { --theme-color-specbook-background:  var(--theme-co
                               --gradia-color-group-name:          var(--theme-color-accent-15);
                               --gradia-color-group-box:           var(--theme-color-accent-1);
                               --gradia-color-group-border:        var(--theme-color-accent-7);
-                              --gradia-color-edge-line:           var(--theme-color-base-16);
+                              --gradia-color-edge-line:           var(--theme-color-base-20);
                               --gradia-color-edge-name:           var(--theme-color-base-29);
                               --gradia-color-edge-arity:          var(--theme-color-base-29);
                               --gradia-color-edge-halo:           var(--theme-color-specbook-background); }
