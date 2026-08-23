@@ -101,6 +101,6 @@ Run `specbook mcp` to serve the tools `specbook_init`, `specbook_lint`,
 License
 -------
 
-Copyright &copy; 2026 Dr. Ralf S. Engelschall (http://engelschall.com/)<br/>
-Licensed under Apache 2.0 (https://spdx.org/licenses/Apache-2.0)
+Copyright &copy; 2026 [Dr. Ralf S. Engelschall](http://engelschall.com/)<br/>
+Licensed under [Apache 2.0](https://spdx.org/licenses/Apache-2.0)
 
