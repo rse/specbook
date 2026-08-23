@@ -21,15 +21,18 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 `specbook_<xxx>()`.
 
 **SpecBook** provides the following distinct features:
--   Hierarchical object structure
--   Strict Markdown-based input format
--   Complex, Concise and Grouped object to Markdown mappings
--   Wiki-style hierarchy-aware object hyperlinks
--   Normalized Markdown output format
--   AST-based JSON, JSON5, YAML, and TOON output formats
--   HTML output format for online reading
--   PDF output format for printing and archiving
--   CLI, MCP, and API interfaces
+
+- Hierarchical Object Model
+- Versatile Object to Markdown Mapping
+- Wiki-Style Object Linking
+- Strict Validation with Custom Schema
+- Object Model Diagram Visualisation
+- CLI, MCP, and API Interface
+- AST Exports for AI/LLMs
+- HTML Export for Developers
+- PDF Export for Customers
+
+[![poster](etc/poster.png)](etc/poster.pdf)
 
 Rendering Example
 -----------------
