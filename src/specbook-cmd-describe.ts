@@ -4,105 +4,44 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import textframe from "textframe"
+import * as fs           from "node:fs"
+import * as path         from "node:path"
+import { fileURLToPath } from "node:url"
 
-import { type Schema, type SchemaObject, type SchemaProperty } from "./specbook-format-schema.js"
+import textframe         from "textframe"
 
-/*  collapse folded YAML prose into a single line  */
-const collapse = (text?: string): string =>
-    (text ?? "").replace(/\s+/g, " ").trim()
+/*  provide the build-time bundled description of the generic
+    SpecBook models and formats  */
+const description = (): string =>
+    fs.readFileSync(path.join(
+        path.dirname(fileURLToPath(import.meta.url)), "specbook-format.md"), "utf8")
 
-/*  the static description of the generic Markdown syntax  */
-const syntax = textframe`
-    #   SpecBook Specification Format
-
-    A specification consists of Markdown *artifact* files, each carrying a
-    frontmatter with \`Created:\` and \`Modified:\` timestamps (format
-    \`yyyy-LL-dd HH:mm\`) and a tree of *objects*. Every object has a *kind*,
-    a *name*, a unique anchor *id*, optional *properties* (key/value pairs),
-    an optional *description* statement with an optional rationale, and
-    optional *child* objects. Two concrete syntaxes exist:
-
-    ##  Complex Format (used on levels 1-3)
-
-    \`\`\`
-    #   <kind>: <name> (<id>)
-
-    -   <key>: <value>
-    -   [...]
-
-    <statement>, BECAUSE <rationale>.
-    \`\`\`
-
-    Level 1 (\`#\`) carries the artifact id in parentheses. Levels 2 (\`##\`)
-    and 3 (\`###\`) instead carry an HTML anchor \`<a id="<id>"></a>\` after
-    the name, where the id uses the artifact id as its prefix.
-
-    ##  Concise Format (used on level 4 and deeper)
-
-    \`\`\`
-    -   <kind>: <name>; <key>: <value>; [...]; <statement>, BECAUSE <rationale>.
-    \`\`\`
-
-    Child objects nest as indented list items below their parent item.
-
-    ##  Primary Marker
-
-    In both formats a literal \`(*)\` directly after the \`<name>\` marks the
-    object as *primary* (e.g. the primary attribute of an entity). It is
-    distinct from an id given as \`(<id>)\` and both may be combined.
-
-    ##  Configured Artifacts
-
-    The following artifacts, object kinds, and properties are configured.
-    Object kinds and property names are *case-sensitive* and must be
-    written exactly as configured. Properties marked \`required\` must be
-    present, and property values must match their given constraint (if
-    any, else any value is allowed): \`/xxx/\` requires a match of the
-    regular expression, \`[[xxx]]\` requires exactly one Wiki-style link
-    reference resolving into the (usually wildcard) reference pattern,
-    \`enum(xxx,yyy)\` requires one of the listed members, \`tags(xxx,yyy)\`
-    requires a comma-separated set of the listed members (each at most
-    once), and \`list(xxx[, ...])\` requires a comma-separated list of
-    items, each matching one of the alternative constraints.
-`
-
-/*  describe a single configured property  */
-const describeProperty = (prop: SchemaProperty, indent: string): string => {
-    let line = `${indent}-   property \`${prop.name}\` (${prop.optional === true ? "optional" : "required"}`
-    if (prop.value !== undefined)
-        line += `, constraint \`${prop.value}\``
-    line += `): ${collapse(prop.desc)}`
-    return line
-}
-
-/*  describe a single configured object kind (and recursively its childs)  */
-const describeObject = (object: SchemaObject, level: number, indent: string): string => {
-    const lines = new Array<string>()
-    lines.push(`${indent}-   object kind \`${object.kind}\` on level ${level}` +
-        `${object.optional === true ? " (optional)" : ""}: ${collapse(object.desc)}`)
-    for (const prop of object.props ?? [])
-        lines.push(describeProperty(prop, `${indent}    `))
-    for (const child of object.childs ?? [])
-        lines.push(describeObject(child, level + 1, `${indent}    `))
-    return lines.join("\n")
-}
-
-/*  describe the configured specification format as Markdown  */
-export const describeConfiguration = (config: Schema): string => {
-    const sections = new Array<string>()
-    for (const artifact of config) {
-        const lines = new Array<string>()
-        lines.push(`### ${artifact.kind}: ${artifact.name ?? ""} (${artifact.kind}-${artifact.id ?? ""})`)
-        lines.push("")
-        if (artifact.file !== undefined)
-            lines.push(`-   file: \`${artifact.file}\``)
-        lines.push(`-   description: ${collapse(artifact.desc)}`)
-        for (const prop of artifact.props ?? [])
-            lines.push(describeProperty(prop, ""))
-        for (const child of artifact.childs ?? [])
-            lines.push(describeObject(child, 2, ""))
-        sections.push(lines.join("\n"))
+/*  describe the generic SpecBook models and formats as Markdown,
+    optionally extended by the references to (or the embeddings of) the
+    artifacts of the particular project instantiation  */
+export const describeFormat = (options: { config?: string, basedir?: string, embed?: boolean }): string => {
+    const sections = [ description() ]
+    if (options.config !== undefined || options.basedir !== undefined) {
+        sections.push(
+            "SpecBook Project Instantiation\n" +
+            "==============================\n")
+        if (options.config !== undefined && options.embed === true)
+            sections.push(textframe(`
+                The **SpecBook SCHEMA Model** of this particular project is the following
+                YAML schema configuration of the file \`${options.config}\`:
+            `) + "\n```yaml\n" +
+                fs.readFileSync(options.config, "utf8").replace(/\n*$/, "\n") +
+                "```\n")
+        else if (options.config !== undefined)
+            sections.push(textframe(`
+                The **SpecBook SCHEMA Model** of this particular project is the YAML
+                schema configuration in the file \`${options.config}\`.
+            `))
+        if (options.basedir !== undefined)
+            sections.push(textframe(`
+                The **SpecBook SPEC Model** of this particular project is the set of
+                specification Markdown files in the directory \`${options.basedir}\`.
+            `))
     }
-    return `${syntax}\n${sections.join("\n\n")}\n`
+    return sections.join("\n")
 }

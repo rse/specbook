@@ -8,21 +8,24 @@ import * as fs   from "node:fs"
 import * as path from "node:path"
 import textframe from "textframe"
 
-import { type Schema } from "./specbook-format-schema.js"
-import { describeConfiguration }    from "./specbook-cmd-describe.js"
+import { type Schema }    from "./specbook-format-schema.js"
+import { describeFormat } from "./specbook-cmd-describe.js"
 import { complete, timestamp, renderFileBlock, parseFileBlocks, type AiOptions }
     from "./specbook-llm.js"
 
 /*  the options of the import command  */
 export interface ImportOptions extends AiOptions {
-    config:   Schema
-    basedir?: string
-    inputs:   string[]
-    verbose:  (msg: string) => void
+    config:      Schema
+    configfile?: string
+    basedir?:    string
+    inputs:      string[]
+    verbose:     (msg: string) => void
 }
 
-/*  the LLM instruction for the import command  */
-const instruction = (description: string, now: string): string => textframe`
+/*  the LLM instruction for the import command (the format description is
+    concatenated outside the template, as its own column 0 indentation
+    would otherwise defeat the re-framing of the template)  */
+const instruction = (description: string, files: string[], now: string): string => textframe`
     You are the import engine of SpecBook, a Markdown-based specification
     format. Import the information of the given foreign sources into the
     Markdown specification artifact files of the project, generating or
@@ -44,17 +47,15 @@ const instruction = (description: string, now: string): string => textframe`
     -   Timestamps: use "${now}" for the "Created:" and "Modified:"
         frontmatter of generated files, and refresh "Modified:" to
         "${now}" on updated files.
-    -   Files: generate or update ONLY the configured artifact files listed
-        in the format description below -- never any other file.
+    -   Files: generate or update ONLY the following configured artifact
+        files -- never any other file: ${files.join(", ")}
     -   Output: return ONLY the generated or updated files, each as a block
         of the exact form below, and no other text at all:
 
         <<<FILE: <name>>>>
         <content>
         <<<END-FILE>>>
-
-    ${description}
-`
+` + `\n${description}`
 
 /*  import foreign sources into the specification artifact files  */
 export const importSpecification = async (options: ImportOptions): Promise<string[]> => {
@@ -74,7 +75,8 @@ export const importSpecification = async (options: ImportOptions): Promise<strin
 
     /*  let the LLM generate or update the artifact files  */
     options.verbose(`importing ${options.inputs.length} foreign source(s) into "${basedir}"`)
-    const system = instruction(describeConfiguration(options.config), timestamp())
+    const system = instruction(describeFormat({ config: options.configfile, basedir, embed: true }),
+        files, timestamp())
     const prompt =
         "EXISTING ARTIFACT FILES:\n\n" + (existing.length > 0 ? existing.join("\n\n") : "(none)") +
         "\n\nFOREIGN SOURCES TO IMPORT:\n\n" + sources.join("\n\n")

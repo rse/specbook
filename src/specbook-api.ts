@@ -13,7 +13,7 @@ import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic } from "./sp
 import { initSpecification }                             from "./specbook-cmd-init.js"
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
 import { exportSpecification, parseOutputSpec, formats, type ExportFormat } from "./specbook-cmd-export.js"
-import { describeConfiguration }                         from "./specbook-cmd-describe.js"
+import { describeFormat }                                from "./specbook-cmd-describe.js"
 import { importSpecification }                           from "./specbook-cmd-import.js"
 import { editSpecification }                             from "./specbook-cmd-edit.js"
 import { type Schema }                                   from "./specbook-format-schema.js"
@@ -88,9 +88,11 @@ export class SpecBook {
         return buffers
     }
 
-    /*  describe the configured specification format as Markdown  */
-    async describe (options: { config?: string }): Promise<string> {
-        return describeConfiguration(this.requireConfig(options.config))
+    /*  describe the generic SpecBook models and formats as Markdown,
+        optionally pointing to the artifacts of the particular project  */
+    async describe (options: { config?: string, basedir?: string, embed?: boolean }): Promise<string> {
+        this.verbose("describing the SpecBook models and formats")
+        return describeFormat(options)
     }
 
     /*  import foreign sources into the specification artifact files
@@ -98,7 +100,8 @@ export class SpecBook {
     async import (options: { config?: string, basedir?: string, inputs: string[],
         provider?: string, model?: string }): Promise<string[]> {
         return importSpecification({ ...options,
-            config: this.requireConfig(options.config), verbose: this.verbose })
+            config: this.requireConfig(options.config), configfile: options.config,
+            verbose: this.verbose })
     }
 
     /*  apply an edit request to the specification artifact files
@@ -106,6 +109,7 @@ export class SpecBook {
     async edit (options: { config?: string, basedir?: string, query: string,
         provider?: string, model?: string }): Promise<string[]> {
         return editSpecification({ ...options,
-            config: this.requireConfig(options.config), verbose: this.verbose })
+            config: this.requireConfig(options.config), configfile: options.config,
+            verbose: this.verbose })
     }
 }

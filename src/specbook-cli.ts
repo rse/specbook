@@ -126,11 +126,15 @@ withCommonOptions(program.command("export"))
     })
 
 withCommonOptions(program.command("describe"))
-    .description("describe the configured specification format as Markdown")
+    .description("describe the SpecBook models and formats as Markdown")
+    .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir"))
+    .option("-e, --embed", "embed the YAML schema configuration instead of just referencing it",
+        envDefaultFlag("embed", false))
     .option("-o, --output <markdown-file>", "output file (\"-\" for stdout)", envDefault("output", "-"))
-    .action(async (opts: { verbose: boolean, config?: string, output: string }) => {
+    .action(async (opts: { verbose: boolean, config?: string, basedir?: string,
+        embed: boolean, output: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const text = await specbook.describe({ config: opts.config })
+        const text = await specbook.describe({ config: opts.config, basedir: opts.basedir, embed: opts.embed })
         await writeOutput(opts.output, text, verboseOf(opts))
     })
 

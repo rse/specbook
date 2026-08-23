@@ -104,11 +104,15 @@ export const serveMcp = async (verbose: (msg: string) => void): Promise<void> =>
 
     server.registerTool("specbook_describe", {
         title:       "Describe Specification Format",
-        description: "Describe the specification format configured by the YAML schema configuration " +
-            "as a Markdown document.",
+        description: "Describe the SpecBook models and formats as a Markdown document. If the YAML " +
+            "schema configuration or the base directory is given, the description additionally points " +
+            "to the artifacts of that particular project.",
         inputSchema: {
-            config: z.string().describe("YAML schema configuration file"),
-            output: z.string().optional().describe("output file path (default: return description)")
+            config:  z.string().optional().describe("YAML schema configuration file"),
+            basedir: z.string().optional().describe("base directory of the specification Markdown files"),
+            embed:   z.boolean().optional().describe("embed the YAML schema configuration instead of " +
+                "just referencing it (default: false)"),
+            output:  z.string().optional().describe("output file path (default: return description)")
         }
     }, async (args) => {
         try {

@@ -8,21 +8,24 @@ import * as fs   from "node:fs"
 import * as path from "node:path"
 import textframe from "textframe"
 
-import { type Schema } from "./specbook-format-schema.js"
-import { describeConfiguration }    from "./specbook-cmd-describe.js"
+import { type Schema }    from "./specbook-format-schema.js"
+import { describeFormat } from "./specbook-cmd-describe.js"
 import { complete, timestamp, renderFileBlock, parseFileBlocks, type AiOptions }
     from "./specbook-llm.js"
 
 /*  the options of the edit command  */
 export interface EditOptions extends AiOptions {
-    config:   Schema
-    basedir?: string
-    query:    string
-    verbose:  (msg: string) => void
+    config:      Schema
+    configfile?: string
+    basedir?:    string
+    query:       string
+    verbose:     (msg: string) => void
 }
 
-/*  the LLM instruction for the edit command  */
-const instruction = (description: string, now: string): string => textframe`
+/*  the LLM instruction for the edit command (the format description is
+    concatenated outside the template, as its own column 0 indentation
+    would otherwise defeat the re-framing of the template)  */
+const instruction = (description: string, files: string[], now: string): string => textframe`
     You are the edit engine of SpecBook, a Markdown-based specification
     format. Apply the given edit request to the Markdown specification
     artifact files of the project. Strictly honor the following rules:
@@ -40,17 +43,15 @@ const instruction = (description: string, now: string): string => textframe`
         and deeper.
     -   Timestamps: refresh the "Modified:" frontmatter of every changed
         file to "${now}"; keep "Created:" untouched.
-    -   Files: update ONLY the configured artifact files listed in the
-        format description below -- never any other file.
+    -   Files: update ONLY the following configured artifact files --
+        never any other file: ${files.join(", ")}
     -   Output: return ONLY the actually changed files, each as a block of
         the exact form below, and no other text at all:
 
         <<<FILE: <name>>>>
         <content>
         <<<END-FILE>>>
-
-    ${description}
-`
+` + `\n${description}`
 
 /*  apply an edit request to the specification artifact files  */
 export const editSpecification = async (options: EditOptions): Promise<string[]> => {
@@ -70,7 +71,8 @@ export const editSpecification = async (options: EditOptions): Promise<string[]>
 
     /*  let the LLM apply the edit request  */
     options.verbose(`editing artifact files in "${basedir}"`)
-    const system = instruction(describeConfiguration(options.config), timestamp())
+    const system = instruction(describeFormat({ config: options.configfile, basedir, embed: true }),
+        files, timestamp())
     const prompt =
         "EXISTING ARTIFACT FILES:\n\n" + existing.join("\n\n") +
         "\n\nEDIT REQUEST:\n\n" + options.query

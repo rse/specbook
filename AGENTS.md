@@ -19,7 +19,10 @@ a CLI `specbook <cmd>`, and an MCP service `specbook mcp` with tools
     -   `src/specbook-mcp.ts`: the MCP stdio service (thin wrapper over the API)
     -   `src/specbook-cmd-*.ts`: one module per command
         (`init`, `lint`, `export`, `describe`, `import`, `edit`);
-        `export` dispatches onto the format renderers in `src/specbook-export-*.ts`
+        `export` dispatches onto the format renderers in `src/specbook-export-*.ts`;
+        `describe` emits `src/specbook-format.md`, the static description of
+        the SpecBook models and formats, which `import` and `edit` embed
+        into their LLM instruction, too
     -   `src/specbook-export-common.ts`: cross-renderer helpers
         (HTML escaping, stylesheet, document title)
     -   `src/specbook-export-ast.ts`: the AST renderer (JSON, JSON5, YAML, TOON)
@@ -79,7 +82,7 @@ No test target is defined.
 specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
-specbook describe [-v] [-c <yaml-file>] [-o <markdown-file>]
+specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-o <markdown-file>]
 specbook import   [-v] [-c <yaml-file>] [-b <basedir>] <input-files...>
 specbook edit     [-v] [-c <yaml-file>] [-b <basedir>] <query>
 specbook mcp      [-v]
@@ -91,6 +94,13 @@ The export output option `-o`/`--output` (default: `-` for stdout) can
 occur multiple times; the format is inferred from the filename extension,
 unless explicitly given as a `<format>:` prefix, and plain `-` (stdout)
 defaults to JSON.
+The `describe` command outputs `src/specbook-format.md` verbatim and
+appends a "SpecBook Project Instantiation" section pointing to the
+configuration file (`-c`) and the base directory (`-b`) whenever one of
+these options is given, where `-e`/`--embed` embeds the YAML schema
+configuration itself instead of just referencing it. The commands
+`import` and `edit` use exactly this embedding description as the format
+part of their LLM instruction.
 The default value of every CLI option `--xxx` can be overridden by a
 corresponding `SPECBOOK_XXX` environment variable. The LLM-based
 commands `import` and `edit` use the `ai` package: the environment

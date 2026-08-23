@@ -54,7 +54,7 @@ Usage
 $ specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 $ specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
 $ specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
-$ specbook describe [-v] [-c <yaml-file>] [-o <markdown-file>]
+$ specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-o <markdown-file>]
 $ specbook import   [-v] [-c <yaml-file>] [-b <basedir>] <input-files...>
 $ specbook edit     [-v] [-c <yaml-file>] [-b <basedir>] <query>
 $ specbook mcp      [-v]
@@ -69,6 +69,15 @@ occur multiple times. The format (`json`, `json5`, `yaml`, `toon`,
 `html`, `pdf`, or `md`) is inferred from the filename extension, unless
 it is explicitly given as a `<format>:` prefix, and plain `-` (stdout)
 defaults to JSON.
+
+The `describe` command outputs the description of the SpecBook models
+and formats. If the configuration file `-c`/`--config` or the base
+directory `-b`/`--basedir` is given, it additionally appends a *SpecBook
+Project Instantiation* section which points to these artifacts of the
+particular project. With `-e`/`--embed` the YAML schema configuration is
+embedded verbatim instead of just being referenced -- which is exactly
+the description the commands `import` and `edit` instruct their LLM
+with.
 
 The default value of every CLI option `--xxx` can be overridden by a
 corresponding `SPECBOOK_XXX` environment variable (e.g.
