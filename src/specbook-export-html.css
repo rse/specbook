@@ -228,7 +228,6 @@ span.rationale              { color: var(--theme-color-specbook-muted); }
 p.rationale                 { color: var(--theme-color-specbook-muted); margin: 0.5rem 0 0 0; }
 span.keyword                { font-weight: bold; }
 code                        { font-family: "Source Code Pro", monospace; font-size: 1.0em; letter-spacing: -0.030rem; }
-div.meta                    { color: var(--theme-color-specbook-muted); font-size: 0.8rem; }
 
 div.titlepage               { text-align: center; margin: 6rem 0 4rem 0;
                               page-break-after: always; }
@@ -261,7 +260,6 @@ div.search                  { display: none; }
 /*  the search result filtering and matched word highlighting  */
 .search-hide                { display: none; }
 body.searching nav.toc,
-body.searching div.meta,
 body.searching div.embedding { display: none; }
 mark.search-hit             { color: var(--theme-color-specbook-mark-text);
                               background-color: var(--theme-color-specbook-mark-back);

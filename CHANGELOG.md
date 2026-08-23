@@ -6,6 +6,7 @@ ChangeLog
 ------------------
 
 -   FEATURE [code, docs]: support multiple level 1 artifacts in a single Markdown file by configuring the same "file" field on them
+-   IMPROVEMENT [code]: render the title page only if a "TITLE" property exists and render "Created"/"Modified" exclusively on it
 
 0.9.5 (2026-08-21)
 ------------------

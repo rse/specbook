@@ -64,7 +64,6 @@ const templates: { [ name: string ]: string } = {
             <body>
                 <div class="theme-switch" onclick="themeSwitch()" title="switch color theme">&#x25D0;</div>
                 {{ Document.titlepage }}
-                {% if not Document.titlepage %}<div class="meta">created: {{ Document.created }}, modified: {{ Document.modified }}</div>{% endif %}
                 {{ Document.toc }}
                 {{ Document.artifacts }}
                 {% if Document.search %}<script>{{ Document.search }}</script>{% endif %}
@@ -614,6 +613,16 @@ export const htmlOutline = (specification: Spec,
         .map(entry)
 }
 
+/*  determine the object a title page is rendered from: the title object
+    has to carry a non-empty "TITLE" property, as without it there is
+    nothing to render a title page from (the object stays suppressed in
+    the regular flow nevertheless)  */
+const titlePageObject = (specification: Spec): SpecObject | undefined => {
+    const object = titleObject(specification)
+    const title  = object?.properties.find((property) => property.key === "TITLE")
+    return title !== undefined && title.value.trim() !== "" ? object : undefined
+}
+
 /*  render the entire specification into a self-contained HTML document,
     with the build-time pre-assembled stylesheet embedded inline, the
     artifact timestamps aggregated into min(Created)/max(Modified), and
@@ -674,7 +683,7 @@ export const renderHtml = async (specification: Spec,
         ...specification.artifacts.map((artifact) => artifact.modified.getTime())))
 
     /*  a "META: Title" object becomes the title page and leaves the regular flow  */
-    const title     = titleObject(specification)
+    const title     = titlePageObject(specification)
     const artifacts = specification.artifacts
         .filter((artifact) => !artifact.objects.some(isTitleObject))
     const entries = artifacts.flatMap((artifact) => artifact.objects)
@@ -685,8 +694,6 @@ export const renderHtml = async (specification: Spec,
         lang,
         theme:     documentThemeStyle(specification)?.toLowerCase(),
         css:       safe(css ?? stylesheet()),
-        created:   created.toISOString(),
-        modified:  modified.toISOString(),
         titlepage: title !== undefined ?
             safe(renderTitlePage(title,
                 created.toISOString().slice(0, 10),
