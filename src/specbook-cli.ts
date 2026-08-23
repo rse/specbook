@@ -138,38 +138,6 @@ withCommonOptions(program.command("describe"))
         await writeOutput(opts.output, text, verboseOf(opts))
     })
 
-withCommonOptions(program.command("import"))
-    .description("import foreign sources into the specification artifact files below the base directory")
-    .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
-    .option("--provider <provider>", "AI provider (\"anthropic\", \"openai\", \"openrouter\" or \"ollama\")", envDefault("provider"))
-    .option("--model <model>", "AI model", envDefault("model"))
-    .argument("<input-files...>", "foreign source files to import")
-    .action(async (inputs: string[], opts: { verbose: boolean, config?: string,
-        basedir: string, provider?: string, model?: string }) => {
-        const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const written = await specbook.import({ config: opts.config, basedir: opts.basedir,
-            inputs, provider: opts.provider, model: opts.model })
-        await writeStdout(written.length > 0 ?
-            `imported into artifact file(s): ${written.join(", ")}\n` :
-            "no artifact files were changed\n")
-    })
-
-withCommonOptions(program.command("edit"))
-    .description("apply a free-text edit request to the specification artifact files below the base directory")
-    .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
-    .option("--provider <provider>", "AI provider (\"anthropic\", \"openai\", \"openrouter\" or \"ollama\")", envDefault("provider"))
-    .option("--model <model>", "AI model", envDefault("model"))
-    .argument("<query>", "free-text edit request")
-    .action(async (query: string, opts: { verbose: boolean, config?: string,
-        basedir: string, provider?: string, model?: string }) => {
-        const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const written = await specbook.edit({ config: opts.config, basedir: opts.basedir,
-            query, provider: opts.provider, model: opts.model })
-        await writeStdout(written.length > 0 ?
-            `edited artifact file(s): ${written.join(", ")}\n` :
-            "no artifact files were changed\n")
-    })
-
 try {
     await program.parseAsync()
 }

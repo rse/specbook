@@ -13,10 +13,9 @@ About
 format* which can be configured for the specifications of particular
 contexts through a YAML-based *schema configuration*. SpecBook allows
 specifications to be *initialized*, *linted*, *exported* (JSON, JSON5,
-YAML, TOON, HTML, PDF, and normalized Markdown), *described* to LLMs,
-and LLM-assisted *imported* and *edited* -- through an API class with
-methods `<cmd>()`, a CLI with commands `specbook <cmd>`, and an MCP
-service with tools `specbook_<cmd>()`.
+YAML, TOON, HTML, PDF, and normalized Markdown), and *described* to LLMs
+-- through an API class with methods `<cmd>()`, a CLI with commands
+`specbook <cmd>`, and an MCP service with tools `specbook_<cmd>()`.
 
 **SpecBook** provides the following distinct features:
 
@@ -55,8 +54,6 @@ $ specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 $ specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
 $ specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
 $ specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-o <markdown-file>]
-$ specbook import   [-v] [-c <yaml-file>] [-b <basedir>] <input-files...>
-$ specbook edit     [-v] [-c <yaml-file>] [-b <basedir>] <query>
 $ specbook mcp      [-v]
 ```
 
@@ -75,9 +72,9 @@ and formats. If the configuration file `-c`/`--config` or the base
 directory `-b`/`--basedir` is given, it additionally appends a *SpecBook
 Project Instantiation* section which points to these artifacts of the
 particular project. With `-e`/`--embed` the YAML schema configuration is
-embedded verbatim instead of just being referenced -- which is exactly
-the description the commands `import` and `edit` instruct their LLM
-with.
+embedded verbatim instead of just being referenced, so the resulting
+document describes the specification format of the project entirely on
+its own.
 
 The default value of every CLI option `--xxx` can be overridden by a
 corresponding `SPECBOOK_XXX` environment variable (e.g.
@@ -95,21 +92,8 @@ const result   = await specbook.lint({ config: "smp/ase.specbook.yaml", basedir:
 
 ### MCP
 
-Run `specbook mcp` to serve the tools `specbook_init`,
-`specbook_lint`, `specbook_export`, `specbook_describe`,
-`specbook_import`, and `specbook_edit` over stdio.
-
-### AI Configuration
-
-The commands `import` and `edit` use an LLM. The environment variables
-`SPECBOOK_AI_PROVIDER` (`anthropic`, `openai`, `openrouter`, or
-`ollama`) and
-`SPECBOOK_AI_MODEL` provide the defaults, which the CLI options
-`--provider`/`--model` (respectively the MCP/API parameters `provider`/
-`model`) override. The provider API keys come from the standard
-environment variables (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
-`OPENROUTER_API_KEY`), while `ollama` needs no key and uses the local
-Ollama service.
+Run `specbook mcp` to serve the tools `specbook_init`, `specbook_lint`,
+`specbook_export`, and `specbook_describe` over stdio.
 
 License
 -------

@@ -14,8 +14,6 @@ import { initSpecification }                             from "./specbook-cmd-in
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
 import { exportSpecification, parseOutputSpec, formats, type ExportFormat } from "./specbook-cmd-export.js"
 import { describeFormat }                                from "./specbook-cmd-describe.js"
-import { importSpecification }                           from "./specbook-cmd-import.js"
-import { editSpecification }                             from "./specbook-cmd-edit.js"
 import { type Schema }                                   from "./specbook-format-schema.js"
 
 /*  re-export the central types for API consumers  */
@@ -93,23 +91,5 @@ export class SpecBook {
     async describe (options: { config?: string, basedir?: string, embed?: boolean }): Promise<string> {
         this.verbose("describing the SpecBook models and formats")
         return describeFormat(options)
-    }
-
-    /*  import foreign sources into the specification artifact files
-        below the base directory  */
-    async import (options: { config?: string, basedir?: string, inputs: string[],
-        provider?: string, model?: string }): Promise<string[]> {
-        return importSpecification({ ...options,
-            config: this.requireConfig(options.config), configfile: options.config,
-            verbose: this.verbose })
-    }
-
-    /*  apply an edit request to the specification artifact files
-        below the base directory  */
-    async edit (options: { config?: string, basedir?: string, query: string,
-        provider?: string, model?: string }): Promise<string[]> {
-        return editSpecification({ ...options,
-            config: this.requireConfig(options.config), configfile: options.config,
-            verbose: this.verbose })
     }
 }

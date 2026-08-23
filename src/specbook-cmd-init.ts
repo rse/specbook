@@ -8,7 +8,14 @@ import * as fs   from "node:fs"
 import * as path from "node:path"
 
 import { type Schema } from "./specbook-format-schema.js"
-import { timestamp }                from "./specbook-llm.js"
+
+/*  the current time in the frontmatter timestamp format  */
+const timestamp = (): string => {
+    const d   = new Date()
+    const pad = (n: number) => String(n).padStart(2, "0")
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+        `${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 
 /*  the options of the init command  */
 export interface InitOptions {

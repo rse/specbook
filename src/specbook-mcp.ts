@@ -128,51 +128,5 @@ export const serveMcp = async (verbose: (msg: string) => void): Promise<void> =>
         }
     })
 
-    server.registerTool("specbook_import", {
-        title:       "Import Foreign Sources",
-        description: "Import the information of foreign source files into the configured specification " +
-            "artifact files below the base directory, using an LLM.",
-        inputSchema: {
-            config:   z.string().describe("YAML schema configuration file"),
-            basedir:  z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
-            inputs:   z.array(z.string()).describe("foreign source files to import"),
-            provider: z.string().optional().describe("AI provider (\"anthropic\", \"openai\", \"openrouter\" or \"ollama\")"),
-            model:    z.string().optional().describe("AI model")
-        }
-    }, async (args) => {
-        try {
-            const written = await specbook.import(args)
-            return { content: [ { type: "text", text: written.length > 0 ?
-                `imported into artifact file(s): ${written.join(", ")}` :
-                "no artifact files were changed" } ] }
-        }
-        catch (err) {
-            return errorResult(err)
-        }
-    })
-
-    server.registerTool("specbook_edit", {
-        title:       "Edit Specification",
-        description: "Apply a free-text edit request to the configured specification artifact files " +
-            "below the base directory, using an LLM.",
-        inputSchema: {
-            config:   z.string().describe("YAML schema configuration file"),
-            basedir:  z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
-            query:    z.string().describe("free-text edit request"),
-            provider: z.string().optional().describe("AI provider (\"anthropic\", \"openai\", \"openrouter\" or \"ollama\")"),
-            model:    z.string().optional().describe("AI model")
-        }
-    }, async (args) => {
-        try {
-            const written = await specbook.edit(args)
-            return { content: [ { type: "text", text: written.length > 0 ?
-                `edited artifact file(s): ${written.join(", ")}` :
-                "no artifact files were changed" } ] }
-        }
-        catch (err) {
-            return errorResult(err)
-        }
-    })
-
     await server.connect(new StdioServerTransport())
 }

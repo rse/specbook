@@ -5,11 +5,11 @@
 Ralf S. Engelschall* for a generic, Markdown-based *specification
 format*, which is configured for particular contexts through a YAML
 *schema configuration*. SpecBook allows specifications to be
-*initialized*, *linted*, *exported* (JSON, JSON5, YAML, TOON, HTML,
-PDF, and normalized Markdown), *described*, and
-LLM-assisted *imported* and *edited* -- through an API class `SpecBook`,
-a CLI `specbook <cmd>`, and an MCP service `specbook mcp` with tools
-`specbook_<cmd>`, where CLI and MCP are based entirely on the API.
+*initialized*, *linted*, *exported* (JSON, JSON5, YAML, TOON, HTML, PDF,
+and normalized Markdown), and *described* -- through an API class
+`SpecBook`, a CLI `specbook <cmd>`, and an MCP service `specbook mcp`
+with tools `specbook_<cmd>`, where CLI and MCP are based entirely on the
+API.
 
 ## Repository Layout
 
@@ -18,11 +18,10 @@ a CLI `specbook <cmd>`, and an MCP service `specbook mcp` with tools
     -   `src/specbook-cli.ts`: the Commander-based CLI (thin wrapper over the API)
     -   `src/specbook-mcp.ts`: the MCP stdio service (thin wrapper over the API)
     -   `src/specbook-cmd-*.ts`: one module per command
-        (`init`, `lint`, `export`, `describe`, `import`, `edit`);
+        (`init`, `lint`, `export`, `describe`);
         `export` dispatches onto the format renderers in `src/specbook-export-*.ts`;
         `describe` emits `src/specbook-format.md`, the static description of
-        the SpecBook models and formats, which `import` and `edit` embed
-        into their LLM instruction, too
+        the SpecBook models and formats
     -   `src/specbook-export-common.ts`: cross-renderer helpers
         (HTML escaping, stylesheet, document title)
     -   `src/specbook-export-ast.ts`: the AST renderer (JSON, JSON5, YAML, TOON)
@@ -50,8 +49,6 @@ a CLI `specbook <cmd>`, and an MCP service `specbook mcp` with tools
         structure (the AST of the specification)
     -   `src/specbook-format-schema.ts`: types/schema of the YAML schema
         configuration (which domain-specific objects are allowed)
-    -   `src/specbook-llm.ts`: AI provider/model resolution and the LLM
-        file exchange protocol for `import`/`edit`
 -   `etc/`: the tool configurations (`eslint.mjs`, `tsconfig.json`, `stx.conf`)
 -   `smp/`: the sample YAML schema configuration (`ase.specbook.yaml`)
     and the sample specification corpus (`broadcast/`)
@@ -83,8 +80,6 @@ specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
 specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-o <markdown-file>]
-specbook import   [-v] [-c <yaml-file>] [-b <basedir>] <input-files...>
-specbook edit     [-v] [-c <yaml-file>] [-b <basedir>] <query>
 specbook mcp      [-v]
 ```
 
@@ -98,16 +93,9 @@ The `describe` command outputs `src/specbook-format.md` verbatim and
 appends a "SpecBook Project Instantiation" section pointing to the
 configuration file (`-c`) and the base directory (`-b`) whenever one of
 these options is given, where `-e`/`--embed` embeds the YAML schema
-configuration itself instead of just referencing it. The commands
-`import` and `edit` use exactly this embedding description as the format
-part of their LLM instruction.
+configuration itself instead of just referencing it.
 The default value of every CLI option `--xxx` can be overridden by a
-corresponding `SPECBOOK_XXX` environment variable. The LLM-based
-commands `import` and `edit` use the `ai` package: the environment
-variables `SPECBOOK_AI_PROVIDER`/`SPECBOOK_AI_MODEL` provide the
-defaults, which API/CLI/MCP parameters override; the provider keys come
-from `ANTHROPIC_API_KEY`/`OPENAI_API_KEY`/`OPENROUTER_API_KEY`, while
-`ollama` needs no key and uses the local Ollama service.
+corresponding `SPECBOOK_XXX` environment variable.
 
 ## Code Style
 
