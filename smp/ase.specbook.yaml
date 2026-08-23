@@ -8,6 +8,9 @@
     name: Title
     id:   TI
     file: META-01-TI-Title.md
+    desc: >
+        The top-level specification meta information.
+        Some of the information is rendered onto the title page.
     props:
         -   name: LOGO
             desc: The logo of the specification.
