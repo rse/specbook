@@ -22,15 +22,62 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 
 **SpecBook** provides the following distinct features:
 
-- Hierarchical Object Model
-- Versatile Object to Markdown Mapping
-- Wiki-Style Object Linking
-- Strict Validation with Custom Schema
-- Object Model Diagram Visualisation
-- CLI, MCP, and API Interface
-- AST Exports for AI/LLMs
-- HTML Export for Developers
-- PDF Export for Customers
+- **Hierarchical Object Model**:
+  A specification is a tree of typed objects, each with a kind and
+  name, an optional id, optional properties, optional description, and
+  optional child objects. The allowed object hierarchy is defined per
+  context by the YAML schema configuration.
+
+- **Versatile Object to Markdown Mapping**:
+  Objects are authored as plain Markdown headings, property lists,
+  and description prose. The objects can be mapped to nested sections
+  ("complex" format) or a compact bullet point lists ("concise" and
+  "group" format).
+
+- **Wiki-Style Object Linking**:
+  Objects can hierarchically reference each other through Wiki-style
+  `[[xxx]]` references, which are resolved against the locally-unique
+  ids and names of all objects. In the HTML and PDF exports they become
+  navigable links onto precise anchors.
+
+- **Strict Validation with Custom Schema**:
+  The YAML schema configuration strictly defines the allowed object
+  kinds, hierarchies, and properties, whose values are constrained by an
+  expression language (regex, enum, tags, list, and reference). Violations
+  are reported as file- and line-precise diagnostics.
+
+- **Object Model Diagram Visualisation**:
+  Object kinds can declare "graph", "hub", or "grid" diagrams in the
+  schema, whose nodes and edges are automatically derived from the
+  object model and its references. The diagrams are rendered with the
+  sibling project [Gradia](https://github.com/rse/gradia), which is
+  specialized on rendering object models.
+
+- **CLI, MCP, and API Interface**:
+  All commands are implemented once in the API class `SpecBook`, on
+  which both the CLI and the MCP service are just thin wrappers.
+  This way, humans, scripts, and AI agents use exactly the same
+  functionality.
+
+- **AST Exports for AI/LLMs**:
+  The parsed specification Abstract Syntax Tree (AST) can be exported in
+  JSON, JSON5, YAML, or TOON format for machine consumption. Together
+  with the `describe` command, which explains the models and formats,
+  this enables LLMs to both read and write specifications.
+
+- **HTML Export for Developers**:
+  The HTML export is a self-contained single document with a
+  table-of-contents, full-text search, embedded images, and a light/dark
+  theme toggle. It is intended for the day-to-day online reading during
+  development. The HTML export can map all object kinds to nested
+  sections or compact tables, or an automatic mixture which collapses
+  only the deepest level into tables.
+
+- **PDF Export for Customers**:
+  The PDF export prints the HTML rendering via Chromium and post-processes
+  it with page numbers, headers/footers, and a hierarchical PDF outline.
+  It is intended as a polished, paginated offline document for handing
+  over to customers.
 
 Overview Poster
 ---------------
