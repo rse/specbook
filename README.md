@@ -32,6 +32,9 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 - HTML Export for Developers
 - PDF Export for Customers
 
+Overview Poster
+---------------
+
 [![poster](etc/poster.png)](etc/poster.pdf)
 
 Rendering Example
