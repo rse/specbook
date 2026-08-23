@@ -127,6 +127,7 @@ type SchemaGradiaConfig = Partial<{
     "size-edge-corner-radius":   number
     "size-edge-hop-radius":      number
     "size-edge-track-gap":       number
+    "size-edge-port-gap":        number
     "group-box-padding":         number
     "group-box-gap":             number
     "graph-columns-max":         number
