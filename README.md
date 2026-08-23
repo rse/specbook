@@ -13,21 +13,23 @@ About
 format* which can be configured for the specifications of particular
 contexts through a YAML-based *schema configuration*. SpecBook allows
 specifications to be *initialized*, *linted*, *exported* (JSON, JSON5,
-YAML, TOON, HTML, PDF, and normalized Markdown), and *described* to LLMs
--- through an API class with methods `<cmd>()`, a CLI with commands
-`specbook <cmd>`, and an MCP service with tools `specbook_<cmd>()`.
+YAML, TOON, HTML, PDF, and normalized Markdown), and *described* to
+LLMs.
+
+**SpecBook** ships with an API class with methods `<xxx>()`, a
+CLI with commands `specbook <xxx>`, and an MCP service with tools
+`specbook_<xxx>()`.
 
 **SpecBook** provides the following distinct features:
-
-- hierarchical object structure
-- strict Markdown-based input format
-- complex and concise object to Markdown mappings
-- Wiki-style hierarchy-aware object hyperlinks
-- canonical Markdown output format
-- AST-based JSON, JSON5, YAML, and TOON output formats
-- HTML output format for online reading
-- PDF output format for printing and archiving
-- CLI, MCP, and API interfaces
+-   Hierarchical object structure
+-   Strict Markdown-based input format
+-   Complex, Concise and Grouped object to Markdown mappings
+-   Wiki-style hierarchy-aware object hyperlinks
+-   Normalized Markdown output format
+-   AST-based JSON, JSON5, YAML, and TOON output formats
+-   HTML output format for online reading
+-   PDF output format for printing and archiving
+-   CLI, MCP, and API interfaces
 
 Rendering Example
 -----------------
