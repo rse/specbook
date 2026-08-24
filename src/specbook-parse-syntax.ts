@@ -88,11 +88,15 @@ const parseHeadingText = (raw: string) => {
 const slugify = (text: string): string =>
     text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
 
-/*  extract the plain text lines of a Markdown list item
-    (excluding any nested lists)  */
+/*  extract the plain text lines of a Markdown list item (excluding any
+    nested lists), whose body is a "text" token in a tight list, but a
+    "paragraph" token in a loose list (and never "item.text", as this
+    still contains the source of the nested lists)  */
 const itemLines = (item: Tokens.ListItem): string[] => {
-    const body = item.tokens.find((token) => token.type === "text")
-    const text = body !== undefined ? (body as Tokens.Text).text : item.text
+    const text = item.tokens
+        .filter((token) => token.type === "text" || token.type === "paragraph")
+        .map((token) => (token as Tokens.Text | Tokens.Paragraph).text)
+        .join("\n")
     return text.split("\n").map((line) => line.trim())
 }
 
