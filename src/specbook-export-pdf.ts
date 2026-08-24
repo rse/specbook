@@ -96,6 +96,57 @@ const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
     doc.catalog.set(PDFName.of("PageMode"), PDFName.of("UseOutlines"))
 }
 
+/*  render the header/footer templates for the page decoration: they
+    render in an isolated context, so they need their own inline styling,
+    the regular font face embedded as a data: URI, and the special
+    "pageNumber" class for the injected page number  */
+const decorationTemplates = (
+    heading: { title: string, subtitle?: string, logo: string },
+    css:     string,
+    theme:   ThemeMapping,
+    inset:   string
+): { headerTemplate: string, footerTemplate: string } => {
+    const fontFace = css.match(/@font-face\s*\{[^}]*\}/)?.[0] ?? ""
+    const headText = escapeHtml(heading.title) +
+        (heading.subtitle !== undefined ? ` &mdash; ${escapeHtml(heading.subtitle)}` : "")
+    return {
+        headerTemplate:
+            `<style>${fontFace}</style>` +
+            "<div style=\"width: 100%; margin-top: 0.8cm;\">" +
+            `<div style="margin: 0 ${inset}; ` +
+            "font-family: 'Source Sans 3', sans-serif; " +
+            `font-size: 8pt; color: ${theme.symbol}; border-bottom: 1px solid ${theme.border}; ` +
+            "padding-bottom: 1mm; display: flex; justify-content: space-between; " +
+            "align-items: flex-end;\">" +
+            `<span>${headText}</span>` +
+            `<img src="${escapeHtml(heading.logo)}" alt="" style="height: 3.5mm;"/>` +
+            "</div></div>",
+        footerTemplate:
+            `<style>${fontFace}</style>` +
+            "<div style=\"width: 100%; margin-bottom: 0.8cm;\">" +
+            `<div style="margin: 0 ${inset}; ` +
+            "font-family: 'Source Sans 3', sans-serif; " +
+            `font-size: 8pt; color: ${theme.text}; display: flex; ` +
+            `justify-content: space-between; border-top: 1px solid ${theme.border}; ` +
+            "padding-top: 1mm;\">" +
+            `<span style="color: ${theme.symbol}">${headText}</span>` +
+            `<span style="color: ${theme.muted}; font-weight: bold;" class="pageNumber"></span></div></div>`
+    }
+}
+
+/*  draw the vertical brand bar onto the left edge of the physical
+    paper of every page, as Chromium clips print content to the page
+    box (0.6rem at the 9pt print root)  */
+const drawBrandBar = async (doc: PDFDocument, accent: string) => {
+    const { rgb } = await import("pdf-lib")
+    const hex = accent.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
+    const [ r, g, b ] = (hex !== null ? hex.slice(1) : [ "00", "00", "00" ])
+        .map((component) => parseInt(component, 16) / 255)
+    for (const page of doc.getPages())
+        page.drawRectangle({ x: 0, y: 0, width: 5.4,
+            height: page.getHeight(), color: rgb(r, g, b) })
+}
+
 /*  render a self-contained HTML document into a PDF via Playwright,
     re-rendering the HTML with the discovered ToC page numbers  */
 export const htmlToPdf = async (
@@ -112,12 +163,6 @@ export const htmlToPdf = async (
     /*  the page geometry of the chosen paper size  */
     const setup  = paperSetup(paper)
     const margin = setup.margin
-
-    /*  the regular font face and the title/subtitle
-        text for the header/footer templates  */
-    const fontFace = css.match(/@font-face\s*\{[^}]*\}/)?.[0] ?? ""
-    const headText = escapeHtml(heading.title) +
-        (heading.subtitle !== undefined ? ` &mdash; ${escapeHtml(heading.subtitle)}` : "")
 
     /*  launch the Playwright Chromium browser, falling back to a
         system-installed Google Chrome if the Chromium download is missing  */
@@ -172,32 +217,8 @@ export const htmlToPdf = async (
         }
 
         const decorated = await renderPdf(html, {
-            /*  the header/footer templates render in an isolated context,
-                so they need their own inline styling, the regular font face
-                embedded as a data: URI, and the special "title"/"pageNumber"
-                classes for the injected values  */
             displayHeaderFooter: true,
-            headerTemplate:
-                `<style>${fontFace}</style>` +
-                "<div style=\"width: 100%; margin-top: 0.8cm;\">" +
-                `<div style="margin: 0 ${paperLength(setup, margin.left)}; ` +
-                "font-family: 'Source Sans 3', sans-serif; " +
-                `font-size: 8pt; color: ${theme.symbol}; border-bottom: 1px solid ${theme.border}; ` +
-                "padding-bottom: 1mm; display: flex; justify-content: space-between; " +
-                "align-items: flex-end;\">" +
-                `<span>${headText}</span>` +
-                `<img src="${escapeHtml(heading.logo)}" alt="" style="height: 3.5mm;"/>` +
-                "</div></div>",
-            footerTemplate:
-                `<style>${fontFace}</style>` +
-                "<div style=\"width: 100%; margin-bottom: 0.8cm;\">" +
-                `<div style="margin: 0 ${paperLength(setup, margin.left)}; ` +
-                "font-family: 'Source Sans 3', sans-serif; " +
-                `font-size: 8pt; color: ${theme.text}; display: flex; ` +
-                `justify-content: space-between; border-top: 1px solid ${theme.border}; ` +
-                "padding-top: 1mm;\">" +
-                `<span style="color: ${theme.symbol}">${headText}</span>` +
-                `<span style="color: ${theme.muted}; font-weight: bold;" class="pageNumber"></span></div></div>`
+            ...decorationTemplates(heading, css, theme, paperLength(setup, margin.left))
         })
 
         /*  a title page carries no header/footer: as Chromium decorates
@@ -206,7 +227,7 @@ export const htmlToPdf = async (
             the ToC page number iteration) into the decorated document
             *in place*, which keeps the decorated document's link
             destinations (and hence the internal hyperlinks) intact  */
-        const { PDFDocument, rgb } = await import("pdf-lib")
+        const { PDFDocument } = await import("pdf-lib")
         const merged = await PDFDocument.load(decorated)
         if (html.includes("class=\"titlepage\"")) {
             const source = await PDFDocument.load(plain)
@@ -219,15 +240,8 @@ export const htmlToPdf = async (
         verbose("attaching PDF outline (bookmarks)")
         await addOutline(merged, outline)
 
-        /*  draw the vertical brand bar onto the left edge of the
-            physical paper of every page, as Chromium clips print
-            content to the page box (0.6rem at the 9pt print root)  */
-        const hex = theme.accent.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
-        const [ r, g, b ] = (hex !== null ? hex.slice(1) : [ "00", "00", "00" ])
-            .map((component) => parseInt(component, 16) / 255)
-        for (const pdfPage of merged.getPages())
-            pdfPage.drawRectangle({ x: 0, y: 0, width: 5.4,
-                height: pdfPage.getHeight(), color: rgb(r, g, b) })
+        /*  decorate every page with the vertical brand bar  */
+        await drawBrandBar(merged, theme.accent)
         return Buffer.from(await merged.save())
     }
     finally {

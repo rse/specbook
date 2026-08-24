@@ -31,7 +31,7 @@ export interface LintResult {
 /*  collect the distinct artifact files the schema configuration
     references, in their declaration order, each mapped onto whether
     all of its artifacts are optional and hence the file may be absent  */
-export const schemaFiles = (config: Schema): Map<string, boolean> => {
+const schemaFiles = (config: Schema): Map<string, boolean> => {
     const files = new Map<string, boolean>()
     for (const artifact of config) {
         if (artifact.file === undefined)
@@ -51,7 +51,7 @@ export const lint = (options: LintOptions): LintResult => {
     options.verbose(`loading configuration "${literal(options.config)}"`)
     const loaded = loadConfig(options.config)
     diagnostics.push(...loaded.diagnostics)
-    const config = loaded.config ?? undefined
+    const config = loaded.config
 
     /*  read the artifact files the configuration references, resolved
         against the base directory and tolerating an absent file if all
@@ -79,7 +79,9 @@ export const lint = (options: LintOptions): LintResult => {
                 message: `unreadable file: ${err instanceof Error ? err.message : String(err)}` })
         }
     }
-    const result  = parseSpecification(sources, config)
+
+    /*  parse and validate the artifact files against the configuration  */
+    const result = parseSpecification(sources, config)
     diagnostics.push(...result.diagnostics)
     return { specification: result.specification, diagnostics, config }
 }

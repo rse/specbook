@@ -9,6 +9,11 @@ import type { Spec, SpecObject }                    from "./specbook-format-spec
 /*  the Wiki-style reference syntax ("[[xxx]]")  */
 export const referenceRegex = /\[\[([^[\]]+)\]\]/g
 
+/*  strip the inline code markup of a name or property value
+    (preserved in the AST for rendering) for matching and labeling  */
+export const plainText = (text: string): string =>
+    text.replace(/`/g, "")
+
 /*  a single indexed object with its direct parent (undefined for
     the top-level objects of an artifact)  */
 interface LinkNode {
@@ -65,7 +70,7 @@ const matchesPart = (object: SpecObject, part: string): boolean =>
     part === "*"
     || object.id === part
     || object.anchor === part
-    || object.name.replace(/`/g, "") === part
+    || plainText(object.name) === part
 
 /*  match a single reference segment ("id", "name", "KIND:name-or-id",
     "KIND:*", or "*", each part optionally double-quoted to allow
@@ -113,7 +118,7 @@ export const resolveUnique = (index: LinkIndex, reference: string): LinkTarget =
         const plain    = unquote(segment)
         const variants = [
             (object: SpecObject) => object.id === plain || object.anchor === plain,
-            (object: SpecObject) => object.name.replace(/`/g, "") === plain,
+            (object: SpecObject) => plainText(object.name) === plain,
             (object: SpecObject) => matchesSegment(object, segment)
         ]
         for (const variant of variants) {

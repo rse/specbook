@@ -25,7 +25,7 @@ export { type LintResult }
 export type { Spec, SpecArtifact, SpecObject, SpecDescription, SpecProperty } from "./specbook-format-spec.js"
 export type { Schema, SchemaObject, SchemaProperty }                          from "./specbook-format-schema.js"
 
-/*  the own version, taken from the package manifest, which resides one
+/*  our own version, taken from the package manifest, which resides one
     level above both the source and the compiled module directory  */
 export const version: string = (() => {
     const manifest = path.join(
@@ -66,7 +66,7 @@ export class SpecBook {
         file = this.requireConfigFile(file)
         verbose(`loading configuration "${literal(file)}"`)
         const { config, diagnostics } = loadConfig(file)
-        if (config === null)
+        if (config === undefined)
             throw new Error("invalid configuration:\n" +
                 diagnostics.map(renderDiagnostic).join("\n"))
         return config
@@ -76,8 +76,8 @@ export class SpecBook {
         below the base directory  */
     async init (options: { config: string, basedir?: string }): Promise<string[]> {
         const verbose = this.verboseOf("init")
-        return initSpecification({ ...options,
-            config: this.requireConfig(options.config, verbose), verbose })
+        return initSpecification({ config: this.requireConfig(options.config, verbose),
+            basedir: options.basedir ?? ".", verbose })
     }
 
     /*  lint the specification Markdown files below the base directory  */

@@ -115,19 +115,21 @@
     /*  match a query word against a unit, as a literal substring or as
         a fuzzy variant, remembering the variants for the highlighting  */
     const wordMatch = (word, unit, variants) => {
-        if (unit.text.indexOf(word) >= 0)
+        if (unit.text.includes(word))
             return true
         const near = fuzzyWords(word).filter((v) => unit.words.has(v))
         near.forEach((v) => { variants.add(v) })
         return near.length > 0
     }
 
+    /*  escape a text for its literal use inside a regular expression  */
+    const escapeRegex = (s) =>
+        s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
     /*  the alternation matching everything worth highlighting: the
         query words as plain substrings plus the fuzzy variants as
         whole words, longest alternative first, so a variant is never
         cut short by a query word nested inside it  */
-    const escapeRegex = (s) =>
-        s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     const buildRegex = (words, variants) => {
         const alts = words.map((w) => ({ len: w.length, src: escapeRegex(w) }))
             .concat(variants.map((v) => ({ len: v.length,
@@ -203,7 +205,7 @@
         units.forEach((unit) => { unit.keep = false })
         parts.forEach((part) => {
             let matched = units.filter((unit) =>
-                part.every((word) => unit.text.indexOf(word) >= 0))
+                part.every((word) => unit.text.includes(word)))
             if (matched.length === 0)
                 matched = units.filter((unit) =>
                     part.every((word) => wordMatch(word, unit, variants)))
@@ -226,7 +228,7 @@
                 const heading = section.firstElementChild
                 if (heading !== null && /^H[1-6]$/.test(heading.tagName))
                     heading.classList.add("search-keep")
-                section = section.parentElement !== null ? section.parentElement.closest("section") : null
+                section = section.parentElement?.closest("section") ?? null
             }
         })
 
@@ -244,13 +246,7 @@
         })
 
         /*  highlight every matched word within the kept units  */
-        const words = []
-        parts.forEach((part) => {
-            part.forEach((word) => {
-                if (!words.includes(word))
-                    words.push(word)
-            })
-        })
+        const words = Array.from(new Set(parts.flat()))
         const regex = buildRegex(words, Array.from(variants))
         units.forEach((unit) => {
             if (unit.el.classList.contains("search-keep"))

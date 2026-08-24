@@ -21,7 +21,8 @@ import { compileValueExpr, splitItems }
     from "./specbook-parse-value.js"
 import { embeddingRegex, embeddingMimeType, embeddingThemes, embeddingVariants }
     from "./specbook-parse-common.js"
-import { escapeHtml, stylesheet, searchScript, fallbackLogo, isTitleObject, titleObject, documentTitle, documentLang, documentThemeStyle }
+import { escapeHtml, stylesheet, searchScript, fallbackLogo,
+    isTitleObject, titleObject, documentTitle, documentLang, documentThemeStyle }
     from "./specbook-export-common.js"
 import { specDiagrams }
     from "./specbook-diagram.js"
@@ -341,8 +342,8 @@ const renderDescription = (description: SpecDescription): string => {
 
 /*  collect the "enum(...)"/"tags(...)" constrained properties of the
     schema configuration, keyed by object kind and property name  */
-const collectMembers = (schemas: SchemaObject[], result: Map<string, "enum" | "tags">) => {
-    for (const schema of schemas) {
+const collectMembers = (nodes: SchemaObject[], result: Map<string, "enum" | "tags">) => {
+    for (const schema of nodes) {
         for (const property of schema.props ?? []) {
             if (property.value === undefined)
                 continue
@@ -377,8 +378,8 @@ const collectSchemas = (specification: Spec,
         for (const object of artifact.objects) {
             const schema = config.find((s) =>
                 (s.kind === object.kind && s.id === object.id) || `${s.kind}-${s.id}` === object.id) ??
-                config.find((s) => (s.name ?? "").toUpperCase() ===
-                    object.name.replace(/`/g, "").toUpperCase())
+                config.find((s) => s.name !== undefined
+                    && s.name.toUpperCase() === object.name.replace(/`/g, "").toUpperCase())
             if (schema !== undefined)
                 walk(object, schema)
         }
@@ -557,6 +558,7 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
 /*  recursively render an object into HTML  */
 const renderObject = (object: SpecObject, level: number, concise: boolean): string => {
     const properties = effectiveProperties(object)
+    const diagram    = diagrams?.get(object)
     return render("Object", { Object: {
         level:       Math.min(level, 6),
         kind:        object.kind,
@@ -564,8 +566,7 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
         paren:       object.paren,
         primary:     object.primary,
         name:        inline(object.name),
-        diagram:     diagrams?.has(object) === true ?
-            safe(`<div class="diagram">${diagrams.get(object) ?? ""}</div>`) : "",
+        diagram:     diagram !== undefined ? safe(`<div class="diagram">${diagram}</div>`) : "",
         properties:  properties.length > 0 ?
             safe(render("Properties", { Properties: inlineProperties(object.kind, properties) })) : "",
         description: object.description !== undefined ?
@@ -575,6 +576,13 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
             safe(flowChilds(object).map((child) => renderObject(child, level + 1, concise)).join(""))
     } })
 }
+
+/*  format a timestamp as its calendar date in local time (the
+    frontmatter timestamps are parsed in local time, too, so the UTC
+    date of toISOString() could shift the day)  */
+const formatDate = (date: Date): string =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-` +
+    String(date.getDate()).padStart(2, "0")
 
 /*  render the title object into a title page  */
 const renderTitlePage = (object: SpecObject, created: string, modified: string): string => {
@@ -663,17 +671,17 @@ export const renderHtml = async (specification: Spec,
         canvas and would dwarf the document text at 1:1  */
     const scale  = 0.75
     const cached = diagramCache.get(specification)
-    diagrams = null
+    let rendered: Map<SpecObject, string> | null = null
     if (cached !== undefined && cached.config === config)
-        diagrams = cached.diagrams
+        rendered = cached.diagrams
     else if (config !== undefined) {
-        diagrams = new Map<SpecObject, string>()
+        rendered = new Map<SpecObject, string>()
         for (const [ object, result ] of specDiagrams(specification, config)) {
             if (result.spec === undefined)
                 continue
             try {
                 const svg = await Gradia.render(result.spec, { format: "svg:embedded" })
-                diagrams.set(object, svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
+                rendered.set(object, svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
                     (_, head: string, w: string, h: string) =>
                         `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"`))
             }
@@ -681,7 +689,7 @@ export const renderHtml = async (specification: Spec,
                 /*  intentionally omitted  */
             }
         }
-        diagramCache.set(specification, { config, diagrams })
+        diagramCache.set(specification, { config, diagrams: rendered })
     }
 
     /*  the document language selects the smart typography quote style  */
@@ -692,10 +700,11 @@ export const renderHtml = async (specification: Spec,
         ambiguous reference stays literal, marked as broken), targeting
         the fully-qualified anchor paths of the objects  */
     const index = buildLinkIndex(specification)
-    anchors = anchorPaths(index)
-    members = config !== undefined ? collectMembers(config, new Map()) : null
-    schemas = config !== undefined ? collectSchemas(specification, config) : null
-    linker  = (text) => expandReferences(text, (reference) => {
+    anchors  = anchorPaths(index)
+    members  = config !== undefined ? collectMembers(config, new Map()) : null
+    schemas  = config !== undefined ? collectSchemas(specification, config) : null
+    diagrams = rendered
+    linker   = (text) => expandReferences(text, (reference) => {
         const target = resolveUnique(index, reference).target
         if (target === undefined)
             return `<span class="link-broken">[[${escapeHtml(reference)}]]</span>`
@@ -722,8 +731,7 @@ export const renderHtml = async (specification: Spec,
         css:       safe(css ?? stylesheet()),
         titlepage: title !== undefined ?
             safe(renderTitlePage(title,
-                created.toISOString().slice(0, 10),
-                modified.toISOString().slice(0, 10))) : "",
+                formatDate(created), formatDate(modified))) : "",
         search:    title !== undefined ? safe(searchScript()) : "",
         toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
         artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))

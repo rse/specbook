@@ -44,7 +44,7 @@ const renderConciseMd = (object: SpecObject, level: number): string => {
     const segments = [ `${object.kind}: ${object.name}${nameSuffixMd(object)}` ]
     segments.push(...object.properties.map((property) => `${property.key}: ${property.value}`))
     if (object.description !== undefined)
-        segments.push(renderDescriptionMd(object.description))
+        segments.push(renderDescriptionMd(object.description).replace(/\s*\n\s*/g, " "))
 
     /*  a description terminates the item with ".", while without one the
         ";" segment terminator has to remain, as only it lets the item be

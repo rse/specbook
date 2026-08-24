@@ -8,21 +8,16 @@ import { type Spec, type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
 import { type Schema, type SchemaObject, type SchemaProperty }
     from "./specbook-format-schema.js"
-import { referenceRegex, resolveUnique, resolveSet }
+import { referenceRegex, resolveUnique, resolveSet, plainText }
     from "./specbook-link.js"
 import { compileValueExpr, splitItems, type ValueExpr }
     from "./specbook-parse-value.js"
 import { ParseContext, type ObjectMeta }
     from "./specbook-parse-common.js"
 
-/*  strip the inline code markup of a name or property value
-    (preserved in the AST for rendering) for matching purposes  */
-const plainText = (text: string): string =>
-    text.replace(/`/g, "")
-
 /*  compile a configured pattern into an anchored regular expression  */
-const anchored = (pattern: string, flags = ""): RegExp =>
-    new RegExp(`^(?:${pattern})$`, flags)
+export const anchored = (pattern: string): RegExp =>
+    new RegExp(`^(?:${pattern})$`)
 
 /*  match a full property value directly against a value expression
     (defined for the regex and enum kinds only)  */

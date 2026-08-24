@@ -309,11 +309,26 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
     let   current: SpecObject | null = null
     let   group:   Group | null      = null
     let   parts                      = new Array<string>()
+    let   partsLine                  = 1
 
-    /*  flush the accumulated description parts into the current object  */
+    /*  collect a description part, remembering the line of the first one  */
+    const collect = (raw: string, line: number) => {
+        if (parts.length === 0)
+            partsLine = line
+        parts.push(raw.trim())
+    }
+
+    /*  flush the accumulated description parts into the current object
+        (a grouping container re-targets the parent, whose description
+        is already flushed, so further content is reported, not lost)  */
     const flush = () => {
-        if (current !== null && parts.length > 0 && current.description === undefined)
-            current.description = splitDescription(parts.join("\n\n").trim())
+        if (current !== null && parts.length > 0) {
+            if (current.description === undefined)
+                current.description = splitDescription(parts.join("\n\n").trim())
+            else
+                ctx.diagnose(source.file, partsLine,
+                    `content ignored, as ${current.kind} "${current.name}" already carries a description`)
+        }
         parts = []
     }
 
@@ -334,8 +349,9 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
                 if (parent === undefined)
                     ctx.diagnose(source.file, line, `heading level ${depth} without parent object`)
                 else {
-                    group   = { parent, kind: heading.kind }
-                    current = parent
+                    group        = { parent, kind: heading.kind }
+                    current      = parent
+                    stack.length = depth - 1
                 }
             }
             else {
@@ -384,7 +400,7 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
             else if (!list.ordered)
                 parseList(ctx, list, current, source.file, line)
             else
-                parts.push(token.raw.trim())
+                collect(token.raw, line)
         }
         else if (token.type === "paragraph" || token.type === "blockquote"
             || (token.type === "code" && (token as Tokens.Code).lang !== "gradia")) {
@@ -394,8 +410,10 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
             if (current === null)
                 ctx.diagnose(source.file, line, "content outside of any object")
             else
-                parts.push(token.raw.trim())
+                collect(token.raw, line)
         }
+        else if (token.type === "table")
+            ctx.diagnose(source.file, line, "unsupported table content ignored")
         line += (token.raw.match(/\n/g) ?? []).length
     }
     flush()

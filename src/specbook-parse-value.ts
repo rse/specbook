@@ -11,7 +11,7 @@ import { Tokenizr, type Token } from "tokenizr"
     "enum(xxx,yyy)" (one member), "tags(xxx,yyy)" (member set), and
     "list(xxx[, ...])" (items matching one of the alternatives)  */
 export type ValueExpr =
-    | { kind: "regex",     regex: RegExp, source: string }
+    | { kind: "regex",     regex: RegExp }
     | { kind: "reference", pattern: string }
     | { kind: "enum",      members: string[] }
     | { kind: "tags",      members: string[] }
@@ -55,7 +55,7 @@ const parseValueExpr = (tokens: Token[], pos: { i: number }, nested: boolean): V
     if (token.type === "regex") {
         const source = String(token.value)
         try {
-            return { kind: "regex", regex: new RegExp(source), source }
+            return { kind: "regex", regex: new RegExp(source) }
         }
         catch (err) {
             throw new Error(`invalid regular expression "/${source}/": ` +
@@ -102,7 +102,7 @@ const cache = new Map<string, ValueExpr>()
 export const compileValueExpr = (source: string): ValueExpr => {
     let expr = cache.get(source)
     if (expr === undefined) {
-        const tokens = lexer.reset().input(source).tokens()
+        const tokens = lexer.input(source).tokens()
         const pos    = { i: 0 }
         expr = parseValueExpr(tokens, pos, false)
         if (tokens[pos.i].type !== "EOF")
@@ -120,7 +120,7 @@ export const splitItems = (text: string): string[] => {
     let   bracketed = false
     for (let i = 0; i < text.length; i++) {
         const char = text[i]
-        if (char === "\"")
+        if (char === "\"" && text[i - 1] !== "\\")
             quoted = !quoted
         if (!quoted && !bracketed && char === "[" && text[i + 1] === "[") {
             parts[parts.length - 1] += "[["

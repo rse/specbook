@@ -69,6 +69,7 @@ const withVerboseOption = (command: Command): Command => command
     for which the YAML schema configuration is mandatory  */
 const withCommonOptions = (command: Command): Command => withVerboseOption(command)
     .requiredOption("-c, --config <yaml-file>", "YAML schema configuration file", envDefault("config"))
+    .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
 
 /*  parse the command line  */
 const program = new Command()
@@ -88,7 +89,6 @@ withVerboseOption(program.command("mcp"))
 
 withCommonOptions(program.command("init"))
     .description("initialize the configured specification artifact files below the base directory")
-    .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
     .action(async (opts: { verbose: boolean, config: string, basedir: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const created = await specbook.init({ config: opts.config, basedir: opts.basedir })
@@ -99,7 +99,6 @@ withCommonOptions(program.command("init"))
 
 withCommonOptions(program.command("lint"))
     .description("lint the specification Markdown files below the base directory")
-    .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
     .action(async (opts: { verbose: boolean, config: string, basedir: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const result = await specbook.lint({ config: opts.config, basedir: opts.basedir })
@@ -116,7 +115,6 @@ withCommonOptions(program.command("lint"))
 withCommonOptions(program.command("export"))
     .description("export the specification Markdown files below the base directory " +
         "as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown")
-    .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
     .option("-o, --output [<format>:]<output-file>",
         "output file (\"-\" for stdout, repeatable), with the format inferred " +
         "from the filename extension unless explicitly prefixed",

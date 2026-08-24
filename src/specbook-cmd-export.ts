@@ -39,8 +39,11 @@ const extensions: Record<string, ExportFormat> = {
     (plain "-" for stdout defaults to JSON)  */
 export const parseOutputSpec = (spec: string): { format: ExportFormat, output: string } => {
     const prefixed = spec.match(/^([a-zA-Z0-9]+):(.+)$/)
-    if (prefixed !== null && (formats as readonly string[]).includes(prefixed[1]))
-        return { format: prefixed[1] as ExportFormat, output: prefixed[2] }
+    if (prefixed !== null) {
+        const prefix = prefixed[1].toLowerCase()
+        if ((formats as readonly string[]).includes(prefix))
+            return { format: prefix as ExportFormat, output: prefixed[2] }
+    }
     if (spec === "-")
         return { format: "json", output: spec }
     const ext    = spec.match(/\.([a-zA-Z0-9]+)$/)
@@ -65,6 +68,7 @@ export const exportSpecification = async (
         return renderAst(specification, format satisfies AstFormat, config)
     else if (format === "md")
         return Buffer.from(await renderMarkdown(specification, config), "utf8")
+
     /*  the HTML-based formats share the stylesheet, with the embedded
         fonts subsetted to the CHARSET of the specification (if any)  */
     const charset = documentCharset(specification)

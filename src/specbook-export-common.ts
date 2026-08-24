@@ -4,9 +4,7 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import path              from "node:path"
-import fs                from "node:fs"
-import { fileURLToPath } from "node:url"
+import fs from "node:fs"
 
 import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
@@ -19,19 +17,17 @@ export const escapeHtml = (text: string): string =>
 /*  provide the build-time pre-assembled stylesheet (with the
     font faces already inlined as base64 data: URIs)  */
 export const stylesheet = (): string =>
-    fs.readFileSync(path.join(
-        path.dirname(fileURLToPath(import.meta.url)), "specbook-export-html.css"), "utf8")
+    fs.readFileSync(new URL("specbook-export-html.css", import.meta.url), "utf8")
 
 /*  provide the build-time bundled client-side fuzzy search script  */
 export const searchScript = (): string =>
-    fs.readFileSync(path.join(
-        path.dirname(fileURLToPath(import.meta.url)), "specbook-export-html-search.js"), "utf8")
+    fs.readFileSync(new URL("specbook-export-html-search.js", import.meta.url), "utf8")
 
 /*  provide a theme variant of the build-time bundled fallback logo of
     SpecBook itself (as a self-contained data: URL, to keep its styles isolated)  */
 export const fallbackLogo = (theme: string): string =>
-    "data:image/svg+xml;base64," + fs.readFileSync(path.join(
-        path.dirname(fileURLToPath(import.meta.url)), `specbook-export-logo-${theme}.svg`)).toString("base64")
+    "data:image/svg+xml;base64," +
+    fs.readFileSync(new URL(`specbook-export-logo-${theme}.svg`, import.meta.url)).toString("base64")
 
 /*  check whether an object is the specification title object  */
 export const isTitleObject = (object: SpecObject): boolean =>
@@ -84,7 +80,7 @@ export type PaperSetup = {
 /*  the supported paper sizes for print: ISO A4 in millimeters and the
     two US sizes closest to it in inches, each with the default margins
     of 1in (25mm) at the top/bottom and 0.8in (20mm) at the left/right  */
-const papers: { [ name: string ]: PaperSetup } = {
+const papers: Record<string, PaperSetup> = {
     "A4":     { unit: "mm", height: 297, margin: { top: 25, bottom: 25, left: 20,  right: 20  } },
     "Letter": { unit: "in", height: 11,  margin: { top: 1,  bottom: 1,  left: 0.8, right: 0.8 } },
     "Legal":  { unit: "in", height: 14,  margin: { top: 1,  bottom: 1,  left: 0.8, right: 0.8 } }
@@ -114,15 +110,16 @@ export const documentPaperSize = (specification: Spec): string => {
     return paper
 }
 
-/*  provide the paper-dependent print stylesheet: a diagram is scaled
-    down to still fit onto a single page (the paper height less the
-    print margins, the own vertical margins of the diagram, and the
-    room its introducing heading claims above it) and is never broken
-    across a page boundary; without the heading reserve a maximally
+/*  the vertical room (in rem) the introducing heading of a diagram
+    claims above it on the same page: without this reserve a maximally
     sized diagram could not share its page with the heading, which
     would defeat the "break-after: avoid" bundling of the stylesheet  */
 const headingReserve = 6
 
+/*  provide the paper-dependent print stylesheet: a diagram is scaled
+    down to still fit onto a single page (the paper height less the
+    print margins, the own vertical margins of the diagram, and the
+    heading reserve above it) and is never broken across a page boundary  */
 export const paperStylesheet = (paper: string): string => {
     const setup = paperSetup(paper)
     const avail = setup.height - setup.margin.top - setup.margin.bottom

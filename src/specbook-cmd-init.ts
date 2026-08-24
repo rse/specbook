@@ -20,9 +20,9 @@ const timestamp = (): string => {
 
 /*  the options of the init command  */
 export interface InitOptions {
-    config:   Schema
-    basedir?: string
-    verbose:  (msg: string) => void
+    config:  Schema
+    basedir: string
+    verbose: (msg: string) => void
 }
 
 /*  initialize the configured specification artifact files below the
@@ -30,8 +30,7 @@ export interface InitOptions {
     all artifacts configured onto the same file reside in it side by
     side, following each other on level 1  */
 export const initSpecification = (options: InitOptions): string[] => {
-    const basedir = options.basedir ?? "."
-    fs.mkdirSync(basedir, { recursive: true })
+    fs.mkdirSync(options.basedir, { recursive: true })
     const now     = timestamp()
     const created = new Array<string>()
 
@@ -49,7 +48,7 @@ export const initSpecification = (options: InitOptions): string[] => {
     }
 
     for (const [ file, artifacts ] of groups) {
-        const target = path.join(basedir, file)
+        const target = path.join(options.basedir, file)
         if (fs.existsSync(target)) {
             options.verbose(`skipping existing artifact file "${literal(file)}"`)
             continue

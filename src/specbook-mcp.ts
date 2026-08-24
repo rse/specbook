@@ -60,7 +60,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
     }, async (args) => {
         try {
             const result = await specbook.lint(args)
-            const text = result.diagnostics.length > 0 ?
+            const text   = result.diagnostics.length > 0 ?
                 result.diagnostics.map(renderDiagnostic).join("\n") :
                 "specification valid"
             return { content: [ { type: "text", text } ] }
@@ -84,13 +84,14 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         }
     }, async (args) => {
         try {
+            const format   = args.format ?? "json"
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
-                formats: [ args.format ?? "json" ] })
+                formats: [ format ] })
             if (args.output !== undefined) {
                 await fs.promises.writeFile(args.output, data)
                 return { content: [ { type: "text", text: `exported specification into "${args.output}" (${data.length} bytes)` } ] }
             }
-            else if ((args.format ?? "json") === "pdf")
+            else if (format === "pdf")
                 return { content: [ {
                     type:     "resource",
                     resource: { uri: "specbook:export.pdf", mimeType: "application/pdf", blob: data.toString("base64") }
