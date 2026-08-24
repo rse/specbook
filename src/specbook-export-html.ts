@@ -301,7 +301,8 @@ const renderThemed = (images: string[]): string =>
 
 /*  render the embedded image files of a text into HTML, taking the image
     alternate texts from the corresponding "![alt](file)" markups and
-    pairing up the consecutive theme variants of a "{theme}" markup  */
+    pairing up the consecutive theme variants of a "{theme}" markup
+    (the empty entries of unreadable files are skipped)  */
 const renderEmbeddings = (text: string, embedding: string[]): string[] => {
     const result = new Array<string>()
     let i = 0
@@ -310,7 +311,8 @@ const renderEmbeddings = (text: string, embedding: string[]): string[] => {
         if (embeddingMimeType(reference) === undefined)
             continue
         const variants = embeddingVariants(reference)
-        const images   = embedding.slice(i, i + variants.length)
+        const contents = embedding.slice(i, i + variants.length)
+        const images   = contents.filter((content) => content !== "")
             .map((content) => renderImage(content, m[1].trim()))
         i += variants.length
         if (variants.length > 1 && images.length === variants.length)

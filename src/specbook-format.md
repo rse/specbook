@@ -502,6 +502,7 @@ type SpecProperty = {
 
 -   `SpecDescription.embedding?: string[]`:
     image files embedded via `![xxx](yyy)`, inlined at parse time,
+    one entry per file in markup order (empty for an unreadable file),
     BECAUSE the exports have to stand alone, without the image files
 
 -   `SpecProperty`:
@@ -518,6 +519,7 @@ type SpecProperty = {
 
 -   `SpecProperty.embedding?: string[]`:
     image files embedded in the value, inlined at parse time,
+    one entry per file in markup order (empty for an unreadable file),
     BECAUSE the exports have to stand alone, without the image files
 
 SpecBook SCHEMA Model

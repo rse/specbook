@@ -135,7 +135,8 @@ const parseFrontmatter = (text: string) => {
     description and the property values of an object (SVG as-is, PNG/JPEG
     as base64 data: URLs), resolving the references relative to the source
     file and expanding a "{theme}" reference into its theme variants,
-    which are loaded into consecutive embedding entries  */
+    which are loaded into consecutive embedding entries (an unreadable
+    file leaves an empty entry, keeping the positions aligned)  */
 const embed = (ctx: ParseContext, object: SpecObject, file: string) => {
     const load = (target: { embedding?: string[] }, text: string, line: number) => {
         for (const m of text.matchAll(embeddingRegex)) {
@@ -144,13 +145,14 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string) => {
             if (type === undefined)
                 continue
             for (const variant of embeddingVariants(reference)) {
+                target.embedding ??= []
                 try {
                     const data = fs.readFileSync(path.resolve(path.dirname(file), variant))
-                    target.embedding ??= []
                     target.embedding.push(type === "image/svg+xml" ?
                         data.toString("utf8") : `data:${type};base64,${data.toString("base64")}`)
                 }
                 catch (err) {
+                    target.embedding.push("")
                     ctx.diagnose(file, line, `unreadable embedding file "${variant}": ` +
                         (err instanceof Error ? err.message : String(err)))
                 }

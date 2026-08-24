@@ -211,7 +211,7 @@ export const documentTitle = (specification: Spec): { title: string, subtitle?: 
 export const documentLogo = (specification: Spec): string => {
     const content = titleObject(specification)
         ?.properties.find((property) => property.key === "LOGO")?.embedding?.[0]
-    if (content === undefined)
+    if (content === undefined || content === "")
         return fallbackLogo("light")
     return content.startsWith("data:") ? content :
         `data:image/svg+xml;base64,${Buffer.from(content, "utf8").toString("base64")}`
