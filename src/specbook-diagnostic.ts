@@ -21,7 +21,8 @@ export const renderDiagnostic = (diagnostic: Diagnostic): string =>
 
 /*  render a diagnostic as a multi-line message with the affected
     source snippet, falling back to the single-line message when the
-    source file is unreadable (e.g. the file is a directory)  */
+    source file is unreadable (e.g. the file is a directory) or empty
+    (as there is no snippet to show and sourceCodeError rejects it)  */
 export const renderDiagnosticVerbose = (diagnostic: Diagnostic, colors = false): string => {
     let code: string
     try {
@@ -30,6 +31,8 @@ export const renderDiagnosticVerbose = (diagnostic: Diagnostic, colors = false):
     catch {
         return `${renderDiagnostic(diagnostic)}\n`
     }
+    if (code === "")
+        return `${renderDiagnostic(diagnostic)}\n`
     return sourceCodeError({ message: diagnostic.message, filename: diagnostic.file,
         code, line: diagnostic.line, column: diagnostic.column, colors })
 }
