@@ -644,12 +644,13 @@ the item would look like a key/value pair) -- backquote it in this case.
 
 When **SpecBook** itself generates specification Markdown, it emits
 the Complex Format on levels 1-3 and the Concise Format from level 4
-upwards -- unless a descendant of an object carries a multi-line
-description (a fenced code block, an ordered list, a blockquote, or
-multiple paragraphs), which no single list item can carry: all child
-objects of such an object then stay in the Complex Format (as sibling
-objects have to share the format), with headings reaching down to level
-6. When **SpecBook** edits existing files, it mirrors the format each
+upwards -- unless a descendant of an object carries a description which
+no single list item can carry: a multi-line one (a fenced code block, an
+ordered list, a blockquote, or multiple paragraphs) or one carrying a
+`;` (which a re-parse would split into a spurious property plus a
+truncated description). All child objects of such an object then stay in
+the Complex Format (as sibling objects have to share the format), with
+headings reaching down to level 6. When **SpecBook** edits existing files, it mirrors the format each
 existing object already uses.
 
 ### Names, Anchors, and Ids
@@ -695,7 +696,9 @@ fenced code blocks. A fenced code block
 of language `gradia` is skipped, as it is the derived diagram which
 **SpecBook** itself emits into exported Markdown and which must not
 become authored content on a re-parse. In the Concise Format, the
-description is formed by the non-property segments of the item.
+description is formed by the non-property segments of the item, so a
+description carrying a `;` cannot be a segment either and forces its
+object into the Complex Format.
 
 A description is split into its *statement* and *rationale* at the first
 `, BECAUSE ` (or `, **BECAUSE** `) occurrence:

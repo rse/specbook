@@ -2,6 +2,11 @@
 ChangeLog
 =========
 
+0.9.8 (2026-08-25)
+------------------
+
+-   BUGFIX [code, docs]: keep child objects of object in Complex Format in Markdown export when a descendant carries a description containing a ";", too, as such a description was emitted as a plain Concise Format segment, which a re-parse split into a spurious property plus a truncated description
+
 0.9.7 (2026-08-24)
 ------------------
 
