@@ -49,13 +49,18 @@ lexer.rule(/\s+/, (ctx) => {
 const tokenName = (token: Token): string =>
     token.type === "EOF" ? "end of expression" : `"${token.text}"`
 
+/*  compile a configured pattern (object name or value regex) into an
+    anchored regular expression, so it has to match a text as a whole  */
+export const anchored = (pattern: string): RegExp =>
+    new RegExp(`^(?:${pattern})$`)
+
 /*  parse a single expression from the token stream  */
 const parseValueExpr = (tokens: Token[], pos: { i: number }, nested: boolean): ValueExpr => {
     const token = tokens[pos.i++]
     if (token.type === "regex") {
         const source = String(token.value)
         try {
-            return { kind: "regex", regex: new RegExp(source) }
+            return { kind: "regex", regex: anchored(source) }
         }
         catch (err) {
             throw new Error(`invalid regular expression "/${source}/": ` +
@@ -96,10 +101,6 @@ const parseValueExpr = (tokens: Token[], pos: { i: number }, nested: boolean): V
     else
         throw new Error(`expected value expression, got ${tokenName(token)}`)
 }
-
-/*  compile a configured pattern into an anchored regular expression  */
-export const anchored = (pattern: string): RegExp =>
-    new RegExp(`^(?:${pattern})$`)
 
 /*  compile a value expression, memoized per source string  */
 const cache = new Map<string, ValueExpr>()

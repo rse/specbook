@@ -56,7 +56,8 @@ SpecBook SCHEMA Meta Model
 This meta model defines which domain-specific objects are allowed in
 a *Schema*: the object kinds with their `file` mapping on the first
 level, the object kinds of the deeper levels, and their properties
-with optional value constraints: regular expressions `/xxx/`,
+with optional value constraints: regular expressions `/xxx/` (implicitly
+anchored, so they have to match the value as a whole),
 object references `[[xxx]]`, enumerations `enum(xxx,yyy)`, tag sets
 `tags(xxx,yyy)`, and lists `list(xxx[, ...])` of such alternatives.
 
