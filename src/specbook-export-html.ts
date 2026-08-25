@@ -672,7 +672,8 @@ export const renderHtml = async (specification: Spec,
             if (result.spec === undefined)
                 continue
             try {
-                const svg = await Gradia.render(result.spec, { format: "svg:embedded" })
+                const svg = await Gradia.render(result.spec,
+                    { format: "svg:embedded", config: result.config })
                 rendered.set(object, svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
                     (_, head: string, w: string, h: string) =>
                         `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"`))

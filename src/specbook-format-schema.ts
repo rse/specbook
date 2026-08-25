@@ -54,10 +54,13 @@ export type SchemaProperty = {
 
 /*  the Gradia rendering options, derived from the configuration
     defaults of Gradia: the option names constrain the allowed keys and
-    the types of the default values constrain the allowed value types  */
+    the types of the default values constrain the allowed value types
+    (with the numbers restricted to the finite, non-negative values
+    Gradia honors, as it silently drops all others)  */
 const GradiaConfigSchemas = Object.fromEntries(
     Object.entries(Gradia.config).map(([ key, value ]) => [ key,
-        typeof value === "boolean" ? v.boolean() : typeof value === "number" ? v.number() : v.string() ])
+        typeof value === "boolean" ? v.boolean() :
+            typeof value === "number" ? v.pipe(v.number(), v.finite(), v.minValue(0)) : v.string() ])
 ) as unknown as { [ K in keyof GradiaConfig ]: v.GenericSchema<GradiaConfig[K]> }
 const SchemaDiagramConfig: v.GenericSchema<Partial<GradiaConfig>> =
     v.partial(v.strictObject(GradiaConfigSchemas, (issue) =>

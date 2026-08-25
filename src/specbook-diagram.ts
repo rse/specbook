@@ -21,10 +21,13 @@ import { collectSchemas }
 const referenceOnce = new RegExp(referenceRegex.source)
 
 /*  the result of a per-object Gradia spec derivation: either the spec
-    text or the reasons why the diagram has to be omitted  */
+    text with the Gradia rendering options (which a rendering has to
+    receive explicitly, as Gradia drops the trust-sensitive font options
+    from the "#config" directives) or the reasons for omitting the diagram  */
 export interface DiagramResult {
-    spec?:  string
-    errors: string[]
+    spec?:   string
+    config?: SchemaDiagram["config"]
+    errors:  string[]
 }
 
 /*  the diagram shape, i.e., the "type" of a diagram configuration
@@ -315,7 +318,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     if (diagram.collapse !== false && nodes.length === 1 && edges.length === 0)
         return { errors }
 
-    return { spec: renderSpec(diagram, type, center, nodes, edges, index, anchors), errors }
+    return { spec: renderSpec(diagram, type, center, nodes, edges, index, anchors), config: diagram.config, errors }
 }
 
 /*  derive the Gradia specs of all diagram-configured objects

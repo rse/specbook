@@ -5,6 +5,7 @@ ChangeLog
 0.9.7 (2026-08-24)
 ------------------
 
+-   BUGFIX [code]: reject negative or non-finite numeric Gradia rendering options in the schema configuration and pass the configured options explicitly to the HTML diagram rendering, so "font-embed" and a WOFF2 "font-family" take effect, instead of Gradia silently dropping all of them from the "#config" directives
 -   BUGFIX [code]: embed SVG images in the HTML/PDF export as self-contained "data:" URLs on "<img>" tags instead of inlining them as-is, as the document-global "<style>" class rules of one inlined SVG (like the Illustrator-typical ".st0") silently restyled all other inlined SVGs sharing the same class names
 -   BUGFIX [infr]: do not ship the sample files which were generated
 -   BUGFIX [code, docs]: parse the last segment of a "."-terminated Concise Format item always as the description and accept an empty property value, so a "Note: xxx"-shaped description and an empty-valued property of an object exported in the Concise Format no longer swap their roles on re-parsing
