@@ -115,10 +115,10 @@ export const resolveUnique = (index: LinkIndex, reference: string): LinkTarget =
     let   matches: SpecObject[] = []
     if (segments.length === 1) {
         const segment  = segments[0]
-        const plain    = unquote(segment)
+        const unquoted = unquote(segment)
         const variants = [
-            (object: SpecObject) => object.id === plain || object.anchor === plain,
-            (object: SpecObject) => plainText(object.name) === plain,
+            (object: SpecObject) => object.id === unquoted || object.anchor === unquoted,
+            (object: SpecObject) => plainText(object.name) === unquoted,
             (object: SpecObject) => matchesSegment(object, segment)
         ]
         for (const variant of variants) {

@@ -109,6 +109,8 @@ export class SpecBook {
         const verbose = this.verboseOf("describe")
         if (options.config !== undefined)
             this.requireConfig(options.config, verbose)
+        else if (options.embed === true)
+            throw new Error("YAML schema configuration required for embedding")
         verbose("describing the SpecBook models and formats")
         return describeFormat(options)
     }

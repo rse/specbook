@@ -27,39 +27,32 @@ export { type SourceFile, type ParseResult }
 export { resolveArtifact }
     from "./specbook-parse-semantic.js"
 
-/*  parser for a set of specification Markdown files  */
-export class Parser {
-    /*  parse all source files into the specification AST and
-        optionally validate the result against a configuration  */
-    parse (sources: SourceFile[], config?: Schema): ParseResult {
-        /*  create a fresh parsing context for this parsing run  */
-        const ctx = new ParseContext()
+/*  parse a set of specification Markdown files into the specification
+    AST and optionally validate the result against a configuration  */
+export const parseSpecification = (sources: SourceFile[], config?: Schema): ParseResult => {
+    /*  create a fresh parsing context for this parsing run  */
+    const ctx = new ParseContext()
 
-        /*  parse all source files into their artifacts  */
-        const artifacts = new Array<SpecArtifact>()
-        for (const source of sources)
-            artifacts.push(...parseFile(ctx, source))
-        const specification: Spec = { artifacts }
+    /*  parse all source files into their artifacts  */
+    const artifacts = new Array<SpecArtifact>()
+    for (const source of sources)
+        artifacts.push(...parseFile(ctx, source))
+    const specification: Spec = { artifacts }
 
-        /*  validate the resulting specification AST  */
-        if (artifacts.length > 0) {
-            ctx.linkIndex = buildLinkIndex(specification)
-            if (config !== undefined)
-                validate(ctx, specification, config)
-            validateReferences(ctx, specification)
-            if (config !== undefined)
-                validateDiagrams(ctx, specification, config)
-            const result = v.safeParse(Spec, specification)
-            if (!result.success)
-                for (const issue of result.issues) {
-                    const path = v.getDotPath(issue) ?? ""
-                    ctx.diagnose(sources[0]?.file ?? "", 1, `internal AST invalid at "${path}": ${issue.message}`)
-                }
-        }
-        return { specification, diagnostics: ctx.diagnostics }
+    /*  validate the resulting specification AST  */
+    if (artifacts.length > 0) {
+        ctx.linkIndex = buildLinkIndex(specification)
+        if (config !== undefined)
+            validate(ctx, specification, config)
+        validateReferences(ctx, specification)
+        if (config !== undefined)
+            validateDiagrams(ctx, specification, config)
+        const result = v.safeParse(Spec, specification)
+        if (!result.success)
+            for (const issue of result.issues) {
+                const path = v.getDotPath(issue) ?? ""
+                ctx.diagnose(sources[0]?.file ?? "", 1, `internal AST invalid at "${path}": ${issue.message}`)
+            }
     }
+    return { specification, diagnostics: ctx.diagnostics }
 }
-
-/*  convenience wrapper for one-shot parsing  */
-export const parseSpecification = (sources: SourceFile[], config?: Schema): ParseResult =>
-    new Parser().parse(sources, config)

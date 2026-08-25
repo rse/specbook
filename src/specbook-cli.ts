@@ -128,7 +128,7 @@ withCommonOptions(program.command("export"))
         output: string[] }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const outputs = (opts.output.length > 0 ? opts.output : [ envDefault("output") ?? "-" ])
-            .map((spec) => parseOutputSpec(spec))
+            .map(parseOutputSpec)
 
         /*  parse the input once and export each distinct format once  */
         const distinct = Array.from(new Set(outputs.map(({ format }) => format)))

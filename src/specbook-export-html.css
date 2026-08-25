@@ -116,7 +116,7 @@ body                        { padding: 0; }
 div.theme-switch            { position: fixed; top: 0.75rem; right: 1.50rem;
                               color: var(--theme-color-specbook-symbol); font-size: 150%;
                               font-family: "Noto Sans Symbols", sans-serif;
-                              cursor: pointer; user-select: none; line-height: 1; }
+                              cursor: pointer; -webkit-user-select: none; user-select: none; line-height: 1; }
 div.theme-switch:hover      { color: var(--theme-color-specbook-accent); }
 @media print {
 div.theme-switch            { display: none; }
@@ -154,12 +154,12 @@ a                           { color: var(--theme-color-specbook-accent); text-de
 span.link-broken            { color: var(--theme-color-specbook-error); }
 span.anchor-paren           { color: var(--theme-color-specbook-muted); font-weight: normal; }
 span.primary-marker         { color: var(--theme-color-specbook-accent-soft); font-weight: normal; font-size: 75%;
-                              vertical-align: 0.15em; margin-left: 0.2em; user-select: none; }
+                              vertical-align: 0.15em; margin-left: 0.2em; -webkit-user-select: none; user-select: none; }
 span.anchor-symbol          { color: var(--theme-color-specbook-symbol); font-family: "Noto Sans Symbols", sans-serif;
-                              font-weight: normal; font-size: 80%; margin-left: 0.2em; user-select: none; }
+                              font-weight: normal; font-size: 80%; margin-left: 0.2em; -webkit-user-select: none; user-select: none; }
 span.link-symbol            { color: var(--theme-color-specbook-symbol); font-family: "Noto Sans Symbols", sans-serif;
                               font-weight: normal; font-size: 140%; margin-left: 0.2em;
-                              vertical-align: -0.2rem; line-height: 0; user-select: none; }
+                              vertical-align: -0.2rem; line-height: 0; -webkit-user-select: none; user-select: none; }
 span.value-member           { border: 1px solid var(--theme-color-specbook-border); border-radius: 0.25rem;
                               padding: 0.05rem 0.30rem; white-space: nowrap; }
 
@@ -232,7 +232,7 @@ span.keyword                { font-weight: bold; }
 code                        { font-family: "Source Code Pro", monospace; font-size: 1.0em; letter-spacing: -0.030rem; }
 
 div.titlepage               { text-align: center; margin: 6rem 0 4rem 0;
-                              page-break-after: always; }
+                              page-break-after: always; break-after: page; }
 div.titlepage .logo         { margin-bottom: 2rem; }
 div.titlepage .logo img,
 div.titlepage .logo svg     { max-width: 50%; max-height: 12rem; height: auto; }
@@ -253,7 +253,7 @@ div.search input            { font-family: inherit; font-size: 1.0rem; width: 20
                               background-color: var(--theme-color-specbook-background); }
 div.search input:focus      { outline: none; border-color: var(--theme-color-specbook-accent); }
 div.search span.search-clear { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%);
-                              color: var(--theme-color-specbook-symbol); cursor: pointer; user-select: none; }
+                              color: var(--theme-color-specbook-symbol); cursor: pointer; -webkit-user-select: none; user-select: none; }
 div.search span.search-clear:hover { color: var(--theme-color-specbook-accent); }
 @media print {
 div.search                  { display: none; }
@@ -267,7 +267,7 @@ mark.search-hit             { color: var(--theme-color-specbook-mark-text);
                               background-color: var(--theme-color-specbook-mark-back);
                               border-radius: 0.2rem; padding: 0 0.1em; }
 
-nav.toc                     { page-break-after: always; counter-reset: toc; }
+nav.toc                     { page-break-after: always; break-after: page; counter-reset: toc; }
 nav.toc h1                  { color: var(--theme-color-specbook-accent); }
 nav.toc tr                  { counter-increment: toc; }
 nav.toc td:first-child a::before { content: counter(toc, decimal-leading-zero) " "; color: var(--theme-color-specbook-muted); margin-right: 0.4rem; font-weight: normal; }

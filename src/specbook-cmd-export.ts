@@ -41,8 +41,9 @@ export const parseOutputSpec = (spec: string): { format: ExportFormat, output: s
     const prefixed = spec.match(/^([a-zA-Z0-9]+):(.+)$/)
     if (prefixed !== null) {
         const prefix = prefixed[1].toLowerCase()
-        if ((formats as readonly string[]).includes(prefix))
-            return { format: prefix as ExportFormat, output: prefixed[2] }
+        const explicit = formats.find((candidate) => candidate === prefix)
+        if (explicit !== undefined)
+            return { format: explicit, output: prefixed[2] }
     }
     if (spec === "-")
         return { format: "json", output: spec }
@@ -67,7 +68,7 @@ export const exportSpecification = async (
     if (format === "json" || format === "json5" || format === "yaml" || format === "toon")
         return renderAst(specification, format satisfies AstFormat, config)
     else if (format === "md")
-        return Buffer.from(await renderMarkdown(specification, config), "utf8")
+        return Buffer.from(renderMarkdown(specification, config), "utf8")
 
     /*  the HTML-based formats share the stylesheet, with the embedded
         fonts subsetted to the CHARSET of the specification (if any)  */

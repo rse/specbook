@@ -78,8 +78,8 @@ const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecOb
 }
 
 /*  render the entire specification into normalized Markdown  */
-export const renderMarkdown = async (specification: Spec,
-    config?: Schema): Promise<string> => {
+export const renderMarkdown = (specification: Spec,
+    config?: Schema): string => {
     /*  derive the Gradia specs of the diagram-configured objects
         (an invalid diagram situation omits the diagram, as it is
         already reported as a lint diagnostic)  */

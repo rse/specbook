@@ -6,7 +6,7 @@
 
 import JSON5                                      from "json5"
 import { stringify as stringifyYaml }             from "yaml"
-import { encode as encodeToon, type JsonValue }   from "@toon-format/toon"
+import { encode as encodeToon }                   from "@toon-format/toon"
 
 import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
@@ -56,5 +56,5 @@ export const renderAst = async (specification: Spec, format: AstFormat,
     else if (format === "yaml")
         return Buffer.from(stringifyYaml(plain), "utf8")
     else
-        return Buffer.from(encodeToon(plain as unknown as JsonValue) + "\n", "utf8")
+        return Buffer.from(encodeToon(plain) + "\n", "utf8")
 }

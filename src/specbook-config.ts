@@ -12,9 +12,12 @@ import { Schema, type SchemaObject }  from "./specbook-format-schema.js"
 import { compileValueExpr, anchored } from "./specbook-parse-value.js"
 import { type Diagnostic }            from "./specbook-diagnostic.js"
 
+/*  a path into the YAML document (object keys and sequence indexes)  */
+type YamlPath = (string | number)[]
+
 /*  determine line/column of a YAML document path via the node ranges
     of the parsed document, falling back to the closest ancestor node  */
-const lineColOfPath = (doc: Document, lines: LineCounter, path: (string | number)[]) => {
+const lineColOfPath = (doc: Document, lines: LineCounter, path: YamlPath) => {
     for (let i = path.length; i >= 0; i--) {
         const node  = doc.getIn(path.slice(0, i), true)
         const start = isNode(node) ? node.range?.[0] : undefined
@@ -34,15 +37,15 @@ const lineColOfPath = (doc: Document, lines: LineCounter, path: (string | number
 const checkConstraints = (
     config:    Schema,
     file:      string,
-    posOfPath: (path: (string | number)[]) => { line: number, column: number }
+    posOfPath: (path: YamlPath) => { line: number, column: number }
 ): Diagnostic[] => {
     const diagnostics = new Array<Diagnostic>()
-    const diagnose = (path: (string | number)[], message: string) => {
+    const diagnose = (path: YamlPath, message: string) => {
         const pos = posOfPath(path)
         diagnostics.push({ file, line: pos.line, column: pos.column, message })
     }
-    const check = (objects: SchemaObject[], path: (string | number)[], depth: number) => {
-        objects.forEach((object, i) => {
+    const check = (objects: SchemaObject[], path: YamlPath, depth: number) => {
+        for (const [ i, object ] of objects.entries()) {
             const at = [ ...path, i ]
             if (depth > 1 && object.file !== undefined)
                 diagnose([ ...at, "file" ],
@@ -71,7 +74,7 @@ const checkConstraints = (
             }
             if (object.childs !== undefined)
                 check(object.childs, [ ...at, "childs" ], depth + 1)
-        })
+        }
     }
     check(config, [], 1)
     return diagnostics
@@ -113,7 +116,7 @@ export const loadConfig = (file: string): { config?: Schema, diagnostics: Diagno
     const obj: unknown = doc.toJS()
 
     /*  semantically validate against the schema of the configuration  */
-    const posOfPath = (path: (string | number)[]) => lineColOfPath(doc, lines, path)
+    const posOfPath = (path: YamlPath) => lineColOfPath(doc, lines, path)
     const result = v.safeParse(Schema, obj)
     if (!result.success) {
         for (const issue of result.issues) {

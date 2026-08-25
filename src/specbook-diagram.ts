@@ -6,14 +6,14 @@
 
 import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
-import type { Schema, SchemaObject, SchemaDiagram }
+import type { Schema, SchemaDiagram }
     from "./specbook-format-schema.js"
 import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths,
     expandReferences, plainText, type LinkIndex }
     from "./specbook-link.js"
 import type { ParseContext }
     from "./specbook-parse-common.js"
-import { resolveArtifact }
+import { collectSchemas }
     from "./specbook-parse-semantic.js"
 
 /*  the single Wiki-style reference match (the non-global sibling of
@@ -316,29 +316,6 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         return { errors }
 
     return { spec: renderSpec(diagram, type, center, nodes, edges, index, anchors), errors }
-}
-
-/*  map the specification objects onto their schema configuration
-    nodes (the artifact resolution is shared with the semantic validation)  */
-export const collectSchemas = (specification: Spec,
-    config: Schema): Map<SpecObject, SchemaObject> => {
-    const schemas = new Map<SpecObject, SchemaObject>()
-    const walk = (object: SpecObject, schema: SchemaObject) => {
-        schemas.set(object, schema)
-        for (const child of object.childs) {
-            const childSchema = (schema.childs ?? []).find((c) => c.kind === child.kind)
-            if (childSchema !== undefined)
-                walk(child, childSchema)
-        }
-    }
-    for (const artifact of specification.artifacts) {
-        for (const object of artifact.objects) {
-            const schema = resolveArtifact(config, object)
-            if (schema !== undefined)
-                walk(object, schema)
-        }
-    }
-    return schemas
 }
 
 /*  derive the Gradia specs of all diagram-configured objects

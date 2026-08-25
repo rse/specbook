@@ -113,8 +113,9 @@ const decorationTemplates = (
     inset:   string
 ): { headerTemplate: string, footerTemplate: string } => {
     const fontFace = css.match(/@font-face\s*\{[^}]*\}/)?.[0] ?? ""
+    const subtitle = heading.subtitle?.trim()
     const headText = escapeHtml(heading.title) +
-        (heading.subtitle !== undefined ? ` &mdash; ${escapeHtml(heading.subtitle)}` : "")
+        (subtitle !== undefined && subtitle !== "" ? ` &mdash; ${escapeHtml(subtitle)}` : "")
     return {
         headerTemplate:
             `<style>${fontFace}</style>` +

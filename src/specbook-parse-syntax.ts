@@ -61,7 +61,7 @@ const parseHeadingText = (raw: string) => {
     for (;;) {
         const wm = text.match(/\{\{([^{}]+)\}\}\s*$/)
         if (wm !== null && wm.index !== undefined) {
-            id ??= wm[1].trim()
+            id  ??= wm[1].trim()
             text  = text.slice(0, wm.index).trim()
             continue
         }

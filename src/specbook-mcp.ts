@@ -85,15 +85,18 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         }
     }, async (args) => {
         try {
-            const format   = args.format ?? (args.output !== undefined ?
-                parseOutputSpec(args.output).format : "json")
+            /*  an explicit format takes the output as a plain file path, while
+                otherwise the output is an "[<format>:]<file>" specification  */
+            const spec = args.format !== undefined || args.output === undefined ?
+                { format: args.format ?? "json", output: args.output } :
+                parseOutputSpec(args.output)
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
-                formats: [ format ] })
-            if (args.output !== undefined) {
-                await fs.promises.writeFile(args.output, data)
-                return { content: [ { type: "text", text: `exported specification into "${args.output}" (${data.length} bytes)` } ] }
+                formats: [ spec.format ] })
+            if (spec.output !== undefined) {
+                await fs.promises.writeFile(spec.output, data)
+                return { content: [ { type: "text", text: `exported specification into "${spec.output}" (${data.length} bytes)` } ] }
             }
-            else if (format === "pdf")
+            else if (spec.format === "pdf")
                 return { content: [ {
                     type:     "resource",
                     resource: { uri: "specbook:export.pdf", mimeType: "application/pdf", blob: data.toString("base64") }

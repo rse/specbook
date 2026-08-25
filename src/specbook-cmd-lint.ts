@@ -7,12 +7,12 @@
 import * as fs   from "node:fs"
 import * as path from "node:path"
 
-import { loadConfig }                          from "./specbook-config.js"
-import { literal }                             from "./specbook-verbose.js"
-import { type Diagnostic }                     from "./specbook-diagnostic.js"
+import { loadConfig }                                           from "./specbook-config.js"
+import { literal }                                              from "./specbook-verbose.js"
+import { type Diagnostic }                                      from "./specbook-diagnostic.js"
 import { parseSpecification, resolveArtifact, type SourceFile } from "./specbook-parse.js"
-import { type Spec }                           from "./specbook-format-spec.js"
-import { type Schema, type SchemaObject }      from "./specbook-format-schema.js"
+import { type Spec }                                            from "./specbook-format-spec.js"
+import { type Schema, type SchemaObject }                       from "./specbook-format-schema.js"
 
 /*  the options of the lint command  */
 export interface LintOptions {

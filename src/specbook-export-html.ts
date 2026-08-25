@@ -24,7 +24,9 @@ import { embeddingRegex, embeddingMimeType, embeddingThemes, embeddingVariants }
 import { escapeHtml, stylesheet, searchScript, fallbackLogo,
     isTitleObject, titleObject, documentTitle, documentLang, documentThemeStyle }
     from "./specbook-export-common.js"
-import { specDiagrams, collectSchemas }
+import { collectSchemas }
+    from "./specbook-parse-semantic.js"
+import { specDiagrams }
     from "./specbook-diagram.js"
 
 /*  ==== Templates ====  */
@@ -137,7 +139,7 @@ const templates = {
         {%- if Description.block %}
         <div class="description">{{ Description.description }}{% if Description.rationale %}
             <p class="rationale">&mdash; <span class="keyword">BECAUSE</span> {{ Description.rationale }}</p>{% endif %}</div>
-        {%- else %}
+        {%- elif Description.description or Description.rationale %}
         <p class="description">{{ Description.description }}{% if Description.rationale %}
             <span class="rationale">&mdash; <span class="keyword">BECAUSE</span> {{ Description.rationale }}</span>{% endif %}</p>
         {%- endif %}
@@ -352,7 +354,7 @@ const renderDescription = (description: SpecDescription): string => {
     const blocked = isBlock(text)
     return render("Description", { Description: {
         block:       blocked,
-        description: blocked ? block(text) : inline(text),
+        description: text !== "" ? (blocked ? block(text) : inline(text)) : "",
         rationale:   description.rationale !== undefined ?
             inline(description.rationale) : undefined,
         embeddings
@@ -384,7 +386,7 @@ const collectMembers = (nodes: SchemaObject[], result: Map<string, "enum" | "tag
     "enum(...)" (a single member) or "tags(...)" (a member set) value  */
 const inlineValue = (kind: string, key: string, value: string) => {
     const member = members?.get(`${kind} ${key}`)
-    if (member === undefined)
+    if (member === undefined || value.trim() === "")
         return inline(value)
     const items = member === "tags" ? splitItems(value) : [ value.trim() ]
     return safe(items.map((item) =>
@@ -427,11 +429,8 @@ const tableShape = (childs: SpecObject[]) => {
         child.properties.map((property) => property.key))) ]
     const schema = schemas?.get(childs[0])
     if (schema?.format?.withUnusedProps === true) {
-        const merged = (schema.props ?? []).flatMap((prop) => {
-            const present = keys.filter((key) => key === prop.name)
-            return present.length > 0 ? present : [ prop.name ]
-        })
-        keys = [ ...merged, ...keys.filter((key) => !merged.includes(key)) ]
+        const names = (schema.props ?? []).map((prop) => prop.name)
+        keys = [ ...names, ...keys.filter((key) => !names.includes(key)) ]
     }
     return { keys, desc: childs.some((child) =>
         child.description !== undefined || child.childs.length > 0) }
@@ -711,28 +710,31 @@ export const renderHtml = async (specification: Spec,
     const title     = titlePageObject(specification)
     const artifacts = specification.artifacts
         .filter((artifact) => !artifact.objects.some(isTitleObject))
-    const entries = artifacts.flatMap((artifact) => artifact.objects)
-        .map((object) => ({ id: anchorOf(object), kind: object.kind, name: inline(object.name),
-            page: tocPages?.get(anchorOf(object)) }))
-    const html = render("Document", { Document: {
-        title:     documentTitle(specification).title,
-        lang,
-        theme:     documentThemeStyle(specification)?.toLowerCase(),
-        css:       safe(css ?? stylesheet()),
-        titlepage: title !== undefined ?
-            safe(renderTitlePage(title,
-                formatDate(created), formatDate(modified))) : "",
-        search:    title !== undefined ? safe(searchScript()) : "",
-        toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
-        artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
-    } })
-
-    /*  release the per-document state, as it would otherwise retain the
-        specification (and its embedded images) until the next rendering  */
-    linker   = null
-    anchors  = null
-    members  = null
-    schemas  = null
-    diagrams = null
-    return html
+    try {
+        const entries = artifacts.flatMap((artifact) => artifact.objects)
+            .map((object) => ({ id: anchorOf(object), kind: object.kind, name: inline(object.name),
+                page: tocPages?.get(anchorOf(object)) }))
+        return render("Document", { Document: {
+            title:     documentTitle(specification).title,
+            lang,
+            theme:     documentThemeStyle(specification)?.toLowerCase(),
+            css:       safe(css ?? stylesheet()),
+            titlepage: title !== undefined ?
+                safe(renderTitlePage(title,
+                    formatDate(created), formatDate(modified))) : "",
+            search:    title !== undefined ? safe(searchScript()) : "",
+            toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
+            artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
+        } })
+    }
+    finally {
+        /*  release the per-document state (also on a rendering failure),
+            as it would otherwise retain the specification (and its
+            embedded images) until the next rendering  */
+        linker   = null
+        anchors  = null
+        members  = null
+        schemas  = null
+        diagrams = null
+    }
 }

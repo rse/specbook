@@ -15,6 +15,9 @@ import { compileValueExpr, splitItems, anchored, type ValueExpr }
 import { ParseContext, type ObjectMeta }
     from "./specbook-parse-common.js"
 
+/*  the syntax of a value consisting of exactly one Wiki-style reference  */
+const singleReferenceRegex = /^\[\[([^[\]]+)\]\]$/
+
 /*  match a full property value directly against a value expression
     (defined for the regex and enum kinds only)  */
 const directMatches = (expr: ValueExpr, text: string): boolean =>
@@ -25,7 +28,7 @@ const directMatches = (expr: ValueExpr, text: string): boolean =>
     constraint (a reference item resolves leniently, as unresolvable
     and ambiguous ones are already reported by the reference pass)  */
 const matchAlternatives = (ctx: ParseContext, alternatives: ValueExpr[], item: string): boolean => {
-    const rm = item.match(/^\[\[([^[\]]+)\]\]$/)
+    const rm = item.match(singleReferenceRegex)
     for (const alternative of alternatives) {
         if (alternative.kind === "reference") {
             if (rm === null)
@@ -56,12 +59,12 @@ const checkPropValue = (ctx: ParseContext, prop: SchemaProperty,
     if (expr.kind === "reference") {
         /*  a reference constraint: the value has to be exactly one
             reference resolving into the constraint's wildcard match set  */
-        const value = plainText(property.value).trim()
-        if (!/^\[\[[^[\]]+\]\]$/.test(value))
+        const rm = plainText(property.value).trim().match(singleReferenceRegex)
+        if (rm === null)
             ctx.diagnose(meta.file, meta.line,
                 `property "${prop.name}" value "${property.value}" is not a single link reference`)
         else {
-            const ref    = value.slice(2, -2).trim()
+            const ref    = rm[1].trim()
             const target = resolveUnique(ctx.linkIndex, ref).target
             if (target !== undefined && !resolveSet(ctx.linkIndex, expr.pattern).includes(target))
                 ctx.diagnose(meta.file, meta.line,
@@ -208,6 +211,29 @@ export const resolveArtifact = (config: Schema, object: SpecObject): SchemaObjec
         (s.kind === object.kind && s.id === object.id) || `${s.kind}-${s.id}` === object.id) ??
     config.find((s) => s.name !== undefined
         && s.name.toUpperCase() === plainText(object.name).toUpperCase())
+
+/*  map the specification objects onto their schema configuration
+    nodes (the artifact resolution is shared with the validation)  */
+export const collectSchemas = (specification: Spec,
+    config: Schema): Map<SpecObject, SchemaObject> => {
+    const schemas = new Map<SpecObject, SchemaObject>()
+    const walk = (object: SpecObject, schema: SchemaObject) => {
+        schemas.set(object, schema)
+        for (const child of object.childs) {
+            const childSchema = (schema.childs ?? []).find((c) => c.kind === child.kind)
+            if (childSchema !== undefined)
+                walk(child, childSchema)
+        }
+    }
+    for (const artifact of specification.artifacts) {
+        for (const object of artifact.objects) {
+            const schema = resolveArtifact(config, object)
+            if (schema !== undefined)
+                walk(object, schema)
+        }
+    }
+    return schemas
+}
 
 /*  validate the parsed specification against the configuration  */
 export const validate = (ctx: ParseContext, specification: Spec, config: Schema) => {
