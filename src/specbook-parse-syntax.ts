@@ -312,7 +312,9 @@ interface WalkState {
 
 /*  parse a heading token into either a grouping container (e.g. "### STATE",
     collecting objects of its kind below the parent object) or a new object
-    (an artifact on level 1, a child of the enclosing object below)  */
+    (an artifact on level 1, a child of the enclosing object below); a heading
+    without a parent object detaches the current object, so the content below
+    it is reported, too, instead of being absorbed by the previous object  */
 const parseHeading = (ctx: ParseContext, token: Tokens.Heading, state: WalkState,
     stamps: Pick<SpecArtifact, "created" | "modified">, file: string, line: number) => {
     const { depth, text } = token
@@ -322,8 +324,10 @@ const parseHeading = (ctx: ParseContext, token: Tokens.Heading, state: WalkState
         ctx.diagnose(file, line, `malformed anchor "${heading.malformed}" in heading`)
     if (heading.name === "" && depth > 1) {
         const parent = state.stack[depth - 2]
-        if (parent === undefined)
+        if (parent === undefined) {
             ctx.diagnose(file, line, `heading level ${depth} without parent object`)
+            state.current = null
+        }
         else {
             state.group        = { parent, kind: heading.kind }
             state.current      = parent
@@ -351,6 +355,7 @@ const parseHeading = (ctx: ParseContext, token: Tokens.Heading, state: WalkState
         const parent = state.stack[depth - 2]
         if (parent === undefined) {
             ctx.diagnose(file, line, `heading level ${depth} without parent object`)
+            state.current = null
             return
         }
         parent.childs.push(object)

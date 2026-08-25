@@ -5,6 +5,7 @@ ChangeLog
 0.9.8 (2026-08-25)
 ------------------
 
+-   BUGFIX [code]: detach the current object on a heading without a parent object
 -   BUGFIX [code]: report a diagram edge object carrying no resolvable source or target reference just once
 -   BUGFIX [code, docs]: emit a property value carrying a ", BECAUSE " as a nested key/value item in the Markdown export
 -   BUGFIX [code, docs]: keep child objects of object in Complex Format in Markdown export when a descendant carries a description containing a ";", too
