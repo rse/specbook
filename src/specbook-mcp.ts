@@ -9,7 +9,7 @@ import { McpServer }            from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z }                    from "zod"
 
-import { SpecBook, renderDiagnostic, formats, version, type VerboseSink } from "./specbook-api.js"
+import { SpecBook, renderDiagnostic, formats, parseOutputSpec, version, type VerboseSink } from "./specbook-api.js"
 
 /*  render an error with its cause chain into a tool error result  */
 const errorResult = (err: unknown) => {
@@ -79,12 +79,14 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         inputSchema: {
             config:  z.string().describe("YAML schema configuration file"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
-            format:  z.enum(formats).optional().describe("output format (default: json)"),
+            format:  z.enum(formats).optional().describe("output format (default: inferred from the " +
+                "output file extension, else json)"),
             output:  z.string().optional().describe("output file path")
         }
     }, async (args) => {
         try {
-            const format   = args.format ?? "json"
+            const format   = args.format ?? (args.output !== undefined ?
+                parseOutputSpec(args.output).format : "json")
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
                 formats: [ format ] })
             if (args.output !== undefined) {

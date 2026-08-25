@@ -18,22 +18,15 @@
 @font-face                  { font-family: "Noto Sans Symbols"; font-style: normal; font-weight: normal;
                               src: url("../node_modules/@fontsource/noto-sans-symbols/files/noto-sans-symbols-symbols-400-normal.woff2") format("woff2"); }
 
-/*  Adobe Source Code Pro font faces  */
+/*  Adobe Source Code Pro font face (regular only, as the italic
+    and bold faces are intentionally not embedded)  */
 @font-face                  { font-family: "Source Code Pro"; font-style: normal; font-weight: normal;
                               src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-Regular.ttf.woff2") format("woff2"); }
-/*
-@font-face                  { font-family: "Source Code Pro"; font-style: italic; font-weight: normal;
-                              src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-It.ttf.woff2") format("woff2"); }
-@font-face                  { font-family: "Source Code Pro"; font-style: normal; font-weight: bold;
-                              src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-Bold.ttf.woff2") format("woff2"); }
-@font-face                  { font-family: "Source Code Pro"; font-style: italic; font-weight: bold;
-                              src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-BoldIt.ttf.woff2") format("woff2"); }
-*/
 
 /*  the theme-specific (layer 2) mapping of the export-time generated
-    (layer 1) color spreads --theme-color-{base,accent}-{1..32} onto the
-    semantic colors --theme-color-specbook-XXX used by the rules below
-    (layer 3), with the dark theme using the inverse indices (N onto 33 - N)  */
+    (layer 1) color spreads --theme-color-{base,accent,search}-{1..32} onto
+    the semantic colors --theme-color-specbook-XXX used by the rules below
+    (layer 3), with the dark theme using roughly mirrored indices  */
 html,
 html.theme-light            { --theme-color-specbook-background:  var(--theme-color-base-32);
                               --theme-color-specbook-text:        var(--theme-color-base-5);
@@ -116,9 +109,6 @@ body::before                { content: ""; position: fixed; top: 0; bottom: 0;
                               left: 0; width: 0.6rem; background-color: var(--theme-color-specbook-accent); }
 @media print {
 body::before                { display: none; }
-}
-
-@media print {
 body                        { padding: 0; }
 }
 
@@ -203,7 +193,7 @@ table.objects div.description > :last-child  { margin-bottom: 0; }
 table.objects td.chunks     { padding: 0; }
 table.chunks                { border-collapse: collapse; table-layout: fixed;
                               width: 100%; }
-table.objects table.chunks tr td { background-color: transparent; }
+table.objects table.chunks tr td          { background-color: transparent; }
 table.objects table.chunks td:first-child { font-weight: normal; }
 
 /*  the nested renderings inside the description cells of the compact

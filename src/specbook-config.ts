@@ -5,7 +5,7 @@
 */
 
 import * as fs from "node:fs"
-import { parse as parseYaml, parseDocument, isNode, LineCounter, YAMLParseError, type Document } from "yaml"
+import { parseDocument, isNode, LineCounter, type Document } from "yaml"
 import * as v  from "valibot"
 
 import { Schema, type SchemaObject }  from "./specbook-format-schema.js"
@@ -93,34 +93,27 @@ export const loadConfig = (file: string): { config?: Schema, diagnostics: Diagno
         return { diagnostics }
     }
 
-    /*  syntactically parse the YAML content  */
-    let obj: unknown
-    try {
-        obj = parseYaml(yaml)
-    }
-    catch (err) {
+    /*  syntactically parse the YAML content into its document, keeping
+        the line positions for the diagnostics  */
+    const lines = new LineCounter()
+    const doc   = parseDocument(yaml, { lineCounter: lines })
+    if (doc.errors.length > 0) {
         /*  strip the position and the source snippet the YAML parser
             appends to its message, as the diagnostic carries the
             position itself  */
-        const e   = err instanceof YAMLParseError ? err : undefined
-        const msg = err instanceof Error ? err.message : String(err)
-        diagnostics.push({
-            file,
-            line:    e?.linePos?.[0]?.line ?? 1,
-            column:  e?.linePos?.[0]?.col  ?? 1,
-            message: "invalid YAML syntax: " + msg.replace(/ at line \d+, column \d+(?::\n[\s\S]*)?$/, "")
-        })
+        for (const err of doc.errors)
+            diagnostics.push({
+                file,
+                line:    err.linePos?.[0].line ?? 1,
+                column:  err.linePos?.[0].col  ?? 1,
+                message: "invalid YAML syntax: " + err.message.replace(/ at line \d+, column \d+(?::\n[\s\S]*)?$/, "")
+            })
         return { diagnostics }
     }
+    const obj: unknown = doc.toJS()
 
-    /*  semantically validate against the schema of the configuration
-        (the document is parsed lazily, as it is needed for positions only)  */
-    let   doc: Document | undefined
-    const lines     = new LineCounter()
-    const posOfPath = (path: (string | number)[]) => {
-        doc ??= parseDocument(yaml, { lineCounter: lines })
-        return lineColOfPath(doc, lines, path)
-    }
+    /*  semantically validate against the schema of the configuration  */
+    const posOfPath = (path: (string | number)[]) => lineColOfPath(doc, lines, path)
     const result = v.safeParse(Schema, obj)
     if (!result.success) {
         for (const issue of result.issues) {

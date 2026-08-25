@@ -11,8 +11,8 @@ import { parse, generate } from "@rse/mrcs"
 /*  the theme styles and theme color spreads  */
 export type ThemeStyle  = "light" | "dark"
 export type ThemeColors = {
-    base:   string[],
-    accent: string[],
+    base:   string[]
+    accent: string[]
     search: string[]
 }
 
@@ -41,10 +41,10 @@ export const themeStylesheet = (colors: ThemeColors): string =>
 
 /*  the semantic theme colors needed outside of CSS (PDF decoration)  */
 export type ThemeMapping = {
-    text:   string,
-    muted:  string,
-    symbol: string,
-    border: string,
+    text:   string
+    muted:  string
+    symbol: string
+    border: string
     accent: string
 }
 

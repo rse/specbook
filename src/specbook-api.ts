@@ -103,9 +103,13 @@ export class SpecBook {
     }
 
     /*  describe the generic SpecBook models and formats as Markdown,
-        optionally pointing to the artifacts of the particular project  */
+        optionally pointing to the artifacts of the particular project,
+        whose YAML schema configuration is validated if given  */
     async describe (options: { config?: string, basedir?: string, embed?: boolean }): Promise<string> {
-        this.verboseOf("describe")("describing the SpecBook models and formats")
+        const verbose = this.verboseOf("describe")
+        if (options.config !== undefined)
+            this.requireConfig(options.config, verbose)
+        verbose("describing the SpecBook models and formats")
         return describeFormat(options)
     }
 }

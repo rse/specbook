@@ -18,11 +18,8 @@ import { ParseContext, type ObjectMeta }
 /*  match a full property value directly against a value expression
     (defined for the regex and enum kinds only)  */
 const directMatches = (expr: ValueExpr, text: string): boolean =>
-    expr.kind === "regex" ?
-        expr.regex.test(text) :
-        expr.kind === "enum" ?
-            expr.members.includes(text) :
-            false
+    (expr.kind === "regex" && expr.regex.test(text))
+    || (expr.kind === "enum" && expr.members.includes(text))
 
 /*  match a single list item against the alternatives of a list
     constraint (a reference item resolves leniently, as unresolvable
@@ -59,11 +56,12 @@ const checkPropValue = (ctx: ParseContext, prop: SchemaProperty,
     if (expr.kind === "reference") {
         /*  a reference constraint: the value has to be exactly one
             reference resolving into the constraint's wildcard match set  */
-        if (!/^\[\[[^[\]]+\]\]$/.test(property.value.trim()))
+        const value = plainText(property.value).trim()
+        if (!/^\[\[[^[\]]+\]\]$/.test(value))
             ctx.diagnose(meta.file, meta.line,
                 `property "${prop.name}" value "${property.value}" is not a single link reference`)
         else {
-            const ref    = property.value.trim().slice(2, -2).trim()
+            const ref    = value.slice(2, -2).trim()
             const target = resolveUnique(ctx.linkIndex, ref).target
             if (target !== undefined && !resolveSet(ctx.linkIndex, expr.pattern).includes(target))
                 ctx.diagnose(meta.file, meta.line,
@@ -98,6 +96,32 @@ const checkPropValue = (ctx: ParseContext, prop: SchemaProperty,
             `property "${prop.name}" value "${property.value}" does not match pattern "${prop.value}"`)
 }
 
+/*  find the configured property whose value the trailing parenthesized
+    name token of an object is accepted for: the first still missing
+    property whose pattern the token matches  */
+const parenProp = (object: SpecObject, props: SchemaProperty[]): SchemaProperty | undefined => {
+    const paren = object.paren
+    if (paren === undefined)
+        return undefined
+    return props.find((prop) => prop.value !== undefined && findProp(object, prop.name) === undefined
+        && directMatches(compileValueExpr(prop.value), paren))
+}
+
+/*  assign the implicit anchors of an object tree up-front: a parenthesized
+    token not consumed as a property value acts as the id (an explicit
+    "{{...}}" anchor takes precedence), which has to happen before any
+    property check, as those resolve references by id across all artifacts  */
+const assignIds = (object: SpecObject, schema: SchemaObject) => {
+    if (object.paren !== undefined && object.anchor === undefined
+        && parenProp(object, schema.props ?? []) === undefined)
+        object.id = object.paren
+    for (const child of object.childs) {
+        const childSchema = schema.childs?.find((c) => c.kind === child.kind)
+        if (childSchema !== undefined)
+            assignIds(child, childSchema)
+    }
+}
+
 /*  validate a single object (and recursively its childs) against its schema  */
 const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObject, level: number) => {
     const meta  = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
@@ -115,20 +139,14 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
         ctx.diagnose(meta.file, meta.line,
             `configured id "${schema.id}" not explicitly specified on ${object.kind} "${object.name}"`)
 
-    /*  check the configured properties  */
-    let parenConsumed = false
+    /*  check the configured properties (a trailing parenthesized name
+        token is accepted as the value of a still missing property)  */
+    const consumed = parenProp(object, props)
     for (const prop of props) {
         const expr  = prop.value !== undefined ? compileValueExpr(prop.value) : undefined
         const match = findProp(object, prop.name)
         if (match === undefined) {
-            /*  accept a trailing parenthesized name token as the value of a
-                still missing property when it matches the property pattern  */
-            if (!parenConsumed && object.paren !== undefined && expr !== undefined
-                && directMatches(expr, object.paren)) {
-                parenConsumed = true
-                continue
-            }
-            if (prop.optional !== true)
+            if (prop !== consumed && prop.optional !== true)
                 ctx.diagnose(meta.file, meta.line,
                     `required property "${prop.name}" missing on ${object.kind} "${object.name}"`)
         }
@@ -142,11 +160,6 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
         if (!props.some((p) => p.name === property.key))
             ctx.diagnose(meta.file, ctx.propMeta.get(property)?.line ?? meta.line,
                 `unknown property "${property.key}" on ${object.kind} "${object.name}"`)
-
-    /*  a parenthesized token not consumed as a property value acts as
-        the implicit anchor (an explicit "{{...}}" anchor takes precedence)  */
-    if (object.paren !== undefined && !parenConsumed && object.anchor === undefined)
-        object.id = object.paren
 
     /*  check the configured child objects  */
     const childs = schema.childs ?? []
@@ -194,11 +207,24 @@ export const resolveArtifact = (config: Schema, object: SpecObject): SchemaObjec
 
 /*  validate the parsed specification against the configuration  */
 export const validate = (ctx: ParseContext, specification: Spec, config: Schema) => {
+    /*  resolve the level 1 objects onto their artifact schemas and
+        assign the implicit ids of all objects before any validation  */
+    const schemas = new Map<SpecObject, SchemaObject>()
+    for (const artifact of specification.artifacts)
+        for (const object of artifact.objects) {
+            const schema = resolveArtifact(config, object)
+            if (schema !== undefined) {
+                schemas.set(object, schema)
+                assignIds(object, schema)
+            }
+        }
+
+    /*  validate every level 1 object against its artifact schema  */
     const position = new Map<SpecArtifact, number>()
     for (const artifact of specification.artifacts) {
         for (const object of artifact.objects) {
             const meta   = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
-            const schema = resolveArtifact(config, object)
+            const schema = schemas.get(object)
             if (schema === undefined) {
                 ctx.diagnose(meta.file, meta.line,
                     `unknown artifact "${object.kind}: ${object.name}" (id "${object.id}")`)

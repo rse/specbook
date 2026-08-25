@@ -130,7 +130,7 @@ const parseFrontmatter = (text: string) => {
         created:  grab("Created"),
         modified: grab("Modified"),
         body:     text.slice(m[0].length),
-        offset:   m[0].split("\n").length - 1
+        offset:   (m[0].match(/\n/g) ?? []).length
     }
 }
 
@@ -239,6 +239,10 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
         kind = km[1].trim()
         name = km[2].trim()
     }
+
+    /*  detect the trailing explicit Wiki-style anchor ("{{xxx}}"), the
+        primary marker ("(*)"), and/or the implicit parenthesized anchor
+        token ("(xxx)"), in any order  */
     let anchor:  string | undefined
     let paren:   string | undefined
     let primary = false
@@ -263,6 +267,8 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
         }
         break
     }
+
+    /*  create the object with its markers, registering its source location  */
     const object: SpecObject = {
         kind,
         id:         anchor ?? slugify(name),
@@ -277,6 +283,8 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
     if (primary)
         object.primary = true
     ctx.objectMeta.set(object, { file, line })
+
+    /*  split the remaining segments into properties and statements  */
     const statements = new Array<string>()
     for (const segment of segments) {
         const km = segment.match(/^([^:;]+):\s+(.+)$/)
@@ -291,10 +299,17 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
     if (statements.length > 0)
         object.description = splitDescription(statements.join("; ").replace(/\.\s*$/, ""))
 
-    /*  recurse into nested concise-format child objects  */
-    for (const sub of item.tokens)
+    /*  recurse into nested concise-format child objects, tracking the
+        source line of the nested list within the item (an ordered
+        nested list is not supported, so it is reported, not lost)  */
+    let subLine = line
+    for (const sub of item.tokens) {
         if (sub.type === "list" && !(sub as Tokens.List).ordered)
-            parseList(ctx, sub as Tokens.List, object, file, line)
+            parseList(ctx, sub as Tokens.List, object, file, subLine)
+        else if (sub.type === "list")
+            ctx.diagnose(file, subLine, `nested ordered list below ${kind} "${name}" ignored`)
+        subLine += (sub.raw.match(/\n/g) ?? []).length
+    }
     parent.childs.push(object)
 }
 

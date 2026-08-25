@@ -15,7 +15,7 @@ import type { Spec, SpecArtifact, SpecObject, SpecProperty, SpecDescription }
     from "./specbook-format-spec.js"
 import type { Schema, SchemaObject, SchemaFormat }
     from "./specbook-format-schema.js"
-import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths }
+import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths, plainText }
     from "./specbook-link.js"
 import { compileValueExpr, splitItems }
     from "./specbook-parse-value.js"
@@ -201,7 +201,7 @@ const templates = {
 /*  the per-language double quote styles for the smart typography
     (single quotes stay curly, as smartypants cannot distinguish a
     closing single quote from an apostrophe)  */
-const quoteStyles: { [ lang: string ]: [ string, string ] } = {
+const quoteStyles: Record<string, [ string, string ]> = {
     "en": [ "&#8220;",      "&#8221;"      ],  /*  “...”    */
     "nl": [ "&#8220;",      "&#8221;"      ],  /*  “...”    */
     "de": [ "&#8222;",      "&#8220;"      ],  /*  „...“    */
@@ -237,6 +237,19 @@ marked.use({ hooks: { postprocess: (html) =>
     html.replace(/&#8220;/g, quotes[0]).replace(/&#8221;/g, quotes[1])
         .replace(/&(?![a-zA-Z][a-zA-Z0-9]*;|#\d+;|#x[0-9a-fA-F]+;)/g, "&amp;") } })
 marked.use(markedSmartypants({ config: 1 }))
+
+/*  the switched-off text escaping of marked also leaves the angle
+    brackets of the inline text unescaped, which a browser then takes
+    for tags ("Map<String, Object>"), so they are escaped upfront in
+    the inline text tokenizer (registered after smartypants, as the
+    later-registered tokenizer takes precedence)  */
+marked.use({ tokenizer: { inlineText (src) {
+    const cap = this.rules.inline.text.exec(src)
+    if (cap === null)
+        return undefined
+    return { type: "text", raw: cap[0], escaped: true,
+        text: cap[0].replace(/</g, "&lt;").replace(/>/g, "&gt;") }
+} } })
 
 /*  the Nunjucks environment with the @rse/nunjucks-addons extensions  */
 const env = new nunjucks.Environment(null, { autoescape: true })
@@ -614,7 +627,7 @@ export const htmlOutline = (specification: Spec,
     const paths     = anchorPaths(buildLinkIndex(specification))
     const schemaMap = config !== undefined ? collectSchemas(specification, config) : null
     const entry = (object: SpecObject): OutlineEntry => ({
-        title:  (object.kind !== "" ? `${object.kind}: ` : "") + object.name,
+        title:  (object.kind !== "" ? `${object.kind}: ` : "") + plainText(object.name),
         anchor: paths.get(object) ?? object.id,
         childs: conciseChilds(object, schemaMap, false) ? [] : flowChilds(object).map(entry)
     })

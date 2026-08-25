@@ -8,6 +8,8 @@ import fs from "node:fs"
 
 import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
+import type { embeddingThemes }
+    from "./specbook-parse-common.js"
 
 /*  escape a text for embedding into template HTML (text and attributes)  */
 export const escapeHtml = (text: string): string =>
@@ -25,7 +27,7 @@ export const searchScript = (): string =>
 
 /*  provide a theme variant of the build-time bundled fallback logo of
     SpecBook itself (as a self-contained data: URL, to keep its styles isolated)  */
-export const fallbackLogo = (theme: string): string =>
+export const fallbackLogo = (theme: typeof embeddingThemes[number]): string =>
     "data:image/svg+xml;base64," +
     fs.readFileSync(new URL(`specbook-export-logo-${theme}.svg`, import.meta.url)).toString("base64")
 

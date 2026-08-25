@@ -132,10 +132,10 @@ const decorationTemplates = (
             "<div style=\"width: 100%; margin-bottom: 0.8cm;\">" +
             `<div style="margin: 0 ${inset}; ` +
             "font-family: 'Source Sans 3', sans-serif; " +
-            `font-size: 8pt; color: ${theme.text}; display: flex; ` +
+            `font-size: 8pt; color: ${theme.symbol}; display: flex; ` +
             `justify-content: space-between; border-top: 1px solid ${theme.border}; ` +
             "padding-top: 1mm;\">" +
-            `<span style="color: ${theme.symbol}">${headText}</span>` +
+            `<span>${headText}</span>` +
             `<span style="color: ${theme.muted}; font-weight: bold;" class="pageNumber"></span></div></div>`
     }
 }

@@ -13,6 +13,8 @@ import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths,
     from "./specbook-link.js"
 import type { ParseContext }
     from "./specbook-parse-common.js"
+import { resolveArtifact }
+    from "./specbook-parse-semantic.js"
 
 /*  the single Wiki-style reference match (the non-global sibling of
     the imported, global "referenceRegex")  */
@@ -317,7 +319,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
 }
 
 /*  map the specification objects onto their schema configuration
-    nodes (the schema resolution mirrors the semantic validation)  */
+    nodes (the artifact resolution is shared with the semantic validation)  */
 export const collectSchemas = (specification: Spec,
     config: Schema): Map<SpecObject, SchemaObject> => {
     const schemas = new Map<SpecObject, SchemaObject>()
@@ -331,10 +333,7 @@ export const collectSchemas = (specification: Spec,
     }
     for (const artifact of specification.artifacts) {
         for (const object of artifact.objects) {
-            const schema = config.find((s) =>
-                (s.kind === object.kind && s.id === object.id) || `${s.kind}-${s.id}` === object.id) ??
-                config.find((s) => s.name !== undefined
-                    && s.name.toUpperCase() === plainText(object.name).toUpperCase())
+            const schema = resolveArtifact(config, object)
             if (schema !== undefined)
                 walk(object, schema)
         }

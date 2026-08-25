@@ -40,7 +40,8 @@ const writeStdout = (data: Buffer | string): Promise<void> => {
 }
 
 /*  write a command result to the output file or stdout  */
-const writeOutput = async (output: string, data: Buffer | string, cmd: string, verbose: VerboseSink) => {
+const writeOutput = async (output: string, data: Buffer | string,
+    cmd: string, verbose: VerboseSink): Promise<void> => {
     if (output === "-")
         await writeStdout(data)
     else {
@@ -80,6 +81,7 @@ program.name("specbook")
         program.help()
     })
 
+/*  the mcp command runs all other commands as MCP tools over stdio  */
 withVerboseOption(program.command("mcp"))
     .description("run as MCP stdio server")
     .action(async (opts: { verbose: boolean }) => {
@@ -87,6 +89,7 @@ withVerboseOption(program.command("mcp"))
         await serveMcp(verboseOf(opts, "mcp"))
     })
 
+/*  the init command creates the configured artifact files  */
 withCommonOptions(program.command("init"))
     .description("initialize the configured specification artifact files below the base directory")
     .action(async (opts: { verbose: boolean, config: string, basedir: string }) => {
@@ -97,6 +100,7 @@ withCommonOptions(program.command("init"))
             "no artifact files were created\n")
     })
 
+/*  the lint command reports all diagnostics and fails on any of them  */
 withCommonOptions(program.command("lint"))
     .description("lint the specification Markdown files below the base directory")
     .action(async (opts: { verbose: boolean, config: string, basedir: string }) => {
@@ -112,6 +116,7 @@ withCommonOptions(program.command("lint"))
             verboseOf(opts)("lint", "specification valid")
     })
 
+/*  the export command parses the input once and writes every output  */
 withCommonOptions(program.command("export"))
     .description("export the specification Markdown files below the base directory " +
         "as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown")
@@ -149,6 +154,7 @@ withVerboseOption(program.command("describe"))
         await writeOutput(opts.output, text, "describe", verboseOf(opts))
     })
 
+/*  run the command line program  */
 try {
     await program.parseAsync()
 }

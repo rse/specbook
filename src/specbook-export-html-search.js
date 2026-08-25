@@ -18,7 +18,7 @@
 
     /*  shortest word still eligible for fuzzy matching: below it the
         edit distance would equate it with almost any short word  */
-    const FUZZY_MIN = 4
+    const fuzzyMin = 4
 
     /*  the searchable units (paragraphs, list items, table rows, and
         headings), the corpus vocabulary, and the per-word cache of the
@@ -101,7 +101,7 @@
         if (result !== undefined)
             return result
         result = []
-        if (word.length >= FUZZY_MIN)
+        if (word.length >= fuzzyMin)
             vocab.forEach((given) => {
                 if (Math.abs(word.length - given.length) <= 1
                     && (diceCoefficient(word, given) >= 0.50
