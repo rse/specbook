@@ -11,8 +11,9 @@ import { loadConfig }                          from "./specbook-config.js"
 import { literal }                             from "./specbook-verbose.js"
 import { type Diagnostic }                     from "./specbook-diagnostic.js"
 import { parseSpecification, type SourceFile } from "./specbook-parse.js"
+import { resolveArtifact }                     from "./specbook-parse-semantic.js"
 import { type Spec }                           from "./specbook-format-spec.js"
-import { type Schema }                         from "./specbook-format-schema.js"
+import { type Schema, type SchemaObject }      from "./specbook-format-schema.js"
 
 /*  the options of the lint command  */
 export interface LintOptions {
@@ -61,6 +62,7 @@ export const lint = (options: LintOptions): LintResult => {
         diagnostics.push({ file: options.config, line: 1, column: 1,
             message: "no artifact files configured" })
     const sources = new Array<SourceFile>()
+    const present = new Set<string>()
     for (const [ name, optional ] of files) {
         const file = path.join(options.basedir, name)
         if (!fs.existsSync(file)) {
@@ -71,6 +73,7 @@ export const lint = (options: LintOptions): LintResult => {
         }
         try {
             sources.push({ file, text: fs.readFileSync(file, "utf8") })
+            present.add(name)
         }
         catch (err) {
             diagnostics.push({ file, line: 1, column: 1,
@@ -83,5 +86,27 @@ export const lint = (options: LintOptions): LintResult => {
         `below "${literal(options.basedir)}"`)
     const result = parseSpecification(sources, config)
     diagnostics.push(...result.diagnostics)
+
+    /*  report the non-optional artifacts absent from the specification,
+        against their loaded artifact file (an absent or unreadable file
+        is already reported above) or else against the configuration  */
+    if (config !== undefined) {
+        const found = new Set<SchemaObject>()
+        for (const artifact of result.specification.artifacts)
+            for (const object of artifact.objects) {
+                const schema = resolveArtifact(config, object)
+                if (schema !== undefined)
+                    found.add(schema)
+            }
+        for (const schema of config) {
+            if (schema.optional === true || found.has(schema)
+                || (schema.file !== undefined && !present.has(schema.file)))
+                continue
+            const file  = schema.file !== undefined ? path.join(options.basedir, schema.file) : options.config
+            const paren = schema.id !== undefined ? ` (${schema.id})` : ""
+            diagnostics.push({ file, line: 1, column: 1,
+                message: `missing artifact "${schema.kind}: ${schema.name ?? ""}${paren}"` })
+        }
+    }
     return { specification: result.specification, diagnostics, config }
 }

@@ -6,6 +6,7 @@ ChangeLog
 ------------------
 
 -   BUGFIX [infr]: do not ship the sample files which were generated
+-   IMPROVEMENT [code, docs]: report a non-optional artifact which is absent from its present artifact file, instead of just checking the existence of the file
 
 0.9.6 (2026-08-23)
 ------------------

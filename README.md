@@ -117,7 +117,8 @@ The YAML schema configuration `-c`/`--config` is mandatory for `init`,
 artifact files its `file` fields reference are loaded and parsed, all
 other Markdown files below the base directory are ignored. A referenced
 file which is absent is reported, unless all of its artifacts are
-`optional`.
+`optional`, and so is an artifact absent from its present file, unless
+it is `optional` itself.
 
 The base directory `-b`/`--basedir` (default: `.`) is the directory the
 referenced artifact files are resolved against, and generated

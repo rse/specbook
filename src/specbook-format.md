@@ -180,7 +180,8 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE it guides the authors and instructs the AI
 
 -   `SchemaObject.optional?: boolean`:
-    whether the kind may be absent below its parent (default: `false`),
+    whether the kind may be absent below its parent or, for a level 1
+    artifact, from its file (default: `false`),
     BECAUSE not every kind is mandatory below every parent object
 
 -   `SchemaObject.diagram?: SchemaDiagram`:

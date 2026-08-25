@@ -183,16 +183,22 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
     object.properties.sort((a, b) => propPos(a.key) - propPos(b.key))
 }
 
+/*  resolve a level 1 object onto its configured artifact, deliberately
+    leniently by kind and id first and by case-insensitive name second,
+    so deviations of the heading can still be precisely reported  */
+export const resolveArtifact = (config: Schema, object: SpecObject): SchemaObject | undefined =>
+    config.find((s) =>
+        (s.kind === object.kind && s.id === object.id) || `${s.kind}-${s.id}` === object.id) ??
+    config.find((s) => s.name !== undefined
+        && s.name.toUpperCase() === plainText(object.name).toUpperCase())
+
 /*  validate the parsed specification against the configuration  */
 export const validate = (ctx: ParseContext, specification: Spec, config: Schema) => {
     const position = new Map<SpecArtifact, number>()
     for (const artifact of specification.artifacts) {
         for (const object of artifact.objects) {
             const meta   = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
-            const schema = config.find((s) =>
-                (s.kind === object.kind && s.id === object.id) || `${s.kind}-${s.id}` === object.id) ??
-                config.find((s) => s.name !== undefined
-                    && s.name.toUpperCase() === plainText(object.name).toUpperCase())
+            const schema = resolveArtifact(config, object)
             if (schema === undefined) {
                 ctx.diagnose(meta.file, meta.line,
                     `unknown artifact "${object.kind}: ${object.name}" (id "${object.id}")`)
@@ -200,8 +206,7 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
             }
 
             /*  the artifact heading must carry the configured kind and
-                name verbatim (the resolution above is deliberately
-                lenient, so deviations are still precisely reported)  */
+                name verbatim (the resolution is lenient on purpose)  */
             if (object.kind !== schema.kind)
                 ctx.diagnose(meta.file, meta.line,
                     `artifact kind "${object.kind}" does not match configured kind "${schema.kind}"`)
