@@ -84,17 +84,17 @@ export class SpecBook {
     /*  export the specification Markdown files below the base directory
         as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown,
         parsing the input just once and returning one buffer per
-        requested format (best-effort: diagnostics do not prevent the
-        export, as validation is the concern of lint)  */
+        requested format (strict: any diagnostic prevents the export,
+        as a partial or invalid specification must never be emitted)  */
     async export (options: { config: string, basedir?: string, formats?: ExportFormat[] }): Promise<Buffer[]> {
         const verbose = this.verboseOf("export")
         const result  = lint({ config: this.requireConfigFile(options.config),
             basedir: options.basedir ?? ".", verbose })
-        for (const diagnostic of result.diagnostics)
-            verbose(`diagnostic: ${renderDiagnostic(diagnostic)}`)
+        if (result.diagnostics.length > 0)
+            throw new Error("invalid specification:\n" +
+                result.diagnostics.map(renderDiagnostic).join("\n"))
         if (result.specification.artifacts.length === 0)
-            throw new Error("unexportable specification: no artifacts found" +
-                result.diagnostics.map((diagnostic) => `\n${renderDiagnostic(diagnostic)}`).join(""))
+            throw new Error("unexportable specification: no artifacts found")
         const buffers = new Array<Buffer>()
         for (const format of options.formats ?? [ "json" ])
             buffers.push(await exportSpecification(result.specification, format,

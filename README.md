@@ -118,7 +118,9 @@ artifact files its `file` fields reference are loaded and parsed, all
 other Markdown files below the base directory are ignored. A referenced
 file which is absent is reported, unless all of its artifacts are
 `optional`, and so is an artifact absent from its present file, unless
-it is `optional` itself.
+it is `optional` itself. Both `lint` and `export` report all
+diagnostics and fail on any of them, so a partial or invalid
+specification is never exported.
 
 The base directory `-b`/`--basedir` (default: `.`) is the directory the
 referenced artifact files are resolved against, and generated
