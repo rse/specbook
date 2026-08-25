@@ -6,6 +6,7 @@ ChangeLog
 ------------------
 
 -   BUGFIX [infr]: do not ship the sample files which were generated
+-   BUGFIX [code]: emit a single frontmatter block (carrying the earliest "Created" and the latest "Modified" timestamp of all artifacts) at the start of the Markdown export, instead of one block per artifact, of which a re-parse recognizes only the first
 -   IMPROVEMENT [code, docs]: report a non-optional artifact which is absent from its present artifact file, instead of just checking the existence of the file
 
 0.9.6 (2026-08-23)

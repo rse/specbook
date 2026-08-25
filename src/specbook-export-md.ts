@@ -88,12 +88,18 @@ export const renderMarkdown = async (specification: Spec,
         for (const [ object, result ] of specDiagrams(specification, config))
             if (result.spec !== undefined)
                 diagrams.set(object, result.spec)
-    return specification.artifacts.map((artifact) =>
-        "---\n" +
-        `Created:  ${formatTimestamp(artifact.created)}\n` +
-        `Modified: ${formatTimestamp(artifact.modified)}\n` +
+
+    /*  the single frontmatter block (only recognized at the start of a
+        file on re-parse) carries the earliest creation and the latest
+        modification timestamp of all artifacts  */
+    const created  = new Date(Math.min(
+        ...specification.artifacts.map((artifact) => artifact.created.getTime())))
+    const modified = new Date(Math.max(
+        ...specification.artifacts.map((artifact) => artifact.modified.getTime())))
+    return "---\n" +
+        `Created:  ${formatTimestamp(created)}\n` +
+        `Modified: ${formatTimestamp(modified)}\n` +
         "---\n\n" +
-        artifact.objects.map((object) =>
-            renderObjectMd(object, 1, diagrams)).join("\n\n")
-    ).join("\n\n") + "\n"
+        specification.artifacts.flatMap((artifact) => artifact.objects)
+            .map((object) => renderObjectMd(object, 1, diagrams)).join("\n\n") + "\n"
 }
