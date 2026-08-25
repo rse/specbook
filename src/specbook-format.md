@@ -602,11 +602,14 @@ multiple (indented) lines:
 
 A list item is recognized as a Concise Format object (instead of a
 property of the enclosing object) by carrying at least one `;` on its
-first line. Every segment of the form `<key/>: <value/>` becomes a
-property (unless it contains a ` BECAUSE `); all remaining segments are
-joined into the description. Child objects nest as indented list items
-below their parent item, where key/value items become properties and
-concise items become child objects of that parent:
+first line. Every segment of the form `<key/>: <value/>` (with a
+possibly empty value) becomes a property, unless it contains a
+` BECAUSE ` or is the last segment of a `.`-terminated item (as a
+description like `Note: xxx` has to survive the round-trip through
+exported Markdown); all remaining segments are joined into the
+description. Child objects nest as indented list items below their
+parent item, where key/value items become properties and concise items
+become child objects of that parent:
 
 ```
 -   <kind/>: <name/>; <key/>: <value/>;

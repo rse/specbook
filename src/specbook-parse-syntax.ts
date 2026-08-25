@@ -217,7 +217,7 @@ const parseGrouped = (ctx: ParseContext, list: Tokens.List, group: Group, file: 
     omits the leading "<kind>: " and receives its kind from the group  */
 const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObject, file: string, line: number, group?: string) => {
     const text     = itemLines(item).join(" ").trim()
-    const segments = text.split(/;\s*/).filter((segment) => segment !== "")
+    const segments = text.split(/\s*;\s*/).filter((segment) => segment !== "")
     const head     = segments.shift() ?? ""
     let   kind:  string
     let   name:  string
@@ -284,12 +284,16 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
         object.primary = true
     ctx.objectMeta.set(object, { file, line })
 
-    /*  split the remaining segments into properties and statements  */
+    /*  split the remaining segments into properties (with a possibly
+        empty value) and statements, where the last segment of a "."-
+        terminated item is always a statement, as only this lets a
+        "<key>: <value>"-shaped description round-trip on export  */
     const statements = new Array<string>()
-    for (const segment of segments) {
-        const km = segment.match(/^([^:;]+):\s+(.+)$/)
-        if (km !== null && !becauseRegex.test(segment)) {
-            const property: SpecProperty = { key: km[1].trim(), value: km[2].trim() }
+    const last       = text.endsWith(".") ? segments.length - 1 : -1
+    for (const [ i, segment ] of segments.entries()) {
+        const km = segment.match(/^([^:;]+):(?:\s+(.+))?$/)
+        if (km !== null && !becauseRegex.test(segment) && i !== last) {
+            const property: SpecProperty = { key: km[1].trim(), value: (km[2] ?? "").trim() }
             ctx.propMeta.set(property, { line })
             object.properties.push(property)
         }

@@ -7,6 +7,7 @@ ChangeLog
 
 -   BUGFIX [code]: embed SVG images in the HTML/PDF export as self-contained "data:" URLs on "<img>" tags instead of inlining them as-is, as the document-global "<style>" class rules of one inlined SVG (like the Illustrator-typical ".st0") silently restyled all other inlined SVGs sharing the same class names
 -   BUGFIX [infr]: do not ship the sample files which were generated
+-   BUGFIX [code, docs]: parse the last segment of a "."-terminated Concise Format item always as the description and accept an empty property value, so a "Note: xxx"-shaped description and an empty-valued property of an object exported in the Concise Format no longer swap their roles on re-parsing
 -   BUGFIX [code]: accept the filename extension aliases ("yml", "htm", "markdown") in an explicit "<format>:" output prefix, too, instead of silently ignoring such a prefix and inferring the format from the extension of the entire output specification
 -   BUGFIX [code, docs]: fail "export" on any diagnostics (listing them like an invalid configuration) instead of silently emitting a partial or invalid specification with exit code 0, as the diagnostics surfaced in verbose mode only
 -   BUGFIX [code]: emit a single frontmatter block (carrying the earliest "Created" and the latest "Modified" timestamp of all artifacts) at the start of the Markdown export, instead of one block per artifact, of which a re-parse recognizes only the first

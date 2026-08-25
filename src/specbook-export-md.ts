@@ -54,9 +54,10 @@ const renderConciseMd = (object: SpecObject, level: number): string => {
     if (object.description !== undefined)
         segments.push(renderDescriptionMd(object.description).replace(/\s*\n\s*/g, " "))
 
-    /*  a description terminates the item with ".", while without one the
-        ";" segment terminator has to remain, as only it lets the item be
-        recognized as a concise object again on re-parsing  */
+    /*  a description terminates the item with ".", which on re-parsing
+        marks the last segment as the description (even one shaped like
+        "<key>: <value>"), while without one the ";" segment terminator
+        has to remain, as only it lets the item be recognized as concise  */
     const item = object.description !== undefined ?
         `${indent}-   ${segments.join("; ").replace(/\.?$/, ".")}` :
         `${indent}-   ${segments.join("; ")};`
