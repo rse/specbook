@@ -5,6 +5,7 @@ ChangeLog
 0.9.7 (2026-08-24)
 ------------------
 
+-   BUGFIX [code, docs]: keep child objects of object in Complex Format in Markdown export when a descendant carries multi-line description
 -   BUGFIX [code, docs, othr]: report sibling objects of the same kind which collide on their anchor id (like two "start" transitions below one lifecycle of the sample state model, now disambiguated with explicit "{{xxx}}" anchors), instead of silently deriving identical anchor paths for them, which only surfaced indirectly as an ambiguous link reference
 -   BUGFIX [code]: reject negative or non-finite numeric Gradia rendering options in the schema configuration and pass the configured options explicitly to the HTML diagram rendering, so "font-embed" and a WOFF2 "font-family" take effect, instead of Gradia silently dropping all of them from the "#config" directives
 -   BUGFIX [code]: embed SVG images in the HTML/PDF export as self-contained "data:" URLs on "<img>" tags instead of inlining them as-is, as the document-global `<style>` class rules of one inlined SVG (like the Illustrator-typical ".st0") silently restyled all other inlined SVGs sharing the same class names

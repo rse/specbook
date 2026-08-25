@@ -644,8 +644,13 @@ the item would look like a key/value pair) -- backquote it in this case.
 
 When **SpecBook** itself generates specification Markdown, it emits
 the Complex Format on levels 1-3 and the Concise Format from level 4
-upwards. When **SpecBook** edits existing files, it mirrors the format
-each existing object already uses.
+upwards -- unless a descendant of an object carries a multi-line
+description (a fenced code block, an ordered list, a blockquote, or
+multiple paragraphs), which no single list item can carry: all child
+objects of such an object then stay in the Complex Format (as sibling
+objects have to share the format), with headings reaching down to level
+6. When **SpecBook** edits existing files, it mirrors the format each
+existing object already uses.
 
 ### Names, Anchors, and Ids
 

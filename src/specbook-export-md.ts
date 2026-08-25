@@ -40,10 +40,17 @@ const nameSuffixMd = (object: SpecObject): string =>
     (object.paren   !== undefined ? ` (${object.paren})`    : "") +
     (object.anchor  !== undefined ? ` {{${object.anchor}}}` : "")
 
-/*  render an object in the Concise Format (level 4 and deeper),
-    with its childs as nested list items  */
-const renderConciseMd = (object: SpecObject, level: number): string => {
-    const indent   = " ".repeat((level - 4) * 4)
+/*  whether any descendant of an object carries a multi-line description
+    (a fenced code block, an ordered list, a blockquote, or multiple
+    paragraphs), which no Concise Format item can carry  */
+const multiLineBelowMd = (object: SpecObject): boolean =>
+    object.childs.some((child) => (child.description !== undefined
+        && renderDescriptionMd(child.description).includes("\n")) || multiLineBelowMd(child))
+
+/*  render an object in the Concise Format as a list item of the
+    given nesting depth, with its childs as nested list items  */
+const renderConciseMd = (object: SpecObject, depth = 0): string => {
+    const indent   = " ".repeat(depth * 4)
     const segments = [ `${object.kind}: ${object.name}${nameSuffixMd(object)}` ]
 
     /*  a value carrying ";" cannot be a segment, so its property has to
@@ -52,7 +59,7 @@ const renderConciseMd = (object: SpecObject, level: number): string => {
     const inline  = object.properties.filter((property) => !property.value.includes(";"))
     segments.push(...inline.map((property) => `${property.key}: ${property.value}`))
     if (object.description !== undefined)
-        segments.push(renderDescriptionMd(object.description).replace(/\s*\n\s*/g, " "))
+        segments.push(renderDescriptionMd(object.description))
 
     /*  a description terminates the item with ".", which on re-parsing
         marks the last segment as the description (even one shaped like
@@ -62,16 +69,18 @@ const renderConciseMd = (object: SpecObject, level: number): string => {
         `${indent}-   ${segments.join("; ").replace(/\.?$/, ".")}` :
         `${indent}-   ${segments.join("; ")};`
     return [ item, renderKeyValuesMd(wrapped, `${indent}    `),
-        ...object.childs.map((child) => renderConciseMd(child, level + 1)) ]
+        ...object.childs.map((child) => renderConciseMd(child, depth + 1)) ]
         .filter((part) => part !== "").join("\n")
 }
 
-/*  render an object in the Complex Format (levels 1-3),
-    with childs from level 4 upwards in the Concise Format
-    and the optionally derived Gradia diagram spec embedded
-    as a "gradia" fenced code block below the heading  */
+/*  render an object in the Complex Format (levels 1-3), with childs from
+    level 4 upwards in the Concise Format -- unless a descendant carries
+    a multi-line description, so all childs (as siblings have to share
+    the format) stay in the Complex Format down to heading level 6 --,
+    and the optionally derived Gradia diagram spec embedded as a
+    "gradia" fenced code block below the heading  */
 const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecObject, string>): string => {
-    const heading = `${"#".repeat(level)}${" ".repeat(4 - level)}` +
+    const heading = `${"#".repeat(level)}${" ".repeat(Math.max(1, 4 - level))}` +
         `${object.kind}: ${object.name}${nameSuffixMd(object)}`
     const parts = [ heading ]
     const spec  = diagrams?.get(object)
@@ -81,8 +90,11 @@ const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecOb
         parts.push(renderKeyValuesMd(object.properties))
     if (object.description !== undefined)
         parts.push(renderDescriptionMd(object.description))
-    if (level >= 3)
-        parts.push(object.childs.map((child) => renderConciseMd(child, level + 1)).join("\n"))
+
+    /*  the childs share one format, as a concise item following
+        a heading would attach to the heading's object instead  */
+    if (level >= 3 && !multiLineBelowMd(object))
+        parts.push(object.childs.map((child) => renderConciseMd(child)).join("\n"))
     else
         parts.push(...object.childs.map((child) => renderObjectMd(child, level + 1, diagrams)))
     return parts.filter((part) => part !== "").join("\n\n")
