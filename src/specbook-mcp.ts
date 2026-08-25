@@ -81,18 +81,19 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
             format:  z.enum(formats).optional().describe("output format (default: inferred from the " +
                 "output file extension, else json)"),
-            output:  z.string().optional().describe("output file path")
+            output:  z.string().optional().describe("output file path (\"-\" returns the result directly)")
         }
     }, async (args) => {
         try {
             /*  an explicit format takes the output as a plain file path, while
-                otherwise the output is an "[<format>:]<file>" specification  */
+                otherwise the output is an "[<format>:]<file>" specification
+                (the "-" stdout sentinel returns the result directly)  */
             const spec = args.format !== undefined || args.output === undefined ?
                 { format: args.format ?? "json", output: args.output } :
                 parseOutputSpec(args.output)
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
                 formats: [ spec.format ] })
-            if (spec.output !== undefined) {
+            if (spec.output !== undefined && spec.output !== "-") {
                 await fs.promises.writeFile(spec.output, data)
                 return { content: [ { type: "text", text: `exported specification into "${spec.output}" (${data.length} bytes)` } ] }
             }

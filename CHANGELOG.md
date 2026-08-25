@@ -14,6 +14,7 @@ ChangeLog
 -   BUGFIX [code]: emit a single frontmatter block (carrying the earliest "Created" and the latest "Modified" timestamp of all artifacts) at the start of the Markdown export, instead of one block per artifact, of which a re-parse recognizes only the first
 -   BUGFIX [code, docs]: report a duplicate property key on an object and check the value of every property occurrence, instead of silently ignoring all occurrences but the first one
 -   BUGFIX [code]: assign the implicit "(xxx)" anchor ids of all objects before checking any property reference constraint, so a forward reference to such an object no longer silently skips its constraint
+-   BUGFIX [code]: return the result of the MCP tool "specbook_export" directly for the "-" stdout sentinel as output, instead of writing a file literally named "-"
 -   BUGFIX [code, docs]: emit a property value carrying a ";" on a continuation line of its key/value item in the Markdown export (nested below the item of a concise object instead of as a segment), as a ";" on the first line of a list item let a re-parse take the property for a concise child object
 -   IMPROVEMENT [code, docs]: report a non-optional artifact which is absent from its present artifact file, instead of just checking the existence of the file
 
