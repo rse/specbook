@@ -670,8 +670,9 @@ In the Complex Format, each property is an unordered list item of the
 form `<key/>: <value/>`, whose value may continue on the following
 indented lines of the item (joined with spaces). In the Concise Format,
 each property is a `<key/>: <value/>` segment. The key is matched
-against the schema exactly as written, and the value has to satisfy the
-configured constraint as a whole.
+against the schema exactly as written and may occur only once per
+object, and the value has to satisfy the configured constraint as a
+whole.
 
 ### Descriptions and Rationales
 

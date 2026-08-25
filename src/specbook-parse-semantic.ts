@@ -139,20 +139,24 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
         ctx.diagnose(meta.file, meta.line,
             `configured id "${schema.id}" not explicitly specified on ${object.kind} "${object.name}"`)
 
-    /*  check the configured properties (a trailing parenthesized name
-        token is accepted as the value of a still missing property)  */
+    /*  check every occurrence of the configured properties (a trailing
+        parenthesized name token is accepted as the value of a still
+        missing property, and a repeated key is reported as duplicate)  */
     const consumed = parenProp(object, props)
     for (const prop of props) {
-        const expr  = prop.value !== undefined ? compileValueExpr(prop.value) : undefined
-        const match = findProp(object, prop.name)
-        if (match === undefined) {
-            if (prop !== consumed && prop.optional !== true)
-                ctx.diagnose(meta.file, meta.line,
-                    `required property "${prop.name}" missing on ${object.kind} "${object.name}"`)
+        const expr    = prop.value !== undefined ? compileValueExpr(prop.value) : undefined
+        const matches = object.properties.filter((p) => p.key === prop.name)
+        if (matches.length === 0 && prop !== consumed && prop.optional !== true)
+            ctx.diagnose(meta.file, meta.line,
+                `required property "${prop.name}" missing on ${object.kind} "${object.name}"`)
+        for (const [ i, match ] of matches.entries()) {
+            const line = ctx.propMeta.get(match)?.line ?? meta.line
+            if (i > 0)
+                ctx.diagnose(meta.file, line,
+                    `duplicate property "${prop.name}" on ${object.kind} "${object.name}"`)
+            if (expr !== undefined)
+                checkPropValue(ctx, prop, expr, match, { file: meta.file, line })
         }
-        else if (expr !== undefined)
-            checkPropValue(ctx, prop, expr, match,
-                { file: meta.file, line: ctx.propMeta.get(match)?.line ?? meta.line })
     }
 
     /*  report the properties not configured by the schema  */
