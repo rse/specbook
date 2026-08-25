@@ -365,6 +365,16 @@ const parseHeading = (ctx: ParseContext, token: Tokens.Heading, state: WalkState
     state.current          = object
 }
 
+/*  the block-level token types which carry content no description can
+    hold, mapped onto their diagnostic name (the only other unhandled
+    type is "space", which carries no content at all)  */
+const unsupportedTokens: Record<string, string | undefined> = {
+    table: "table",
+    html:  "raw HTML",
+    hr:    "horizontal rule",
+    def:   "link definition"
+}
+
 /*  parse a single source file into its artifacts  */
 export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[] => {
     const { present, created, modified, body, offset } = parseFrontmatter(source.text)
@@ -436,8 +446,11 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
             else
                 collect(token.raw, line)
         }
-        else if (token.type === "table")
-            ctx.diagnose(source.file, line, "unsupported table content ignored")
+        else {
+            const unsupported = unsupportedTokens[token.type]
+            if (unsupported !== undefined)
+                ctx.diagnose(source.file, line, `unsupported ${unsupported} content ignored`)
+        }
         line += (token.raw.match(/\n/g) ?? []).length
     }
     flush()

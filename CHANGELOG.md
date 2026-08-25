@@ -12,6 +12,7 @@ ChangeLog
 -   BUGFIX [code]: report an unrecognized explicit "<format>:" output prefix as an error (listing the accepted format names) instead of silently ignoring it
 -   BUGFIX [code, docs]: report the sibling objects of the schema configuration which collide on their resolution key
 -   BUGFIX [code]: assign the implicit "(xxx)" anchor ids of the objects below an unresolved artifact or an unknown object kind
+-   BUGFIX [code]: report raw HTML (like an "<img>" tag), a horizontal rule, and a link definition below an object as unsupported content (like table content already was), instead of silently dropping such block content from the AST and hence from every export
 
 0.9.7 (2026-08-24)
 ------------------
