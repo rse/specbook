@@ -20,9 +20,12 @@ interface Group {
     kind:   string
 }
 
+/*  the marker separating a statement from its rationale  */
+const becauseRegex = /,\s*(?:\*\*BECAUSE\*\*|BECAUSE)\s+/
+
 /*  split a description text into statement and optional rationale  */
 const splitDescription = (text: string) => {
-    const m = text.match(/,\s*(?:\*\*BECAUSE\*\*|BECAUSE)\s+/)
+    const m = text.match(becauseRegex)
     if (m === null || m.index === undefined)
         return { description: text }
     return {
@@ -188,6 +191,8 @@ const parseList = (ctx: ParseContext, list: Tokens.List, object: SpecObject, fil
                 const property: SpecProperty = { key: km[1].trim(), value }
                 ctx.propMeta.set(property, { line })
                 object.properties.push(property)
+                if (item.tokens.some((sub) => sub.type === "list"))
+                    ctx.diagnose(file, line, `nested list below property "${property.key}" ignored`)
             }
             else
                 ctx.diagnose(file, line, `unrecognized list item "${first}"`)
@@ -275,7 +280,7 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
     const statements = new Array<string>()
     for (const segment of segments) {
         const km = segment.match(/^([^:;]+):\s+(.+)$/)
-        if (km !== null && !(/\s(?:\*\*BECAUSE\*\*|BECAUSE)\s/.test(segment))) {
+        if (km !== null && !becauseRegex.test(segment)) {
             const property: SpecProperty = { key: km[1].trim(), value: km[2].trim() }
             ctx.propMeta.set(property, { line })
             object.properties.push(property)
@@ -293,6 +298,64 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
     parent.childs.push(object)
 }
 
+/*  the object nesting state tracked while walking the Markdown tokens  */
+interface WalkState {
+    artifacts: SpecArtifact[]
+    stack:     SpecObject[]
+    current:   SpecObject | null
+    group:     Group | null
+}
+
+/*  parse a heading token into either a grouping container (e.g. "### STATE",
+    collecting objects of its kind below the parent object) or a new object
+    (an artifact on level 1, a child of the enclosing object below)  */
+const parseHeading = (ctx: ParseContext, token: Tokens.Heading, state: WalkState,
+    stamps: Pick<SpecArtifact, "created" | "modified">, file: string, line: number) => {
+    const { depth, text } = token
+    const heading         = parseHeadingText(text)
+    state.group = null
+    if (heading.malformed !== undefined)
+        ctx.diagnose(file, line, `malformed anchor "${heading.malformed}" in heading`)
+    if (heading.name === "" && depth > 1) {
+        const parent = state.stack[depth - 2]
+        if (parent === undefined)
+            ctx.diagnose(file, line, `heading level ${depth} without parent object`)
+        else {
+            state.group        = { parent, kind: heading.kind }
+            state.current      = parent
+            state.stack.length = depth - 1
+        }
+        return
+    }
+    const object: SpecObject = {
+        kind:       heading.kind,
+        id:         heading.id ?? (depth === 1 ? heading.paren : undefined) ?? slugify(heading.name),
+        name:       heading.name,
+        properties: [],
+        childs:     []
+    }
+    if (heading.id !== undefined)
+        object.anchor = heading.id
+    if (heading.paren !== undefined)
+        object.paren = heading.paren
+    if (heading.primary)
+        object.primary = true
+    ctx.objectMeta.set(object, { file, line })
+    if (depth === 1)
+        state.artifacts.push({ ...stamps, objects: [ object ] })
+    else {
+        const parent = state.stack[depth - 2]
+        if (parent === undefined) {
+            ctx.diagnose(file, line, `heading level ${depth} without parent object`)
+            return
+        }
+        parent.childs.push(object)
+    }
+    state.stack.length     = depth - 1
+    state.stack[depth - 1] = object
+    state.current          = object
+}
+
 /*  parse a single source file into its artifacts  */
 export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[] => {
     const { present, created, modified, body, offset } = parseFrontmatter(source.text)
@@ -306,12 +369,13 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
                     `invalid "${key}:" frontmatter timestamp "${info.value}"`)
 
     /*  the state tracked while walking the Markdown tokens  */
-    const artifacts = new Array<SpecArtifact>()
-    const stack     = new Array<SpecObject>()
-    let   current: SpecObject | null = null
-    let   group:   Group | null      = null
-    let   parts                      = new Array<string>()
-    let   partsLine                  = 1
+    const state: WalkState = { artifacts: [], stack: [], current: null, group: null }
+    const stamps = {
+        created:  created.date  ?? new Date(),
+        modified: modified.date ?? new Date()
+    }
+    let   parts     = new Array<string>()
+    let   partsLine = 1
 
     /*  collect a description part, remembering the line of the first one  */
     const collect = (raw: string, line: number) => {
@@ -324,6 +388,7 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
         (a grouping container re-targets the parent, whose description
         is already flushed, so further content is reported, not lost)  */
     const flush = () => {
+        const current = state.current
         if (current !== null && parts.length > 0) {
             if (current.description === undefined)
                 current.description = splitDescription(parts.join("\n\n").trim())
@@ -339,68 +404,16 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
     for (const token of marked.lexer(body)) {
         if (token.type === "heading") {
             flush()
-            group = null
-            const { depth, text } = token as Tokens.Heading
-            const heading         = parseHeadingText(text)
-            if (heading.malformed !== undefined)
-                ctx.diagnose(source.file, line, `malformed anchor "${heading.malformed}" in heading`)
-            if (heading.name === "" && depth > 1) {
-                /*  a grouping container heading (e.g. "### STATE") collects
-                    objects of its kind below the parent object  */
-                const parent = stack[depth - 2]
-                if (parent === undefined)
-                    ctx.diagnose(source.file, line, `heading level ${depth} without parent object`)
-                else {
-                    group        = { parent, kind: heading.kind }
-                    current      = parent
-                    stack.length = depth - 1
-                }
-            }
-            else {
-                const object: SpecObject = {
-                    kind:       heading.kind,
-                    id:         heading.id ?? (depth === 1 ? heading.paren : undefined) ?? slugify(heading.name),
-                    name:       heading.name,
-                    properties: [],
-                    childs:     []
-                }
-                if (heading.id !== undefined)
-                    object.anchor = heading.id
-                if (heading.paren !== undefined)
-                    object.paren = heading.paren
-                if (heading.primary)
-                    object.primary = true
-                ctx.objectMeta.set(object, { file: source.file, line })
-                if (depth === 1) {
-                    artifacts.push({
-                        created:  created.date  ?? new Date(),
-                        modified: modified.date ?? new Date(),
-                        objects:  [ object ]
-                    })
-                    stack.length = 0
-                }
-                else {
-                    const parent = stack[depth - 2]
-                    if (parent === undefined) {
-                        ctx.diagnose(source.file, line, `heading level ${depth} without parent object`)
-                        line += (token.raw.match(/\n/g) ?? []).length
-                        continue
-                    }
-                    parent.childs.push(object)
-                }
-                stack.length = depth - 1
-                stack[depth - 1] = object
-                current = object
-            }
+            parseHeading(ctx, token as Tokens.Heading, state, stamps, source.file, line)
         }
         else if (token.type === "list") {
             const list = token as Tokens.List
-            if (current === null)
+            if (state.current === null)
                 ctx.diagnose(source.file, line, "content outside of any object")
-            else if (!list.ordered && group !== null)
-                parseGrouped(ctx, list, group, source.file, line)
+            else if (!list.ordered && state.group !== null)
+                parseGrouped(ctx, list, state.group, source.file, line)
             else if (!list.ordered)
-                parseList(ctx, list, current, source.file, line)
+                parseList(ctx, list, state.current, source.file, line)
             else
                 collect(token.raw, line)
         }
@@ -409,7 +422,7 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
             /*  notice: a "gradia" code block is skipped entirely, as it is
                 the derived diagram of the Markdown renderer and hence must
                 not become authored content on a re-parse of exported files  */
-            if (current === null)
+            if (state.current === null)
                 ctx.diagnose(source.file, line, "content outside of any object")
             else
                 collect(token.raw, line)
@@ -421,10 +434,10 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
     flush()
 
     /*  load the embedded image files of all fully parsed objects  */
-    for (const artifact of artifacts)
+    for (const artifact of state.artifacts)
         for (const object of artifact.objects)
             embed(ctx, object, source.file)
-    if (artifacts.length === 0)
+    if (state.artifacts.length === 0)
         ctx.diagnose(source.file, 1, "no artifact (level 1 heading) found")
-    return artifacts
+    return state.artifacts
 }

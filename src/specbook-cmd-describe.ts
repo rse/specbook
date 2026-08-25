@@ -4,17 +4,14 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import * as fs           from "node:fs"
-import * as path         from "node:path"
-import { fileURLToPath } from "node:url"
+import * as fs from "node:fs"
 
-import textframe         from "textframe"
+import textframe from "textframe"
 
 /*  provide the build-time bundled description of the generic
     SpecBook models and formats  */
 const description = (): string =>
-    fs.readFileSync(path.join(
-        path.dirname(fileURLToPath(import.meta.url)), "specbook-format.md"), "utf8")
+    fs.readFileSync(new URL("specbook-format.md", import.meta.url), "utf8")
 
 /*  describe the generic SpecBook models and formats as Markdown,
     optionally extended by the references to (or the embeddings of) the

@@ -16,6 +16,9 @@ import type { OutlineEntry }
 import type { ThemeMapping }
     from "./specbook-theme.js"
 
+/*  the document heading rendered into the page decoration  */
+type Heading = { title: string, subtitle?: string, logo: string }
+
 /*  extract the per-anchor page numbers from a Chromium-generated PDF,
     which records the internal link targets as named PDF destinations  */
 const anchorPages = async (pdf: Uint8Array): Promise<Map<string, number>> => {
@@ -56,6 +59,9 @@ const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
                 targets.set(name.decodeText(), dest)
         }
     }
+
+    /*  resolve the outline entries against the live destinations,
+        hoisting the childs of an entry without a live destination  */
     type OutlineItem = { title: string, dest: PDFArray, childs: OutlineItem[] }
     const resolve = (entries: OutlineEntry[]): OutlineItem[] =>
         entries.flatMap((entry) => {
@@ -101,7 +107,7 @@ const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
     the regular font face embedded as a data: URI, and the special
     "pageNumber" class for the injected page number  */
 const decorationTemplates = (
-    heading: { title: string, subtitle?: string, logo: string },
+    heading: Heading,
     css:     string,
     theme:   ThemeMapping,
     inset:   string
@@ -151,7 +157,7 @@ const drawBrandBar = async (doc: PDFDocument, accent: string) => {
     re-rendering the HTML with the discovered ToC page numbers  */
 export const htmlToPdf = async (
     renderHtmlPass: (tocPages?: Map<string, number>) => Promise<string>,
-    heading:        { title: string, subtitle?: string, logo: string },
+    heading:        Heading,
     outline:        OutlineEntry[],
     verbose:        (msg: string) => void,
     css:            string,
@@ -216,6 +222,7 @@ export const htmlToPdf = async (
             plain = await renderPdf(html)
         }
 
+        /*  render the final document, decorated with header/footer  */
         const decorated = await renderPdf(html, {
             displayHeaderFooter: true,
             ...decorationTemplates(heading, css, theme, paperLength(setup, margin.left))

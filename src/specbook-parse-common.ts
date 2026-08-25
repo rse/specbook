@@ -46,7 +46,7 @@ export class ParseContext {
 export const embeddingRegex = /!\[([^\]]*)\]\(([^()]+)\)/g
 
 /*  the theme variants of a theme-aware image embedding  */
-export const embeddingThemes = [ "light", "dark" ]
+export const embeddingThemes = [ "light", "dark" ] as const
 
 /*  expand an image embedding reference into its variants: a reference
     carrying the "{theme}" placeholder yields one variant per theme,

@@ -118,7 +118,7 @@ withCommonOptions(program.command("export"))
     .option("-o, --output [<format>:]<output-file>",
         "output file (\"-\" for stdout, repeatable), with the format inferred " +
         "from the filename extension unless explicitly prefixed",
-        (value: string, previous: string[]) => previous.concat(value), [] as string[])
+        (value: string, previous: string[]) => previous.concat(value), new Array<string>())
     .action(async (opts: { verbose: boolean, config: string, basedir: string,
         output: string[] }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })

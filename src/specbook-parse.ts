@@ -21,43 +21,40 @@ import { validate, validateReferences }
 import { validateDiagrams }
     from "./specbook-diagram.js"
 
-/*  re-export the public parsing types and embedding helpers  */
-export { type SourceFile, type ParseResult, embeddingRegex, embeddingMimeType,
-    embeddingThemes, embeddingVariants }
+/*  re-export the public parsing types  */
+export { type SourceFile, type ParseResult }
     from "./specbook-parse-common.js"
 
 /*  parser for a set of specification Markdown files  */
 export class Parser {
-    private ctx = new ParseContext()
-
     /*  parse all source files into the specification AST and
         optionally validate the result against a configuration  */
     parse (sources: SourceFile[], config?: Schema): ParseResult {
-        /*  reset the parsing context to allow a reuse of the parser  */
-        this.ctx = new ParseContext()
+        /*  create a fresh parsing context for this parsing run  */
+        const ctx = new ParseContext()
 
         /*  parse all source files into their artifacts  */
         const artifacts = new Array<SpecArtifact>()
         for (const source of sources)
-            artifacts.push(...parseFile(this.ctx, source))
+            artifacts.push(...parseFile(ctx, source))
         const specification: Spec = { artifacts }
 
         /*  validate the resulting specification AST  */
         if (artifacts.length > 0) {
-            this.ctx.linkIndex = buildLinkIndex(specification)
+            ctx.linkIndex = buildLinkIndex(specification)
             if (config !== undefined)
-                validate(this.ctx, specification, config)
-            validateReferences(this.ctx, specification)
+                validate(ctx, specification, config)
+            validateReferences(ctx, specification)
             if (config !== undefined)
-                validateDiagrams(this.ctx, specification, config)
+                validateDiagrams(ctx, specification, config)
             const result = v.safeParse(Spec, specification)
             if (!result.success)
                 for (const issue of result.issues) {
-                    const path = (issue.path ?? []).map((item) => String(item.key)).join(".")
-                    this.ctx.diagnose(sources[0]?.file ?? "", 1, `internal AST invalid at "${path}": ${issue.message}`)
+                    const path = v.getDotPath(issue) ?? ""
+                    ctx.diagnose(sources[0]?.file ?? "", 1, `internal AST invalid at "${path}": ${issue.message}`)
                 }
         }
-        return { specification, diagnostics: this.ctx.diagnostics }
+        return { specification, diagnostics: ctx.diagnostics }
     }
 }
 

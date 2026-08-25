@@ -177,10 +177,8 @@ const typographyGlyphs = [
     codepoints of a charset plus the always-used symbol and typography
     glyphs (no charset or a full Unicode charset keeps the fonts complete)  */
 export const subsetStylesheet = async (charset?: string): Promise<string> => {
-    const css = stylesheet()
-    if (charset === undefined)
-        return css
-    const codepoints = charsetCodepoints(charset)
+    const css        = stylesheet()
+    const codepoints = charset !== undefined ? charsetCodepoints(charset) : undefined
     if (codepoints === undefined)
         return css
     const { default: subsetFont } = await import("subset-font")

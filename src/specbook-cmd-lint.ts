@@ -57,8 +57,6 @@ export const lint = (options: LintOptions): LintResult => {
         against the base directory and tolerating an absent file if all
         its artifacts are optional  */
     const files = config !== undefined ? schemaFiles(config) : new Map<string, boolean>()
-    options.verbose(`parsing ${literal(files.size)} specification file(s) ` +
-        `below "${literal(options.basedir)}"`)
     if (config !== undefined && files.size === 0)
         diagnostics.push({ file: options.config, line: 1, column: 1,
             message: "no artifact files configured" })
@@ -81,6 +79,8 @@ export const lint = (options: LintOptions): LintResult => {
     }
 
     /*  parse and validate the artifact files against the configuration  */
+    options.verbose(`parsing ${literal(sources.length)} specification file(s) ` +
+        `below "${literal(options.basedir)}"`)
     const result = parseSpecification(sources, config)
     diagnostics.push(...result.diagnostics)
     return { specification: result.specification, diagnostics, config }

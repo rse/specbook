@@ -88,7 +88,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
 })
 const SchemaFormat: v.GenericSchema<SchemaFormat> = v.strictObject({
     type:              v.optional(v.picklist([ "auto", "complex", "concise" ])),
-    maxTableColumns:   v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+    maxTableColumns:   v.optional(v.pipe(v.number(), v.integer(), v.minValue(2))),
     withUnusedProps:   v.optional(v.boolean())
 })
 const SchemaObject: v.GenericSchema<SchemaObject> = v.strictObject({

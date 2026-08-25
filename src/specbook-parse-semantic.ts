@@ -10,14 +10,10 @@ import { type Schema, type SchemaObject, type SchemaProperty }
     from "./specbook-format-schema.js"
 import { referenceRegex, resolveUnique, resolveSet, plainText }
     from "./specbook-link.js"
-import { compileValueExpr, splitItems, type ValueExpr }
+import { compileValueExpr, splitItems, anchored, type ValueExpr }
     from "./specbook-parse-value.js"
 import { ParseContext, type ObjectMeta }
     from "./specbook-parse-common.js"
-
-/*  compile a configured pattern into an anchored regular expression  */
-export const anchored = (pattern: string): RegExp =>
-    new RegExp(`^(?:${pattern})$`)
 
 /*  match a full property value directly against a value expression
     (defined for the regex and enum kinds only)  */
@@ -43,10 +39,10 @@ const matchAlternatives = (ctx: ParseContext, alternatives: ValueExpr[], item: s
                 return true
         }
         else if (alternative.kind === "tags") {
-            if (alternative.members.includes(plainText(item)))
+            if (alternative.members.includes(item))
                 return true
         }
-        else if (directMatches(alternative, plainText(item)))
+        else if (directMatches(alternative, item))
             return true
     }
     return false
@@ -91,7 +87,7 @@ const checkPropValue = (ctx: ParseContext, prop: SchemaProperty,
     else if (expr.kind === "list") {
         /*  a list constraint: the value is a comma-separated list
             of items, each matching at least one alternative  */
-        for (const item of splitItems(property.value))
+        for (const item of splitItems(plainText(property.value)))
             if (!matchAlternatives(ctx, expr.alternatives, item))
                 ctx.diagnose(meta.file, meta.line,
                     `list item "${item}" of property "${prop.name}" does not match constraint "${prop.value}"`)
@@ -127,7 +123,7 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
         if (match === undefined) {
             /*  accept a trailing parenthesized name token as the value of a
                 still missing property when it matches the property pattern  */
-            if (object.paren !== undefined && expr !== undefined
+            if (!parenConsumed && object.paren !== undefined && expr !== undefined
                 && directMatches(expr, object.paren)) {
                 parenConsumed = true
                 continue

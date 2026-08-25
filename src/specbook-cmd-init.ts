@@ -56,7 +56,7 @@ export const initSpecification = (options: InitOptions): string[] => {
         const headings = artifacts.map((artifact) => {
             const name  = artifact.name ?? ""
             const paren = artifact.id !== undefined ? ` (${artifact.id})` : ""
-            return `#   ${artifact.kind}: ${name}${paren}\n` + "\n"
+            return `#   ${artifact.kind}: ${name}${paren}\n\n`
         }).join("")
         const text =
             "---\n" +

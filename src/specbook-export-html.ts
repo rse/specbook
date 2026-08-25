@@ -24,13 +24,13 @@ import { embeddingRegex, embeddingMimeType, embeddingThemes, embeddingVariants }
 import { escapeHtml, stylesheet, searchScript, fallbackLogo,
     isTitleObject, titleObject, documentTitle, documentLang, documentThemeStyle }
     from "./specbook-export-common.js"
-import { specDiagrams }
+import { specDiagrams, collectSchemas }
     from "./specbook-diagram.js"
 
 /*  ==== Templates ====  */
 
 /*  the built-in Nunjucks templates for the HTML export  */
-const templates: { [ name: string ]: string } = {
+const templates = {
     /*  <Document/>  */
     "Document": textframe`
         <!DOCTYPE html>
@@ -247,7 +247,7 @@ const safe = (html: string) =>
     new nunjucks.runtime.SafeString(html)
 
 /*  render one of the built-in Nunjucks templates with a context  */
-const render = (name: string, context: object): string =>
+const render = (name: keyof typeof templates, context: object): string =>
     env.renderString(templates[name], context)
 
 /*  the active per-document reference expander, fully-qualified
@@ -323,13 +323,17 @@ const renderEmbeddings = (text: string, embedding: string[]): string[] => {
     return result
 }
 
+/*  the image embedding markup including the horizontal whitespace
+    before it, so that its removal leaves no double space behind  */
+const embeddingMarkup = new RegExp(`[ \\t]*${embeddingRegex.source}`, "g")
+
 /*  render a description into HTML, expanding its inline Markdown and
     moving the file embeddings to the end of the description  */
 const renderDescription = (description: SpecDescription): string => {
     const text = description.description
-        .replace(embeddingRegex, (markup, _alt, reference: string) =>
+        .replace(embeddingMarkup, (markup, _alt, reference: string) =>
             embeddingMimeType(reference.trim()) !== undefined ? "" : markup)
-        .replace(/(?<=\S)[ \t]{2,}/g, " ").trim()
+        .trim()
     const embeddings = renderEmbeddings(description.description,
         description.embedding ?? []).map((content) => safe(content))
     const blocked = isBlock(text)
@@ -359,32 +363,6 @@ const collectMembers = (nodes: SchemaObject[], result: Map<string, "enum" | "tag
             }
         }
         collectMembers(schema.childs ?? [], result)
-    }
-    return result
-}
-
-/*  map the specification objects onto their schema configuration
-    nodes (the schema resolution mirrors the semantic validation)  */
-const collectSchemas = (specification: Spec,
-    config: Schema): Map<SpecObject, SchemaObject> => {
-    const result = new Map<SpecObject, SchemaObject>()
-    const walk = (object: SpecObject, schema: SchemaObject) => {
-        result.set(object, schema)
-        for (const child of object.childs) {
-            const childSchema = (schema.childs ?? []).find((c) => c.kind === child.kind)
-            if (childSchema !== undefined)
-                walk(child, childSchema)
-        }
-    }
-    for (const artifact of specification.artifacts) {
-        for (const object of artifact.objects) {
-            const schema = config.find((s) =>
-                (s.kind === object.kind && s.id === object.id) || `${s.kind}-${s.id}` === object.id) ??
-                config.find((s) => s.name !== undefined
-                    && s.name.toUpperCase() === object.name.replace(/`/g, "").toUpperCase())
-            if (schema !== undefined)
-                walk(object, schema)
-        }
     }
     return result
 }
@@ -432,11 +410,8 @@ const effectiveProperties = (object: SpecObject): SpecProperty[] => {
     "withUnusedProps" injecting the defined but still unused schema
     properties (in schema order) as additional columns  */
 const tableShape = (childs: SpecObject[]) => {
-    let keys = new Array<string>()
-    for (const child of childs)
-        for (const property of child.properties)
-            if (!keys.includes(property.key))
-                keys.push(property.key)
+    let keys = [ ...new Set(childs.flatMap((child) =>
+        child.properties.map((property) => property.key))) ]
     const schema = schemas?.get(childs[0])
     if (schema?.format?.withUnusedProps === true) {
         const merged = (schema.props ?? []).flatMap((prop) => {
@@ -624,7 +599,7 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
 /*  render an artifact into HTML  */
 const renderArtifact = (artifact: SpecArtifact): string =>
     render("Artifact", { Artifact: {
-        objects:  safe(artifact.objects.map((object) => renderObject(object, 1, false)).join(""))
+        objects: safe(artifact.objects.map((object) => renderObject(object, 1, false)).join(""))
     } })
 
 /*  ==== Outline ====  */
@@ -726,7 +701,7 @@ export const renderHtml = async (specification: Spec,
     const entries = artifacts.flatMap((artifact) => artifact.objects)
         .map((object) => ({ id: anchorOf(object), kind: object.kind, name: inline(object.name),
             page: tocPages?.get(anchorOf(object)) }))
-    return render("Document", { Document: {
+    const html = render("Document", { Document: {
         title:     documentTitle(specification).title,
         lang,
         theme:     documentThemeStyle(specification)?.toLowerCase(),
@@ -738,4 +713,13 @@ export const renderHtml = async (specification: Spec,
         toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
         artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
     } })
+
+    /*  release the per-document state, as it would otherwise retain the
+        specification (and its embedded images) until the next rendering  */
+    linker   = null
+    anchors  = null
+    members  = null
+    schemas  = null
+    diagrams = null
+    return html
 }

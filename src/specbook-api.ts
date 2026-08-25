@@ -5,8 +5,6 @@
 */
 
 import * as fs                                           from "node:fs"
-import * as path                                         from "node:path"
-import { fileURLToPath }                                 from "node:url"
 
 import { loadConfig }                                    from "./specbook-config.js"
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic } from "./specbook-diagnostic.js"
@@ -27,11 +25,8 @@ export type { Schema, SchemaObject, SchemaProperty }                          fr
 
 /*  our own version, taken from the package manifest, which resides one
     level above both the source and the compiled module directory  */
-export const version: string = (() => {
-    const manifest = path.join(
-        path.dirname(fileURLToPath(import.meta.url)), "..", "package.json")
-    return (JSON.parse(fs.readFileSync(manifest, "utf8")) as { version: string }).version
-})()
+export const version: string = (JSON.parse(
+    fs.readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string }).version
 
 /*  the sink of the verbose messages, receiving the emitting command
     and the message, so consumers can qualify the message themselves  */
@@ -98,8 +93,8 @@ export class SpecBook {
         for (const diagnostic of result.diagnostics)
             verbose(`diagnostic: ${renderDiagnostic(diagnostic)}`)
         if (result.specification.artifacts.length === 0)
-            throw new Error("unexportable specification:\n" +
-                result.diagnostics.map(renderDiagnostic).join("\n"))
+            throw new Error("unexportable specification: no artifacts found" +
+                result.diagnostics.map((diagnostic) => `\n${renderDiagnostic(diagnostic)}`).join(""))
         const buffers = new Array<Buffer>()
         for (const format of options.formats ?? [ "json" ])
             buffers.push(await exportSpecification(result.specification, format,

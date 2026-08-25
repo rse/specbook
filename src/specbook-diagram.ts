@@ -4,9 +4,6 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import type { Config as GradiaConfig }
-    from "@rse/gradia"
-
 import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
 import type { Schema, SchemaObject, SchemaDiagram }
@@ -19,7 +16,7 @@ import type { ParseContext }
 
 /*  the single Wiki-style reference match (the non-global sibling of
     the imported, global "referenceRegex")  */
-const referenceOnce = /\[\[([^[\]]+)\]\]/
+const referenceOnce = new RegExp(referenceRegex.source)
 
 /*  the result of a per-object Gradia spec derivation: either the spec
     text or the reasons why the diagram has to be omitted  */
@@ -27,6 +24,10 @@ export interface DiagramResult {
     spec?:  string
     errors: string[]
 }
+
+/*  the diagram shape, i.e., the "type" of a diagram configuration
+    with its default applied  */
+type DiagramType = NonNullable<SchemaDiagram["type"]>
 
 /*  render a text as a Gradia atom: a bareword where possible
     (no whitespace, no special characters, no "--"), a quoted
@@ -66,16 +67,14 @@ interface DiagramEdge {
     embedded spec is self-contained: one node statement per object (the
     unique anchor path as the node id, the object name as the displayed
     label) and one edge statement per derived edge  */
-const renderSpec = (diagram: SchemaDiagram, type: string, center: SpecObject,
+const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
     nodes: SpecObject[], edges: DiagramEdge[], index: LinkIndex,
     anchors: Map<SpecObject, string>): string => {
     const lines  = [ `#type ${type}` ]
     const config = diagram.config ?? {}
-    for (const key of Object.keys(config) as (keyof GradiaConfig)[]) {
-        const value = config[key]
+    for (const [ key, value ] of Object.entries(config))
         if (value !== undefined)
             lines.push(`#config ${key} ${configValue(value)}`)
-    }
     lines.push("")
     for (const node of nodes) {
         const anchor = anchors.get(node) ?? node.id
@@ -118,7 +117,7 @@ const renderSpec = (diagram: SchemaDiagram, type: string, center: SpecObject,
     property values, name: object name, arity: "ARITY" property),
     overridable via "edgeSource"/"edgeTarget"/"edgeArity" (a "grid"
     diagram is edge-less by definition, so no edges are derived at all)  */
-const deriveEdges = (diagram: SchemaDiagram, type: string,
+const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
     nodes: SpecObject[], nodeSet: Set<SpecObject>, edgeObjects: SpecObject[],
     index: LinkIndex, anchors: Map<SpecObject, string>,
     parents: Map<SpecObject, SpecObject | undefined>, errors: string[]): DiagramEdge[] => {
@@ -204,6 +203,28 @@ const deriveEdges = (diagram: SchemaDiagram, type: string,
     })
 }
 
+/*  resolve a comma-separated "[[...]]" reference pattern string into
+    its (deduplicated, order-preserving) object match set, reporting
+    every unresolvable pattern as an error  */
+const resolvePatterns = (index: LinkIndex, errors: string[],
+    value: string, field: string): SpecObject[] => {
+    const matches = new Array<SpecObject>()
+    const seen    = new Set<SpecObject>()
+    for (const m of value.matchAll(referenceRegex)) {
+        const pattern = m[1].trim()
+        const set     = resolveSet(index, pattern)
+        if (set.length === 0)
+            errors.push(`unresolvable diagram "${field}" pattern "[[${pattern}]]"`)
+        for (const match of set) {
+            if (!seen.has(match)) {
+                seen.add(match)
+                matches.push(match)
+            }
+        }
+    }
+    return matches
+}
+
 /*  derive the Gradia spec of a single object from its "diagram:"
     schema configuration (the returned spec is absent whenever the
     configured diagram situation is invalid)  */
@@ -213,32 +234,12 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     const type   = diagram.type ?? "graph"
     const errors = new Array<string>()
 
-    /*  resolve a comma-separated "[[...]]" reference pattern string
-        into its (deduplicated, order-preserving) object match set  */
-    const resolvePatterns = (value: string, field: string): SpecObject[] => {
-        const matches = new Array<SpecObject>()
-        const seen    = new Set<SpecObject>()
-        for (const m of value.matchAll(referenceRegex)) {
-            const pattern = m[1].trim()
-            const set     = resolveSet(index, pattern)
-            if (set.length === 0)
-                errors.push(`unresolvable diagram "${field}" pattern "[[${pattern}]]"`)
-            for (const match of set) {
-                if (!seen.has(match)) {
-                    seen.add(match)
-                    matches.push(match)
-                }
-            }
-        }
-        return matches
-    }
-
     /*  determine the node objects (default: the current object plus
         all objects below it) and the edge objects (default: none),
         with the edge objects never acting as nodes themselves  */
     let nodes: SpecObject[]
     if (diagram.nodes !== undefined)
-        nodes = resolvePatterns(diagram.nodes, "nodes")
+        nodes = resolvePatterns(index, errors, diagram.nodes, "nodes")
     else {
         nodes = new Array<SpecObject>()
         const walk = (o: SpecObject) => {
@@ -247,7 +248,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         }
         walk(object)
     }
-    const edgeObjects = diagram.edges !== undefined ? resolvePatterns(diagram.edges, "edges") : []
+    const edgeObjects = diagram.edges !== undefined ? resolvePatterns(index, errors, diagram.edges, "edges") : []
     const edgeSet     = new Set<SpecObject>(edgeObjects)
     nodes = nodes.filter((node) => !edgeSet.has(node))
     const nodeSet = new Set<SpecObject>(nodes)
@@ -259,6 +260,8 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         object for the default "self" configuration, the uniquely
         resolved object of an explicit "[[...]]" reference otherwise  */
     let center = object
+    if (type !== "hub" && diagram.center !== undefined)
+        errors.push(`"${type}" diagram cannot carry a "center" configuration`)
     if (type === "hub" && diagram.center !== undefined && diagram.center !== "self") {
         const reference = diagram.center.match(referenceOnce)?.[1].trim()
         const resolved  = reference !== undefined ? resolveUnique(index, reference) : undefined
@@ -313,14 +316,13 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     return { spec: renderSpec(diagram, type, center, nodes, edges, index, anchors), errors }
 }
 
-/*  collect the objects whose schema configuration carries a "diagram:"
-    field (the schema resolution mirrors the semantic validation)  */
-const collectDiagrams = (specification: Spec,
-    config: Schema): Map<SpecObject, SchemaDiagram> => {
-    const diagrams = new Map<SpecObject, SchemaDiagram>()
+/*  map the specification objects onto their schema configuration
+    nodes (the schema resolution mirrors the semantic validation)  */
+export const collectSchemas = (specification: Spec,
+    config: Schema): Map<SpecObject, SchemaObject> => {
+    const schemas = new Map<SpecObject, SchemaObject>()
     const walk = (object: SpecObject, schema: SchemaObject) => {
-        if (schema.diagram !== undefined)
-            diagrams.set(object, schema.diagram)
+        schemas.set(object, schema)
         for (const child of object.childs) {
             const childSchema = (schema.childs ?? []).find((c) => c.kind === child.kind)
             if (childSchema !== undefined)
@@ -337,7 +339,7 @@ const collectDiagrams = (specification: Spec,
                 walk(object, schema)
         }
     }
-    return diagrams
+    return schemas
 }
 
 /*  derive the Gradia specs of all diagram-configured objects
@@ -350,8 +352,9 @@ export const specDiagrams = (specification: Spec,
     for (const node of index)
         parents.set(node.object, node.parent?.object)
     const results = new Map<SpecObject, DiagramResult>()
-    for (const [ object, diagram ] of collectDiagrams(specification, config))
-        results.set(object, deriveDiagram(object, diagram, index, anchors, parents))
+    for (const [ object, schema ] of collectSchemas(specification, config))
+        if (schema.diagram !== undefined)
+            results.set(object, deriveDiagram(object, schema.diagram, index, anchors, parents))
     return results
 }
 

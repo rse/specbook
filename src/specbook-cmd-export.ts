@@ -9,7 +9,7 @@ import { minify }                    from "@swc/html"
 import type { Spec }                 from "./specbook-format-spec.js"
 import type { Schema }               from "./specbook-format-schema.js"
 import { documentTitle, documentLogo, documentCharset, documentThemeTone, subsetStylesheet,
-    documentPaperSize, paperStylesheet }
+    documentPaperSize, paperStylesheet, charsetCodepoints }
     from "./specbook-export-common.js"
 import { themeColors, themeStylesheet, themeMapping }
     from "./specbook-theme.js"
@@ -72,7 +72,7 @@ export const exportSpecification = async (
     /*  the HTML-based formats share the stylesheet, with the embedded
         fonts subsetted to the CHARSET of the specification (if any)  */
     const charset = documentCharset(specification)
-    if (charset !== undefined)
+    if (charset !== undefined && charsetCodepoints(charset) !== undefined)
         verbose(`subsetting embedded fonts to charset "${literal(charset)}"`)
 
     /*  the theme tone (THEME-TONE) drives the layer-1 color spread
@@ -104,4 +104,3 @@ export const exportSpecification = async (
             htmlOutline(specification, config), verbose, css,
             themeMapping(colors, "light"), paper)
 }
-

@@ -97,6 +97,10 @@ const parseValueExpr = (tokens: Token[], pos: { i: number }, nested: boolean): V
         throw new Error(`expected value expression, got ${tokenName(token)}`)
 }
 
+/*  compile a configured pattern into an anchored regular expression  */
+export const anchored = (pattern: string): RegExp =>
+    new RegExp(`^(?:${pattern})$`)
+
 /*  compile a value expression, memoized per source string  */
 const cache = new Map<string, ValueExpr>()
 export const compileValueExpr = (source: string): ValueExpr => {
