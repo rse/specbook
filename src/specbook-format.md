@@ -558,6 +558,12 @@ follow each other on level 1, below the single frontmatter block of that
 file. Both ATX headings (`# <text/>`, `## <text/>`, ...) and Setext
 headings (`<text/>` underlined with `===` or `---`) are supported.
 
+As the timestamps are a property of the *file* and not of the individual
+artifact, the normalized Markdown export -- which merges the entire
+corpus into a single document -- carries the earliest `Created:` and the
+latest `Modified:` timestamp of all artifacts in its single frontmatter
+block, so the per-artifact timestamps do not survive this round-trip.
+
 ### Object Model
 
 An artifact carries a tree of *objects*. Every object has a mandatory

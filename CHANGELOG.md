@@ -5,6 +5,7 @@ ChangeLog
 0.9.8 (2026-08-25)
 ------------------
 
+-   IMPROVEMENT [docs]: document that the normalized Markdown export collapses the per-artifact "Created"/"Modified" timestamps
 -   BUGFIX [code]: detach the current object on a heading without a parent object
 -   BUGFIX [code]: report a diagram edge object carrying no resolvable source or target reference just once
 -   BUGFIX [code, docs]: emit a property value carrying a ", BECAUSE " as a nested key/value item in the Markdown export

@@ -132,6 +132,11 @@ occur multiple times. The format (`json`, `json5`, `yaml`, `toon`,
 it is explicitly given as a `<format>:` prefix, and plain `-` (stdout)
 defaults to JSON.
 
+The `md` format normalizes the entire corpus into a *single* Markdown
+document, whose single frontmatter block carries the earliest `Created:`
+and the latest `Modified:` timestamp of all artifacts, so the
+per-artifact timestamps do not survive this round-trip.
+
 The `describe` command outputs the description of the SpecBook models
 and formats. If the configuration file `-c`/`--config` or the base
 directory `-b`/`--basedir` is given, it additionally appends a *SpecBook
