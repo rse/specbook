@@ -160,7 +160,8 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE artifacts and their content follow one recursive structure
 
 -   `SchemaObject.kind: string`:
-    kind name of the object (e.g. `SPEC`, `REQUIREMENT`),
+    kind name of the object (e.g. `SPEC`, `REQUIREMENT`), unique among
+    its siblings, on level 1 together with its `id`,
     BECAUSE it discriminates objects and anchors `[[xxx]]` references
 
 -   `SchemaObject.name?: string`:

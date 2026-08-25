@@ -30,10 +30,11 @@ const lineColOfPath = (doc: Document, lines: LineCounter, path: YamlPath) => {
 }
 
 /*  check the constraints of a structurally valid configuration which
-    are beyond its schema: "file" fields are allowed on the first
-    (artifact) level only, property value expressions have to be
-    syntactically valid, and the names of non-artifact objects have to
-    be valid patterns (as they are compiled into regular expressions)  */
+    are beyond its schema: sibling objects have to stay distinctly
+    resolvable, "file" fields are allowed on the first (artifact) level
+    only, property value expressions have to be syntactically valid, and
+    the names of non-artifact objects have to be valid patterns (as they
+    are compiled into regular expressions)  */
 const checkConstraints = (
     config:    Schema,
     file:      string,
@@ -45,8 +46,18 @@ const checkConstraints = (
         diagnostics.push({ file, line: pos.line, column: pos.column, message })
     }
     const check = (objects: SchemaObject[], path: YamlPath, depth: number) => {
+        /*  the sibling objects are resolved by kind and id on the first
+            (artifact) level and by kind alone below it, so a sibling
+            colliding on this key stays unreachable dead configuration  */
+        const seen = new Set<string>()
         for (const [ i, object ] of objects.entries()) {
-            const at = [ ...path, i ]
+            const at    = [ ...path, i ]
+            const ident = depth > 1 ? object.kind : `${object.kind}:${object.id ?? object.name ?? ""}`
+            if (seen.has(ident))
+                diagnose([ ...at, "kind" ],
+                    `object "${ident}" collides with a preceding sibling object (the later one is unreachable)`)
+            else
+                seen.add(ident)
             if (depth > 1 && object.file !== undefined)
                 diagnose([ ...at, "file" ],
                     `"file" field is only allowed on the first (artifact) level (found on level ${depth})`)
