@@ -25,7 +25,7 @@ const renderKeyValuesMd = (properties: SpecProperty[], indent = ""): string => {
     const width = Math.max(...properties.map((property) => property.key.length)) + 1
     return properties.map((property) => property.value.includes(";") ?
         `${indent}-   ${property.key}:\n${indent}    ${property.value}` :
-        `${indent}-   ${`${property.key}:`.padEnd(width)} ${property.value}`).join("\n")
+        `${indent}-   ${`${property.key}:`.padEnd(width)} ${property.value}`.trimEnd()).join("\n")
 }
 
 /*  render a description statement with its optional rationale  */

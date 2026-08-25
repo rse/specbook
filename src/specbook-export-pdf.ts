@@ -110,7 +110,8 @@ const decorationTemplates = (
     heading: Heading,
     css:     string,
     theme:   ThemeMapping,
-    inset:   string
+    left:    string,
+    right:   string
 ): { headerTemplate: string, footerTemplate: string } => {
     const fontFace = css.match(/@font-face\s*\{[^}]*\}/)?.[0] ?? ""
     const subtitle = heading.subtitle?.trim()
@@ -120,7 +121,7 @@ const decorationTemplates = (
         headerTemplate:
             `<style>${fontFace}</style>` +
             "<div style=\"width: 100%; margin-top: 0.8cm;\">" +
-            `<div style="margin: 0 ${inset}; ` +
+            `<div style="margin: 0 ${right} 0 ${left}; ` +
             "font-family: 'Source Sans 3', sans-serif; " +
             `font-size: 8pt; color: ${theme.symbol}; border-bottom: 1px solid ${theme.border}; ` +
             "padding-bottom: 1mm; display: flex; justify-content: space-between; " +
@@ -131,7 +132,7 @@ const decorationTemplates = (
         footerTemplate:
             `<style>${fontFace}</style>` +
             "<div style=\"width: 100%; margin-bottom: 0.8cm;\">" +
-            `<div style="margin: 0 ${inset}; ` +
+            `<div style="margin: 0 ${right} 0 ${left}; ` +
             "font-family: 'Source Sans 3', sans-serif; " +
             `font-size: 8pt; color: ${theme.symbol}; display: flex; ` +
             `justify-content: space-between; border-top: 1px solid ${theme.border}; ` +
@@ -226,7 +227,8 @@ export const htmlToPdf = async (
         /*  render the final document, decorated with header/footer  */
         const decorated = await renderPdf(html, {
             displayHeaderFooter: true,
-            ...decorationTemplates(heading, css, theme, paperLength(setup, margin.left))
+            ...decorationTemplates(heading, css, theme,
+                paperLength(setup, margin.left), paperLength(setup, margin.right))
         })
 
         /*  a title page carries no header/footer: as Chromium decorates

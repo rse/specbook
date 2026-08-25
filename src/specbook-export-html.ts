@@ -286,12 +286,12 @@ const anchorOf = (object: SpecObject): string =>
 /*  expand the inline Markdown of a text (code spans, emphasis, etc.),
     with Wiki-style references expanded upfront  */
 const inline = (text: string) =>
-    safe(marked.parseInline(linker !== null ? linker(text) : text) as string)
+    safe(marked.parseInline(linker !== null ? linker(text) : text, { async: false }))
 
 /*  expand the full Markdown of a text, keeping its block-level
     constructs (lists, quotes, code blocks, tables) intact  */
 const block = (text: string) =>
-    safe(marked.parse(linker !== null ? linker(text) : text) as string)
+    safe(marked.parse(linker !== null ? linker(text) : text, { async: false }))
 
 /*  check whether a text carries any block-level Markdown, i.e. is
     anything else than the single paragraph a description usually is  */
@@ -526,7 +526,7 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
             const cells = keys.map((key) => {
                 const value = child.properties.find((property) => property.key === key)?.value
                 return { key, desc: false, span: 1,
-                    value: value !== undefined ? inlineValue(child.kind, key, value) : safe("") }
+                    value: value !== undefined ? inlineValue(child.kind, key, value) : "" }
             })
             if (desc)
                 cells.push({ key: "Description", desc: true, span: 1,

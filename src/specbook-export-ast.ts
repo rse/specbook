@@ -24,8 +24,8 @@ interface PlainObject        { diagram?: string, childs: PlainObject[] }
 interface PlainSpecification { artifacts: { objects: PlainObject[] }[] }
 
 /*  render the specification AST into a serialization format  */
-export const renderAst = async (specification: Spec, format: AstFormat,
-    config?: Schema): Promise<Buffer> => {
+export const renderAst = (specification: Spec, format: AstFormat,
+    config?: Schema): Buffer => {
     /*  reduce the specification to plain JSON values (ISO date strings)  */
     const plain = JSON.parse(JSON.stringify(specification)) as PlainSpecification
 

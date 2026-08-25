@@ -9,7 +9,11 @@ import { Gradia, type Config as GradiaConfig } from "@rse/gradia"
 
 /*  ==== Types ====  */
 
+/*  the whole schema: the object kinds the corpus consists of  */
 export type Schema = SchemaObject[]
+
+/*  an object kind: an artifact (level 1, with its "file" and exact
+    "name") or an object nested below it (with a "name" regex)  */
 export type SchemaObject = {
     kind:              string
     name?:             string
@@ -22,6 +26,10 @@ export type SchemaObject = {
     props?:            SchemaProperty[]
     childs?:           SchemaObject[]
 }
+
+/*  the diagram derived for every object of an object kind: its shape,
+    its node/edge selection, the edge property roles, the derivation
+    switches, and the node annotations  */
 export type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid"
     nodes?:            string
@@ -38,11 +46,17 @@ export type SchemaDiagram = {
     properties?:       string[]
     config?:           Partial<GradiaConfig>
 }
+
+/*  the HTML/PDF rendering of the child objects of an object kind:
+    "complex" (sections), "concise" (tables), or "auto"  */
 export type SchemaFormat = {
     type?:             "auto" | "complex" | "concise"
     maxTableColumns?:  number
     withUnusedProps?:  boolean
 }
+
+/*  a property allowed on the objects of an object kind, with its
+    value constraint (regexp, link, enum, tags, or list expression)  */
 export type SchemaProperty = {
     name:              string
     desc?:             string

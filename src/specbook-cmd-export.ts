@@ -24,15 +24,15 @@ export const formats = [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ] 
 export type ExportFormat = typeof formats[number]
 
 /*  the format names and filename extensions mapping onto the export formats  */
-const extensions: Record<string, ExportFormat> = {
-    json:     "json",
-    json5:    "json5",
-    yaml:     "yaml",   yml: "yaml",
-    toon:     "toon",
-    html:     "html",   htm: "html",
-    pdf:      "pdf",
-    md:       "md",     markdown: "md"
-}
+const extensions = new Map<string, ExportFormat>([
+    [ "json",  "json"  ],
+    [ "json5", "json5" ],
+    [ "yaml",  "yaml"  ], [ "yml",      "yaml" ],
+    [ "toon",  "toon"  ],
+    [ "html",  "html"  ], [ "htm",      "html" ],
+    [ "pdf",   "pdf"   ],
+    [ "md",    "md"    ], [ "markdown", "md"   ]
+])
 
 /*  parse an output specification "[<format>:]<filename>", inferring the
     format from the filename extension when not explicitly given
@@ -40,14 +40,14 @@ const extensions: Record<string, ExportFormat> = {
 export const parseOutputSpec = (spec: string): { format: ExportFormat, output: string } => {
     const prefixed = spec.match(/^([a-zA-Z0-9]+):(.+)$/)
     if (prefixed !== null) {
-        const explicit = extensions[prefixed[1].toLowerCase()]
+        const explicit = extensions.get(prefixed[1].toLowerCase())
         if (explicit !== undefined)
             return { format: explicit, output: prefixed[2] }
     }
     if (spec === "-")
         return { format: "json", output: spec }
     const ext    = spec.match(/\.([a-zA-Z0-9]+)$/)
-    const format = ext !== null ? extensions[ext[1].toLowerCase()] : undefined
+    const format = ext !== null ? extensions.get(ext[1].toLowerCase()) : undefined
     if (format !== undefined)
         return { format, output: spec }
     throw new Error(`unable to infer export format from output "${spec}" ` +

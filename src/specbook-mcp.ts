@@ -120,12 +120,12 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             basedir: z.string().optional().describe("base directory of the specification Markdown files"),
             embed:   z.boolean().optional().describe("embed the YAML schema configuration instead of " +
                 "just referencing it (default: false)"),
-            output:  z.string().optional().describe("output file path (default: return description)")
+            output:  z.string().optional().describe("output file path (\"-\" or omitted returns the description directly)")
         }
     }, async (args) => {
         try {
             const text = await specbook.describe(args)
-            if (args.output !== undefined) {
+            if (args.output !== undefined && args.output !== "-") {
                 await fs.promises.writeFile(args.output, text, "utf8")
                 return { content: [ { type: "text", text: `described specification format into "${args.output}"` } ] }
             }

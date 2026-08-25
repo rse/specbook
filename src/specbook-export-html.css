@@ -134,6 +134,7 @@ h2, h3, h4                  { margin: 2.0rem 0 1.0rem 0; }
 h1, h2, h3, h4, h5, h6      { page-break-after: avoid; break-after: avoid; }
 }
 
+/*  the hierarchical section numbering of the object headings  */
 body                        { counter-reset: sec1; }
 article h1                  { counter-increment: sec1; counter-reset: sec2; }
 article h2                  { counter-increment: sec2; counter-reset: sec3; }
@@ -144,7 +145,7 @@ article h3::before          { content: counter(sec1, decimal-leading-zero) "." c
 
 a                           { color: var(--theme-color-specbook-accent); text-decoration: none; }
 
-.object-kind                { color: var(--theme-color-specbook-accent); }
+.object-kind,
 .property-name              { color: var(--theme-color-specbook-accent); }
 
 .object-kind::before        { content: "\25CF"; color: var(--theme-color-specbook-accent); font-weight: normal;
@@ -163,6 +164,7 @@ span.link-symbol            { color: var(--theme-color-specbook-symbol); font-fa
 span.value-member           { border: 1px solid var(--theme-color-specbook-border); border-radius: 0.25rem;
                               padding: 0.05rem 0.30rem; white-space: nowrap; }
 
+/*  the key/value property tables  */
 table.props                 { border-collapse: collapse; margin: 0.5rem 0;
                               width: 100%; }
 table.props td              { border: 0; border-left: 1px solid var(--theme-color-specbook-border);
@@ -173,6 +175,7 @@ table.props td.key          { font-weight: bold; width: 1px; white-space: nowrap
 table.props tr:nth-child(even) td        { background-color: var(--theme-color-specbook-stripe); }
 table.props tr:nth-child(even) td.key    { background-color: var(--theme-color-specbook-tint-stripe); }
 
+/*  the compact tables of the concise object renderings  */
 table.objects               { border-collapse: collapse; margin: 1.0rem 0;
                               width: 100%; table-layout: fixed; }
 table.objects th,
@@ -199,10 +202,11 @@ table.objects table.chunks td:first-child { font-weight: normal; }
 /*  the nested renderings inside the description cells of the compact
     tables ("concise" sub-tables and pressed-in "complex" objects),
     reduced in size to fit into the cell  */
-table.objects td table.objects { font-size: 85%; margin: 0.5rem 0; }
+table.objects td table.objects,
 table.objects td section    { font-size: 85%; margin: 0.5rem 0; }
 table.objects td section h6 { margin: 0.5rem 0 0.25rem 0; }
 
+/*  the object descriptions and their embedded images  */
 p.description,
 div.description             { margin: 1.0rem 0 0.5rem 0; }
 div.description p           { margin: 0.5rem 0; }
@@ -223,6 +227,7 @@ html.theme-dark span.theme-light-only { display: none; }
 html.theme-dark span.theme-dark-only  { display: contents; }
 }
 
+/*  the diagrams, rationales, keywords, and code spans  */
 div.diagram                 { margin: 1.0rem 0; }
 div.diagram svg             { max-width: 100%; height: auto; }
 span.rationale              { color: var(--theme-color-specbook-muted); }
@@ -230,6 +235,7 @@ p.rationale                 { color: var(--theme-color-specbook-muted); margin: 
 span.keyword                { font-weight: bold; }
 code                        { font-family: "Source Code Pro", monospace; font-size: 1.0em; letter-spacing: -0.030rem; }
 
+/*  the title page  */
 div.titlepage               { text-align: center; margin: 6rem 0 4rem 0;
                               page-break-after: always; break-after: page; }
 div.titlepage .logo         { margin-bottom: 2rem; }
@@ -265,6 +271,7 @@ mark.search-hit             { color: var(--theme-color-specbook-mark-text);
                               background-color: var(--theme-color-specbook-mark-back);
                               border-radius: 0.2rem; padding: 0 0.1em; }
 
+/*  the table of contents (with page numbers for print only)  */
 nav.toc                     { page-break-after: always; break-after: page; counter-reset: toc; }
 nav.toc h1                  { color: var(--theme-color-specbook-accent); }
 nav.toc tr                  { counter-increment: toc; }

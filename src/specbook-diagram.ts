@@ -215,7 +215,9 @@ const resolvePatterns = (index: LinkIndex, errors: string[],
     value: string, field: string): SpecObject[] => {
     const matches = new Array<SpecObject>()
     const seen    = new Set<SpecObject>()
+    let   found   = false
     for (const m of value.matchAll(referenceRegex)) {
+        found = true
         const pattern = m[1].trim()
         const set     = resolveSet(index, pattern)
         if (set.length === 0)
@@ -227,6 +229,8 @@ const resolvePatterns = (index: LinkIndex, errors: string[],
             }
         }
     }
+    if (!found)
+        errors.push(`diagram "${field}" carries no "[[...]]" reference pattern`)
     return matches
 }
 

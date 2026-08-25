@@ -4,9 +4,9 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import * as fs from "node:fs"
+import * as fs                                               from "node:fs"
 import { parseDocument, isNode, LineCounter, type Document } from "yaml"
-import * as v  from "valibot"
+import * as v                                                from "valibot"
 
 import { Schema, type SchemaObject }  from "./specbook-format-schema.js"
 import { compileValueExpr, anchored } from "./specbook-parse-value.js"

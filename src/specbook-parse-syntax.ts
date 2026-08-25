@@ -34,6 +34,38 @@ const splitDescription = (text: string) => {
     }
 }
 
+/*  strip the trailing explicit Wiki-style anchor ("{{xxx}}"), the
+    primary marker ("(*)"), and/or the implicit parenthesized anchor
+    token ("(xxx)") off a name, in any order  */
+const parseMarkers = (raw: string) => {
+    let text = raw
+    let anchor:  string | undefined
+    let paren:   string | undefined
+    let primary = false
+    for (;;) {
+        const am = text.match(/\{\{([^{}]+)\}\}\s*$/)
+        if (am !== null && am.index !== undefined) {
+            anchor ??= am[1].trim()
+            text     = text.slice(0, am.index).trim()
+            continue
+        }
+        const sm = text.match(/\(\*\)\s*$/)
+        if (sm !== null && sm.index !== undefined) {
+            primary = true
+            text    = text.slice(0, sm.index).trim()
+            continue
+        }
+        const pm = text.match(/\(([^()]+)\)\s*$/)
+        if (pm !== null && pm.index !== undefined && paren === undefined) {
+            paren = pm[1].trim()
+            text  = text.slice(0, pm.index).trim()
+            continue
+        }
+        break
+    }
+    return { text, anchor, paren, primary }
+}
+
 /*  parse a heading text of the form "<KIND>: <name> [(<token>)] [<a id="..."></a>]"  */
 const parseHeadingText = (raw: string) => {
     let text = raw.trim()
@@ -53,37 +85,17 @@ const parseHeadingText = (raw: string) => {
         text      = text.slice(0, fm.index).trim()
     }
 
-    /*  detect the trailing explicit Wiki-style anchor ("{{xxx}}"), the
-        primary marker ("(*)"), and/or the implicit parenthesized anchor
-        token ("(xxx)"), in any order  */
-    let paren:   string | undefined
-    let primary = false
-    for (;;) {
-        const wm = text.match(/\{\{([^{}]+)\}\}\s*$/)
-        if (wm !== null && wm.index !== undefined) {
-            id  ??= wm[1].trim()
-            text  = text.slice(0, wm.index).trim()
-            continue
-        }
-        const sm = text.match(/\(\*\)\s*$/)
-        if (sm !== null && sm.index !== undefined) {
-            primary = true
-            text    = text.slice(0, sm.index).trim()
-            continue
-        }
-        const pm = text.match(/\(([^()]+)\)\s*$/)
-        if (pm !== null && pm.index !== undefined && paren === undefined) {
-            paren = pm[1].trim()
-            text  = text.slice(0, pm.index).trim()
-            continue
-        }
-        break
-    }
-    const km = text.match(/^([^:]+):\s*(.*)$/)
+    /*  detect the trailing markers (an HTML anchor id takes
+        precedence over the explicit Wiki-style anchor)  */
+    const markers = parseMarkers(text)
+    const km      = markers.text.match(/^([^:]+):\s*(.*)$/)
     return {
-        kind: km !== null ? km[1].trim() : text,
-        name: km !== null ? km[2].trim() : "",
-        id, paren, primary, malformed
+        kind:    km !== null ? km[1].trim() : markers.text,
+        name:    km !== null ? km[2].trim() : "",
+        id:      id ?? markers.anchor,
+        paren:   markers.paren,
+        primary: markers.primary,
+        malformed
     }
 }
 
@@ -240,33 +252,9 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
         name = km[2].trim()
     }
 
-    /*  detect the trailing explicit Wiki-style anchor ("{{xxx}}"), the
-        primary marker ("(*)"), and/or the implicit parenthesized anchor
-        token ("(xxx)"), in any order  */
-    let anchor:  string | undefined
-    let paren:   string | undefined
-    let primary = false
-    for (;;) {
-        const am = name.match(/\{\{([^{}]+)\}\}\s*$/)
-        if (am !== null && am.index !== undefined) {
-            anchor ??= am[1].trim()
-            name     = name.slice(0, am.index).trim()
-            continue
-        }
-        const sm = name.match(/\(\*\)\s*$/)
-        if (sm !== null && sm.index !== undefined) {
-            primary = true
-            name    = name.slice(0, sm.index).trim()
-            continue
-        }
-        const pm = name.match(/\(([^()]+)\)\s*$/)
-        if (pm !== null && pm.index !== undefined && paren === undefined) {
-            paren = pm[1].trim()
-            name  = name.slice(0, pm.index).trim()
-            continue
-        }
-        break
-    }
+    /*  detect the trailing markers of the name  */
+    const { text: plain, anchor, paren, primary } = parseMarkers(name)
+    name = plain
 
     /*  create the object with its markers, registering its source location  */
     const object: SpecObject = {

@@ -47,6 +47,8 @@ export const initSpecification = (options: InitOptions): string[] => {
             group.push(artifact)
     }
 
+    /*  create each absent artifact file with its frontmatter and
+        the level 1 headings of its artifacts  */
     for (const [ file, artifacts ] of groups) {
         const target = path.join(options.basedir, file)
         if (fs.existsSync(target)) {

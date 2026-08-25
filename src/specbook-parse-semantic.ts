@@ -110,21 +110,6 @@ const parenProp = (object: SpecObject, props: SchemaProperty[]): SchemaProperty 
         && directMatches(compileValueExpr(prop.value), paren))
 }
 
-/*  assign the implicit anchors of an object tree up-front: a parenthesized
-    token not consumed as a property value acts as the id (an explicit
-    "{{...}}" anchor takes precedence), which has to happen before any
-    property check, as those resolve references by id across all artifacts  */
-const assignIds = (object: SpecObject, schema: SchemaObject) => {
-    if (object.paren !== undefined && object.anchor === undefined
-        && parenProp(object, schema.props ?? []) === undefined)
-        object.id = object.paren
-    for (const child of object.childs) {
-        const childSchema = schema.childs?.find((c) => c.kind === child.kind)
-        if (childSchema !== undefined)
-            assignIds(child, childSchema)
-    }
-}
-
 /*  validate a single object (and recursively its childs) against its schema  */
 const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObject, level: number) => {
     const meta  = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
@@ -237,17 +222,16 @@ export const collectSchemas = (specification: Spec,
 
 /*  validate the parsed specification against the configuration  */
 export const validate = (ctx: ParseContext, specification: Spec, config: Schema) => {
-    /*  resolve the level 1 objects onto their artifact schemas and
-        assign the implicit ids of all objects before any validation  */
-    const schemas = new Map<SpecObject, SchemaObject>()
-    for (const artifact of specification.artifacts)
-        for (const object of artifact.objects) {
-            const schema = resolveArtifact(config, object)
-            if (schema !== undefined) {
-                schemas.set(object, schema)
-                assignIds(object, schema)
-            }
-        }
+    /*  map all objects onto their schema nodes and assign the implicit
+        ids up-front: a parenthesized token not consumed as a property
+        value acts as the id (an explicit "{{...}}" anchor takes
+        precedence), which has to happen before any property check, as
+        those resolve references by id across all artifacts  */
+    const schemas = collectSchemas(specification, config)
+    for (const [ object, schema ] of schemas)
+        if (object.paren !== undefined && object.anchor === undefined
+            && parenProp(object, schema.props ?? []) === undefined)
+            object.id = object.paren
 
     /*  validate every level 1 object against its artifact schema  */
     const position = new Map<SpecArtifact, number>()

@@ -8,14 +8,21 @@ import * as v from "valibot"
 
 /*  ==== Types ====  */
 
+/*  the whole specification: the artifacts the corpus consists of  */
 export type Spec = {
     artifacts:         SpecArtifact[]
 }
+
+/*  a single artifact: one level 1 heading plus its file timestamps  */
 export type SpecArtifact = {
     created:           Date
     modified:          Date
     objects:           SpecObject[]
 }
+
+/*  an object of the artifact tree (the atom of a specification), with
+    the explicit "{{xxx}}" anchor, the parenthesized "(xxx)" token, and
+    the "(*)" primary marker optionally taken from its heading  */
 export type SpecObject = {
     kind:              string
     id:                string
@@ -27,11 +34,17 @@ export type SpecObject = {
     properties:        SpecProperty[]
     childs:            SpecObject[]
 }
+
+/*  the description of an object: statement, rationale, and the
+    contents of its embedded image files (one entry per file)  */
 export type SpecDescription = {
     description:       string
     rationale?:        string
     embedding?:        string[]
 }
+
+/*  a key/value property of an object, with the contents of the
+    image files embedded into its value (one entry per file)  */
 export type SpecProperty = {
     key:               string
     value:             string
