@@ -220,6 +220,25 @@ export const collectSchemas = (specification: Spec,
     return schemas
 }
 
+/*  report the objects colliding on kind and id among their siblings
+    (recursively from the artifacts down), as such objects derive
+    identical anchor paths and hence cannot be addressed distinctly  */
+const checkIds = (ctx: ParseContext, objects: SpecObject[]) => {
+    const seen = new Map<string, SpecObject>()
+    for (const object of objects) {
+        const key   = `${object.kind}:${object.id}`
+        const first = seen.get(key)
+        if (first === undefined)
+            seen.set(key, object)
+        else {
+            const meta = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
+            ctx.diagnose(meta.file, meta.line,
+                `id "${object.id}" of ${object.kind} "${object.name}" collides with preceding ${object.kind} "${first.name}"`)
+        }
+        checkIds(ctx, object.childs)
+    }
+}
+
 /*  validate the parsed specification against the configuration  */
 export const validate = (ctx: ParseContext, specification: Spec, config: Schema) => {
     /*  map all objects onto their schema nodes and assign the implicit
@@ -232,6 +251,9 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
         if (object.paren !== undefined && object.anchor === undefined
             && parenProp(object, schema.props ?? []) === undefined)
             object.id = object.paren
+
+    /*  check the ids for local uniqueness, now that all of them are final  */
+    checkIds(ctx, specification.artifacts.flatMap((artifact) => artifact.objects))
 
     /*  validate every level 1 object against its artifact schema  */
     const position = new Map<SpecArtifact, number>()

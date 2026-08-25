@@ -559,12 +559,12 @@ headings (`<text/>` underlined with `===` or `---`) are supported.
 ### Object Model
 
 An artifact carries a tree of *objects*. Every object has a mandatory
-*kind* (e.g. `ENTITY`), a mandatory *name*, a unique anchor *id*
-(explicitly given or derived from the name), an optional *primary*
-marker, optional *properties* (key/value pairs), an optional
-*description* statement with an optional rationale, and optional *child*
-objects. Which kinds, properties, and nestings are allowed is defined by
-the schema.
+*kind* (e.g. `ENTITY`), a mandatory *name*, an anchor *id* (explicitly
+given or derived from the name, and unique among the sibling objects of
+its kind), an optional *primary* marker, optional *properties* (key/value
+pairs), an optional *description* statement with an optional rationale,
+and optional *child* objects. Which kinds, properties, and nestings are
+allowed is defined by the schema.
 
 ### Format Variant: Complex Format
 

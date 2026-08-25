@@ -35,7 +35,7 @@ LIFECYCLE: Event {{event}}
     The live stream and interaction channels open for attendees,
     **WHEN** the manager starts the event.
 
--   start; FROM: [[STATE:Planning]]; TO: [[STATE:Running]];
+-   start {{start-unpublished}}; FROM: [[STATE:Planning]]; TO: [[STATE:Running]];
     The event goes live directly from planning,
     **WHEN** the manager starts an unpublished event.
 
@@ -116,6 +116,6 @@ LIFECYCLE: AuthorizationToken {{authtoken}}
     The token is marked spent,
     **WHEN** the user submits it in a successful or unsuccessful login attempt.
 
--   `consume`; FROM: [[STATE:Issued]]; TO: [[STATE:Used]];
+-   `consume {{consume-automatic}}`; FROM: [[STATE:Issued]]; TO: [[STATE:Used]];
     The pre-generated token is marked spent,
     **WHEN** an automatic-access URL carrying the token is used.

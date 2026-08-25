@@ -5,8 +5,9 @@ ChangeLog
 0.9.7 (2026-08-24)
 ------------------
 
+-   BUGFIX [code, docs, othr]: report sibling objects of the same kind which collide on their anchor id (like two "start" transitions below one lifecycle of the sample state model, now disambiguated with explicit "{{xxx}}" anchors), instead of silently deriving identical anchor paths for them, which only surfaced indirectly as an ambiguous link reference
 -   BUGFIX [code]: reject negative or non-finite numeric Gradia rendering options in the schema configuration and pass the configured options explicitly to the HTML diagram rendering, so "font-embed" and a WOFF2 "font-family" take effect, instead of Gradia silently dropping all of them from the "#config" directives
--   BUGFIX [code]: embed SVG images in the HTML/PDF export as self-contained "data:" URLs on "<img>" tags instead of inlining them as-is, as the document-global "<style>" class rules of one inlined SVG (like the Illustrator-typical ".st0") silently restyled all other inlined SVGs sharing the same class names
+-   BUGFIX [code]: embed SVG images in the HTML/PDF export as self-contained "data:" URLs on "<img>" tags instead of inlining them as-is, as the document-global `<style>` class rules of one inlined SVG (like the Illustrator-typical ".st0") silently restyled all other inlined SVGs sharing the same class names
 -   BUGFIX [code]: render the image embeddings of regular property values in the HTML/PDF export from the embedded image contents (like the ones of descriptions and of the title page "LOGO"), instead of rendering their "![xxx](yyy)" markup with its source-relative file path, which was broken in the self-contained HTML and absent in the PDF
 -   BUGFIX [infr]: do not ship the sample files which were generated
 -   BUGFIX [code, docs]: parse the last segment of a "."-terminated Concise Format item always as the description and accept an empty property value, so a "Note: xxx"-shaped description and an empty-valued property of an object exported in the Concise Format no longer swap their roles on re-parsing
@@ -15,7 +16,7 @@ ChangeLog
 -   BUGFIX [code]: emit a single frontmatter block (carrying the earliest "Created" and the latest "Modified" timestamp of all artifacts) at the start of the Markdown export, instead of one block per artifact, of which a re-parse recognizes only the first
 -   BUGFIX [code, docs]: report a duplicate property key on an object and check the value of every property occurrence, instead of silently ignoring all occurrences but the first one
 -   BUGFIX [code]: assign the implicit "(xxx)" anchor ids of all objects before checking any property reference constraint, so a forward reference to such an object no longer silently skips its constraint
--   BUGFIX [code]: return the result of the MCP tool "specbook_export" directly for the "-" stdout sentinel as output, instead of writing a file literally named "-"
+-   BUGFIX [code]: return the result of the MCP tool `specbook_export` directly for the "-" stdout sentinel as output, instead of writing a file literally named "-"
 -   BUGFIX [code, docs]: emit a property value carrying a ";" on a continuation line of its key/value item in the Markdown export (nested below the item of a concise object instead of as a segment), as a ";" on the first line of a list item let a re-parse take the property for a concise child object
 -   IMPROVEMENT [code, docs]: report a non-optional artifact which is absent from its present artifact file, instead of just checking the existence of the file
 
