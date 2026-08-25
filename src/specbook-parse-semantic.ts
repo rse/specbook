@@ -247,10 +247,19 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
         precedence), which has to happen before any property check, as
         those resolve references by id across all artifacts  */
     const schemas = collectSchemas(specification, config)
-    for (const [ object, schema ] of schemas)
+    const promote = (object: SpecObject) => {
+        /*  an object below an unresolved artifact or an unknown kind
+            carries no schema and hence no property able to consume the
+            token, so the token still acts as the id and a single
+            unresolved heading no longer cascades into unresolvable
+            references all over the corpus  */
         if (object.paren !== undefined && object.anchor === undefined
-            && parenProp(object, schema.props ?? []) === undefined)
+            && parenProp(object, schemas.get(object)?.props ?? []) === undefined)
             object.id = object.paren
+        object.childs.forEach(promote)
+    }
+    for (const artifact of specification.artifacts)
+        artifact.objects.forEach(promote)
 
     /*  check the ids for local uniqueness, now that all of them are final  */
     checkIds(ctx, specification.artifacts.flatMap((artifact) => artifact.objects))
