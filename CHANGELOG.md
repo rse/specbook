@@ -6,6 +6,7 @@ ChangeLog
 ------------------
 
 -   BUGFIX [infr]: do not ship the sample files which were generated
+-   BUGFIX [code]: accept the filename extension aliases ("yml", "htm", "markdown") in an explicit "<format>:" output prefix, too, instead of silently ignoring such a prefix and inferring the format from the extension of the entire output specification
 -   BUGFIX [code, docs]: fail "export" on any diagnostics (listing them like an invalid configuration) instead of silently emitting a partial or invalid specification with exit code 0, as the diagnostics surfaced in verbose mode only
 -   BUGFIX [code]: emit a single frontmatter block (carrying the earliest "Created" and the latest "Modified" timestamp of all artifacts) at the start of the Markdown export, instead of one block per artifact, of which a re-parse recognizes only the first
 -   BUGFIX [code, docs]: report a duplicate property key on an object and check the value of every property occurrence, instead of silently ignoring all occurrences but the first one

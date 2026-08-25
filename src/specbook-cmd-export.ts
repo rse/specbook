@@ -23,7 +23,7 @@ import { literal }                   from "./specbook-verbose.js"
 export const formats = [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ] as const
 export type ExportFormat = typeof formats[number]
 
-/*  the filename extensions mapping onto the export formats  */
+/*  the format names and filename extensions mapping onto the export formats  */
 const extensions: Record<string, ExportFormat> = {
     json:     "json",
     json5:    "json5",
@@ -40,8 +40,7 @@ const extensions: Record<string, ExportFormat> = {
 export const parseOutputSpec = (spec: string): { format: ExportFormat, output: string } => {
     const prefixed = spec.match(/^([a-zA-Z0-9]+):(.+)$/)
     if (prefixed !== null) {
-        const prefix = prefixed[1].toLowerCase()
-        const explicit = formats.find((candidate) => candidate === prefix)
+        const explicit = extensions[prefixed[1].toLowerCase()]
         if (explicit !== undefined)
             return { format: explicit, output: prefixed[2] }
     }
