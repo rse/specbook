@@ -7,6 +7,11 @@ ChangeLog
 
 -   BUGFIX [code, docs]: keep child objects of object in Complex Format in Markdown export when a descendant carries a description containing a ";", too, as such a description was emitted as a plain Concise Format segment, which a re-parse split into a spurious property plus a truncated description
 
+0.9.8 (2026-08-25)
+------------------
+
+-   BUGFIX [code]: report an unrecognized explicit "<format>:" output prefix as an error (listing the accepted format names) instead of silently ignoring it and then inferring the format from the extension of the entire output specification, which let the prefix leak into the output filename as in "-o xml:report.html"
+
 0.9.7 (2026-08-24)
 ------------------
 

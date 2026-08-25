@@ -38,11 +38,15 @@ const extensions = new Map<string, ExportFormat>([
     format from the filename extension when not explicitly given
     (plain "-" for stdout defaults to JSON)  */
 export const parseOutputSpec = (spec: string): { format: ExportFormat, output: string } => {
-    const prefixed = spec.match(/^([a-zA-Z0-9]+):(.+)$/)
+    /*  a single-character prefix is never a format name, so a Windows
+        drive letter still falls through to the extension inference  */
+    const prefixed = spec.match(/^([a-zA-Z0-9]{2,}):(.+)$/)
     if (prefixed !== null) {
         const explicit = extensions.get(prefixed[1].toLowerCase())
-        if (explicit !== undefined)
-            return { format: explicit, output: prefixed[2] }
+        if (explicit === undefined)
+            throw new Error(`unknown export format "${prefixed[1]}" in output "${spec}" ` +
+                `(supported: ${Array.from(extensions.keys()).join(", ")})`)
+        return { format: explicit, output: prefixed[2] }
     }
     if (spec === "-")
         return { format: "json", output: spec }
