@@ -118,7 +118,8 @@ export const compileValueExpr = (source: string): ValueExpr => {
 }
 
 /*  split a property value at top-level commas, honoring double-quoted
-    sections and "[[...]]" reference bracketing  */
+    sections and "[[...]]" reference bracketing (empty items are kept,
+    as only the caller can decide whether to report or skip them)  */
 export const splitItems = (text: string): string[] => {
     const parts     = [ "" ]
     let   quoted    = false
@@ -148,5 +149,5 @@ export const splitItems = (text: string): string[] => {
         const item = part.trim()
         const m    = item.match(/^"((?:\\"|[^"])*)"$/)
         return m !== null ? m[1].replace(/\\"/g, "\"") : item
-    }).filter((part) => part !== "")
+    })
 }

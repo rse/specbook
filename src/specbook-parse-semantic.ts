@@ -52,6 +52,18 @@ const matchAlternatives = (ctx: ParseContext, alternatives: ValueExpr[], item: s
 const findProp = (object: SpecObject, name: string) =>
     object.properties.find((p) => p.key === name)
 
+/*  split a multi-valued property value into its items, reporting an
+    empty one -- stemming from an empty value or a stray comma -- once,
+    as such an item can never satisfy any constraint  */
+const splitPropItems = (ctx: ParseContext, prop: SchemaProperty,
+    property: SpecProperty, meta: ObjectMeta): string[] => {
+    const items = splitItems(plainText(property.value))
+    if (items.some((item) => item === ""))
+        ctx.diagnose(meta.file, meta.line,
+            `property "${prop.name}" value "${property.value}" contains an empty item`)
+    return items.filter((item) => item !== "")
+}
+
 /*  check a property value against the compiled value expression of its
     configured schema property  */
 const checkPropValue = (ctx: ParseContext, prop: SchemaProperty,
@@ -75,7 +87,7 @@ const checkPropValue = (ctx: ParseContext, prop: SchemaProperty,
         /*  a tags constraint: the value is a comma-separated set of
             configured tags, each occurring at most once  */
         const seen = new Set<string>()
-        for (const item of splitItems(plainText(property.value))) {
+        for (const item of splitPropItems(ctx, prop, property, meta)) {
             if (!expr.members.includes(item))
                 ctx.diagnose(meta.file, meta.line,
                     `tag "${item}" of property "${prop.name}" not allowed by constraint "${prop.value}"`)
@@ -88,7 +100,7 @@ const checkPropValue = (ctx: ParseContext, prop: SchemaProperty,
     else if (expr.kind === "list") {
         /*  a list constraint: the value is a comma-separated list
             of items, each matching at least one alternative  */
-        for (const item of splitItems(plainText(property.value)))
+        for (const item of splitPropItems(ctx, prop, property, meta))
             if (!matchAlternatives(ctx, expr.alternatives, item))
                 ctx.diagnose(meta.file, meta.line,
                     `list item "${item}" of property "${prop.name}" does not match constraint "${prop.value}"`)

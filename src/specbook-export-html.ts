@@ -399,7 +399,8 @@ const inlineValue = (kind: string, { key, value, embedding }: SpecProperty) => {
         .map((content) => `<div class="embedding">${content}</div>`).join("")
     if (member === undefined || text === "")
         return safe(`${inline(text)}${embeddings}`)
-    const items = member === "tags" ? splitItems(text) : [ text ]
+    const items = member === "tags" ?
+        splitItems(text).filter((item) => item !== "") : [ text ]
     return safe(items.map((item) =>
         `<span class="value-member">${inline(item)}</span>`).join(" ") + embeddings)
 }
