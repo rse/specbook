@@ -669,7 +669,10 @@ explicitly written in the input, via either `{{<id/>}}` or `(<id/>)`.
 In the Complex Format, each property is an unordered list item of the
 form `<key/>: <value/>`, whose value may continue on the following
 indented lines of the item (joined with spaces). In the Concise Format,
-each property is a `<key/>: <value/>` segment. The key is matched
+each property is a `<key/>: <value/>` segment. A value carrying a `;`
+cannot be a segment and has to start on a continuation line of a
+key/value item, as a `;` on the first line of a list item marks a
+Concise Format object. The key is matched
 against the schema exactly as written and may occur only once per
 object, and the value has to satisfy the configured constraint as a
 whole.

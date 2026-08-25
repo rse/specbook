@@ -18,11 +18,14 @@ const formatTimestamp = (date: Date): string => {
         `${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-/*  render the properties as a value-aligned key/value list  */
-const renderKeyValuesMd = (properties: SpecProperty[]): string => {
+/*  render the properties as a value-aligned key/value list, wrapping a
+    value carrying ";" onto a continuation line, as only a ";"-free first
+    line lets the item be recognized as a property again on re-parsing  */
+const renderKeyValuesMd = (properties: SpecProperty[], indent = ""): string => {
     const width = Math.max(...properties.map((property) => property.key.length)) + 1
-    return properties.map((property) =>
-        `-   ${`${property.key}:`.padEnd(width)} ${property.value}`).join("\n")
+    return properties.map((property) => property.value.includes(";") ?
+        `${indent}-   ${property.key}:\n${indent}    ${property.value}` :
+        `${indent}-   ${`${property.key}:`.padEnd(width)} ${property.value}`).join("\n")
 }
 
 /*  render a description statement with its optional rationale  */
@@ -42,7 +45,12 @@ const nameSuffixMd = (object: SpecObject): string =>
 const renderConciseMd = (object: SpecObject, level: number): string => {
     const indent   = " ".repeat((level - 4) * 4)
     const segments = [ `${object.kind}: ${object.name}${nameSuffixMd(object)}` ]
-    segments.push(...object.properties.map((property) => `${property.key}: ${property.value}`))
+
+    /*  a value carrying ";" cannot be a segment, so its property has to
+        become a nested key/value item below the item instead  */
+    const wrapped = object.properties.filter((property) =>  property.value.includes(";"))
+    const inline  = object.properties.filter((property) => !property.value.includes(";"))
+    segments.push(...inline.map((property) => `${property.key}: ${property.value}`))
     if (object.description !== undefined)
         segments.push(renderDescriptionMd(object.description).replace(/\s*\n\s*/g, " "))
 
@@ -52,7 +60,9 @@ const renderConciseMd = (object: SpecObject, level: number): string => {
     const item = object.description !== undefined ?
         `${indent}-   ${segments.join("; ").replace(/\.?$/, ".")}` :
         `${indent}-   ${segments.join("; ")};`
-    return [ item, ...object.childs.map((child) => renderConciseMd(child, level + 1)) ].join("\n")
+    return [ item, renderKeyValuesMd(wrapped, `${indent}    `),
+        ...object.childs.map((child) => renderConciseMd(child, level + 1)) ]
+        .filter((part) => part !== "").join("\n")
 }
 
 /*  render an object in the Complex Format (levels 1-3),
