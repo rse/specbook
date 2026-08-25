@@ -11,7 +11,7 @@ import { marked, type Tokens } from "marked"
 
 import { type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
-import { ParseContext, embeddingRegex, embeddingMimeType, embeddingVariants, type SourceFile }
+import { ParseContext, becauseRegex, embeddingRegex, embeddingMimeType, embeddingVariants, type SourceFile }
     from "./specbook-parse-common.js"
 
 /*  a grouping container context (e.g. "### STATE")  */
@@ -19,9 +19,6 @@ interface Group {
     parent: SpecObject
     kind:   string
 }
-
-/*  the marker separating a statement from its rationale  */
-const becauseRegex = /,\s*(?:\*\*BECAUSE\*\*|BECAUSE)\s+/
 
 /*  split a description text into statement and optional rationale  */
 const splitDescription = (text: string) => {

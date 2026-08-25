@@ -42,6 +42,9 @@ export class ParseContext {
     }
 }
 
+/*  the marker separating a statement from its rationale  */
+export const becauseRegex = /,\s*(?:\*\*BECAUSE\*\*|BECAUSE)\s+/
+
 /*  the Markdown image embedding syntax ("![alt](file)")  */
 export const embeddingRegex = /!\[([^\]]*)\]\(([^()]+)\)/g
 

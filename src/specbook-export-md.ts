@@ -10,6 +10,8 @@ import type { Schema }
     from "./specbook-format-schema.js"
 import { specDiagrams }
     from "./specbook-diagram.js"
+import { becauseRegex }
+    from "./specbook-parse-common.js"
 
 /*  format a timestamp in the frontmatter format  */
 const formatTimestamp = (date: Date): string => {
@@ -27,6 +29,12 @@ const renderKeyValuesMd = (properties: SpecProperty[], indent = ""): string => {
         `${indent}-   ${property.key}:\n${indent}    ${property.value}` :
         `${indent}-   ${`${property.key}:`.padEnd(width)} ${property.value}`.trimEnd()).join("\n")
 }
+
+/*  whether a property can be a Concise Format segment: a value carrying
+    a ";" would split the segment, and a value carrying the rationale
+    marker would not be taken for a property at all on re-parsing  */
+const segmentableMd = (property: SpecProperty): boolean =>
+    !property.value.includes(";") && !becauseRegex.test(property.value)
 
 /*  render a description statement with its optional rationale  */
 const renderDescriptionMd = (description: SpecDescription): string =>
@@ -55,10 +63,10 @@ const renderConciseMd = (object: SpecObject, depth = 0): string => {
     const indent   = " ".repeat(depth * 4)
     const segments = [ `${object.kind}: ${object.name}${nameSuffixMd(object)}` ]
 
-    /*  a value carrying ";" cannot be a segment, so its property has to
-        become a nested key/value item below the item instead  */
-    const wrapped = object.properties.filter((property) =>  property.value.includes(";"))
-    const inline  = object.properties.filter((property) => !property.value.includes(";"))
+    /*  a property which cannot be a segment has to become a nested
+        key/value item below the item instead  */
+    const wrapped = object.properties.filter((property) => !segmentableMd(property))
+    const inline  = object.properties.filter((property) =>  segmentableMd(property))
     segments.push(...inline.map((property) => `${property.key}: ${property.value}`))
     if (object.description !== undefined)
         segments.push(renderDescriptionMd(object.description))

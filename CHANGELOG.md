@@ -6,6 +6,7 @@ ChangeLog
 ------------------
 
 -   BUGFIX [code]: report a diagram edge object carrying no resolvable source or target reference just once
+-   BUGFIX [code, docs]: emit a property value carrying a ", BECAUSE " as a nested key/value item in the Markdown export
 -   BUGFIX [code, docs]: keep child objects of object in Complex Format in Markdown export when a descendant carries a description containing a ";", too
 -   BUGFIX [code]: report an unrecognized explicit "<format>:" output prefix as an error (listing the accepted format names) instead of silently ignoring it
 -   BUGFIX [code, docs]: report the sibling objects of the schema configuration which collide on their resolution key
