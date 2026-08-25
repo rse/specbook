@@ -386,20 +386,28 @@ const collectMembers = (nodes: SchemaObject[], result: Map<string, "enum" | "tag
 }
 
 /*  render a property value, badging the individual members of an
-    "enum(...)" (a single member) or "tags(...)" (a member set) value  */
-const inlineValue = (kind: string, key: string, value: string) => {
+    "enum(...)" (a single member) or "tags(...)" (a member set) value
+    and moving its image embeddings behind the value, rendered from the
+    embedded image contents (as for a description), not from the markup  */
+const inlineValue = (kind: string, { key, value, embedding }: SpecProperty) => {
     const member = members?.get(`${kind} ${key}`)
-    if (member === undefined || value.trim() === "")
-        return inline(value)
-    const items = member === "tags" ? splitItems(value) : [ value.trim() ]
+    const text = value
+        .replace(embeddingMarkup, (markup, _alt, reference: string) =>
+            embeddingMimeType(reference.trim()) !== undefined ? "" : markup)
+        .trim()
+    const embeddings = renderEmbeddings(value, embedding ?? [])
+        .map((content) => `<div class="embedding">${content}</div>`).join("")
+    if (member === undefined || text === "")
+        return safe(`${inline(text)}${embeddings}`)
+    const items = member === "tags" ? splitItems(text) : [ text ]
     return safe(items.map((item) =>
-        `<span class="value-member">${inline(item)}</span>`).join(" "))
+        `<span class="value-member">${inline(item)}</span>`).join(" ") + embeddings)
 }
 
 /*  expand the inline Markdown of the property values  */
 const inlineProperties = (kind: string, properties: SpecProperty[]) =>
     properties.map((property) => ({ key: property.key,
-        value: inlineValue(kind, property.key, property.value) }))
+        value: inlineValue(kind, property) }))
 
 /*  resolve the format configuration of an object  */
 const formatOf = (object: SpecObject): SchemaFormat | undefined =>
@@ -508,8 +516,8 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
                 primary:     child.primary,
                 name:        inline(child.name),
                 values:      keys.map((key) => {
-                    const value = child.properties.find((property) => property.key === key)?.value
-                    return value !== undefined ? inlineValue(child.kind, key, value) : ""
+                    const property = child.properties.find((property) => property.key === key)
+                    return property !== undefined ? inlineValue(child.kind, property) : ""
                 }),
                 description: safe(renderCell(child))
             }))
@@ -524,9 +532,9 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
         width: Math.round(100 / maxColumns),
         rows:  childs.map((child) => {
             const cells = keys.map((key) => {
-                const value = child.properties.find((property) => property.key === key)?.value
+                const property = child.properties.find((property) => property.key === key)
                 return { key, desc: false, span: 1,
-                    value: value !== undefined ? inlineValue(child.kind, key, value) : "" }
+                    value: property !== undefined ? inlineValue(child.kind, property) : "" }
             })
             if (desc)
                 cells.push({ key: "Description", desc: true, span: 1,
