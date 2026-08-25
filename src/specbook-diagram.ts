@@ -20,6 +20,13 @@ import { collectSchemas }
     the imported, global "referenceRegex")  */
 const referenceOnce = new RegExp(referenceRegex.source)
 
+/*  a single invalid diagram situation: the reason plus the optionally
+    offending object, to whose location the diagnostic is attributed  */
+export interface DiagramError {
+    reason:  string
+    object?: SpecObject
+}
+
 /*  the result of a per-object Gradia spec derivation: either the spec
     text with the Gradia rendering options (which a rendering has to
     receive explicitly, as Gradia drops the trust-sensitive font options
@@ -27,7 +34,7 @@ const referenceOnce = new RegExp(referenceRegex.source)
 export interface DiagramResult {
     spec?:   string
     config?: SchemaDiagram["config"]
-    errors:  string[]
+    errors:  DiagramError[]
 }
 
 /*  the diagram shape, i.e., the "type" of a diagram configuration
@@ -125,7 +132,7 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
 const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
     nodes: SpecObject[], nodeSet: Set<SpecObject>, edgeObjects: SpecObject[],
     index: LinkIndex, anchors: Map<SpecObject, string>,
-    parents: Map<SpecObject, SpecObject | undefined>, errors: string[]): DiagramEdge[] => {
+    parents: Map<SpecObject, SpecObject | undefined>, errors: DiagramError[]): DiagramEdge[] => {
     const edges = new Array<DiagramEdge>()
     if (type !== "grid") {
         for (const node of nodes) {
@@ -159,13 +166,13 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
                 edgeNode(edgeObject, diagram.edgeSource) : parents.get(edgeObject)
             const target = edgeNode(edgeObject, diagram.edgeTarget)
             if (source === undefined) {
-                errors.push(diagram.edgeSource !== undefined ?
-                    `diagram edge object "${edgeObject.name}" carries no resolvable source reference` :
-                    `diagram edge object "${edgeObject.name}" has no parent object as source`)
+                errors.push({ object: edgeObject, reason: diagram.edgeSource !== undefined ?
+                    "carries no resolvable source reference" :
+                    "has no parent object as source" })
                 continue
             }
             if (target === undefined) {
-                errors.push(`diagram edge object "${edgeObject.name}" carries no resolvable target reference`)
+                errors.push({ object: edgeObject, reason: "carries no resolvable target reference" })
                 continue
             }
             if (!nodeSet.has(source) || !nodeSet.has(target))
@@ -187,11 +194,11 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
     }
     else {
         if (diagram.edges !== undefined)
-            errors.push("\"grid\" diagram cannot carry an \"edges\" configuration")
+            errors.push({ reason: "\"grid\" diagram cannot carry an \"edges\" configuration" })
         if (diagram.hierarchy === true)
-            errors.push("\"grid\" diagram cannot carry a \"hierarchy\" configuration")
+            errors.push({ reason: "\"grid\" diagram cannot carry a \"hierarchy\" configuration" })
         if (diagram.onlyConnected === true)
-            errors.push("\"grid\" diagram cannot carry an \"onlyConnected\" configuration")
+            errors.push({ reason: "\"grid\" diagram cannot carry an \"onlyConnected\" configuration" })
     }
 
     /*  deduplicate the edges (the same reference can occur in
@@ -211,7 +218,7 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
 /*  resolve a comma-separated "[[...]]" reference pattern string into
     its (deduplicated, order-preserving) object match set, reporting
     every unresolvable pattern as an error  */
-const resolvePatterns = (index: LinkIndex, errors: string[],
+const resolvePatterns = (index: LinkIndex, errors: DiagramError[],
     value: string, field: string): SpecObject[] => {
     const matches = new Array<SpecObject>()
     const seen    = new Set<SpecObject>()
@@ -221,7 +228,7 @@ const resolvePatterns = (index: LinkIndex, errors: string[],
         const pattern = m[1].trim()
         const set     = resolveSet(index, pattern)
         if (set.length === 0)
-            errors.push(`unresolvable diagram "${field}" pattern "[[${pattern}]]"`)
+            errors.push({ reason: `unresolvable diagram "${field}" pattern "[[${pattern}]]"` })
         for (const match of set) {
             if (!seen.has(match)) {
                 seen.add(match)
@@ -230,7 +237,7 @@ const resolvePatterns = (index: LinkIndex, errors: string[],
         }
     }
     if (!found)
-        errors.push(`diagram "${field}" carries no "[[...]]" reference pattern`)
+        errors.push({ reason: `diagram "${field}" carries no "[[...]]" reference pattern` })
     return matches
 }
 
@@ -241,7 +248,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     index: LinkIndex, anchors: Map<SpecObject, string>,
     parents: Map<SpecObject, SpecObject | undefined>): DiagramResult => {
     const type   = diagram.type ?? "graph"
-    const errors = new Array<string>()
+    const errors = new Array<DiagramError>()
 
     /*  determine the node objects (default: the current object plus
         all objects below it) and the edge objects (default: none),
@@ -270,13 +277,13 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         resolved object of an explicit "[[...]]" reference otherwise  */
     let center = object
     if (type !== "hub" && diagram.center !== undefined)
-        errors.push(`"${type}" diagram cannot carry a "center" configuration`)
+        errors.push({ reason: `"${type}" diagram cannot carry a "center" configuration` })
     if (type === "hub" && diagram.center !== undefined && diagram.center !== "self") {
         const reference = diagram.center.match(referenceOnce)?.[1].trim()
         const resolved  = reference !== undefined ? resolveUnique(index, reference) : undefined
         if (resolved?.target === undefined) {
-            errors.push((resolved?.ambiguous === true ? "ambiguous" : "unresolvable") +
-                ` diagram "center" reference "${diagram.center}"`)
+            errors.push({ reason: (resolved?.ambiguous === true ? "ambiguous" : "unresolvable") +
+                ` diagram "center" reference "${diagram.center}"` })
             return { errors }
         }
         center = resolved.target
@@ -288,7 +295,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         Gradia requires exactly this constrained topology  */
     if (type === "hub") {
         if (!nodeSet.has(center))
-            errors.push(`"hub" diagram center "${center.name}" is not part of the node set`)
+            errors.push({ reason: `"hub" diagram center "${center.name}" is not part of the node set` })
         else {
             edges = edges.filter((edge) => (edge.source === center || edge.target === center)
                 && edge.source !== edge.target)
@@ -312,7 +319,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         nodes = nodes.filter((node) => connected.has(node))
     }
     if (nodes.length === 0)
-        errors.push("diagram yields no nodes")
+        errors.push({ reason: "diagram yields no nodes" })
     if (errors.length > 0)
         return { errors }
 
@@ -345,11 +352,22 @@ export const specDiagrams = (specification: Spec,
     every invalid diagram situation as a file/line-precise diagnostic  */
 export const validateDiagrams = (ctx: ParseContext, specification: Spec,
     config: Schema) => {
-    for (const [ object, result ] of specDiagrams(specification, config)) {
-        const meta = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
-        for (const error of result.errors)
-            ctx.diagnose(meta.file, meta.line,
-                `invalid diagram on ${object.kind} "${object.name}": ${error}`)
-    }
+    const seen = new Set<string>()
+    for (const [ object, result ] of specDiagrams(specification, config))
+        for (const error of result.errors) {
+            /*  attribute an edge object situation to the offending edge
+                object itself and report it just once, as a wildcard
+                "edges" pattern lets every diagram walk the very same
+                edge objects again  */
+            const meta    = ctx.objectMeta.get(error.object ?? object) ?? { file: "", line: 1 }
+            const message = error.object !== undefined ?
+                `invalid diagram edge on ${error.object.kind} "${error.object.name}": ${error.reason}` :
+                `invalid diagram on ${object.kind} "${object.name}": ${error.reason}`
+            const key     = `${meta.file} ${meta.line} ${message}`
+            if (seen.has(key))
+                continue
+            seen.add(key)
+            ctx.diagnose(meta.file, meta.line, message)
+        }
 }
 
