@@ -300,12 +300,15 @@ const isBlock = (text: string): boolean => {
     return tokens.length > 0 && !(tokens.length === 1 && tokens[0].type === "paragraph")
 }
 
-/*  render a single embedded image file into HTML (SVG inlined as-is,
-    PNG/JPEG placed onto an <img> tag)  */
-const renderImage = (content: string, alt: string): string =>
-    content.startsWith("data:") ?
-        `<img src="${content}" alt="${escapeHtml(alt)}"/>` :
-        content.replace(/^\s*<\?xml[^>]*\?>\s*(?:<!DOCTYPE[^>]*>\s*)?/i, "")
+/*  render a single embedded image file onto an <img> tag with a
+    self-contained data: URL (converting the SVG text into one, as an
+    SVG inlined as-is would leak its document-global <style> rules
+    into all other inlined SVGs sharing the same class names)  */
+const renderImage = (content: string, alt: string): string => {
+    const url = content.startsWith("data:") ? content :
+        `data:image/svg+xml;base64,${Buffer.from(content, "utf8").toString("base64")}`
+    return `<img src="${url}" alt="${escapeHtml(alt)}"/>`
+}
 
 /*  wrap the theme variants of an image into their layout-neutral theme
     containers, of which the stylesheet shows just the one matching the

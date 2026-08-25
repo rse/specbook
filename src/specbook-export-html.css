@@ -210,8 +210,7 @@ div.description ol,
 div.description ul          { margin: 0.5rem 0; padding-left: 1.6rem; }
 div.description li          { margin: 0.1rem 0; }
 div.embedding               { margin: 0.5rem 0; }
-div.embedding img,
-div.embedding svg           { max-width: 100%; height: auto; }
+div.embedding img           { max-width: 100%; height: auto; }
 
 /*  the two theme variants of a "{theme}" image embedding: the containers
     are layout-neutral and only the variant matching the active theme stays
@@ -234,8 +233,7 @@ code                        { font-family: "Source Code Pro", monospace; font-si
 div.titlepage               { text-align: center; margin: 6rem 0 4rem 0;
                               page-break-after: always; break-after: page; }
 div.titlepage .logo         { margin-bottom: 2rem; }
-div.titlepage .logo img,
-div.titlepage .logo svg     { max-width: 50%; max-height: 12rem; height: auto; }
+div.titlepage .logo img     { max-width: 50%; max-height: 12rem; height: auto; }
 div.titlepage .title        { font-size: 3.50rem; font-weight: bold; color: var(--theme-color-specbook-accent); letter-spacing: -0.10rem; }
 div.titlepage .subtitle     { font-size: 1.50rem; color: var(--theme-color-specbook-accent); margin-top: 0.5rem; }
 div.titlepage .author       { font-size: 1.25rem; margin-top: 2rem; }

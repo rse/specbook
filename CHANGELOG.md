@@ -5,6 +5,7 @@ ChangeLog
 0.9.7 (2026-08-24)
 ------------------
 
+-   BUGFIX [code]: embed SVG images in the HTML/PDF export as self-contained "data:" URLs on "<img>" tags instead of inlining them as-is, as the document-global "<style>" class rules of one inlined SVG (like the Illustrator-typical ".st0") silently restyled all other inlined SVGs sharing the same class names
 -   BUGFIX [infr]: do not ship the sample files which were generated
 -   BUGFIX [code]: accept the filename extension aliases ("yml", "htm", "markdown") in an explicit "<format>:" output prefix, too, instead of silently ignoring such a prefix and inferring the format from the extension of the entire output specification
 -   BUGFIX [code, docs]: fail "export" on any diagnostics (listing them like an invalid configuration) instead of silently emitting a partial or invalid specification with exit code 0, as the diagnostics surfaced in verbose mode only
