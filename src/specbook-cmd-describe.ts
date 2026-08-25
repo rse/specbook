@@ -24,20 +24,17 @@ export const describeFormat = (options: { config?: string, basedir?: string, emb
             "==============================\n")
         if (options.config !== undefined && options.embed === true)
             sections.push(textframe(`
-                The **SpecBook SCHEMA Model** of this particular project is the following
-                YAML schema configuration of the file \`${options.config}\`:
+                The **SpecBook SCHEMA Model** is the following YAML schema configuration:
             `) + "\n```yaml\n" +
                 fs.readFileSync(options.config, "utf8").replace(/\n*$/, "\n") +
                 "```\n")
         else if (options.config !== undefined)
             sections.push(textframe(`
-                The **SpecBook SCHEMA Model** of this particular project is the YAML
-                schema configuration in the file \`${options.config}\`.
+                The **SpecBook SCHEMA Model** is the YAML schema configuration in file \`${options.config}\`.
             `))
         if (options.basedir !== undefined)
             sections.push(textframe(`
-                The **SpecBook SPEC Model** of this particular project is the set of
-                specification Markdown files in the directory \`${options.basedir}\`.
+                The **SpecBook SPEC Model** is the set of Markdown specification files in directory \`${options.basedir}\`.
             `))
     }
     return sections.join("\n")
