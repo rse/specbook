@@ -2,7 +2,7 @@
 ChangeLog
 =========
 
-1.0.0 (2026-08-26)
+0.9.9 (2026-08-26)
 ------------------
 
 -   IMPROVEMENT [code, docs]: make the YAML schema configuration of "init", "lint", and "export" optional again by falling back onto the bundled standard schema configuration
