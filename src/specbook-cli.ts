@@ -67,9 +67,10 @@ const withVerboseOption = (command: Command): Command => command
     .option("-v, --verbose", "print verbose processing information to stderr", envDefaultFlag("verbose", false))
 
 /*  provide the common options of the specification processing sub-commands,
-    for which the YAML schema configuration is mandatory  */
+    for which the YAML schema configuration falls back onto the standard one  */
 const withCommonOptions = (command: Command): Command => withVerboseOption(command)
-    .requiredOption("-c, --config <yaml-file>", "YAML schema configuration file", envDefault("config"))
+    .option("-c, --config <yaml-file>", "YAML schema configuration file " +
+        "(default: the bundled standard schema configuration)", envDefault("config"))
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
 
 /*  parse the command line  */
@@ -92,7 +93,7 @@ withVerboseOption(program.command("mcp"))
 /*  the init command creates the configured artifact files  */
 withCommonOptions(program.command("init"))
     .description("initialize the configured specification artifact files below the base directory")
-    .action(async (opts: { verbose: boolean, config: string, basedir: string }) => {
+    .action(async (opts: { verbose: boolean, config?: string, basedir: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const created = await specbook.init({ config: opts.config, basedir: opts.basedir })
         await writeStdout(created.length > 0 ?
@@ -103,7 +104,7 @@ withCommonOptions(program.command("init"))
 /*  the lint command reports all diagnostics and fails on any of them  */
 withCommonOptions(program.command("lint"))
     .description("lint the specification Markdown files below the base directory")
-    .action(async (opts: { verbose: boolean, config: string, basedir: string }) => {
+    .action(async (opts: { verbose: boolean, config?: string, basedir: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const result = await specbook.lint({ config: opts.config, basedir: opts.basedir })
         for (const diagnostic of result.diagnostics)
@@ -124,7 +125,7 @@ withCommonOptions(program.command("export"))
         "output file (\"-\" for stdout, repeatable), with the format inferred " +
         "from the filename extension unless explicitly prefixed",
         (value: string, previous: string[]) => previous.concat(value), new Array<string>())
-    .action(async (opts: { verbose: boolean, config: string, basedir: string,
+    .action(async (opts: { verbose: boolean, config?: string, basedir: string,
         output: string[] }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const outputs = (opts.output.length > 0 ? opts.output : [ envDefault("output") ?? "-" ])

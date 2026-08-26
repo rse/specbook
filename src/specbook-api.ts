@@ -5,6 +5,7 @@
 */
 
 import * as fs                                           from "node:fs"
+import { fileURLToPath }                                 from "node:url"
 
 import { loadConfig }                                    from "./specbook-config.js"
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic } from "./specbook-diagnostic.js"
@@ -28,6 +29,12 @@ export type { Schema, SchemaObject, SchemaProperty }                          fr
 export const version: string = (JSON.parse(
     fs.readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string }).version
 
+/*  the bundled standard YAML schema configuration, which resides
+    alongside the compiled module and is used whenever no particular
+    schema configuration is given  */
+export const standardConfig: string =
+    fileURLToPath(new URL("specbook-format.yaml", import.meta.url))
+
 /*  the sink of the verbose messages, receiving the emitting command
     and the message, so consumers can qualify the message themselves  */
 export type VerboseSink = (cmd: string, msg: string) => void
@@ -49,16 +56,15 @@ export class SpecBook {
         return (msg: string) => this.verbose(cmd, msg)
     }
 
-    /*  require the file of the mandatory YAML schema configuration  */
-    private requireConfigFile (file?: string): string {
-        if (file === undefined)
-            throw new Error("YAML schema configuration required")
-        return file
+    /*  determine the file of the YAML schema configuration, falling
+        back onto the bundled standard schema configuration  */
+    private configFile (file?: string): string {
+        return file ?? standardConfig
     }
 
-    /*  load a mandatory YAML schema configuration, failing on any problem  */
+    /*  load a YAML schema configuration, failing on any problem  */
     private requireConfig (file: string | undefined, verbose: (msg: string) => void): Schema {
-        file = this.requireConfigFile(file)
+        file = this.configFile(file)
         verbose(`loading schema configuration "${literal(file)}"`)
         const { config, diagnostics } = loadConfig(file)
         if (config === undefined)
@@ -69,15 +75,15 @@ export class SpecBook {
 
     /*  initialize the configured specification artifact files
         below the base directory  */
-    async init (options: { config: string, basedir?: string }): Promise<string[]> {
+    async init (options: { config?: string, basedir?: string }): Promise<string[]> {
         const verbose = this.verboseOf("init")
         return initSpecification({ config: this.requireConfig(options.config, verbose),
             basedir: options.basedir ?? ".", verbose })
     }
 
     /*  lint the specification Markdown files below the base directory  */
-    async lint (options: { config: string, basedir?: string }): Promise<LintResult> {
-        return lint({ config: this.requireConfigFile(options.config),
+    async lint (options: { config?: string, basedir?: string }): Promise<LintResult> {
+        return lint({ config: this.configFile(options.config),
             basedir: options.basedir ?? ".", verbose: this.verboseOf("lint") })
     }
 
@@ -86,9 +92,9 @@ export class SpecBook {
         parsing the input just once and returning one buffer per
         requested format (strict: any diagnostic prevents the export,
         as a partial or invalid specification must never be emitted)  */
-    async export (options: { config: string, basedir?: string, formats?: ExportFormat[] }): Promise<Buffer[]> {
+    async export (options: { config?: string, basedir?: string, formats?: ExportFormat[] }): Promise<Buffer[]> {
         const verbose = this.verboseOf("export")
-        const result  = lint({ config: this.requireConfigFile(options.config),
+        const result  = lint({ config: this.configFile(options.config),
             basedir: options.basedir ?? ".", verbose })
         if (result.diagnostics.length > 0)
             throw new Error("invalid specification:\n" +

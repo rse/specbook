@@ -52,9 +52,11 @@ API.
         structure (the AST of the specification)
     -   `src/specbook-format-schema.ts`: types/schema of the YAML schema
         configuration (which domain-specific objects are allowed)
+    -   `src/specbook-format.yaml`: the bundled standard YAML schema
+        configuration, used whenever no particular one is given
 -   `etc/`: the tool configurations (`eslint.mjs`, `tsconfig.json`, `stx.conf`)
--   `smp/`: the sample YAML schema configuration (`std-schema.yaml`)
-    and the sample specification corpus (`broadcast/`)
+-   `smp/`: the sample specification corpus (`broadcast/`, based on the
+    standard schema configuration) and a small standalone sample (`sample/`)
 -   `dst/`: the compiled output (`main` is `dst/specbook-api.js`,
     `bin` `specbook` is `dst/specbook-cli.js`) -- never edit it, it is regenerated
 
@@ -79,16 +81,17 @@ No test target is defined.
 ## CLI Commands
 
 ```
-specbook init     [-v] -c <yaml-file> [-b <basedir>]
-specbook lint     [-v] -c <yaml-file> [-b <basedir>]
-specbook export   [-v] -c <yaml-file> [-b <basedir>] [-o [<format>:]<output-file>] [...]
+specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
+specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
+specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
 specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-o <markdown-file>]
 specbook mcp      [-v]
 ```
 
-The YAML schema configuration is mandatory for `init`, `lint`, and
-`export` (only `describe` also works without it), and exactly the
-artifact files referenced by its `file` fields are loaded and parsed,
+The YAML schema configuration of `init`, `lint`, and `export` falls back
+onto the bundled standard one (`src/specbook-format.yaml`, copied to
+`dst/` at build time), while `describe` references the given one only.
+Exactly the artifact files referenced by its `file` fields are loaded and parsed,
 resolved against the base directory, in which generated specification
 Markdown files are placed, too. All other Markdown files below the base
 directory are ignored, while a referenced but absent file is reported

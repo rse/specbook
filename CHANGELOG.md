@@ -5,11 +5,12 @@ ChangeLog
 0.9.9 (2026-08-26)
 ------------------
 
+-   IMPROVEMENT [code, docs]: make the YAML schema configuration of "init", "lint", and "export" optional again by falling back onto the bundled standard schema configuration
 -   IMPROVEMENT [code]: name the YAML schema configuration explicitly in the verbose output
 -   IMPROVEMENT [code]: tighten the wording of the "describe" project instantiation section
 -   IMPROVEMENT [infr, othr]: show a second overview poster in README
 -   IMPROVEMENT [infr]: split the "sample" build target into "sample-broadcast"/"sample-sample" and fail on lint problems
--   CLEANUP [infr, othr]: rename the sample YAML schema configuration to "smp/std-schema.yaml"
+-   CLEANUP [infr, othr]: promote the sample YAML schema configuration to the bundled standard schema configuration "src/specbook-format.yaml"
 
 0.9.8 (2026-08-25)
 ------------------

@@ -34,7 +34,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         description: "Initialize the configured specification artifact files below the base directory " +
             "with their frontmatter and artifact heading, skipping already existing files.",
         inputSchema: {
-            config:  z.string().describe("YAML schema configuration file"),
+            config:  z.string().optional().describe("YAML schema configuration file " +
+                "(default: the bundled standard schema configuration)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")")
         }
     }, async (args) => {
@@ -54,7 +55,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         description: "Lint the specification Markdown files the YAML schema configuration references " +
             "below the base directory against this configuration and return all diagnostics.",
         inputSchema: {
-            config:  z.string().describe("YAML schema configuration file"),
+            config:  z.string().optional().describe("YAML schema configuration file " +
+                "(default: the bundled standard schema configuration)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")")
         }
     }, async (args) => {
@@ -77,7 +79,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             "YAML, TOON, HTML, PDF, or normalized Markdown. The result is written to the output file " +
             "if an output path is given, else it is returned directly (PDF as a base64-encoded resource).",
         inputSchema: {
-            config:  z.string().describe("YAML schema configuration file"),
+            config:  z.string().optional().describe("YAML schema configuration file " +
+                "(default: the bundled standard schema configuration)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
             format:  z.enum(formats).optional().describe("output format (default: inferred from the " +
                 "output file extension, else json)"),

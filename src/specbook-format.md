@@ -37,9 +37,9 @@ task:
 -   **SpecBook SCHEMA Model**:
     This is an object model, described in *YAML*, outside of
     **SpecBook**, which defines a particular **SpecBook** *Schema*.
-    It is user-supplied and non-generic but reusable and applied onto
-    the **SpecBook SPEC Model** to validate that it is domain-wise
-    well-structured.
+    It is user-supplied (or the bundled standard one) and non-generic
+    but reusable and applied onto the **SpecBook SPEC Model** to
+    validate that it is domain-wise well-structured.
 
 -   **SpecBook SPEC Model**:
     This is an object model, described in *Markdown*, outside
@@ -531,7 +531,9 @@ SpecBook SCHEMA Model
 ### Artifacts
 
 A schema consists of a YAML file, which is exactly a serialization of
-the object model defined by the **SpecBook SCHEMA Meta Model**.
+the object model defined by the **SpecBook SCHEMA Meta Model**. If no
+particular schema is given, the standard schema configuration bundled
+with **SpecBook** applies.
 
 SpecBook SPEC Model
 -------------------

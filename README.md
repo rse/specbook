@@ -44,7 +44,8 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
   The YAML schema configuration strictly defines the allowed object
   kinds, hierarchies, and properties, whose values are constrained by an
   expression language (regex, enum, tags, list, and reference). Violations
-  are reported as file- and line-precise diagnostics.
+  are reported as file- and line-precise diagnostics. A bundled standard
+  schema configuration applies if no particular one is given.
 
 - **Object Model Diagram Visualisation**:
   Object kinds can declare "graph", "hub", or "grid" diagrams in the
@@ -107,17 +108,18 @@ Usage
 ### CLI
 
 ```
-$ specbook init     [-v] -c <yaml-file> [-b <basedir>]
-$ specbook lint     [-v] -c <yaml-file> [-b <basedir>]
-$ specbook export   [-v] -c <yaml-file> [-b <basedir>] [-o [<format>:]<output-file>] [...]
+$ specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
+$ specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
+$ specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
 $ specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-o <markdown-file>]
 $ specbook mcp      [-v]
 ```
 
-The YAML schema configuration `-c`/`--config` is mandatory for `init`,
-`lint`, and `export`, as it determines the specification: exactly the
-artifact files its `file` fields reference are loaded and parsed, all
-other Markdown files below the base directory are ignored. A referenced
+The YAML schema configuration `-c`/`--config` (default: the bundled
+standard schema configuration `specbook-format.yaml`) determines the
+specification: exactly the artifact files its `file` fields reference
+are loaded and parsed, all other Markdown files below the base
+directory are ignored. A referenced
 file which is absent is reported, unless all of its artifacts are
 `optional`, and so is an artifact absent from its present file, unless
 it is `optional` itself. Both `lint` and `export` report all
@@ -151,9 +153,7 @@ its own.
 The default value of every CLI option `--xxx` can be overridden by a
 corresponding `SPECBOOK_XXX` environment variable (e.g.
 `SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_OUTPUT`,
-`SPECBOOK_VERBOSE`), while an explicitly supplied option always wins. A
-`SPECBOOK_CONFIG` value also satisfies the otherwise mandatory
-`-c`/`--config` option.
+`SPECBOOK_VERBOSE`), while an explicitly supplied option always wins.
 
 ### API
 
@@ -164,7 +164,6 @@ const specbook = new SpecBook({
     verbose: (cmd, msg) => console.error(`specbook: ${cmd}: ${renderVerbose(msg)}`)
 })
 const result = await specbook.lint({
-    config:  "smp/std-schema.yaml",
     basedir: "smp/broadcast"
 })
 ```
