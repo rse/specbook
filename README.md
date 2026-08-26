@@ -31,7 +31,7 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 - **Versatile Object to Markdown Mapping**:
   Objects are authored as plain Markdown headings, property lists,
   and description prose. The objects can be mapped to nested sections
-  ("complex" format) or a compact bullet point lists ("concise" and
+  ("complex" format) or compact bullet point lists ("concise" and
   "group" format).
 
 - **Wiki-Style Object Linking**:
@@ -52,7 +52,7 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
   schema, whose nodes and edges are automatically derived from the
   object model and its references. The diagrams are rendered with the
   sibling project [Gradia](https://github.com/rse/gradia), which is
-  specialized on rendering object models.
+  specialized in rendering object models.
 
 - **CLI, MCP, and API Interface**:
   All commands are implemented once in the API class `SpecBook`, on
@@ -118,7 +118,7 @@ $ specbook mcp      [-v]
 The YAML schema configuration `-c`/`--config` (default: the bundled
 standard schema configuration `specbook-format.yaml`) determines the
 specification: exactly the artifact files its `file` fields reference
-are loaded and parsed, all other Markdown files below the base
+are loaded and parsed; all other Markdown files below the base
 directory are ignored. A referenced
 file which is absent is reported, unless all of its artifacts are
 `optional`, and so is an artifact absent from its present file, unless

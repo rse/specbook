@@ -19,7 +19,7 @@ SpecBook Models and Formats
 ```
 
 **SpecBook** deals with four distinct object models and their particular
-format, each represented in a formal language and serving a particular
+formats, each represented in a formal language and serving a particular
 task:
 
 -   **SpecBook SCHEMA Meta Model**:

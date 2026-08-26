@@ -294,7 +294,7 @@ const block = (text: string) =>
     safe(marked.parse(linker !== null ? linker(text) : text, { async: false }))
 
 /*  check whether a text carries any block-level Markdown, i.e. is
-    anything else than the single paragraph a description usually is  */
+    anything other than the single paragraph a description usually is  */
 const isBlock = (text: string): boolean => {
     const tokens = marked.lexer(text).filter((token) => token.type !== "space")
     return tokens.length > 0 && !(tokens.length === 1 && tokens[0].type === "paragraph")

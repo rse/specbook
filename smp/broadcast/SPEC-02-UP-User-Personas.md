@@ -12,7 +12,7 @@ SPEC: User Personas (UP)
 -   AGE:    34
 -   ROLE:   Event Attendee
 
-"I just want to watch the townhall and ask my question without jumping
+"I just want to watch the town hall and ask my question without jumping
 through hoops."
 
 ##  PERSONA: Markus {{moderator-chat}}

@@ -29,8 +29,8 @@ SPEC: Interaction Concept (IC)
 
 -   PRINCIPLE: Kanban Moderation Flow {{kanban-flow}};
     CATEGORY: Workflow;
-    Moderators work messages as cards moving left to right through reject,
-    approve, forward, and answered lanes, with filtering and manual
+    Moderators work messages as cards moving left to right through rejected,
+    approved, forwarded, and answered lanes, with filtering and manual
     ordering, BECAUSE a board makes high-volume triage and presenter
     hand-off visually manageable under time pressure.
 

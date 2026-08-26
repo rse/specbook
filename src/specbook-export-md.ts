@@ -87,7 +87,7 @@ const renderConciseMd = (object: SpecObject, depth = 0): string => {
     level 4 upwards in the Concise Format -- unless a descendant carries
     a description no concise item can carry, so all childs (as siblings
     have to share the format) stay in the Complex Format down to heading
-    level 6 --, and the optionally derived Gradia diagram spec embedded
+    level 6 -- and the optionally derived Gradia diagram spec embedded
     as a "gradia" fenced code block below the heading  */
 const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecObject, string>): string => {
     const heading = `${"#".repeat(level)}${" ".repeat(Math.max(1, 4 - level))}` +
