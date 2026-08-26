@@ -102,12 +102,19 @@ Rendering Example
 
 ![screenshot-print](etc/screenshot-print.png)
 
+Installation
+------------
+
+```sh
+$ npm install -g @rse/specbook
+```
+
 Usage
 -----
 
 ### CLI
 
-```
+```sh
 $ specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 $ specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
 $ specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
