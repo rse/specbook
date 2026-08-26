@@ -30,12 +30,15 @@ export const describeFormat = (options: { config?: string, basedir?: string, emb
                 "```\n")
         else if (options.config !== undefined)
             sections.push(textframe(`
-                The **SpecBook SCHEMA Model** is the YAML schema configuration in file \`${options.config}\`.
+                The **SpecBook SCHEMA Model** is the YAML schema configuration in file:
+                @${options.config}
             `))
         if (options.basedir !== undefined)
             sections.push(textframe(`
-                The **SpecBook SPEC Model** is the set of Markdown specification files in directory \`${options.basedir}\`.
+                The **SpecBook SPEC Model** is the set of Markdown specification files in directory:
+                @${options.basedir}
             `))
     }
     return sections.join("\n")
 }
+
