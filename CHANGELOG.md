@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.0.2 (2026-08-26)
+------------------
+
+-   IMPROVEMENT [othr]: Restructured ChangeLog Layout
+    The ChangeLog entries are now laid out as a titled headline plus an indented, wrapped
+    description paragraph, instead of a single long one-line entry.
+
 1.0.1 (2026-08-26)
 ------------------
 
