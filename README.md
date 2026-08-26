@@ -80,27 +80,12 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
   It is intended as a polished, paginated offline document for handing
   over to customers.
 
-Overview Poster
----------------
+Overview
+--------
 
 [![poster-1](etc/poster-1.png)](etc/poster-1.pdf)
 
 [![poster-2](etc/poster-2.png)](etc/poster-2.pdf)
-
-Rendering Example
------------------
-
-### HTML Rendering (Light Theme)
-
-![screenshot-light](etc/screenshot-light.png)
-
-### HTML Rendering (Dark Theme)
-
-![screenshot-dark](etc/screenshot-dark.png)
-
-### PDF Rendering
-
-![screenshot-print](etc/screenshot-print.png)
 
 Installation
 ------------
@@ -179,6 +164,21 @@ const result = await specbook.lint({
 
 Run `specbook mcp` to serve the tools `specbook_init`, `specbook_lint`,
 `specbook_export`, and `specbook_describe` over stdio.
+
+Rendering Examples
+------------------
+
+### HTML Rendering (Light Theme)
+
+![screenshot-light](etc/screenshot-light.png)
+
+### HTML Rendering (Dark Theme)
+
+![screenshot-dark](etc/screenshot-dark.png)
+
+### PDF Rendering
+
+![screenshot-print](etc/screenshot-print.png)
 
 License
 -------
