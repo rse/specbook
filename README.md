@@ -164,7 +164,7 @@ const specbook = new SpecBook({
     verbose: (cmd, msg) => console.error(`specbook: ${cmd}: ${renderVerbose(msg)}`)
 })
 const result = await specbook.lint({
-    config:  "smp/ase.specbook.yaml",
+    config:  "smp/std-schema.yaml",
     basedir: "smp/broadcast"
 })
 ```

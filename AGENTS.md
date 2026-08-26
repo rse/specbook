@@ -53,7 +53,7 @@ API.
     -   `src/specbook-format-schema.ts`: types/schema of the YAML schema
         configuration (which domain-specific objects are allowed)
 -   `etc/`: the tool configurations (`eslint.mjs`, `tsconfig.json`, `stx.conf`)
--   `smp/`: the sample YAML schema configuration (`ase.specbook.yaml`)
+-   `smp/`: the sample YAML schema configuration (`std-schema.yaml`)
     and the sample specification corpus (`broadcast/`)
 -   `dst/`: the compiled output (`main` is `dst/specbook-api.js`,
     `bin` `specbook` is `dst/specbook-cli.js`) -- never edit it, it is regenerated
