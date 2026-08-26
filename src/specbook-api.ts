@@ -12,13 +12,16 @@ import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic } from "./sp
 import { initSpecification }                             from "./specbook-cmd-init.js"
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
 import { exportSpecification, parseOutputSpec, formats, type ExportFormat } from "./specbook-cmd-export.js"
-import { describeFormat }                                from "./specbook-cmd-describe.js"
+import { describeFormat, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
+    type DescribeFormat, type DescribePart }             from "./specbook-cmd-describe.js"
 import { literal, renderVerbose }                        from "./specbook-verbose.js"
 import { type Schema }                                   from "./specbook-format-schema.js"
 
 /*  re-export the central types for API consumers  */
 export { literal, renderVerbose }
 export { formats, parseOutputSpec, type ExportFormat }
+export { describeFormats, describeParts, parseDescribeFormat, parseDescribePart }
+export { type DescribeFormat, type DescribePart }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic }
 export { type LintResult }
 export type { Spec, SpecArtifact, SpecObject, SpecDescription, SpecProperty } from "./specbook-format-spec.js"
@@ -108,19 +111,29 @@ export class SpecBook {
         return buffers
     }
 
-    /*  describe the generic SpecBook models and formats as Markdown,
-        optionally pointing to the artifacts of the particular project,
-        whose YAML schema configuration is validated before use  */
-    async describe (options: { config?: string, basedir?: string, embed?: boolean }): Promise<string> {
+    /*  describe the generic SpecBook models and formats as Markdown (or
+        as the raw original file content), either entirely or reduced to
+        a single part, optionally pointing to the artifacts of the
+        particular project, whose YAML schema configuration is validated
+        before use  */
+    async describe (options: { config?: string, basedir?: string, embed?: boolean,
+        format?: DescribeFormat, part?: DescribePart }): Promise<string> {
         const verbose = this.verboseOf("describe")
+        const format  = options.format ?? "md"
+        const part    = options.part   ?? "all"
 
-        /*  the embedding requires a schema configuration, so it falls
-            back onto the bundled standard one, while the referencing
-            points to the given one only  */
-        const config = options.config ?? (options.embed === true ? standardConfig : undefined)
+        /*  the schema-bearing parts require a schema configuration, so
+            they fall back onto the bundled standard one, which is always
+            embedded, as its bundled file is no meaningful reference  */
+        const standard = options.config === undefined
+            && (part === "all" || part === "schema" || options.embed === true)
+        const config   = options.config ?? (standard ? standardConfig : undefined)
+        const embed    = options.embed === true || standard
+        const basedir  = options.basedir ?? (part === "spec" ? "." : undefined)
         if (config !== undefined)
             this.requireConfig(config, verbose)
-        verbose("describing the SpecBook models and formats")
-        return describeFormat({ ...options, config })
+        verbose(`describing the "${literal(part)}" part of the SpecBook models and formats ` +
+            `in the "${literal(format)}" format`)
+        return describeFormat({ ...options, config, basedir, embed, standard, format, part })
     }
 }

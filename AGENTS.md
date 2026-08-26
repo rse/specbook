@@ -84,14 +84,14 @@ No test target is defined.
 specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
-specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-o <markdown-file>]
+specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-f <format>] [-p <part>] [-o <markdown-file>]
 specbook mcp      [-v]
 ```
 
 The YAML schema configuration of `init`, `lint`, and `export` falls back
 onto the bundled standard one (`src/specbook-format.yaml`, copied to
 `dst/` at build time), while `describe` references the given one only
-and falls back onto the standard one just for embedding (`-e`).
+and falls back onto the standard one by embedding it verbatim.
 Exactly the artifact files referenced by its `file` fields are loaded and parsed,
 resolved against the base directory, in which generated specification
 Markdown files are placed, too. All other Markdown files below the base
@@ -101,11 +101,19 @@ The export output option `-o`/`--output` (default: `-` for stdout) can
 occur multiple times; the format is inferred from the filename extension,
 unless explicitly given as a `<format>:` prefix, and plain `-` (stdout)
 defaults to JSON.
-The `describe` command outputs `src/specbook-format.md` verbatim and
-appends a "SpecBook Project Instantiation" section pointing to the
-configuration file (`-c`) and the base directory (`-b`) whenever one of
-these options is given, where `-e`/`--embed` embeds the YAML schema
-configuration itself instead of just referencing it.
+The `describe` command outputs `src/specbook-format.md` verbatim,
+followed by a "SpecBook Project Instantiation" section pointing to the
+YAML schema configuration (`-c`, falling back onto the embedded standard
+one) and the base directory (`-b`) whenever one of them is present, where
+`-e`/`--embed` embeds the given YAML schema configuration itself instead
+of just referencing it.
+The `describe` option `-p`/`--part` (default: `all`) reduces the output
+to the generic description alone (`meta`), the YAML schema configuration
+alone (`schema`, falling back onto the embedded standard one), or the base
+directory reference alone (`spec`), while `-f`/`--format` (default: `md`)
+switches from the rendered Markdown onto the raw original file content
+(`raw`), which is available for the file-backed parts `meta` and
+`schema` only.
 The default value of every CLI option `--xxx` can be overridden by a
 corresponding `SPECBOOK_XXX` environment variable.
 

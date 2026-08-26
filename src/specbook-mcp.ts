@@ -9,7 +9,8 @@ import { McpServer }            from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z }                    from "zod"
 
-import { SpecBook, renderDiagnostic, formats, parseOutputSpec, version, type VerboseSink } from "./specbook-api.js"
+import { SpecBook, renderDiagnostic, formats, parseOutputSpec, describeFormats, describeParts,
+    version, type VerboseSink } from "./specbook-api.js"
 
 /*  render an error with its cause chain into a tool error result  */
 const errorResult = (err: unknown) => {
@@ -115,14 +116,23 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     server.registerTool("specbook_describe", {
         title:       "Describe Specification Format",
-        description: "Describe the SpecBook models and formats as a Markdown document. If the YAML " +
-            "schema configuration or the base directory is given, the description additionally points " +
-            "to the artifacts of that particular project.",
+        description: "Describe the SpecBook models and formats as a Markdown document, which embeds the " +
+            "bundled standard YAML schema configuration as long as no particular one is given. If the " +
+            "YAML schema configuration or the base directory is given, the description additionally " +
+            "points to the artifacts of that particular project. The description can be reduced to a " +
+            "single part and emitted as the raw original file content instead of Markdown.",
         inputSchema: {
-            config:  z.string().optional().describe("YAML schema configuration file"),
+            config:  z.string().optional().describe("YAML schema configuration file " +
+                "(default: the bundled standard schema configuration, embedded verbatim)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files"),
-            embed:   z.boolean().optional().describe("embed the YAML schema configuration (the bundled " +
-                "standard one if none is given) instead of just referencing it (default: false)"),
+            embed:   z.boolean().optional().describe("embed the given YAML schema configuration instead " +
+                "of just referencing it (default: false; the bundled standard one is always embedded)"),
+            format:  z.enum(describeFormats).optional().describe("output format: \"md\" for Markdown or " +
+                "\"raw\" for the raw original file content of the part (default: \"md\")"),
+            part:    z.enum(describeParts).optional().describe("document part: \"all\" for the entire " +
+                "description, \"meta\" for the generic models and formats, \"schema\" for the YAML schema " +
+                "configuration, or \"spec\" for the specification files (default: \"all\"; \"raw\" is " +
+                "available for \"meta\" and \"schema\" only)"),
             output:  z.string().optional().describe("output file path (\"-\" or omitted returns the description directly)")
         }
     }, async (args) => {
