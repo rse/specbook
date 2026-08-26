@@ -2,6 +2,16 @@
 ChangeLog
 =========
 
+1.0.1 (2026-08-26)
+------------------
+
+-   FEATURE [code, infr, othr]: support the "describe" options "-f"/"--format" ("md", "raw") and "-p"/"--part" ("all", "meta", "schema", "spec") in API/CLI/MCP to reduce the description to a single part and emit it as the raw original file content
+-   IMPROVEMENT [code, infr, othr]: embed the bundled standard YAML schema configuration in "describe" even without option "-c" (dropping its leading comment block)
+-   IMPROVEMENT [code]: render the "describe" pointers to the YAML schema configuration and the base directory as direct file references
+-   IMPROVEMENT [othr]: add the missing installation step to README, reorder its information and fix its shell block rendering
+-   BUGFIX [code, othr]: fix proofreading issues in README, the sample broadcast specification and the bundled format description
+-   UPDATE [infr]: bump package version for release
+
 0.9.9 (2026-08-26)
 ------------------
 
