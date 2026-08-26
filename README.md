@@ -100,10 +100,132 @@ Usage
 ### API
 
 ```ts
-import { SpecBook, renderVerbose } from "@rse/specbook"
+/*  the SpecBook API, providing all commands the CLI and MCP service expose  */
+export class SpecBook {
+    constructor (options?: SpecBookOptions)
+
+    /*  initialize the configured specification artifact files below the
+        base directory and return the list of the generated files  */
+    init (options: {
+        config?:  string,          /*  YAML schema configuration (default: bundled standard one)  */
+        basedir?: string           /*  base directory (default: ".")  */
+    }): Promise<string[]>
+
+    /*  parse and validate the specification Markdown files below the base directory  */
+    lint (options: {
+        config?:  string,
+        basedir?: string
+    }): Promise<LintResult>
+
+    /*  export the specification, parsing the input just once and
+        returning one buffer per requested format (strict: any diagnostic
+        rejects the export with an "Error")  */
+    export (options: {
+        config?:  string,
+        basedir?: string,
+        formats?: ExportFormat[]   /*  requested output formats (default: [ "json" ])  */
+    }): Promise<Buffer[]>
+
+    /*  describe the SpecBook models and formats, optionally pointing to
+        the artifacts of the particular project  */
+    describe (options: {
+        config?:  string,
+        basedir?: string,
+        embed?:   boolean,         /*  embed the schema configuration instead of referencing it  */
+        format?:  DescribeFormat,  /*  output format (default: "md")  */
+        part?:    DescribePart     /*  document part (default: "all")  */
+    }): Promise<string>
+}
+
+/*  the constructor options and the sink of the verbose messages,
+    receiving the emitting command and the message  */
+export interface SpecBookOptions {
+    verbose?:      VerboseSink
+}
+export type VerboseSink = (cmd: string, msg: string) => void
+
+/*  the result of the "lint" command and its file- and line-precise diagnostics  */
+export interface LintResult {
+    specification: Spec
+    diagnostics:   Diagnostic[]
+    config?:       Schema
+}
+export interface Diagnostic {
+    file:          string
+    line:          number
+    column:        number
+    message:       string
+}
+
+/*  the supported export formats and describe formats/parts  */
+export const formats:         readonly [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ]
+export const describeFormats: readonly [ "md", "raw" ]
+export const describeParts:   readonly [ "all", "meta", "schema", "spec" ]
+export type  ExportFormat   = typeof formats[number]
+export type  DescribeFormat = typeof describeFormats[number]
+export type  DescribePart   = typeof describeParts[number]
+
+/*  the Abstract Syntax Tree (AST) of a parsed specification  */
+export type Spec = {
+    artifacts:     SpecArtifact[]
+}
+export type SpecArtifact = {
+    created:       Date
+    modified:      Date
+    objects:       SpecObject[]
+}
+export type SpecObject = {
+    kind:          string
+    id:            string
+    anchor?:       string
+    paren?:        string
+    name:          string
+    primary?:      boolean
+    description?:  SpecDescription
+    properties:    SpecProperty[]
+    childs:        SpecObject[]
+}
+export type SpecDescription = {
+    description:   string
+    rationale?:    string
+    embedding?:    string[]
+}
+export type SpecProperty = {
+    key:           string
+    value:         string
+    embedding?:    string[]
+}
+
+/*  the YAML schema configuration, where the nested "diagram" and
+    "format" structures are detailed in the "describe" output  */
+export type Schema = SchemaObject[]
+export type SchemaObject = {
+    kind:          string
+    name?:         string
+    id?:           string
+    file?:         string
+    desc?:         string
+    optional?:     boolean
+    diagram?:      SchemaDiagram
+    format?:       SchemaFormat
+    props?:        SchemaProperty[]
+    childs?:       SchemaObject[]
+}
+export type SchemaProperty = {
+    name:          string
+    desc?:         string
+    value?:        string
+    optional?:     boolean
+}
+```
+
+Example:
+
+```ts
+import { SpecBook } from "@rse/specbook"
 
 const specbook = new SpecBook({
-    verbose: (cmd, msg) => console.error(`specbook: ${cmd}: ${renderVerbose(msg)}`)
+    verbose: (cmd, msg) => console.error(`specbook: ${cmd}: ${msg}`)
 })
 const result = await specbook.lint({
     basedir: "smp/broadcast"
@@ -112,71 +234,98 @@ const result = await specbook.lint({
 
 ### CLI
 
+Commands:
+
 ```bash
-$ specbook init     [-v] [-c <schema-yaml-file>] [-b <spec-md-file-basedir>]
-$ specbook lint     [-v] [-c <schema-yaml-file>] [-b <spec-md-file-basedir>]
-$ specbook export   [-v] [-c <schema-yaml-file>] [-b <spec-md-file-basedir>] [-o [<format>:]<output-file>] [...]
-$ specbook describe [-v] [-c <schema-yaml-file>] [-b <spec-md-file-basedir>] [-f <format>] [-p <part>] [-e] [-o <output-file>]
-$ specbook mcp      [-v]
+$ specbook init \
+  [-v|--verbose] \
+  [-c|--config <schema-yaml-file>] \
+  [-b|--basedir <spec-md-file-basedir>]
+
+$ specbook lint \
+  [-v|--verbose] \
+  [-c|--config <schema-yaml-file>] \
+  [-b|--basedir <spec-md-file-basedir>]
+
+$ specbook export \
+  [-v|--verbose] \
+  [-c|--config <schema-yaml-file>] \
+  [-b|--basedir <spec-md-file-basedir>] \
+  [-o|--output [<format>:]<output-file>] [...]
+
+$ specbook describe \
+  [-v|--verbose] \
+  [-c|--config <schema-yaml-file>] \
+  [-b|--basedir <spec-md-file-basedir>] \
+  [-e|--embed] \
+  [-f|--format <format>] \
+  [-p|--part <part>] \
+  [-o|--output <output-file>]
+
+$ specbook mcp \
+  [-v|--verbose]
 ```
 
-Option `-v`/`--verbose` enabled verbose logging of information.
+Options:
 
-The YAML schema configuration `-c`/`--config` (default: the bundled
-standard schema configuration `specbook-format.yaml`) determines the
-specification: exactly the artifact files its `file` fields reference
-are loaded and parsed; all other Markdown files below the base
-directory are ignored. A referenced
-file which is absent is reported, unless all of its artifacts are
-`optional`, and so is an artifact absent from its present file, unless
-it is `optional` itself. Both `lint` and `export` report all
-diagnostics and fail on any of them, so a partial or invalid
-specification is never exported.
+-   `-v|--verbose`:
+    Enable verbose logging of processing information to `stderr`.
 
-The base directory `-b`/`--basedir` (default: `.`) is the directory the
-referenced artifact files are resolved against, and generated
-specification Markdown files are placed inside it, too.
+-   `-c|--config <schema-yaml-file>`:
+    The YAML schema configuration (default: the bundled standard schema
+    configuration `specbook-format.yaml`) determines the specification:
+    exactly the artifact files its `file` fields reference are loaded and
+    parsed; all other Markdown files below the base directory are ignored.
+    A referenced file which is absent is reported, unless all of its
+    artifacts are `optional`, and so is an artifact absent from its present
+    file, unless it is `optional` itself. Both `lint` and `export` report
+    all diagnostics and fail on any of them, so a partial or invalid
+    specification is never exported.
 
-The export output option `-o`/`--output` (default: `-` for stdout) can
-occur multiple times. The format (`json`, `json5`, `yaml`, `toon`,
-`html`, `pdf`, or `md`) is inferred from the filename extension, unless
-it is explicitly given as a `<format>:` prefix, and plain `-` (stdout)
-defaults to JSON.
+-   `-b|--basedir <spec-md-file-basedir>`:
+    The base directory (default: `.`) is the directory the referenced
+    artifact files are resolved against, and generated specification
+    Markdown files are placed inside it, too.
 
-The `md` format normalizes the entire corpus into a *single* Markdown
-document, whose single frontmatter block carries the earliest `Created:`
-and the latest `Modified:` timestamp of all artifacts, so the
-per-artifact timestamps do not survive this round-trip.
+-   `-o|--output [<format>:]<output-file>` (`export` only):
+    The output file (default: `-` for stdout) can be given multiple times.
+    The format (`json`, `json5`, `yaml`, `toon`, `html`, `pdf`, or `md`)
+    is inferred from the filename extension, unless it is explicitly given
+    as a `<format>:` prefix, and plain `-` (stdout) defaults to JSON.
+    The `md` export format normalizes the entire corpus into a *single*
+    Markdown document.
 
-The `describe` command outputs the description of the SpecBook models
-and formats, extended by a *SpecBook Project Instantiation* section which
-points to the YAML schema configuration `-c`/`--config` and the base
-directory `-b`/`--basedir`. The schema configuration falls back onto the
-bundled standard one, embedded verbatim, as long as no particular
-configuration file `-c`/`--config` is given. With `-e`/`--embed` the
-given YAML schema configuration is embedded verbatim instead of just
-being referenced, so the resulting document describes the specification
-format entirely on its own.
+-   `-o|--output <output-file>` (`describe` only):
+    The output file (default: `-` for stdout) receives the described
+    Markdown document.
 
-The `describe` document part `-p`/`--part` (default: `all`) reduces the
-output to a single part: `meta` for the description of the generic
-SpecBook models and formats, `schema` for the YAML schema configuration
-(the given one, referenced or embedded with `-e`/`--embed`, else the
-bundled standard one, embedded), or `spec` for the reference to
-the base directory. The output format `-f`/`--format` (default: `md`)
-switches from this rendered Markdown onto the raw original file content
-with `raw`, which is available for the file-backed parts `meta` and
-`schema` only.
+-   `-e|--embed` (`describe` only):
+    Embed the given YAML schema configuration verbatim instead of just
+    referencing it, so the resulting document describes the specification
+    format entirely on its own.
 
-The default value of every CLI option `--xxx` can be overridden by a
-corresponding `SPECBOOK_XXX` environment variable (e.g.
+-   `-f|--format <format>` (`describe` only):
+    The output format (default: `md`) switches from the rendered Markdown
+    onto the raw original file content with `raw`, which is available for
+    the file-backed parts `meta` and `schema` only.
+
+-   `-p|--part <part>` (`describe` only):
+    The document part (default: `all`) reduces the output to a single part:
+    `meta` for the description of the generic SpecBook models and formats,
+    `schema` for the YAML schema configuration (the given one, referenced
+    or embedded with `-e|--embed`, else the bundled standard one,
+    embedded), or `spec` for the reference to the base directory.
+
+The default value of every CLI option `--xxx` can be overridden
+by a corresponding `SPECBOOK_XXX` environment variable (e.g.
 `SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_OUTPUT`,
 `SPECBOOK_VERBOSE`), while an explicitly supplied option always wins.
 
-### MCP
+Example:
 
-Run `specbook mcp` to serve the tools `specbook_init`, `specbook_lint`,
-`specbook_export`, and `specbook_describe` over stdio.
+```bash
+$ specbook lint -v -b smp/broadcast
+```
 
 Rendering Examples
 ------------------
