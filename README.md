@@ -82,7 +82,9 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 Overview Poster
 ---------------
 
-[![poster](etc/poster.png)](etc/poster.pdf)
+[![poster-1](etc/poster-1.png)](etc/poster-1.pdf)
+
+[![poster-2](etc/poster-2.png)](etc/poster-2.pdf)
 
 Rendering Example
 -----------------
