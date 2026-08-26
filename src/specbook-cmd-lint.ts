@@ -48,7 +48,7 @@ export const lint = (options: LintOptions): LintResult => {
     const diagnostics = new Array<Diagnostic>()
 
     /*  load the mandatory YAML schema configuration  */
-    options.verbose(`loading configuration "${literal(options.config)}"`)
+    options.verbose(`loading schema configuration "${literal(options.config)}"`)
     const loaded = loadConfig(options.config)
     diagnostics.push(...loaded.diagnostics)
     const config = loaded.config

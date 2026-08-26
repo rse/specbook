@@ -59,7 +59,7 @@ export class SpecBook {
     /*  load a mandatory YAML schema configuration, failing on any problem  */
     private requireConfig (file: string | undefined, verbose: (msg: string) => void): Schema {
         file = this.requireConfigFile(file)
-        verbose(`loading configuration "${literal(file)}"`)
+        verbose(`loading schema configuration "${literal(file)}"`)
         const { config, diagnostics } = loadConfig(file)
         if (config === undefined)
             throw new Error("invalid configuration:\n" +
