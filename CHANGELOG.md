@@ -2,6 +2,15 @@
 ChangeLog
 =========
 
+0.9.9 (2026-08-26)
+------------------
+
+-   IMPROVEMENT [code]: name the YAML schema configuration explicitly in the verbose output
+-   IMPROVEMENT [code]: tighten the wording of the "describe" project instantiation section
+-   IMPROVEMENT [infr, othr]: show a second overview poster in README
+-   IMPROVEMENT [infr]: split the "sample" build target into "sample-broadcast"/"sample-sample" and fail on lint problems
+-   CLEANUP [infr, othr]: rename the sample YAML schema configuration to "smp/std-schema.yaml"
+
 0.9.8 (2026-08-25)
 ------------------
 
