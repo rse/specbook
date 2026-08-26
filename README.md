@@ -137,9 +137,10 @@ The `describe` command outputs the description of the SpecBook models
 and formats. If the configuration file `-c`/`--config` or the base
 directory `-b`/`--basedir` is given, it additionally appends a *SpecBook
 Project Instantiation* section which points to these artifacts of the
-particular project. With `-e`/`--embed` the YAML schema configuration is
-embedded verbatim instead of just being referenced, so the resulting
-document describes the specification format of the project entirely on
+particular project. With `-e`/`--embed` the YAML schema configuration
+is embedded verbatim instead of just being referenced -- falling back
+onto the bundled standard schema configuration if none is given -- so
+the resulting document describes the specification format entirely on
 its own.
 
 The default value of every CLI option `--xxx` can be overridden by a

@@ -90,7 +90,8 @@ specbook mcp      [-v]
 
 The YAML schema configuration of `init`, `lint`, and `export` falls back
 onto the bundled standard one (`src/specbook-format.yaml`, copied to
-`dst/` at build time), while `describe` references the given one only.
+`dst/` at build time), while `describe` references the given one only
+and falls back onto the standard one just for embedding (`-e`).
 Exactly the artifact files referenced by its `file` fields are loaded and parsed,
 resolved against the base directory, in which generated specification
 Markdown files are placed, too. All other Markdown files below the base

@@ -121,8 +121,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         inputSchema: {
             config:  z.string().optional().describe("YAML schema configuration file"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files"),
-            embed:   z.boolean().optional().describe("embed the YAML schema configuration instead of " +
-                "just referencing it (default: false)"),
+            embed:   z.boolean().optional().describe("embed the YAML schema configuration (the bundled " +
+                "standard one if none is given) instead of just referencing it (default: false)"),
             output:  z.string().optional().describe("output file path (\"-\" or omitted returns the description directly)")
         }
     }, async (args) => {

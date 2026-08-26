@@ -110,14 +110,17 @@ export class SpecBook {
 
     /*  describe the generic SpecBook models and formats as Markdown,
         optionally pointing to the artifacts of the particular project,
-        whose YAML schema configuration is validated if given  */
+        whose YAML schema configuration is validated before use  */
     async describe (options: { config?: string, basedir?: string, embed?: boolean }): Promise<string> {
         const verbose = this.verboseOf("describe")
-        if (options.config !== undefined)
-            this.requireConfig(options.config, verbose)
-        else if (options.embed === true)
-            throw new Error("YAML schema configuration required for embedding")
+
+        /*  the embedding requires a schema configuration, so it falls
+            back onto the bundled standard one, while the referencing
+            points to the given one only  */
+        const config = options.config ?? (options.embed === true ? standardConfig : undefined)
+        if (config !== undefined)
+            this.requireConfig(config, verbose)
         verbose("describing the SpecBook models and formats")
-        return describeFormat(options)
+        return describeFormat({ ...options, config })
     }
 }
