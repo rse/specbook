@@ -18,6 +18,7 @@ import { renderMarkdown }            from "./specbook-export-md.js"
 import { renderHtml, htmlOutline }   from "./specbook-export-html.js"
 import { htmlToPdf }                 from "./specbook-export-pdf.js"
 import { literal }                   from "./specbook-verbose.js"
+import type { Verbose }              from "./specbook-verbose.js"
 
 /*  the supported export formats  */
 export const formats = [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ] as const
@@ -62,7 +63,7 @@ export const parseOutputSpec = (spec: string): { format: ExportFormat, output: s
 export const exportSpecification = async (
     specification:   Spec,
     format:          ExportFormat,
-    verbose:         (msg: string) => void,
+    verbose:         Verbose,
     config?:         Schema
 ): Promise<Buffer> => {
     if (!formats.includes(format))

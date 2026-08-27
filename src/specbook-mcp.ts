@@ -9,8 +9,8 @@ import { McpServer }            from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z }                    from "zod"
 
-import { SpecBook, renderDiagnostic, formats, parseOutputSpec, describeFormats, describeParts,
-    version, type VerboseSink } from "./specbook-api.js"
+import { SpecBook, renderDiagnostic, renderVerbose, formats, parseOutputSpec, describeFormats,
+    describeParts, version, type VerboseSink } from "./specbook-api.js"
 
 /*  render an error with its cause chain into a tool error result  */
 const errorResult = (err: unknown) => {
@@ -21,7 +21,7 @@ const errorResult = (err: unknown) => {
         msg += `: ${cause.message}`
     return {
         isError: true as const,
-        content: [ { type: "text" as const, text: `ERROR: ${msg}` } ]
+        content: [ { type: "text" as const, text: `ERROR: ${renderVerbose(msg)}` } ]
     }
 }
 

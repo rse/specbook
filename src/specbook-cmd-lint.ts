@@ -8,7 +8,7 @@ import * as fs   from "node:fs"
 import * as path from "node:path"
 
 import { loadConfig }                                           from "./specbook-config.js"
-import { literal }                                              from "./specbook-verbose.js"
+import { literal, type Verbose }                                from "./specbook-verbose.js"
 import { type Diagnostic }                                      from "./specbook-diagnostic.js"
 import { parseSpecification, resolveArtifact, type SourceFile } from "./specbook-parse.js"
 import { type Spec }                                            from "./specbook-format-spec.js"
@@ -18,7 +18,7 @@ import { type Schema, type SchemaObject }                       from "./specbook
 export interface LintOptions {
     config:  string
     basedir: string
-    verbose: (msg: string) => void
+    verbose: Verbose
 }
 
 /*  the result of the lint command  */

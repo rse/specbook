@@ -4,9 +4,12 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
+import fs
+    from "node:fs"
+
 import type { PDFDocument, PDFArray, PDFRef }
     from "pdf-lib"
-import type { Browser }
+import type { LaunchOptions }
     from "playwright"
 
 import { escapeHtml, paperSetup, paperLength, paperSizeDefault }
@@ -15,6 +18,8 @@ import type { OutlineEntry }
     from "./specbook-export-html.js"
 import type { ThemeMapping }
     from "./specbook-theme.js"
+import { literal, type Verbose }
+    from "./specbook-verbose.js"
 
 /*  the document heading rendered into the page decoration  */
 type Heading = { title: string, subtitle?: string, logo: string }
@@ -155,13 +160,58 @@ const drawBrandBar = async (doc: PDFDocument, accent: string) => {
             height: page.getHeight(), color: rgb(r, g, b) })
 }
 
+/*  the launch options of the Chromium-class browser printing the PDF,
+    resolved just once per process, as probing a system-installed Google
+    Chrome has to actually launch it and as the export preflight and the
+    renderer both ask for the very same browser  */
+let browserOptions: Promise<LaunchOptions | undefined> | undefined
+
+/*  resolve the browser printing the PDF: the downloaded Playwright
+    Chromium is a plain file check, while a system-installed Google
+    Chrome is only detectable by launching it  */
+const resolveBrowser = async (verbose: Verbose): Promise<LaunchOptions | undefined> => {
+    const { chromium } = await import("playwright")
+    let executable = ""
+    try {
+        executable = chromium.executablePath()
+    }
+    catch {
+        /*  Playwright knows no Chromium distribution at all  */
+    }
+    if (executable !== "" && fs.existsSync(executable))
+        return {}
+    try {
+        const chrome = await chromium.launch({ channel: "chrome" })
+        await chrome.close()
+        verbose("Playwright Chromium unavailable -- falling back to the " +
+            "system-installed Google Chrome", "notice")
+        return { channel: "chrome" }
+    }
+    catch {
+        return undefined
+    }
+}
+
+/*  ensure a browser printing the PDF is available, so a missing browser
+    fails the export early and with an actionable remedy instead of deep
+    inside the rendering and with a Playwright-internal message  */
+export const requireBrowser = async (verbose: Verbose): Promise<LaunchOptions> => {
+    browserOptions ??= resolveBrowser(verbose)
+    const options = await browserOptions
+    if (options === undefined)
+        throw new Error("the PDF export requires a Chromium-class browser, but neither the " +
+            "Playwright Chromium nor a system-installed Google Chrome was found -- run " +
+            `"${literal("npx playwright install chromium")}" once to download the Playwright Chromium`)
+    return options
+}
+
 /*  render a self-contained HTML document into a PDF via Playwright,
     re-rendering the HTML with the discovered ToC page numbers  */
 export const htmlToPdf = async (
     renderHtmlPass: (tocPages?: Map<string, number>) => Promise<string>,
     heading:        Heading,
     outline:        OutlineEntry[],
-    verbose:        (msg: string) => void,
+    verbose:        Verbose,
     css:            string,
     theme:          ThemeMapping,
     paper:          string = paperSizeDefault
@@ -172,22 +222,8 @@ export const htmlToPdf = async (
     const setup  = paperSetup(paper)
     const margin = setup.margin
 
-    /*  launch the Playwright Chromium browser, falling back to a
-        system-installed Google Chrome if the Chromium download is missing  */
-    let browser: Browser
-    try {
-        browser = await chromium.launch()
-    }
-    catch (err) {
-        verbose("Playwright Chromium unavailable -- falling back to installed Google Chrome")
-        try {
-            browser = await chromium.launch({ channel: "chrome" })
-        }
-        catch {
-            /*  report the original, more instructive error  */
-            throw err
-        }
-    }
+    /*  launch the browser resolved for this process  */
+    const browser = await chromium.launch(await requireBrowser(verbose))
     try {
         const page = await browser.newPage()
 

@@ -11,16 +11,18 @@ import chalk               from "chalk"
 
 import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, renderVerbose, literal,
     parseOutputSpec, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
-    version, type VerboseSink } from "./specbook-api.js"
+    version, type VerboseSink, type VerboseLevel } from "./specbook-api.js"
 import { serveMcp }        from "./specbook-mcp.js"
 
 /*  route verbose messages to stderr, keeping stdout reserved for the
     command outputs and the MCP protocol, and qualify every message with
     the tool name plus the scope path of the emitting command, where
-    Chalk styles the output only if the terminal supports colors  */
+    Chalk styles the output only if the terminal supports colors; the
+    "notice" messages pass regardless of the verbose option, as they
+    report environment problems the user has to see  */
 const verboseOf = (opts: { verbose: boolean }, ...scope: string[]): VerboseSink =>
-    (cmd: string, msg: string): void => {
-        if (opts.verbose) {
+    (cmd: string, msg: string, level: VerboseLevel): void => {
+        if (opts.verbose || level === "notice") {
             const scopePath = [ ...scope, cmd ].map((segment) => chalk.bold(segment)).join(": ")
             process.stderr.write(`specbook: ${scopePath}: ${renderVerbose(msg, chalk.blue)}\n`)
         }
@@ -47,7 +49,7 @@ const writeOutput = async (output: string, data: Buffer | string,
         await writeStdout(data)
     else {
         await fs.promises.writeFile(output, data)
-        verbose(cmd, `wrote "${literal(output)}" (${literal(Buffer.byteLength(data))} bytes)`)
+        verbose(cmd, `wrote "${literal(output)}" (${literal(Buffer.byteLength(data))} bytes)`, "debug")
     }
 }
 
@@ -87,7 +89,7 @@ program.name("specbook")
 withVerboseOption(program.command("mcp"))
     .description("run as MCP stdio server")
     .action(async (opts: { verbose: boolean }) => {
-        verboseOf(opts)("mcp", "starting MCP server on stdio")
+        verboseOf(opts)("mcp", "starting MCP server on stdio", "debug")
         await serveMcp(verboseOf(opts, "mcp"))
     })
 
@@ -115,7 +117,7 @@ withCommonOptions(program.command("lint"))
         if (result.diagnostics.length > 0)
             process.exitCode = 1
         else
-            verboseOf(opts)("lint", "specification valid")
+            verboseOf(opts)("lint", "specification valid", "debug")
     })
 
 /*  the export command parses the input once and writes every output  */
@@ -174,5 +176,6 @@ catch (err) {
         cause instanceof Error;
         cause = cause.cause)
         msg += `: ${cause.message}`
-    process.stderr.write(`specbook: ERROR: ${msg}\n`, () => process.exit(1))
+    process.stderr.write(`specbook: ${chalk.red("ERROR:")} ${renderVerbose(msg, chalk.blue)}\n`,
+        () => process.exit(1))
 }

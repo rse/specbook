@@ -4,6 +4,15 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
+/*  the severity of a verbose message: "debug" for the regular processing
+    information, which a consumer usually surfaces on demand only, and
+    "notice" for the few environment-related messages, which a consumer
+    has to surface unconditionally  */
+export type VerboseLevel = "debug" | "notice"
+
+/*  the sink of the verbose messages of a single command  */
+export type Verbose = (msg: string, level?: VerboseLevel) => void
+
 /*  the sentinel characters delimiting a marked literal value, taken
     from the Unicode private use area, so they never clash with the
     regular content of a verbose message  */

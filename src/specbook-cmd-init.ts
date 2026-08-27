@@ -7,7 +7,7 @@
 import * as fs   from "node:fs"
 import * as path from "node:path"
 
-import { literal }                        from "./specbook-verbose.js"
+import { literal, type Verbose }          from "./specbook-verbose.js"
 import { type Schema, type SchemaObject } from "./specbook-format-schema.js"
 
 /*  the current time in the frontmatter timestamp format  */
@@ -22,7 +22,7 @@ const timestamp = (): string => {
 export interface InitOptions {
     config:  Schema
     basedir: string
-    verbose: (msg: string) => void
+    verbose: Verbose
 }
 
 /*  initialize the configured specification artifact files below the

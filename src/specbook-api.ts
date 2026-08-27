@@ -14,11 +14,12 @@ import { lint, type LintResult }                         from "./specbook-cmd-li
 import { exportSpecification, parseOutputSpec, formats, type ExportFormat } from "./specbook-cmd-export.js"
 import { describeFormat, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
     type DescribeFormat, type DescribePart }             from "./specbook-cmd-describe.js"
-import { literal, renderVerbose }                        from "./specbook-verbose.js"
+import { requireBrowser }                                from "./specbook-export-pdf.js"
+import { literal, renderVerbose, type Verbose, type VerboseLevel } from "./specbook-verbose.js"
 import { type Schema }                                   from "./specbook-format-schema.js"
 
 /*  re-export the central types for API consumers  */
-export { literal, renderVerbose }
+export { literal, renderVerbose, type Verbose, type VerboseLevel }
 export { formats, parseOutputSpec, type ExportFormat }
 export { describeFormats, describeParts, parseDescribeFormat, parseDescribePart }
 export { type DescribeFormat, type DescribePart }
@@ -38,9 +39,10 @@ export const version: string = (JSON.parse(
 export const standardConfig: string =
     fileURLToPath(new URL("specbook-format.yaml", import.meta.url))
 
-/*  the sink of the verbose messages, receiving the emitting command
-    and the message, so consumers can qualify the message themselves  */
-export type VerboseSink = (cmd: string, msg: string) => void
+/*  the sink of the verbose messages, receiving the emitting command,
+    the message, and its severity, so consumers can qualify the message
+    themselves and surface the "notice" ones unconditionally  */
+export type VerboseSink = (cmd: string, msg: string, level: VerboseLevel) => void
 
 /*  the constructor options of the SpecBook API  */
 export interface SpecBookOptions {
@@ -55,8 +57,8 @@ export class SpecBook {
     }
 
     /*  bind the verbose sink to a particular command  */
-    private verboseOf (cmd: string): (msg: string) => void {
-        return (msg: string) => this.verbose(cmd, msg)
+    private verboseOf (cmd: string): Verbose {
+        return (msg: string, level: VerboseLevel = "debug") => this.verbose(cmd, msg, level)
     }
 
     /*  determine the file of the YAML schema configuration, falling
@@ -66,7 +68,7 @@ export class SpecBook {
     }
 
     /*  load a YAML schema configuration, failing on any problem  */
-    private requireConfig (file: string | undefined, verbose: (msg: string) => void): Schema {
+    private requireConfig (file: string | undefined, verbose: Verbose): Schema {
         file = this.configFile(file)
         verbose(`loading schema configuration "${literal(file)}"`)
         const { config, diagnostics } = loadConfig(file)
@@ -96,8 +98,15 @@ export class SpecBook {
         requested format (strict: any diagnostic prevents the export,
         as a partial or invalid specification must never be emitted)  */
     async export (options: { config?: string, basedir?: string, formats?: ExportFormat[] }): Promise<Buffer[]> {
-        const verbose = this.verboseOf("export")
-        const result  = lint({ config: this.configFile(options.config),
+        const verbose   = this.verboseOf("export")
+        const requested = options.formats ?? [ "json" ]
+
+        /*  a missing browser is an environment problem, so let the PDF
+            export fail before the specification is even parsed  */
+        if (requested.includes("pdf"))
+            await requireBrowser(verbose)
+
+        const result = lint({ config: this.configFile(options.config),
             basedir: options.basedir ?? ".", verbose })
         if (result.diagnostics.length > 0)
             throw new Error("invalid specification:\n" +
@@ -105,7 +114,7 @@ export class SpecBook {
         if (result.specification.artifacts.length === 0)
             throw new Error("unexportable specification: no artifacts found")
         const buffers = new Array<Buffer>()
-        for (const format of options.formats ?? [ "json" ])
+        for (const format of requested)
             buffers.push(await exportSpecification(result.specification, format,
                 verbose, result.config))
         return buffers

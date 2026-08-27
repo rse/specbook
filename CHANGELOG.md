@@ -2,6 +2,17 @@
 ChangeLog
 =========
 
+1.0.3 (2026-08-27)
+------------------
+
+-   FEATURE [code]: PDF Export Browser Preflight
+    The "export" command now ensures a Chromium-class browser is available before the specification
+    is parsed and names "npx playwright install chromium" as the remedy when none is found.
+
+-   FEATURE [code, infr]: Verbose Message Severity
+    The "VerboseSink" gained a third "level" argument ("debug" or "notice"), where the CLI prints
+    the environment-related "notice" messages regardless of the "-v"/"--verbose" option.
+
 1.0.2 (2026-08-26)
 ------------------
 
