@@ -57,13 +57,16 @@
     childs:
         -   kind: ASPECT
             desc: >
-                A single vision aspect, named with a short (2-5 word) summary and described in a
-                concise (1-3 sentence) paragraph in an aspirational but unambiguous tone.
+                A single vision aspect, named with a short (1-3 word)
+                aspect title and described in a concise (1-3 sentence)
+                paragraph in an aspirational but unambiguous tone.
 
-                Recommended aspects are `Purpose` (why the solution exists), `Target Audience` (who
-                it serves), `Value Proposition` (the unique benefit offered), `Differentiators` (how
-                it stands apart from alternatives), and `Future State` (the desired outcome once
-                adopted).
+                Recommended aspect titles are:
+                - `Purpose`           (why the solution exists)
+                - `Target Audience`   (who it serves)
+                - `Value Proposition` (the unique benefit offered)
+                - `Differentiators`   (how it stands apart from alternatives)
+                - `Future State`      (the desired outcome once adopted)
 
 -   kind: SPEC
     name: User Personas
