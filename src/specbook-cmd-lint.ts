@@ -26,6 +26,11 @@ export interface LintResult {
     specification: Spec
     diagnostics:   Diagnostic[]
     config?:       Schema
+
+    /*  the resolved paths of all files the specification is made of --
+        the referenced artifact files (an absent one included) plus their
+        embedded assets -- so a watching consumer knows what to observe  */
+    files:         string[]
 }
 
 /*  collect the distinct artifact files the schema configuration
@@ -62,8 +67,10 @@ export const lint = (options: LintOptions): LintResult => {
             message: "no artifact files configured" })
     const sources = new Array<SourceFile>()
     const present = new Set<string>()
+    const watched = new Array<string>()
     for (const [ name, optional ] of files) {
         const file = path.join(options.basedir, name)
+        watched.push(path.resolve(file))
         if (!fs.existsSync(file)) {
             if (!optional)
                 diagnostics.push({ file, line: 1, column: 1,
@@ -85,6 +92,7 @@ export const lint = (options: LintOptions): LintResult => {
         `below "${literal(options.basedir)}"`)
     const result = parseSpecification(sources, config)
     diagnostics.push(...result.diagnostics)
+    watched.push(...result.assets)
 
     /*  report the non-optional artifacts absent from the specification,
         against their loaded artifact file (an absent or unreadable file
@@ -107,5 +115,5 @@ export const lint = (options: LintOptions): LintResult => {
                 message: `missing artifact "${schema.kind}: ${schema.name ?? ""}${paren}"` })
         }
     }
-    return { specification: result.specification, diagnostics, config }
+    return { specification: result.specification, diagnostics, config, files: watched }
 }

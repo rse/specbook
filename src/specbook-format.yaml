@@ -53,24 +53,46 @@
     file: 01-SPEC-SV-Solution-Vision.md
     desc: >
         The high-level, aspirational description of the solution,
-        capturing its purpose, value proposition, and the desired
-        future state it aims to achieve. Every vision aspect is stated
-        in a concise (1-3 sentence) paragraph in an aspirational but
-        unambiguous tone.
+        capturing why it exists, whom it serves, what it is, which
+        benefit it offers, how it differs from the alternatives, where
+        its boundary runs, how its achievement is measured, and the
+        desired future state it aims to achieve. Every vision aspect is
+        stated in a concise (1-3 sentence) paragraph in an aspirational
+        but unambiguous tone.
     props:
         -   name: PURPOSE
-            desc: Why the solution exists.
+            desc: >
+                Why the solution exists.
         -   name: TARGET-AUDIENCE
-            desc: Who the solution serves.
-            optional: true
+            desc: >
+                Who the solution serves.
+        -   name: SOLUTION
+            desc: >
+                What the solution is, in a single sentence naming its kind or
+                category (e.g. a self-hosted, browser-based streaming platform).
         -   name: VALUE-PROPOSITION
-            desc: The unique benefit the solution offers.
-            optional: true
+            desc: >
+                The benefit the solution offers its target audience, stated in
+                absolute terms without reference to alternatives.
         -   name: DIFFERENTIATORS
-            desc: How the solution stands apart from the alternatives.
+            desc: >
+                How the solution stands apart from the alternatives, naming the
+                alternatives it is compared against (including the status quo).
+            optional: true
+        -   name: SCOPE
+            desc: >
+                The boundary of the solution, stating what it deliberately does
+                *not* cover and which adjacent concerns are left to others.
+            optional: true
+        -   name: SUCCESS-CRITERIA
+            desc: >
+                The measurable business outcomes by which the achievement of the
+                vision is judged (e.g. adoption, cost, or time-to-value targets).
             optional: true
         -   name: FUTURE-STATE
-            desc: The desired outcome once the solution is adopted.
+            desc: >
+                The desired outcome once the solution is adopted, describing what
+                is true then that is not true today.
             optional: true
 
 -   kind: SPEC

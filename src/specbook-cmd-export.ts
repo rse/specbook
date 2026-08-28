@@ -4,6 +4,7 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
+import { watch }                     from "chokidar"
 import { minify }                    from "@swc/html"
 
 import type { Spec }                 from "./specbook-format-spec.js"
@@ -57,6 +58,54 @@ export const parseOutputSpec = (spec: string): { format: ExportFormat, output: s
         return { format, output: spec }
     throw new Error(`unable to infer export format from output "${spec}" ` +
         "(use an explicit \"<format>:<filename>\" specification)")
+}
+
+/*  the quiet period the observed files have to stay silent for before a
+    burst of changes is coalesced into a single re-export  */
+const watchDelay = 1000
+
+/*  keep a specification export in sync with its sources, where "run"
+    performs one export and returns the files to observe: the initial
+    export is performed up-front and every observed change triggers a
+    re-export once the sources fell silent again. The observed set is
+    re-synchronized after every run, as an edit can add or drop an
+    embedded asset. The returned promise settles once the initial export
+    is done, while the active watcher keeps the process alive afterwards  */
+export const watchSpecification = async (
+    run:     () => Promise<string[]>,
+    verbose: Verbose
+): Promise<void> => {
+    /*  perform the regular export before entering the observe loop  */
+    let observed  = await run()
+    const watcher = watch(observed, { ignoreInitial: true })
+    verbose(`observing ${literal(observed.length)} specification file(s) for changes`)
+
+    /*  perform a re-export and re-synchronize the observed files  */
+    const cycle = async () => {
+        const files = await run()
+        watcher.unwatch(observed.filter((file) => !files.includes(file)))
+        watcher.add(files.filter((file) => !observed.includes(file)))
+        observed = files
+    }
+
+    /*  restart the quiet period on every change, so a burst collapses
+        into a single re-export, and chain the runs onto each other, so a
+        change arriving during a run cannot start a concurrent one (the
+        chained catch keeps an unexpected failure from breaking the chain
+        and hence silently ending the observe loop)  */
+    let chain = Promise.resolve()
+    let timer: ReturnType<typeof setTimeout> | undefined
+    watcher.on("all", () => {
+        if (timer !== undefined)
+            clearTimeout(timer)
+        timer = setTimeout(() => {
+            timer = undefined
+            chain = chain.then(cycle).catch((err: unknown) => {
+                verbose("re-export failed: " +
+                    (err instanceof Error ? err.message : String(err)), "notice")
+            })
+        }, watchDelay)
+    })
 }
 
 /*  export a specification into the requested format  */

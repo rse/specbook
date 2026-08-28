@@ -21,6 +21,7 @@ export interface SourceFile {
 export interface ParseResult {
     specification: Spec
     diagnostics:   Diagnostic[]
+    assets:        string[]
 }
 
 /*  per-object parsing meta information, kept outside the AST  */
@@ -35,6 +36,10 @@ export class ParseContext {
     objectMeta           = new WeakMap<SpecObject, ObjectMeta>()
     propMeta             = new WeakMap<SpecProperty, { line: number }>()
     linkIndex: LinkIndex = []
+
+    /*  the resolved paths of the embedded asset files, recorded even for
+        an unreadable one, as a watching consumer has to observe it, too  */
+    assets               = new Set<string>()
 
     /*  record a single diagnostic  */
     diagnose (file: string, line: number, message: string) {

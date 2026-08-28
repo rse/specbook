@@ -126,6 +126,16 @@ export class SpecBook {
         formats?: ExportFormat[]   /*  requested output formats (default: [ "json" ])  */
     }): Promise<Buffer[]>
 
+    /*  export the specification like "export" and then keep it in sync by
+        re-exporting it on every change of a specification file (a failed
+        re-export is reported and leaves the observe loop intact)  */
+    watch (options: {
+        config?:  string,
+        basedir?: string,
+        formats?: ExportFormat[],
+        onExport: (buffers: Buffer[]) => void | Promise<void>
+    }): Promise<void>
+
     /*  describe the SpecBook models and formats, optionally pointing to
         the artifacts of the particular project  */
     describe (options: {
@@ -149,6 +159,7 @@ export interface LintResult {
     specification: Spec
     diagnostics:   Diagnostic[]
     config?:       Schema
+    files:         string[]    /*  the artifact files plus their embedded assets  */
 }
 export interface Diagnostic {
     file:          string
@@ -251,7 +262,9 @@ $ specbook export \
   [-v|--verbose] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
-  [-o|--output [<format>:]<output-file>] [...]
+  [-o|--output [<format>:]<output-file>] \
+  [-w|--watch] \
+  [...]
 
 $ specbook describe \
   [-v|--verbose] \
@@ -294,6 +307,15 @@ Options:
     as a `<format>:` prefix, and plain `-` (stdout) defaults to JSON.
     The `md` export format normalizes the entire corpus into a *single*
     Markdown document.
+
+-   `-w|--watch` (`export` only):
+    Keep the outputs in sync with their sources: after the regular export,
+    the referenced artifact files and all assets they embed are observed,
+    and every change re-exports the specification once the sources stayed
+    silent for one second. A failed re-export is reported and leaves the
+    observe loop intact, so a transiently invalid specification does not
+    end the watch. The outputs have to be regular files, as `-` (stdout)
+    cannot receive a repeated export.
 
 -   `-o|--output <output-file>` (`describe` only):
     The output file (default: `-` for stdout) receives the described

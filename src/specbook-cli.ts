@@ -124,22 +124,36 @@ withCommonOptions(program.command("lint"))
 withCommonOptions(program.command("export"))
     .description("export the specification Markdown files below the base directory " +
         "as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown")
+    .option("-w, --watch", "keep the outputs in sync by re-exporting on every source change",
+        envDefaultFlag("watch", false))
     .option("-o, --output [<format>:]<output-file>",
         "output file (\"-\" for stdout, repeatable), with the format inferred " +
         "from the filename extension unless explicitly prefixed",
         (value: string, previous: string[]) => previous.concat(value), new Array<string>())
     .action(async (opts: { verbose: boolean, config?: string, basedir: string,
-        output: string[] }) => {
+        output: string[], watch: boolean }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const outputs = (opts.output.length > 0 ? opts.output : [ envDefault("output") ?? "-" ])
             .map(parseOutputSpec)
 
+        /*  a re-export has to land somewhere it can be picked up again,
+            which a one-shot stdout stream cannot provide  */
+        if (opts.watch && outputs.some(({ output }) => output === "-"))
+            throw new Error("the watch mode requires regular output files " +
+                "(\"-\" for stdout is not supported)")
+
         /*  parse the input once and export each distinct format once  */
         const distinct = Array.from(new Set(outputs.map(({ format }) => format)))
-        const buffers  = await specbook.export({ config: opts.config, basedir: opts.basedir,
-            formats: distinct })
-        for (const { format, output } of outputs)
-            await writeOutput(output, buffers[distinct.indexOf(format)], "export", verboseOf(opts))
+        const write = async (buffers: Buffer[]) => {
+            for (const { format, output } of outputs)
+                await writeOutput(output, buffers[distinct.indexOf(format)], "export", verboseOf(opts))
+        }
+        if (opts.watch)
+            await specbook.watch({ config: opts.config, basedir: opts.basedir,
+                formats: distinct, onExport: write })
+        else
+            await write(await specbook.export({ config: opts.config, basedir: opts.basedir,
+                formats: distinct }))
     })
 
 /*  the describe command also describes the generic SpecBook models and

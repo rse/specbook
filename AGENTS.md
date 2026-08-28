@@ -83,7 +83,7 @@ No test target is defined.
 ```
 specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
-specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-o [<format>:]<output-file>] [...]
+specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-w] [-o [<format>:]<output-file>] [...]
 specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-f <format>] [-p <part>] [-o <markdown-file>]
 specbook mcp      [-v]
 ```
@@ -101,6 +101,11 @@ The export output option `-o`/`--output` (default: `-` for stdout) can
 occur multiple times; the format is inferred from the filename extension,
 unless explicitly given as a `<format>:` prefix, and plain `-` (stdout)
 defaults to JSON.
+The export option `-w`/`--watch` performs the regular export and then
+observes the referenced artifact files and their embedded assets,
+re-exporting once a change burst stayed silent for one second, where a
+failed re-export is reported but leaves the observe loop intact and where
+`-` (stdout) is rejected as an output.
 The `describe` command outputs `src/specbook-format.md` verbatim,
 followed by a "SpecBook Project Instantiation" section pointing to the
 YAML schema configuration (`-c`, falling back onto the embedded standard

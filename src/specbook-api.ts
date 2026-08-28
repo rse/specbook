@@ -11,7 +11,8 @@ import { loadConfig }                                    from "./specbook-config
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic } from "./specbook-diagnostic.js"
 import { initSpecification }                             from "./specbook-cmd-init.js"
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
-import { exportSpecification, parseOutputSpec, formats, type ExportFormat } from "./specbook-cmd-export.js"
+import { exportSpecification, watchSpecification, parseOutputSpec, formats,
+    type ExportFormat }                                  from "./specbook-cmd-export.js"
 import { describeFormat, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
     type DescribeFormat, type DescribePart }             from "./specbook-cmd-describe.js"
 import { requireBrowser }                                from "./specbook-export-pdf.js"
@@ -92,11 +93,27 @@ export class SpecBook {
             basedir: options.basedir ?? ".", verbose: this.verboseOf("lint") })
     }
 
+    /*  render an already parsed specification into the requested formats
+        (strict: any diagnostic prevents the export, as a partial or
+        invalid specification must never be emitted)  */
+    private async renderFormats (result: LintResult, formats: ExportFormat[],
+        verbose: Verbose): Promise<Buffer[]> {
+        if (result.diagnostics.length > 0)
+            throw new Error("invalid specification:\n" +
+                result.diagnostics.map(renderDiagnostic).join("\n"))
+        if (result.specification.artifacts.length === 0)
+            throw new Error("unexportable specification: no artifacts found")
+        const buffers = new Array<Buffer>()
+        for (const format of formats)
+            buffers.push(await exportSpecification(result.specification, format,
+                verbose, result.config))
+        return buffers
+    }
+
     /*  export the specification Markdown files below the base directory
         as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown,
         parsing the input just once and returning one buffer per
-        requested format (strict: any diagnostic prevents the export,
-        as a partial or invalid specification must never be emitted)  */
+        requested format  */
     async export (options: { config?: string, basedir?: string, formats?: ExportFormat[] }): Promise<Buffer[]> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
@@ -106,18 +123,39 @@ export class SpecBook {
         if (requested.includes("pdf"))
             await requireBrowser(verbose)
 
-        const result = lint({ config: this.configFile(options.config),
-            basedir: options.basedir ?? ".", verbose })
-        if (result.diagnostics.length > 0)
-            throw new Error("invalid specification:\n" +
-                result.diagnostics.map(renderDiagnostic).join("\n"))
-        if (result.specification.artifacts.length === 0)
-            throw new Error("unexportable specification: no artifacts found")
-        const buffers = new Array<Buffer>()
-        for (const format of requested)
-            buffers.push(await exportSpecification(result.specification, format,
-                verbose, result.config))
-        return buffers
+        return this.renderFormats(lint({ config: this.configFile(options.config),
+            basedir: options.basedir ?? ".", verbose }), requested, verbose)
+    }
+
+    /*  export the specification like "export" and then keep the export in
+        sync with its sources: every change of an artifact file or of one
+        of its embedded assets re-exports the specification and hands the
+        buffers to "onExport" once the sources fell silent again. A failed
+        re-export is reported and leaves the observe loop intact, so a
+        transiently invalid specification does not end the watch. The
+        returned promise settles once the initial export is done, while
+        the active watcher keeps the process alive afterwards  */
+    async watch (options: { config?: string, basedir?: string, formats?: ExportFormat[],
+        onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
+        const verbose   = this.verboseOf("export")
+        const requested = options.formats ?? [ "json" ]
+        if (requested.includes("pdf"))
+            await requireBrowser(verbose)
+        return watchSpecification(async () => {
+            /*  the lint result carries the files to observe even for an
+                invalid specification, so a failing export still keeps the
+                observe loop fed with an up-to-date file set  */
+            const result = lint({ config: this.configFile(options.config),
+                basedir: options.basedir ?? ".", verbose })
+            try {
+                await options.onExport(await this.renderFormats(result, requested, verbose))
+            }
+            catch (err) {
+                verbose("export failed: " +
+                    (err instanceof Error ? err.message : String(err)), "notice")
+            }
+            return result.files
+        }, verbose)
     }
 
     /*  describe the generic SpecBook models and formats as Markdown (or

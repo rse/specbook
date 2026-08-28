@@ -158,8 +158,10 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string) => {
                 continue
             for (const variant of embeddingVariants(reference)) {
                 target.embedding ??= []
+                const asset = path.resolve(path.dirname(file), variant)
+                ctx.assets.add(asset)
                 try {
-                    const data = fs.readFileSync(path.resolve(path.dirname(file), variant))
+                    const data = fs.readFileSync(asset)
                     target.embedding.push(type === "image/svg+xml" ?
                         data.toString("utf8") : `data:${type};base64,${data.toString("base64")}`)
                 }

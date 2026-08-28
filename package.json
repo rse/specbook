@@ -36,6 +36,7 @@
         "source-code-error":               "1.2.0",
         "commander":                       "15.0.0",
         "chalk":                           "6.0.0",
+        "chokidar":                        "5.0.0",
         "@modelcontextprotocol/sdk":       "1.30.0",
         "zod":                             "4.4.3"
     },

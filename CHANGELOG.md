@@ -2,6 +2,18 @@
 ChangeLog
 =========
 
+1.0.4 (2026-08-28)
+------------------
+
+-   FEATURE [code, infr, othr]: Watched Export
+    The "export" command in API/CLI gained the option "-w"/"--watch", which performs the regular
+    export and afterwards re-exports the specification on every change of a referenced artifact
+    file or an embedded asset, once the sources stayed silent for one second.
+
+-   IMPROVEMENT [code]: Specification File Set
+    The parser now records the resolved paths of the embedded assets and the "LintResult" carries
+    the resulting "files" set of the entire specification.
+
 1.0.3 (2026-08-27)
 ------------------
 
