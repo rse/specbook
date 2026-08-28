@@ -139,7 +139,8 @@
                 -   name: FRUSTRATION
                     desc: >
                         The status-quo pains and unmet needs motivating the persona, stated
-                        independently of the per-step **AS IS** pain points of the User Journey.
+                        independently of the per-step pain points of the User Journey, which
+                        record the friction within the target journey instead.
                     optional: true
 
 -   kind: SPEC
@@ -148,7 +149,9 @@
     file: 03-SPEC-UJ-User-Journey.md
     desc: >
         The end-to-end experience a user has while discovering, adopting, and using the solution,
-        mapping their steps, touchpoints, and emotions over time.
+        mapping their steps, touchpoints, and emotions over time. The journey is the *target*
+        journey with the solution in place, so the friction it records is what the solution has
+        to mitigate, not the status quo it replaces.
     diagram:
         type: grid
         nodes: "[[SPEC:UJ.JOURNEY:*]]"
@@ -191,19 +194,21 @@
                             desc: What the actor actually does at this step.
                         -   name: EMOTION
                             desc: >
-                                The **AS IS** felt state at this step, given as a word plus an
-                                intensity on a 1-5 Likert scale (e.g. `Curious (4)`).
-                            value: /^.+ \([1-5]\)$/
+                                The felt state of the actor at this step, given as a word plus its
+                                valence on a signed 5-point Likert scale from `-2` (very negative)
+                                over `0` (neutral) to `+2` (very positive), so that the emotion
+                                curve of the journey can be derived (e.g. `Curious (+1)`).
+                            value: /^.+ \((-[12]|0|\+[12])\)$/
                         -   name: PAIN-POINT
                             desc: >
-                                The **AS IS** friction or frustration the actor encounters at this
-                                step.
+                                The friction or frustration the actor encounters at this step,
+                                i.e. what the solution has to mitigate here.
                             optional: true
                         -   name: OPPORTUNITY
                             desc: >
-                                The **TO BE** improvement the solution delivers (or should deliver)
-                                at this step, resolving the pain point or reinforcing the positive
-                                emotion, and serving as the seed of Functional Requirements.
+                                The improvement the solution delivers (or should deliver) at this
+                                step, mitigating the pain point or reinforcing the positive emotion,
+                                and serving as the seed of Functional Requirements.
                             optional: true
 
 -   kind: SPEC
