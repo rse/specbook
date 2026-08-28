@@ -188,6 +188,9 @@ table.objects td:first-child { border-left: 0; }
 table.objects td:first-child { font-weight: bold; }
 table.objects th            { background-color: var(--theme-color-specbook-tint); }
 table.objects tbody tr:nth-child(even) td { background-color: var(--theme-color-specbook-stripe); }
+
+/*  keep the cells of absent property values one text line high  */
+table.objects td:empty::after { content: "\00A0"; }
 table.objects p.description,
 table.objects div.description { margin: 0; }
 table.objects div.description > :first-child { margin-top: 0; }
