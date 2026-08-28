@@ -238,14 +238,19 @@ const realtimeScript = textframe`
         const connect = () => {
             const ws = new WebSocket(url)
             ws.onopen = () => {
-                if (lost)
+                if (lost) {
+                    console.log("specbook: live preview connection re-established")
+                    lost = false
                     update()
+                }
             }
             ws.onmessage = (event) => {
                 if (event.data === "RELOAD")
                     update()
             }
             ws.onclose = () => {
+                if (!lost)
+                    console.log("specbook: live preview connection lost")
                 lost = true
                 setTimeout(connect, 1000)
             }
