@@ -199,6 +199,12 @@
                                 The **AS IS** friction or frustration the actor encounters at this
                                 step.
                             optional: true
+                        -   name: OPPORTUNITY
+                            desc: >
+                                The **TO BE** improvement the solution delivers (or should deliver)
+                                at this step, resolving the pain point or reinforcing the positive
+                                emotion, and serving as the seed of Functional Requirements.
+                            optional: true
 
 -   kind: SPEC
     name: Functional Requirements
