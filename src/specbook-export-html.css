@@ -168,7 +168,8 @@ span.value-member           { border: 1px solid var(--theme-color-specbook-borde
 table.props                 { border-collapse: collapse; margin: 0.5rem 0;
                               width: 100%; }
 table.props td              { border: 0; border-left: 1px solid var(--theme-color-specbook-border);
-                              padding: 0.3rem 0.6rem; overflow-wrap: break-word; }
+                              padding: 0.3rem 0.6rem;
+                              vertical-align: top; overflow-wrap: break-word; }
 table.props td:first-child  { border-left: 0; }
 table.props td.key          { font-weight: bold; width: 1px; white-space: nowrap;
                               background-color: var(--theme-color-specbook-tint); }
