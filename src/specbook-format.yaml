@@ -277,27 +277,42 @@
             desc: >
                 A single non-functional requirement, named with a short (3-8 word) summary and
                 described in a concise (1-3 sentence) paragraph as the quality attribute or
-                constraint the solution must satisfy, plus a 1-sentence rationale ("why").
-
-                The description especially *MUST* contain a *METRIC* within the `CATEGORY`, which
-                (according to the SMART principle) is the *specific*, *measurable*, *achievable*,
-                *relevant*, and *time-bound* threshold or target by which the requirement is judged
-                satisfied (e.g. `p95 latency < 200ms`, `99.9% uptime`).
+                constraint the solution must satisfy, stating exactly one obligation (split into
+                several requirements otherwise) which is verifiable against its `METRIC`, written
+                with exactly one keyword `MUST`, `SHOULD`, or `COULD` matching its `PRIORITY`, plus
+                a 1-sentence rationale ("why").
             props:
                 -   name: PRIORITY
                     desc: >
                         The MoSCoW priority of the requirement: `MUST`, `SHOULD`, `COULD`, or
-                        `WONT`. The `WONT` priority records a requirement deliberately excluded from
-                        the current scope ("won't have this time"), preserving the conscious
-                        decision rather than silently dropping it.
+                        `WONT`, matching the keyword of the statement. The `WONT` priority records
+                        a requirement deliberately excluded from the current scope ("won't have this
+                        time"), preserving the conscious decision rather than silently dropping it,
+                        with the statement still phrased as it would be if in scope.
                     value: enum(MUST,SHOULD,COULD,WONT)
                 -   name: CATEGORY
                     desc: >
-                        The quality attribute category the requirement addresses, according to the
-                        top-level characteristics of the ISO/IEC 25010:2023 Software-Quality Model
-                        (except for `Functional Suitability`, which is covered by the Functional
-                        Requirements instead).
-                    value: enum(Performance,Compatibility,Usability,Reliability,Security,Safety,Maintainability,Flexibility,Compliance)
+                        The category of the requirement: the quality attribute it addresses,
+                        according to the top-level characteristics of the ISO/IEC 25010:2023
+                        Software-Quality Model (except for `Functional Suitability`, which is
+                        covered by the Functional Requirements instead, and with `Usability` kept
+                        as the name of `Interaction Capability`), plus the two non-quality
+                        categories `Compliance` (a legal or regulatory obligation) and `Constraint`
+                        (a technical, business, or environmental constraint, e.g. a hosting,
+                        budget, or technology mandate).
+                    value: enum(Performance,Compatibility,Usability,Reliability,Security,Safety,Maintainability,Flexibility,Compliance,Constraint)
+                -   name: METRIC
+                    desc: >
+                        The threshold or target by which the requirement is judged satisfied,
+                        stated as a scale plus a target value according to the SMART principle
+                        (*specific*, *measurable*, *achievable*, *relevant*, and *time-bound*),
+                        e.g. `p95 latency < 200 ms` or `uptime >= 99.9 % per month`.
+                -   name: QUALIFIES
+                    desc: >
+                        Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects whose
+                        capability the requirement bounds or constrains.
+                    value: list([[SPEC:FR.*]])
+                    optional: true
 
 -   kind: SPEC
     name: Business Rules
@@ -1127,11 +1142,13 @@
                         differs from them.
 
                         The NR categories follow the ISO/IEC 25010:2023 top-level characteristics
-                        (and include `Safety` and `Flexibility`), whereas the perspective qualities
-                        decompose some of these into the finer-grained, architecturally actionable
-                        attributes `Scalability`, `Availability`, `Privacy`, `Accessibility`, and
-                        `Portability`. The quality therefore need not match the category of the
-                        requirements it addresses.
+                        (and include `Safety` and `Flexibility`) plus the non-quality categories
+                        `Compliance` and `Constraint`, whereas the perspective qualities decompose
+                        some of the characteristics into the finer-grained, architecturally
+                        actionable attributes `Scalability`, `Availability`, `Privacy`,
+                        `Accessibility`, and `Portability`, and address a `Constraint` through the
+                        quality it protects. The quality therefore need not match the category of
+                        the requirements it addresses.
                     value: enum(Performance,Scalability,Reliability,Availability,Security,Privacy,Usability,Accessibility,Maintainability,Portability,Compatibility,Compliance)
                 -   name: ADDRESSES
                     desc: >
