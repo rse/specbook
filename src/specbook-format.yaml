@@ -223,7 +223,8 @@
     file: 04-SPEC-FR-Functional-Requirements.md
     desc: >
         The concrete behaviors and capabilities the solution must provide, describing *what* the
-        system does in terms of functions, features, and operations.
+        system does in terms of functions, features, and operations, while the quality bounds and
+        constraints on them belong to the Non-Functional Requirements.
     diagram:
         type: grid
         nodes: "[[SPEC:FR.REQUIREMENT:*]]"
@@ -236,16 +237,23 @@
         -   kind: REQUIREMENT
             desc: >
                 A single functional requirement, named with a short (3-8 word) summary and described
-                in a concise (1-3 sentence) paragraph as *what* the solution must do, written with
-                the keyword `MUST`, `SHOULD`, `COULD`, or `WONT` to indicate the obligation level,
-                plus a 1-sentence rationale ("why").
+                in a concise (1-3 sentence) paragraph as *what* the solution must do, stating
+                exactly one obligation (split into several requirements otherwise) as an observable
+                behavior a test case can verify, written with exactly one keyword `MUST`, `SHOULD`,
+                or `COULD` matching its `PRIORITY`, plus a 1-sentence rationale ("why").
+
+                The statement follows one of the EARS patterns: ubiquitous (`The system MUST ...`),
+                event-driven (`When <trigger>, the system MUST ...`), state-driven (`While <state>,
+                the system MUST ...`), optional-feature (`Where <feature>, the system MUST ...`), or
+                unwanted-behavior (`If <condition>, then the system MUST ...`).
             props:
                 -   name: PRIORITY
                     desc: >
                         The MoSCoW priority of the requirement: `MUST`, `SHOULD`, `COULD`, or
-                        `WONT`. The `WONT` priority records a requirement deliberately excluded from
-                        the current scope ("won't have this time"), preserving the conscious
-                        decision rather than silently dropping it.
+                        `WONT`, matching the keyword of the statement. The `WONT` priority records
+                        a requirement deliberately excluded from the current scope ("won't have this
+                        time"), preserving the conscious decision rather than silently dropping it,
+                        with the statement still phrased as it would be if in scope.
                     value: enum(MUST,SHOULD,COULD,WONT)
 
 -   kind: SPEC

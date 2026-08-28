@@ -9,8 +9,8 @@ SPEC: Functional Requirements (FR)
 -   REQUIREMENT: User Authentication {{authentication}}; PRIORITY: MUST;
     The system MUST authenticate participants via their email address
     before showing the video stream or, at minimum, before allowing
-    participation in questions and chat, and MUST re-check that the
-    event still lists the user for access even when the user is already
+    participation in questions and chat, re-checking on every access
+    that the event still lists the user even when the user is already
     authenticated, BECAUSE access must be restricted to invited
     participants to minimize foreign viewers.
 
@@ -36,16 +36,17 @@ SPEC: Functional Requirements (FR)
     input for moderators and presenters.
 
 -   REQUIREMENT: Reply to Chat Messages {{replies}}; PRIORITY: SHOULD;
-    The system SHOULD let attendees reply to chat messages and MUST
-    allow an event to disable replies, BECAUSE threaded replies aid
+    Where replies are enabled for an event, the system SHOULD let
+    attendees reply to chat messages, BECAUSE threaded replies aid
     discussion but are not appropriate for every event format.
 
 -   REQUIREMENT: Configurable Name Appearance {{name-appearance}}; PRIORITY: MUST;
     The system MUST display an attendee's name on messages as full
     "Firstname Lastname", first name only, or anonymous per event
-    configuration, always expose the email address (at least on hover),
-    and MAY derive the name from the email if none is given, BECAUSE
-    events differ in how much attendee identity should be revealed.
+    configuration, always exposing the email address (at least on hover)
+    and optionally deriving the name from the email if none is given,
+    BECAUSE events differ in how much attendee identity should be
+    revealed.
 
 -   REQUIREMENT: Personal Display Filtering {{display-options}}; PRIORITY: SHOULD;
     The system SHOULD let an attendee choose to see only their own
@@ -60,9 +61,9 @@ SPEC: Functional Requirements (FR)
 
 -   REQUIREMENT: Server-Side Sentiment Analysis {{server-sentiment}}; PRIORITY: COULD;
     The system COULD perform configurable server-side sentiment analysis
-    that checks attendee input before it is stored, and COULD
-    auto-accept positive and auto-reject negative input, BECAUSE
-    automated triage assists moderators with high message volume.
+    that checks attendee input before it is stored, auto-accepting
+    positive and auto-rejecting negative input, BECAUSE automated triage
+    assists moderators with high message volume.
 
 -   REQUIREMENT: Edit and Delete Messages {{message-editing}}; PRIORITY: SHOULD;
     The system SHOULD let attendees edit and delete their own chat and
