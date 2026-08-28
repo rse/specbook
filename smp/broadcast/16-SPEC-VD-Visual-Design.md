@@ -5,13 +5,13 @@ Modified: 2026-06-18 10:34
 
 #   SPEC: Visual Design (VD)
 
-![](SPEC-16-VD-Visual-Design-1.png)
-![](SPEC-16-VD-Visual-Design-2.png)
-![](SPEC-16-VD-Visual-Design-3.png)
-![](SPEC-16-VD-Visual-Design-4.png)
-![](SPEC-16-VD-Visual-Design-5.png)
-![](SPEC-16-VD-Visual-Design-6.png)
-![](SPEC-16-VD-Visual-Design-7.png)
+![](16-SPEC-VD-Visual-Design-1.png)
+![](16-SPEC-VD-Visual-Design-2.png)
+![](16-SPEC-VD-Visual-Design-3.png)
+![](16-SPEC-VD-Visual-Design-4.png)
+![](16-SPEC-VD-Visual-Design-5.png)
+![](16-SPEC-VD-Visual-Design-6.png)
+![](16-SPEC-VD-Visual-Design-7.png)
 
 ##  ELEMENT: Brand Color Palette {{color-palette}}
 

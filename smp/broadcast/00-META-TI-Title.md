@@ -5,7 +5,7 @@ Modified: 2026-06-22 18:56
 
 #   META: Title (TI)
 
--   LOGO:            ![Broadcast](META-01-TI-Title-logo-{theme}.svg)
+-   LOGO:            ![Broadcast](00-META-TI-Title-logo-{theme}.svg)
 -   TITLE:           Broadcast
 -   SUBTITLE:        Requirements and Architecture Specification
 -   AUTHOR:          Dr. Ralf S. Engelschall
