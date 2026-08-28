@@ -126,16 +126,16 @@
                 -   name: ROLE
                     desc: >
                         The role of the persona.
-                -   name: GOAL
-                    desc: >
-                        What the persona wants to achieve with the solution overall, stated as one
-                        or more concise goals.
                 -   name: PROFICIENCY
                     desc: >
                         The technical and domain skill level of the persona: `novice`,
                         `intermediate`, or `expert`.
                     value: enum(novice,intermediate,expert)
                     optional: true
+                -   name: GOAL
+                    desc: >
+                        What the persona wants to achieve with the solution overall, stated as one
+                        or more concise goals.
                 -   name: FRUSTRATION
                     desc: >
                         The status-quo pains and unmet needs motivating the persona, stated
