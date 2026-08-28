@@ -68,6 +68,7 @@ const templates = {
                 <div class="theme-switch" onclick="themeSwitch()" title="switch color theme">&#x25D0;</div>
                 {{ Document.titlepage }}
                 {{ Document.toc }}
+                {{ Document.doc }}
                 {{ Document.artifacts }}
                 {% if Document.search %}<script>{{ Document.search }}</script>{% endif %}
                 {% if Document.realtime %}<script class="realtime">{{ Document.realtime }}</script>{% endif %}
@@ -105,6 +106,14 @@ const templates = {
                 <tr><td><a href="#{{ entry.id }}"><span class="object-kind">{{ entry.kind }}:</span> {{ entry.name }} <span class="link-symbol">&#x26AD;</span></a></td>{% if entry.page %}<td class="page"><a href="#{{ entry.id }}">{{ entry.page }}</a></td>{% endif %}</tr>
                 {% endfor %}
             </table>
+        </nav>
+    `,
+
+    /*  <Doc/>  */
+    "Doc": textframe`
+        <nav class="doc">
+            <h1>Diagram of Contents</h1>
+            <div class="diagram">{{ Doc.diagram }}</div>
         </nav>
     `,
 
@@ -781,10 +790,13 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     const modified = new Date(Math.max(
         ...specification.artifacts.map((artifact) => artifact.modified.getTime())))
 
-    /*  a "META: Title" object becomes the title page and leaves the regular flow  */
+    /*  a "META: Title" object becomes the title page and leaves the regular
+        flow, while its diagram becomes the "Diagram of Contents" page  */
     const title     = titlePageObject(specification)
     const artifacts = specification.artifacts
         .filter((artifact) => !artifact.objects.some(isTitleObject))
+    const meta      = titleObject(specification)
+    const doc       = meta !== undefined ? rendered?.get(meta) : undefined
     try {
         const entries = artifacts.flatMap((artifact) => artifact.objects)
             .map((object) => ({ id: anchorOf(object), kind: object.kind, name: inline(object.name),
@@ -800,6 +812,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             search:    title !== undefined ? safe(searchScript()) : "",
             realtime:  realtime ? safe(realtimeScript) : "",
             toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
+            doc:       doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",
             artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
         } })
     }

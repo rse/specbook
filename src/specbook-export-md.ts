@@ -12,6 +12,8 @@ import { specDiagrams }
     from "./specbook-diagram.js"
 import { becauseRegex }
     from "./specbook-parse-common.js"
+import { isTitleObject }
+    from "./specbook-export-common.js"
 
 /*  format a timestamp in the frontmatter format  */
 const formatTimestamp = (date: Date): string => {
@@ -115,11 +117,12 @@ export const renderMarkdown = (specification: Spec,
     config?: Schema): string => {
     /*  derive the Gradia specs of the diagram-configured objects
         (an invalid diagram situation omits the diagram, as it is
-        already reported as a lint diagnostic)  */
+        already reported as a lint diagnostic, and the diagram of
+        the title object is reserved for the HTML/PDF export)  */
     const diagrams = new Map<SpecObject, string>()
     if (config !== undefined)
         for (const [ object, result ] of specDiagrams(specification, config))
-            if (result.spec !== undefined)
+            if (result.spec !== undefined && !isTitleObject(object))
                 diagrams.set(object, result.spec)
 
     /*  the single frontmatter block (only recognized at the start of a

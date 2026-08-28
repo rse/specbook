@@ -11,6 +11,11 @@
     desc: >
         The top-level specification meta information.
         Some of the information is rendered onto the title page.
+    diagram:
+        type: graph
+        nodes: "[[SPEC:*]], [[ARCH:*]]"
+        deep: true
+        qualified: true
     props:
         -   name: LOGO
             desc: The logo of the specification.

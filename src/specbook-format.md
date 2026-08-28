@@ -85,6 +85,7 @@ type SchemaDiagram = {
     edgeTarget?:       string
     edgeArity?:        string
     hierarchy?:        boolean
+    deep?:             boolean
     onlyConnected?:    boolean
     collapse?:         boolean
     qualified?:        boolean
@@ -243,6 +244,11 @@ type SchemaGradiaConfig = Partial<{
     whether containment edges derive from the nesting (default: `false`),
     BECAUSE the nesting carries no reference and would stay invisible
 
+-   `SchemaDiagram.deep?: boolean`:
+    whether the references of the descendants of a node count as its own,
+    lifted to their nearest node and counted as the arity (default: `false`),
+    BECAUSE the relations between coarse objects live in their fine parts
+
 -   `SchemaDiagram.onlyConnected?: boolean`:
     whether a `graph` drops its edge-less nodes (default: `false`),
     BECAUSE isolated nodes dilute a diagram about relationships
@@ -335,7 +341,12 @@ type SchemaGradiaConfig = Partial<{
 
 The edges are derived from the `[[xxx]]` references of the node objects
 -- from their property values only, or, with `links: all`, from their
-descriptions as well.
+descriptions as well. With `deep: true` the references of all
+descendants of a node object count as its own, every referenced object
+is lifted to its nearest ancestor-or-self within the node set, and the
+number of references behind an edge becomes its arity, so a diagram of
+coarse objects (like the artifacts of a whole specification) shows the
+relations living in their fine-grained parts.
 
 An object acting as an edge (`edges`) connects its parent object to the
 object its target property references. Where an edge object is a sibling

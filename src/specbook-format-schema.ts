@@ -40,6 +40,7 @@ export type SchemaDiagram = {
     edgeTarget?:       string
     edgeArity?:        string
     hierarchy?:        boolean
+    deep?:             boolean
     onlyConnected?:    boolean
     collapse?:         boolean
     qualified?:        boolean
@@ -97,6 +98,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     edgeTarget:        v.optional(v.string()),
     edgeArity:         v.optional(v.string()),
     hierarchy:         v.optional(v.boolean()),
+    deep:              v.optional(v.boolean()),
     onlyConnected:     v.optional(v.boolean()),
     collapse:          v.optional(v.boolean()),
     qualified:         v.optional(v.boolean()),

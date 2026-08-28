@@ -14,6 +14,8 @@ import type { Schema }
     from "./specbook-format-schema.js"
 import { specDiagrams }
     from "./specbook-diagram.js"
+import { isTitleObject }
+    from "./specbook-export-common.js"
 
 /*  the Abstract Syntax Tree (AST) export formats  */
 export type AstFormat = "json" | "json5" | "yaml" | "toon"
@@ -32,12 +34,13 @@ export const renderAst = (specification: Spec, format: AstFormat,
     /*  attach the Gradia specs of the diagram-configured objects as
         "diagram" fields onto the corresponding plain object nodes
         (an invalid diagram situation omits the diagram, as it is
-        already reported as a lint diagnostic)  */
+        already reported as a lint diagnostic, and the diagram of
+        the title object is reserved for the HTML/PDF export)  */
     if (config !== undefined) {
         const diagrams = specDiagrams(specification, config)
         const walk = (object: SpecObject, node: PlainObject) => {
             const result = diagrams.get(object)
-            if (result?.spec !== undefined)
+            if (result?.spec !== undefined && !isTitleObject(object))
                 node.diagram = result.spec
             object.childs.forEach((child, i) => walk(child, node.childs[i]))
         }

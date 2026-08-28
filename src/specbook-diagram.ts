@@ -124,8 +124,10 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
 }
 
 /*  derive the edges of a diagram: from the "[[...]]" references of the
-    node objects (per the "links" selection) and from the edge objects by
-    convention (source: parent object, target: first reference in the
+    node objects (per the "links" selection, and for a "deep" diagram
+    also of their descendants, with every target lifted to its nearest
+    node and the reference count as the arity) and from the edge objects
+    by convention (source: parent object, target: first reference in the
     property values, name: object name, arity: "ARITY" property),
     overridable via "edgeSource"/"edgeTarget"/"edgeArity" (a "grid"
     diagram is edge-less by definition, so no edges are derived at all)  */
@@ -135,19 +137,47 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
     parents: Map<SpecObject, SpecObject | undefined>, errors: DiagramError[]): DiagramEdge[] => {
     const edges = new Array<DiagramEdge>()
     if (type !== "grid") {
+        /*  lift an object to its nearest ancestor-or-self within the
+            node set, as a "deep" diagram attributes the references of
+            the descendants to their nearest node object  */
+        const lift = (object: SpecObject | undefined): SpecObject | undefined => {
+            while (object !== undefined && !nodeSet.has(object))
+                object = parents.get(object)
+            return object
+        }
         for (const node of nodes) {
-            const texts = node.properties.map((property) => property.value)
-            if (diagram.links === "all" && node.description !== undefined) {
-                texts.push(node.description.description)
-                if (node.description.rationale !== undefined)
-                    texts.push(node.description.rationale)
+            /*  the reference-carrying objects of the node: the node itself
+                and, for a "deep" diagram, its descendants (halting at
+                the descendants which are nodes on their own)  */
+            const objects = new Array<SpecObject>()
+            const walk = (object: SpecObject) => {
+                objects.push(object)
+                if (diagram.deep === true)
+                    for (const child of object.childs)
+                        if (!nodeSet.has(child))
+                            walk(child)
             }
-            for (const text of texts)
-                for (const m of text.matchAll(referenceRegex)) {
-                    const target = resolveUnique(index, m[1].trim()).target
-                    if (target !== undefined && target !== node && nodeSet.has(target))
-                        edges.push({ source: node, target })
+            walk(node)
+            const counts = new Map<SpecObject, number>()
+            for (const object of objects) {
+                const texts = object.properties.map((property) => property.value)
+                if (diagram.links === "all" && object.description !== undefined) {
+                    texts.push(object.description.description)
+                    if (object.description.rationale !== undefined)
+                        texts.push(object.description.rationale)
                 }
+                for (const text of texts)
+                    for (const m of text.matchAll(referenceRegex)) {
+                        let target = resolveUnique(index, m[1].trim()).target
+                        if (diagram.deep === true)
+                            target = lift(target)
+                        if (target !== undefined && target !== node && nodeSet.has(target))
+                            counts.set(target, (counts.get(target) ?? 0) + 1)
+                    }
+            }
+            for (const [ target, count ] of counts)
+                edges.push({ source: node, target,
+                    arity: diagram.deep === true ? String(count) : undefined })
         }
 
         /*  resolve the node an edge object references through a named
@@ -197,6 +227,8 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
             errors.push({ reason: "\"grid\" diagram cannot carry an \"edges\" configuration" })
         if (diagram.hierarchy === true)
             errors.push({ reason: "\"grid\" diagram cannot carry a \"hierarchy\" configuration" })
+        if (diagram.deep === true)
+            errors.push({ reason: "\"grid\" diagram cannot carry a \"deep\" configuration" })
         if (diagram.onlyConnected === true)
             errors.push({ reason: "\"grid\" diagram cannot carry an \"onlyConnected\" configuration" })
     }

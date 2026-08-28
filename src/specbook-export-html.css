@@ -270,6 +270,7 @@ div.search                  { display: none; }
 /*  the search result filtering and matched word highlighting  */
 .search-hide                { display: none; }
 body.searching nav.toc,
+body.searching nav.doc,
 body.searching div.embedding { display: none; }
 mark.search-hit             { color: var(--theme-color-specbook-mark-text);
                               background-color: var(--theme-color-specbook-mark-back);
@@ -287,3 +288,7 @@ nav.toc td.page             { width: 1px; text-align: right; }
 nav.toc td.page a           { color: var(--theme-color-specbook-muted); }
 nav.toc tr:nth-child(even) td { background-color: var(--theme-color-specbook-stripe); }
 nav.toc a                   { text-decoration: none; color: var(--theme-color-specbook-text); }
+
+/*  the diagram of contents (the diagram of the title object)  */
+nav.doc                     { page-break-after: always; break-after: page; }
+nav.doc h1                  { color: var(--theme-color-specbook-accent); }

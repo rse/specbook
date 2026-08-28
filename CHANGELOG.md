@@ -5,6 +5,17 @@ ChangeLog
 1.0.4 (2026-08-28)
 ------------------
 
+-   FEATURE [code, spec, docs]: Diagram of Contents
+    The HTML/PDF export renders the diagram of the "META: Title" object on its own "Diagram of
+    Contents" page directly after the Table of Contents (while the MD/AST exports suppress this
+    diagram), and the standard schema configures such a "graph" diagram over all "SPEC" and "ARCH"
+    artifacts, connected by the references living in their nested objects.
+
+-   FEATURE [code, docs]: Deep Diagram Edges
+    The new diagram option "deep" derives the edges of a node from the "[[...]]" references of its
+    descendants, too, lifting every referenced object to its nearest node and rendering the number
+    of references as the edge arity.
+
 -   FEATURE [code, infr, othr]: Live Preview
     The new "preview" command in API/CLI serves the HTML export via Fastify on
     "http://<ip-addr>:<tcp-port>/" (options "-a"/"--addr" and "-p"/"--port", default
