@@ -395,6 +395,8 @@ the columns of the compact tables below the object (wider groups chunk
 their properties into embedded per-object tables), and `withUnusedProps`
 (default: `false`) unconditionally renders the defined but unused
 properties of that kind, as empty property table lines or table columns.
+Property lines and table columns follow the property order of the
+schema, with properties unknown to the schema appended in document order.
 Objects collapsed into tables carry no headings and hence leave the
 table of contents and the PDF outline.
 

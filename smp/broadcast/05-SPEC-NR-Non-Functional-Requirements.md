@@ -31,8 +31,8 @@ SPEC: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Provider Failover Continuity {{failover}};
     PRIORITY: MUST; CATEGORY: Reliability;
-    METRIC: all attendee clients on the fallback provider within 10 seconds;
     QUALIFIES: [[FR.provider-switch]];
+    METRIC: all attendee clients on the fallback provider within 10 seconds;
     The system MUST switch to a fallback streaming provider during a
     running event with attendee clients following the switch
     automatically within seconds and without user interaction, BECAUSE
@@ -40,16 +40,16 @@ SPEC: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Cross-Browser Compatibility {{browser-compat}};
     PRIORITY: MUST; CATEGORY: Compatibility;
-    METRIC: the last 2 major versions of Chrome, Edge, Firefox, and Safari;
     QUALIFIES: [[FR.browser-access]];
+    METRIC: the last 2 major versions of Chrome, Edge, Firefox, and Safari;
     The system MUST run in any reasonably recent version of the major
     web browsers (Chrome, Edge, Firefox, Safari) without plugins,
     BECAUSE attendees use heterogeneous managed and unmanaged devices.
 
 -   REQUIREMENT: GDPR Compliance {{gdpr}};
     PRIORITY: MUST; CATEGORY: Compliance;
-    METRIC: 100 % of personal data processed and hosted within the EU;
     QUALIFIES: [[FR.gdpr-eu]];
+    METRIC: 100 % of personal data processed and hosted within the EU;
     The system MUST process all personal data in compliance with GDPR
     and host it exclusively within the EU (data center in Nürnberg,
     Germany), BECAUSE the operator is legally bound to European
@@ -65,8 +65,8 @@ SPEC: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Unguessable Access Tokens {{token-strength}};
     PRIORITY: MUST; CATEGORY: Security;
-    METRIC: token expiry <= 5 minutes by default;
     QUALIFIES: [[FR.individual-url]], [[FR.automatic-url]];
+    METRIC: token expiry <= 5 minutes by default;
     The system MUST use unguessable event URLs and time-limited
     authorization tokens that by default expire within 5 minutes,
     BECAUSE weak access secrets would let unauthorized viewers join the
@@ -74,8 +74,8 @@ SPEC: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Live Configuration Latency {{config-latency}};
     PRIORITY: SHOULD; CATEGORY: Performance;
-    METRIC: propagation to all connected clients <= 2 seconds;
     QUALIFIES: [[FR.config-propagation]];
+    METRIC: propagation to all connected clients <= 2 seconds;
     The system SHOULD propagate an event configuration change to all
     connected clients within 2 seconds, BECAUSE operators expect toggles
     such as enabling chat to take effect near-instantly for the live
@@ -92,16 +92,16 @@ SPEC: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Interaction Abuse Throttling {{throttling}};
     PRIORITY: SHOULD; CATEGORY: Security;
-    METRIC: <= 10 submissions per user per minute by default, configurable per event;
     QUALIFIES: [[FR.chat]], [[FR.questions]];
+    METRIC: <= 10 submissions per user per minute by default, configurable per event;
     The system SHOULD throttle chat and question submissions to a
     configurable maximum per user per minute, BECAUSE rate limiting
     prevents denial-of-service abuse of the interaction channels.
 
 -   REQUIREMENT: Mobile Usability {{mobile-usability}};
     PRIORITY: COULD; CATEGORY: Usability;
-    METRIC: attendee screens fully usable at 360 px viewport width in portrait and landscape;
     QUALIFIES: [[FR.mobile]];
+    METRIC: attendee screens fully usable at 360 px viewport width in portrait and landscape;
     The system COULD render the attendee experience responsively for
     mobile phones in landscape and portrait orientation, BECAUSE a
     substantial share of attendees join from mobile devices.

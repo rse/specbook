@@ -505,31 +505,34 @@ const formatOf = (object: SpecObject): SchemaFormat | undefined =>
 const maxColumnsOf = (object: SpecObject): number =>
     Math.max(2, formatOf(object)?.maxTableColumns ?? 4)
 
-/*  determine the effective properties of an object, with
-    "withUnusedProps" injecting the defined but still unused schema
-    properties (in schema order) as empty key/value entries  */
+/*  determine the effective properties of an object in schema order
+    (unknown keys appended in document order), with "withUnusedProps"
+    injecting the defined but still unused schema properties as empty
+    key/value entries  */
 const effectiveProperties = (object: SpecObject): SpecProperty[] => {
     const schema = schemas?.get(object)
-    if (schema?.format?.withUnusedProps !== true)
+    if (schema === undefined)
         return object.properties
+    const unused = schema.format?.withUnusedProps === true
     const merged = (schema.props ?? []).flatMap((prop) => {
         const present = object.properties.filter((property) => property.key === prop.name)
-        return present.length > 0 ? present : [ { key: prop.name, value: "" } ]
+        return present.length > 0 ? present : (unused ? [ { key: prop.name, value: "" } ] : [])
     })
     return [ ...merged, ...object.properties.filter((property) => !merged.includes(property)) ]
 }
 
-/*  determine the column shape of a potential compact table, with
+/*  determine the column shape of a potential compact table in schema
+    order (unknown keys appended in occurrence order), with
     "withUnusedProps" injecting the defined but still unused schema
-    properties (in schema order) as additional columns  */
+    properties as additional columns  */
 const tableShape = (childs: SpecObject[]) => {
-    let keys = [ ...new Set(childs.flatMap((child) =>
+    const used   = [ ...new Set(childs.flatMap((child) =>
         child.properties.map((property) => property.key))) ]
     const schema = schemas?.get(childs[0])
-    if (schema?.format?.withUnusedProps === true) {
-        const names = (schema.props ?? []).map((prop) => prop.name)
-        keys = [ ...names, ...keys.filter((key) => !names.includes(key)) ]
-    }
+    const names  = (schema?.props ?? []).map((prop) => prop.name)
+    const known  = schema?.format?.withUnusedProps === true ?
+        names : names.filter((name) => used.includes(name))
+    const keys   = [ ...known, ...used.filter((key) => !names.includes(key)) ]
     return { keys, desc: childs.some((child) =>
         child.description !== undefined || child.childs.length > 0) }
 }

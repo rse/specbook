@@ -263,6 +263,8 @@
     desc: >
         The quality attributes and constraints the solution must satisfy, such as performance,
         security, scalability, reliability, and usability.
+    format:
+        maxTableColumns: 6
     diagram:
         type: grid
         nodes: "[[SPEC:NR.REQUIREMENT:*]]"
@@ -301,18 +303,18 @@
                         (a technical, business, or environmental constraint, e.g. a hosting,
                         budget, or technology mandate).
                     value: enum(Performance,Compatibility,Usability,Reliability,Security,Safety,Maintainability,Flexibility,Compliance,Constraint)
-                -   name: METRIC
-                    desc: >
-                        The threshold or target by which the requirement is judged satisfied,
-                        stated as a scale plus a target value according to the SMART principle
-                        (*specific*, *measurable*, *achievable*, *relevant*, and *time-bound*),
-                        e.g. `p95 latency < 200 ms` or `uptime >= 99.9 % per month`.
                 -   name: QUALIFIES
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects whose
                         capability the requirement bounds or constrains.
                     value: list([[SPEC:FR.*]])
                     optional: true
+                -   name: METRIC
+                    desc: >
+                        The threshold or target by which the requirement is judged satisfied,
+                        stated as a scale plus a target value according to the SMART principle
+                        (*specific*, *measurable*, *achievable*, *relevant*, and *time-bound*),
+                        e.g. `p95 latency < 200 ms` or `uptime >= 99.9 % per month`.
 
 -   kind: SPEC
     name: Business Rules
