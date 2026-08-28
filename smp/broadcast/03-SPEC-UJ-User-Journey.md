@@ -41,7 +41,7 @@ JOURNEY: Attend a Broadcast event {{attend}}
 
 ### STEP: Watch stream and interact {{participate}}
 
--   STAGE:       Onboarding
+-   STAGE:       Usage
 -   GOAL:        Follow the event and contribute questions, chat, and likes
 -   TOUCHPOINT:  Main attendee screen with video and interaction sidebar
 -   ACTION:      The attendee watches the stream, posts questions or chat messages, and likes others' messages.
@@ -56,7 +56,7 @@ JOURNEY: Operate a Broadcast Event {{operate}}
 
 ### STEP: Configure and run the event {{configure}}
 
--   STAGE:       Onboarding
+-   STAGE:       Usage
 -   GOAL:        Set up, start, and control an event end-to-end
 -   TOUCHPOINT:  Manager configuration screen and Ventari Excel import/export
 -   ACTION:      The manager imports attendees, configures channels and options, and starts the event.
@@ -66,7 +66,7 @@ JOURNEY: Operate a Broadcast Event {{operate}}
 
 ### STEP: Export anonymized results after event {{export}}
 
--   STAGE:       Advocacy
+-   STAGE:       Usage
 -   GOAL:        Capture and share the event's interaction outcomes
 -   TOUCHPOINT:  Manager export function producing a downloadable file
 -   ACTION:      The manager exports anonymized messages with timestamps, states, and like counts.
@@ -79,7 +79,7 @@ JOURNEY: Moderate a Broadcast Event {{moderate}}
 
 ### STEP: Moderate and support the presenter {{support}}
 
--   STAGE:       Retention
+-   STAGE:       Usage
 -   GOAL:        Keep interaction clean and forward the best questions to the presenter
 -   TOUCHPOINT:  Moderator Kanban board of chat and question messages
 -   ACTION:      The moderator approves, rejects, and forwards messages and sends hints to the presenter.

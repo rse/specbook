@@ -180,10 +180,11 @@
                                 aware of the solution, but has a need), `Consideration` (the actor
                                 is aware of the solution and considers its use), `Decision` (the
                                 actor wants to pick the solution), `Onboarding` (the actor starts
-                                using the solution), `Retention` (the actor stays a user in the long
-                                term), or `Advocacy` (the actor is a fan of the solution and tells
-                                others).
-                            value: enum(Awareness,Consideration,Decision,Onboarding,Retention,Advocacy)
+                                using the solution for the first time), `Usage` (the actor performs
+                                the recurring core activity the solution is for), `Retention` (the
+                                actor returns, renews, or extends use over the long term), or
+                                `Advocacy` (the actor is a fan of the solution and tells others).
+                            value: enum(Awareness,Consideration,Decision,Onboarding,Usage,Retention,Advocacy)
                         -   name: GOAL
                             desc: What the actor wants to achieve at this step.
                         -   name: TOUCHPOINT
