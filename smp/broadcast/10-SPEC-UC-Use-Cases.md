@@ -10,6 +10,7 @@ USE-CASE: Join Event and Watch Stream {{join-event}}
 -------------------------------------
 
 -   ACTOR:          [[PERSONA:attendee]]
+-   JOURNEY:        [[STEP:arrival]], [[STEP:authenticate]], [[STEP:participate]]
 -   REQUIREMENTS:   [[FR.authentication]], [[FR.individual-url]], [[FR.user-consent]], [[FR.parallel-access]]
 -   GOAL:           Authenticate and watch the live video stream of an event.
 -   PRE-CONDITION:  The attendee holds an event URL and their email is granted access.
@@ -54,6 +55,7 @@ USE-CASE: Ask a Question {{ask-question}}
 ------------------------
 
 -   ACTOR:          [[PERSONA:attendee]]
+-   JOURNEY:        [[STEP:participate]]
 -   REQUIREMENTS:   [[FR.questions]], [[FR.question-tags]], [[FR.moderation]]
 -   GOAL:           Submit a question for the Q&A round.
 -   PRE-CONDITION:  The attendee has an active session and questions are enabled.
@@ -93,6 +95,7 @@ USE-CASE: Moderate and Forward Messages {{moderate}}
 ---------------------------------------
 
 -   ACTOR:          [[PERSONA:moderator-qa]]
+-   JOURNEY:        [[STEP:support]]
 -   REQUIREMENTS:   [[FR.moderation]], [[FR.forward-presenter]], [[FR.sort-filter]], [[FR.presenter-hints]]
 -   GOAL:           Approve, reject, and forward attendee input to the presenter.
 -   PRE-CONDITION:  The event is running and the moderator has the Moderator role.
@@ -123,6 +126,7 @@ USE-CASE: Switch Streaming Provider {{switch-provider}}
 -----------------------------------
 
 -   ACTOR:          [[PERSONA:manager]]
+-   JOURNEY:        [[STEP:configure]]
 -   REQUIREMENTS:   [[FR.multi-provider]], [[FR.provider-switch]], [[FR.config-propagation]]
 -   GOAL:           Change the active streaming provider during a running event.
 -   PRE-CONDITION:  The event runs and the channel has multiple configured resources.
@@ -145,6 +149,7 @@ USE-CASE: Create Event from Ventari Import {{create-event}}
 ------------------------------------------
 
 -   ACTOR:          [[PERSONA:manager]]
+-   JOURNEY:        [[STEP:configure]]
 -   REQUIREMENTS:   [[FR.ventari-import]], [[FR.ventari-export]], [[FR.event-portability]]
 -   GOAL:           Provision an event's attendees and return their access URLs.
 -   PRE-CONDITION:  The manager has a Ventari Excel sheet and an event to populate.
@@ -167,6 +172,7 @@ USE-CASE: Export Anonymized Event Data {{export-data}}
 --------------------------------------
 
 -   ACTOR:          [[PERSONA:manager]]
+-   JOURNEY:        [[STEP:export]]
 -   REQUIREMENTS:   [[FR.export-inputs]], [[FR.event-stats]]
 -   GOAL:           Obtain the recorded interaction of a finished event.
 -   PRE-CONDITION:  The event has finished and the manager retains the Manager role.

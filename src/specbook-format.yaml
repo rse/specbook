@@ -523,7 +523,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[SPEC:UC.USE-CASE:*]], [[SPEC:UP.PERSONA:*]], [[SPEC:FR.REQUIREMENT:*]]"
+                nodes: "[[SPEC:UC.USE-CASE:*]], [[SPEC:UP.PERSONA:*]], [[SPEC:UJ.JOURNEY:*.STEP:*]], [[SPEC:FR.REQUIREMENT:*]]"
                 qualified: true
                 config:
                     size-node-width-max: 440
@@ -533,6 +533,12 @@
                         Reference to the PERSONAS object denoting the primary actor pursuing the
                         goal.
                     value: "[[SPEC:UP.PERSONA:*]]"
+                -   name: JOURNEY
+                    desc: >
+                        Comma-separated references to the User Journey STEP objects the use case
+                        covers, tracing the journey into the use cases.
+                    value: list([[SPEC:UJ.JOURNEY:*.STEP:*]])
+                    optional: true
                 -   name: REQUIREMENTS
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects the use
