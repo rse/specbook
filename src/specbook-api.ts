@@ -13,6 +13,7 @@ import { initSpecification }                             from "./specbook-cmd-in
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
 import { exportSpecification, watchSpecification, parseOutputSpec, formats,
     type ExportFormat }                                  from "./specbook-cmd-export.js"
+import { servePreview, previewAddr, previewPort }        from "./specbook-cmd-preview.js"
 import { describeFormat, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
     type DescribeFormat, type DescribePart }             from "./specbook-cmd-describe.js"
 import { requireBrowser }                                from "./specbook-export-pdf.js"
@@ -22,6 +23,7 @@ import { type Schema }                                   from "./specbook-format
 /*  re-export the central types for API consumers  */
 export { literal, renderVerbose, type Verbose, type VerboseLevel }
 export { formats, parseOutputSpec, type ExportFormat }
+export { previewAddr, previewPort }
 export { describeFormats, describeParts, parseDescribeFormat, parseDescribePart }
 export { type DescribeFormat, type DescribePart }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic }
@@ -95,9 +97,10 @@ export class SpecBook {
 
     /*  render an already parsed specification into the requested formats
         (strict: any diagnostic prevents the export, as a partial or
-        invalid specification must never be emitted)  */
+        invalid specification must never be emitted), where "realtime"
+        injects the client-side script of the live preview into the HTML  */
     private async renderFormats (result: LintResult, formats: ExportFormat[],
-        verbose: Verbose): Promise<Buffer[]> {
+        verbose: Verbose, realtime: boolean): Promise<Buffer[]> {
         if (result.diagnostics.length > 0)
             throw new Error("invalid specification:\n" +
                 result.diagnostics.map(renderDiagnostic).join("\n"))
@@ -106,7 +109,7 @@ export class SpecBook {
         const buffers = new Array<Buffer>()
         for (const format of formats)
             buffers.push(await exportSpecification(result.specification, format,
-                verbose, result.config))
+                verbose, result.config, realtime))
         return buffers
     }
 
@@ -114,7 +117,8 @@ export class SpecBook {
         as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown,
         parsing the input just once and returning one buffer per
         requested format  */
-    async export (options: { config?: string, basedir?: string, formats?: ExportFormat[] }): Promise<Buffer[]> {
+    async export (options: { config?: string, basedir?: string, formats?: ExportFormat[],
+        realtime?: boolean }): Promise<Buffer[]> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
 
@@ -124,23 +128,21 @@ export class SpecBook {
             await requireBrowser(verbose)
 
         return this.renderFormats(lint({ config: this.configFile(options.config),
-            basedir: options.basedir ?? ".", verbose }), requested, verbose)
+            basedir: options.basedir ?? ".", verbose }), requested, verbose,
+        options.realtime === true)
     }
 
-    /*  export the specification like "export" and then keep the export in
-        sync with its sources: every change of an artifact file or of one
+    /*  keep an export in sync with its sources (the shared core of
+        "watch" and "preview"): every change of an artifact file or of one
         of its embedded assets re-exports the specification and hands the
         buffers to "onExport" once the sources fell silent again. A failed
         re-export is reported and leaves the observe loop intact, so a
         transiently invalid specification does not end the watch. The
         returned promise settles once the initial export is done, while
         the active watcher keeps the process alive afterwards  */
-    async watch (options: { config?: string, basedir?: string, formats?: ExportFormat[],
-        onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
-        const verbose   = this.verboseOf("export")
-        const requested = options.formats ?? [ "json" ]
-        if (requested.includes("pdf"))
-            await requireBrowser(verbose)
+    private async observe (options: { config?: string, basedir?: string, formats: ExportFormat[],
+        realtime: boolean, onExport: (buffers: Buffer[]) => void | Promise<void> },
+    verbose: Verbose): Promise<void> {
         return watchSpecification(async () => {
             /*  the lint result carries the files to observe even for an
                 invalid specification, so a failing export still keeps the
@@ -148,7 +150,8 @@ export class SpecBook {
             const result = lint({ config: this.configFile(options.config),
                 basedir: options.basedir ?? ".", verbose })
             try {
-                await options.onExport(await this.renderFormats(result, requested, verbose))
+                await options.onExport(await this.renderFormats(result, options.formats,
+                    verbose, options.realtime))
             }
             catch (err) {
                 verbose("export failed: " +
@@ -156,6 +159,33 @@ export class SpecBook {
             }
             return result.files
         }, verbose)
+    }
+
+    /*  export the specification like "export" and then keep the export
+        in sync with its sources (see "observe")  */
+    async watch (options: { config?: string, basedir?: string, formats?: ExportFormat[],
+        realtime?: boolean, onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
+        const verbose   = this.verboseOf("export")
+        const requested = options.formats ?? [ "json" ]
+        if (requested.includes("pdf"))
+            await requireBrowser(verbose)
+        return this.observe({ ...options, formats: requested,
+            realtime: options.realtime === true }, verbose)
+    }
+
+    /*  serve the HTML export of the specification as a live preview on
+        "http://<addr>:<port>/": the export is kept in sync with its
+        sources (see "observe") and every fresh export is pushed to the
+        connected browsers as an in-place document update, through the
+        client-side script the "realtime" export injects into the HTML  */
+    async preview (options: { config?: string, basedir?: string, addr?: string,
+        port?: number }): Promise<void> {
+        const verbose = this.verboseOf("preview")
+        const server  = await servePreview({ addr: options.addr ?? previewAddr,
+            port: options.port ?? previewPort, verbose })
+        return this.observe({ config: options.config, basedir: options.basedir,
+            formats: [ "html" ], realtime: true,
+            onExport: ([ html ]) => server.update(html) }, verbose)
     }
 
     /*  describe the generic SpecBook models and formats as Markdown (or

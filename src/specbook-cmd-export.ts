@@ -108,12 +108,14 @@ export const watchSpecification = async (
     })
 }
 
-/*  export a specification into the requested format  */
+/*  export a specification into the requested format, where "realtime"
+    injects the client-side script of the live preview into the HTML  */
 export const exportSpecification = async (
     specification:   Spec,
     format:          ExportFormat,
     verbose:         Verbose,
-    config?:         Schema
+    config?:         Schema,
+    realtime         = false
 ): Promise<Buffer> => {
     if (!formats.includes(format))
         throw new Error(`unknown export format "${format}"`)
@@ -141,7 +143,7 @@ export const exportSpecification = async (
     const css    = themeStylesheet(colors) + await subsetStylesheet(charset) + paperStylesheet(paper)
     if (format === "html") {
         /*  compress the rendered HTML (whitespace, comments, and inline CSS/JS)  */
-        const html     = await renderHtml(specification, config, undefined, css)
+        const html     = await renderHtml(specification, config, undefined, css, realtime)
         const minified = await minify(Buffer.from(html, "utf8"), {
             collapseWhitespaces: "smart",
             removeComments:      true,

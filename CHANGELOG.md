@@ -5,6 +5,14 @@ ChangeLog
 1.0.4 (2026-08-28)
 ------------------
 
+-   FEATURE [code, infr, othr]: Live Preview
+    The new "preview" command in API/CLI serves the HTML export via Fastify on
+    "http://<ip-addr>:<tcp-port>/" (options "-a"/"--addr" and "-p"/"--port", default
+    "127.0.0.1:12345"), re-exports the specification on every source change like "export --watch",
+    and sends "RELOAD" to all connected WebSocket clients, which the client-side script of the new
+    "realtime" option of the API "export"/"watch" methods turns into an in-place document update
+    which keeps the scroll position and the theme choice.
+
 -   FEATURE [code, infr, othr]: Watched Export
     The "export" command in API/CLI gained the option "-w"/"--watch", which performs the regular
     export and afterwards re-exports the specification on every change of a referenced artifact

@@ -13,8 +13,8 @@ About
 format* which can be configured for the specifications of particular
 contexts through a YAML-based *schema configuration*. SpecBook allows
 specifications to be *initialized*, *linted*, *exported* (JSON, JSON5,
-YAML, TOON, HTML, PDF, and normalized Markdown), and *described* to
-LLMs.
+YAML, TOON, HTML, PDF, and normalized Markdown), *previewed* (HTML, live
+in the browser), and *described* to LLMs.
 
 **SpecBook** ships with an API class with methods `<xxx>()`, a
 CLI with commands `specbook <xxx>`, and an MCP service with tools
@@ -123,7 +123,8 @@ export class SpecBook {
     export (options: {
         config?:  string,
         basedir?: string,
-        formats?: ExportFormat[]   /*  requested output formats (default: [ "json" ])  */
+        formats?: ExportFormat[],  /*  requested output formats (default: [ "json" ])  */
+        realtime?: boolean         /*  inject the live preview script into the HTML  */
     }): Promise<Buffer[]>
 
     /*  export the specification like "export" and then keep it in sync by
@@ -133,7 +134,17 @@ export class SpecBook {
         config?:  string,
         basedir?: string,
         formats?: ExportFormat[],
+        realtime?: boolean,
         onExport: (buffers: Buffer[]) => void | Promise<void>
+    }): Promise<void>
+
+    /*  serve the HTML export as a live preview on "http://<addr>:<port>/",
+        kept in sync like "watch" and updated in the browser on every change  */
+    preview (options: {
+        config?:  string,
+        basedir?: string,
+        addr?:    string,          /*  listening IP address (default: "127.0.0.1")  */
+        port?:    number           /*  listening TCP port (default: 12345)  */
     }): Promise<void>
 
     /*  describe the SpecBook models and formats, optionally pointing to
@@ -266,6 +277,13 @@ $ specbook export \
   [-w|--watch] \
   [...]
 
+$ specbook preview \
+  [-v|--verbose] \
+  [-c|--config <schema-yaml-file>] \
+  [-b|--basedir <spec-md-file-basedir>] \
+  [-a|--addr <ip-addr>] \
+  [-p|--port <tcp-port>]
+
 $ specbook describe \
   [-v|--verbose] \
   [-c|--config <schema-yaml-file>] \
@@ -317,6 +335,15 @@ Options:
     end the watch. The outputs have to be regular files, as `-` (stdout)
     cannot receive a repeated export.
 
+-   `-a|--addr <ip-addr>`, `-p|--port <tcp-port>` (`preview` only):
+    The IP address (default: `127.0.0.1`) and TCP port (default: `12345`)
+    the live preview listens on. The HTML export is served on
+    `http://<ip-addr>:<tcp-port>/`, kept in sync with its sources exactly
+    like `export --watch`, and updated in the browser after every change
+    through a WebSocket connection the served page keeps open, where the
+    document is replaced in place, so the scroll position survives (a
+    failed re-export keeps the previous HTML in place).
+
 -   `-o|--output <output-file>` (`describe` only):
     The output file (default: `-` for stdout) receives the described
     Markdown document.
@@ -341,7 +368,8 @@ Options:
 The default value of every CLI option `--xxx` can be overridden
 by a corresponding `SPECBOOK_XXX` environment variable (e.g.
 `SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_OUTPUT`,
-`SPECBOOK_VERBOSE`), while an explicitly supplied option always wins.
+`SPECBOOK_VERBOSE`, `SPECBOOK_ADDR`, `SPECBOOK_PORT`), while an
+explicitly supplied option always wins.
 
 Example:
 

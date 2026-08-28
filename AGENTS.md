@@ -6,7 +6,8 @@ Ralf S. Engelschall* for a generic, Markdown-based *specification
 format*, which is configured for particular contexts through a YAML
 *schema configuration*. SpecBook allows specifications to be
 *initialized*, *linted*, *exported* (JSON, JSON5, YAML, TOON, HTML, PDF,
-and normalized Markdown), and *described* -- through an API class
+and normalized Markdown), *previewed* (HTML, live in the browser), and
+*described* -- through an API class
 `SpecBook`, a CLI `specbook <cmd>`, and an MCP service `specbook mcp`
 with tools `specbook_<cmd>`, where CLI and MCP are based entirely on the
 API.
@@ -18,8 +19,10 @@ API.
     -   `src/specbook-cli.ts`: the Commander-based CLI (thin wrapper over the API)
     -   `src/specbook-mcp.ts`: the MCP stdio service (thin wrapper over the API)
     -   `src/specbook-cmd-*.ts`: one module per command
-        (`init`, `lint`, `export`, `describe`);
+        (`init`, `lint`, `export`, `preview`, `describe`);
         `export` dispatches onto the format renderers in `src/specbook-export-*.ts`;
+        `preview` is the Fastify-based HTTP/WebSocket server of the live
+        HTML preview, fed by the watch mechanism of `export`;
         `describe` emits `src/specbook-format.md`, the static description of
         the SpecBook models and formats
     -   `src/specbook-export-common.ts`: cross-renderer helpers
@@ -84,11 +87,12 @@ No test target is defined.
 specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-w] [-o [<format>:]<output-file>] [...]
+specbook preview  [-v] [-c <yaml-file>] [-b <basedir>] [-a <ip-addr>] [-p <tcp-port>]
 specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-f <format>] [-p <part>] [-o <markdown-file>]
 specbook mcp      [-v]
 ```
 
-The YAML schema configuration of `init`, `lint`, and `export` falls back
+The YAML schema configuration of `init`, `lint`, `export`, and `preview` falls back
 onto the bundled standard one (`src/specbook-format.yaml`, copied to
 `dst/` at build time), while `describe` references the given one only
 and falls back onto the standard one by embedding it verbatim.
@@ -106,6 +110,22 @@ observes the referenced artifact files and their embedded assets,
 re-exporting once a change burst stayed silent for one second, where a
 failed re-export is reported but leaves the observe loop intact and where
 `-` (stdout) is rejected as an output.
+The `preview` command serves the HTML export as a live preview through
+Fastify on `http://<ip-addr>:<tcp-port>/` (`-a`/`--addr`, default
+`127.0.0.1`, and `-p`/`--port`, default `12345`): it observes the
+sources exactly like `export --watch`, keeps the HTML export in memory
+(a failed re-export keeps the previous one, and before the first
+successful export a GET answers `503`), and sends the string `RELOAD` to
+all connected WebSocket clients (on `/`, too) after every re-export. The
+served HTML is exported with the API-only `realtime` option of
+`export`/`watch`, which injects a client-side script connecting back to
+the page URL with the scheme `http`/`https` replaced by `ws`/`wss`,
+re-connecting every second after a lost connection, and updating the
+page on `RELOAD` and on every re-established connection: the fresh page
+is fetched and the document replaced in place (title, changed
+stylesheet, body, with the body scripts re-executed), so the scroll
+position and the theme choice survive the update. There is no `preview`
+MCP tool, as it is a long-running server.
 The `describe` command outputs `src/specbook-format.md` verbatim,
 followed by a "SpecBook Project Instantiation" section pointing to the
 YAML schema configuration (`-c`, falling back onto the embedded standard

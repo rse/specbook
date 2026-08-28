@@ -70,6 +70,7 @@ const templates = {
                 {{ Document.toc }}
                 {{ Document.artifacts }}
                 {% if Document.search %}<script>{{ Document.search }}</script>{% endif %}
+                {% if Document.realtime %}<script class="realtime">{{ Document.realtime }}</script>{% endif %}
             </body>
         </html>
     `,
@@ -197,6 +198,61 @@ const templates = {
         </table>
     `
 }
+
+/*  the client-side script of the live preview: it connects back to the
+    own page over WebSocket (the URL scheme "http"/"https" replaced with
+    "ws"/"wss"), re-connects every second after a lost connection, and
+    updates the page on a received "RELOAD" command as well as on every
+    re-established connection (as the server was restarted meanwhile).
+    The update fetches the fresh page and replaces the document in place
+    -- instead of reloading the page -- so the scroll position and the
+    theme choice survive: the title, the stylesheet (if changed), and
+    the body are swapped, and the scripts of the fresh body re-executed
+    through clones (as parsed scripts never execute), except this
+    realtime script itself, whose connection stays alive  */
+const realtimeScript = textframe`
+    (function () {
+        const url = window.location.protocol.replace(/^http/, "ws") + "//" +
+            window.location.host + window.location.pathname
+        const update = async () => {
+            const response = await fetch(window.location.pathname, { cache: "no-store" })
+            if (!response.ok)
+                return
+            const doc = new DOMParser().parseFromString(await response.text(), "text/html")
+            const x = window.scrollX
+            const y = window.scrollY
+            document.title = doc.title
+            const style = document.head.querySelector("style")
+            const fresh = doc.head.querySelector("style")
+            if (style !== null && fresh !== null && style.textContent !== fresh.textContent)
+                style.replaceWith(fresh)
+            document.body.replaceWith(doc.body)
+            for (const script of document.body.querySelectorAll("script:not(.realtime)")) {
+                const clone = document.createElement("script")
+                clone.textContent = script.textContent
+                script.replaceWith(clone)
+            }
+            window.scrollTo(x, y)
+        }
+        let lost = false
+        const connect = () => {
+            const ws = new WebSocket(url)
+            ws.onopen = () => {
+                if (lost)
+                    update()
+            }
+            ws.onmessage = (event) => {
+                if (event.data === "RELOAD")
+                    update()
+            }
+            ws.onclose = () => {
+                lost = true
+                setTimeout(connect, 1000)
+            }
+        }
+        connect()
+    })()
+`
 
 /*  ==== Rendering ====  */
 
@@ -660,10 +716,11 @@ const titlePageObject = (specification: Spec): SpecObject | undefined => {
 
 /*  render the entire specification into a self-contained HTML document,
     with the build-time pre-assembled stylesheet embedded inline, the
-    artifact timestamps aggregated into min(Created)/max(Modified), and
-    optional per-anchor page numbers attached to the ToC entries  */
-export const renderHtml = async (specification: Spec,
-    config?: Schema, tocPages?: Map<string, number>, css?: string): Promise<string> => {
+    artifact timestamps aggregated into min(Created)/max(Modified),
+    optional per-anchor page numbers attached to the ToC entries, and
+    optionally the client-side script of the live preview injected  */
+export const renderHtml = async (specification: Spec, config?: Schema,
+    tocPages?: Map<string, number>, css?: string, realtime = false): Promise<string> => {
     /*  pre-render the configured diagrams as embeddable SVGs (a runtime
         rendering failure omits the diagram, as the statically detectable
         invalid situations are already reported as lint diagnostics),
@@ -736,6 +793,7 @@ export const renderHtml = async (specification: Spec,
                 safe(renderTitlePage(title,
                     formatDate(created), formatDate(modified))) : "",
             search:    title !== undefined ? safe(searchScript()) : "",
+            realtime:  realtime ? safe(realtimeScript) : "",
             toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
             artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
         } })

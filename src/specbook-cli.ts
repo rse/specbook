@@ -10,7 +10,8 @@ import { Command, CommanderError } from "commander"
 import chalk                       from "chalk"
 
 import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, renderVerbose, literal,
-    parseOutputSpec, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
+    parseOutputSpec, previewAddr, previewPort, describeFormats, describeParts,
+    parseDescribeFormat, parseDescribePart,
     version, type VerboseSink, type VerboseLevel } from "./specbook-api.js"
 import { serveMcp }        from "./specbook-mcp.js"
 
@@ -169,6 +170,21 @@ withCommonOptions(program.command("export"))
         else
             await write(await specbook.export({ config: opts.config, basedir: opts.basedir,
                 formats: distinct }))
+    })
+
+/*  the preview command serves the HTML export live in the browser  */
+withCommonOptions(program.command("preview"))
+    .description("serve the HTML export of the specification Markdown files below the base " +
+        "directory as a live preview, re-exported and reloaded on every source change")
+    .option("-a, --addr <ip-addr>",  "IP address to listen on", envDefault("addr", previewAddr))
+    .option("-p, --port <tcp-port>", "TCP port to listen on",   envDefault("port", String(previewPort)))
+    .action(async (opts: { verbose: boolean, config?: string, basedir: string,
+        addr: string, port: string }) => {
+        const port = Number(opts.port)
+        if (!Number.isInteger(port))
+            throw new Error(`invalid TCP port "${opts.port}"`)
+        const specbook = new SpecBook({ verbose: verboseOf(opts) })
+        await specbook.preview({ config: opts.config, basedir: opts.basedir, addr: opts.addr, port })
     })
 
 /*  the describe command also describes the generic SpecBook models and

@@ -37,6 +37,8 @@
         "commander":                       "15.0.0",
         "chalk":                           "6.0.0",
         "chokidar":                        "5.0.0",
+        "fastify":                         "5.12.1",
+        "@fastify/websocket":              "11.3.0",
         "@modelcontextprotocol/sdk":       "1.30.0",
         "zod":                             "4.5.1"
     },
@@ -51,6 +53,7 @@
         "@types/node":                     "26.4.0",
         "@types/subset-font":              "2.3.0",
         "@types/nunjucks":                 "3.2.6",
+        "@types/ws":                       "8.18.1",
         "typescript":                      "6.0.3",
         "tsx":                             "4.23.12",
         "source-sans":                     "3.52.0",
