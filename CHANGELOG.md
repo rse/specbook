@@ -10,6 +10,11 @@ ChangeLog
     export and afterwards re-exports the specification on every change of a referenced artifact
     file or an embedded asset, once the sources stayed silent for one second.
 
+-   BUGFIX [code]: Untruncated CLI Output
+    Commander no longer terminates the process on its own: its help, version, and usage-error
+    output is collected and flushed through the awaiting stdout/stderr writers, so a piped output
+    is no longer cut off.
+
 -   IMPROVEMENT [code]: Specification File Set
     The parser now records the resolved paths of the embedded assets and the "LintResult" carries
     the resulting "files" set of the entire specification.

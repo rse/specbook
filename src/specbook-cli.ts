@@ -5,9 +5,9 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import * as fs             from "node:fs"
-import { Command }         from "commander"
-import chalk               from "chalk"
+import * as fs                     from "node:fs"
+import { Command, CommanderError } from "commander"
+import chalk                       from "chalk"
 
 import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, renderVerbose, literal,
     parseOutputSpec, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
@@ -28,12 +28,12 @@ const verboseOf = (opts: { verbose: boolean }, ...scope: string[]): VerboseSink 
         }
     }
 
-/*  write a buffer to stdout, awaiting the write callback which only
-    fires once the data has been flushed to the underlying pipe, so a
-    subsequent "process.exit" cannot truncate the output  */
-const writeStdout = (data: Buffer | string): Promise<void> => {
+/*  write a buffer to a standard stream, awaiting the write callback
+    which only fires once the data has been flushed to the underlying
+    pipe, so a subsequent "process.exit" cannot truncate the output  */
+const writeStream = (stream: NodeJS.WriteStream, data: Buffer | string): Promise<void> => {
     return new Promise<void>((resolve, reject) => {
-        process.stdout.write(data, (err) => {
+        stream.write(data, (err) => {
             if (err)
                 reject(err)
             else
@@ -41,6 +41,8 @@ const writeStdout = (data: Buffer | string): Promise<void> => {
         })
     })
 }
+const writeStdout = (data: Buffer | string): Promise<void> => writeStream(process.stdout, data)
+const writeStderr = (data: Buffer | string): Promise<void> => writeStream(process.stderr, data)
 
 /*  write a command result to the output file or stdout  */
 const writeOutput = async (output: string, data: Buffer | string,
@@ -76,11 +78,24 @@ const withCommonOptions = (command: Command): Command => withVerboseOption(comma
         "(default: the bundled standard schema configuration)", envDefault("config"))
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
 
+/*  the help, version, and usage-error output Commander produces, which
+    is collected instead of written directly, as Commander writes it
+    synchronously and then terminates the process, truncating a piped
+    stream; the settings are established before the sub-commands are
+    created, so they are inherited by all of them  */
+let commanderOut = ""
+let commanderErr = ""
+
 /*  parse the command line  */
 const program = new Command()
 program.name("specbook")
     .description("Markdown-based Specification Format")
     .version(version)
+    .configureOutput({
+        writeOut: (str: string) => { commanderOut += str },
+        writeErr: (str: string) => { commanderErr += str }
+    })
+    .exitOverride()
     .action(() => {
         program.help()
     })
@@ -183,6 +198,15 @@ try {
     await program.parseAsync()
 }
 catch (err) {
+    /*  Commander requested the termination (help, version, or a usage
+        error), so flush its own already rendered output and adopt its
+        exit code instead of reporting the control-flow error  */
+    if (err instanceof CommanderError) {
+        await writeStdout(commanderOut)
+        await writeStderr(commanderErr)
+        process.exit(err.exitCode)
+    }
+
     /*  include the cause chain, as e.g. fetch failures
         carry the underlying error only in the cause  */
     let msg = err instanceof Error ? err.message : String(err)
@@ -190,6 +214,6 @@ catch (err) {
         cause instanceof Error;
         cause = cause.cause)
         msg += `: ${cause.message}`
-    process.stderr.write(`specbook: ${chalk.red("ERROR:")} ${renderVerbose(msg, chalk.blue)}\n`,
-        () => process.exit(1))
+    await writeStderr(`specbook: ${chalk.red("ERROR:")} ${renderVerbose(msg, chalk.blue)}\n`)
+    process.exit(1)
 }
