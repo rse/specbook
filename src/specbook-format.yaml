@@ -117,11 +117,30 @@
                     desc: >
                         The gender of the persona: `male`, `female`, or `diverse`.
                     value: enum(male,female,diverse)
+                    optional: true
                 -   name: AGE
-                    desc: The age in years of the persona.
+                    desc: >
+                        The age in years of the persona.
                     value: /^[0-9]+$/
+                    optional: true
                 -   name: ROLE
-                    desc: The role of the persona.
+                    desc: >
+                        The role of the persona.
+                -   name: GOAL
+                    desc: >
+                        What the persona wants to achieve with the solution overall, stated as one
+                        or more concise goals.
+                -   name: PROFICIENCY
+                    desc: >
+                        The technical and domain skill level of the persona: `novice`,
+                        `intermediate`, or `expert`.
+                    value: enum(novice,intermediate,expert)
+                    optional: true
+                -   name: FRUSTRATION
+                    desc: >
+                        The status-quo pains and unmet needs motivating the persona, stated
+                        independently of the per-step **AS IS** pain points of the User Journey.
+                    optional: true
 
 -   kind: SPEC
     name: User Journey

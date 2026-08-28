@@ -8,53 +8,53 @@ SPEC: User Personas (UP)
 
 ##  PERSONA: Anna {{attendee}}
 
--   GENDER: female
--   AGE:    34
--   ROLE:   Event Attendee
+-   ROLE:        Event Attendee
+-   GOAL:        Watch the live event effortlessly and get her questions answered.
+-   FRUSTRATION: Streaming tools that demand accounts, apps, or plugins before she can even watch.
 
 "I just want to watch the town hall and ask my question without jumping
 through hoops."
 
 ##  PERSONA: Markus {{moderator-chat}}
 
--   GENDER: male
--   AGE:    41
--   ROLE:   Event Chat Moderator
+-   ROLE:        Event Chat Moderator
+-   GOAL:        Keep the chat conversation civil and on-topic with minimal effort.
+-   FRUSTRATION: Chat tools without moderation support, letting spam and off-topic noise drown the conversation.
 
 "I keep the Chat conversation clean."
 
 ##  PERSONA: Peter {{moderator-qa}}
 
--   GENDER: male
--   AGE:    42
--   ROLE:   Event Q&A Moderator
+-   ROLE:        Event Q&A Moderator
+-   GOAL:        Filter the incoming questions and forward only the relevant ones to the presenter.
+-   FRUSTRATION: Unfiltered question streams where duplicates and noise bury the questions that truly matter.
 
 "I keep the Q&A funnel clean and feed the presenter only questions which
 truly matter."
 
 ##  PERSONA: Petra {{presenter}}
 
--   GENDER: female
--   AGE:    47
--   ROLE:   Event Presenter
+-   ROLE:        Event Presenter
+-   GOAL:        Deliver her talk while receiving the curated questions at the right moment.
+-   FRUSTRATION: Being distracted on stage by raw chat noise instead of a few curated questions.
 
 "On stage I need the right questions in front of me at the right moment,
 and nothing else."
 
 ##  PERSONA: Manfred {{manager}}
 
--   GENDER: male
--   AGE:    52
--   ROLE:   Event Manager
+-   ROLE:        Event Manager
+-   GOAL:        Set up events quickly and hand the access URLs back to the event management platform.
+-   FRUSTRATION: Manual, error-prone event setup with access URLs that have to be copied around by hand.
 
 "Setting up an event and getting the access URLs back to the event
 management platform has to be quick and repeatable."
 
 ##  PERSONA: Sven {{administrator}}
 
--   GENDER: male
--   AGE:    38
--   ROLE:   Software Administrator
+-   ROLE:        Software Administrator
+-   GOAL:        Provision events and streaming providers reproducibly via configuration.
+-   FRUSTRATION: Platforms that require per-event manual clicks and store personal data he must not touch.
 
 "I provision events and streaming providers via config; I never touch
 attendees' personal data."
