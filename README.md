@@ -342,7 +342,10 @@ Options:
     like `export --watch`, and updated in the browser after every change
     through a WebSocket connection the served page keeps open, where the
     document is replaced in place, so the scroll position survives (a
-    failed re-export keeps the previous HTML in place).
+    failed re-export keeps the previous HTML in place). A status icon
+    left of the theme switcher shows the connection state: grey while
+    connected, in the search highlight color while disconnected, and
+    blinking for 2s after every update.
 
 -   `-o|--output <output-file>` (`describe` only):
     The output file (default: `-` for stdout) receives the described

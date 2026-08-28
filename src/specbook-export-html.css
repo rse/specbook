@@ -122,6 +122,23 @@ div.theme-switch:hover      { color: var(--theme-color-specbook-accent); }
 div.theme-switch            { display: none; }
 }
 
+/*  the connection status icon of the live preview (fixed left of the
+    theme-switching icon, its glyph scaled and shifted to match the
+    theme-switching glyph in size and vertical center): grey while
+    connected, in the search highlight color while disconnected, and
+    blinking for 2s (toggling every 250ms between the accent and the
+    grey color) after a content reload  */
+div.realtime-status         { position: fixed; top: 0.85rem; right: 3.50rem;
+                              color: var(--theme-color-specbook-symbol); font-size: 280%;
+                              -webkit-user-select: none; user-select: none; line-height: 1.5rem; }
+div.realtime-status.disconnected { color: var(--theme-color-specbook-mark-back); }
+div.realtime-status.reloaded { animation: realtime-blink 0.5s step-end 4; }
+@keyframes realtime-blink   { from { color: var(--theme-color-specbook-accent); }
+                              50%  { color: var(--theme-color-specbook-symbol); } }
+@media print {
+div.realtime-status         { display: none; }
+}
+
 section                     { margin: 0.5rem 0; }
 
 h1                          { margin: 3.0rem 0 2.0rem 0; border-bottom: 1px solid var(--theme-color-specbook-border); }

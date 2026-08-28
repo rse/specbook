@@ -16,6 +16,11 @@ ChangeLog
     descendants, too, lifting every referenced object to its nearest node and rendering the number
     of references as the edge arity.
 
+-   FEATURE [code, othr]: Live Preview Status Icon
+    The live preview page now shows a connection status icon left of the theme switcher, which is
+    grey while the WebSocket connection is active, takes the search highlight color while it is
+    disconnected, and blinks for 2s after every in-place content update.
+
 -   FEATURE [code, infr, othr]: Live Preview
     The new "preview" command in API/CLI serves the HTML export via Fastify on
     "http://<ip-addr>:<tcp-port>/" (options "-a"/"--addr" and "-p"/"--port", default

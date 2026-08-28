@@ -65,6 +65,7 @@ const templates = {
                 </script>
             </head>
             <body>
+                {% if Document.realtime %}<div class="realtime-status disconnected" title="live preview connection">&#x25CF;</div>{% endif %}
                 <div class="theme-switch" onclick="themeSwitch()" title="switch color theme">&#x25D0;</div>
                 {{ Document.titlepage }}
                 {{ Document.toc }}
@@ -218,11 +219,20 @@ const templates = {
     theme choice survive: the title, the stylesheet (if changed), and
     the body are swapped, and the scripts of the fresh body re-executed
     through clones (as parsed scripts never execute), except this
-    realtime script itself, whose connection stays alive  */
+    realtime script itself, whose connection stays alive. The status
+    icon (re-created by every body swap) reflects the connection state
+    and blinks for 2s after every update, unless the connection is
+    lost meanwhile  */
 const realtimeScript = textframe`
     (function () {
         const url = window.location.protocol.replace(/^http/, "ws") + "//" +
             window.location.host + window.location.pathname
+        const status = (state) => {
+            const icon = document.querySelector("div.realtime-status")
+            if (icon !== null)
+                icon.className = "realtime-status " + state
+        }
+        let blink = 0
         const update = async () => {
             const response = await fetch(window.location.pathname, { cache: "no-store" })
             if (!response.ok)
@@ -242,11 +252,15 @@ const realtimeScript = textframe`
                 script.replaceWith(clone)
             }
             window.scrollTo(x, y)
+            status("reloaded")
+            clearTimeout(blink)
+            blink = setTimeout(() => { status("connected") }, 2000)
         }
         let lost = false
         const connect = () => {
             const ws = new WebSocket(url)
             ws.onopen = () => {
+                status("connected")
                 if (lost) {
                     console.log("specbook: live preview connection re-established")
                     lost = false
@@ -258,6 +272,8 @@ const realtimeScript = textframe`
                     update()
             }
             ws.onclose = () => {
+                clearTimeout(blink)
+                status("disconnected")
                 if (!lost)
                     console.log("specbook: live preview connection lost")
                 lost = true
