@@ -211,7 +211,15 @@ table.objects th:first-child,
 table.objects td:first-child { border-left: 0; }
 table.objects td:first-child { font-weight: bold; }
 table.objects th            { background-color: var(--theme-color-specbook-tint); }
-table.objects tbody tr:nth-child(even) td { background-color: var(--theme-color-specbook-stripe); }
+table.objects tbody tr.even td { background-color: var(--theme-color-specbook-stripe); }
+
+/*  the diagram row of an object, spanning all columns but the first
+    (into which the name cell of the object row extends), kept on the
+    same page as its object  */
+table.objects tr.diagram td { border-left: 1px solid var(--theme-color-specbook-border);
+                              font-weight: normal;
+                              page-break-inside: avoid; break-inside: avoid; }
+table.objects tr.diagram div.diagram { margin: 0.3rem 0; }
 
 /*  keep the cells of empty property values one text line high  */
 table.objects td:empty::after { content: "\00A0"; }

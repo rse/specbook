@@ -171,11 +171,16 @@ const templates = {
             </thead>
             <tbody>
                 {% for row in Table.rows %}
-                <tr id="{{ row.id }}">
-                    <td>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
+                <tr id="{{ row.id }}"{% if row.even %} class="even"{% endif %}>
+                    <td{% if row.diagram %} rowspan="2"{% endif %}>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     {%- for value in row.values %}<td>{{ value }}</td>{% endfor %}
                     {%- if Table.desc %}<td>{{ row.description }}</td>{% endif %}
                 </tr>
+                {% if row.diagram %}
+                <tr class="diagram{% if row.even %} even{% endif %}">
+                    <td colspan="{{ Table.span }}">{{ row.diagram }}</td>
+                </tr>
+                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
@@ -192,8 +197,8 @@ const templates = {
             </thead>
             <tbody>
                 {% for row in Table.rows %}
-                <tr id="{{ row.id }}">
-                    <td>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
+                <tr id="{{ row.id }}"{% if row.even %} class="even"{% endif %}>
+                    <td{% if row.diagram %} rowspan="2"{% endif %}>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     <td class="chunks">
                         <table class="chunks">
                             {% for chunk in row.chunks %}
@@ -203,6 +208,11 @@ const templates = {
                         </table>
                     </td>
                 </tr>
+                {% if row.diagram %}
+                <tr class="diagram{% if row.even %} even{% endif %}">
+                    <td>{{ row.diagram }}</td>
+                </tr>
+                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
@@ -607,14 +617,20 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
             /*  under the fixed table layout the description column claims
                 twice the share of a regular column, compressing the others  */
             width: Math.round(200 / (keys.length + 3)),
-            rows: childs.map((child) => ({
+
+            /*  the diagram row of an object spans all columns but the
+                first, which the name cell of the object row extends into  */
+            span:  keys.length + (desc ? 1 : 0),
+            rows: childs.map((child, i) => ({
                 id:          anchorOf(child),
                 paren:       child.paren,
                 primary:     child.primary,
                 name:        inline(child.name),
+                even:        i % 2 === 1,
                 values:      keys.map((key) =>
                     inlineValue(child.kind, child.properties.find((property) => property.key === key))),
-                description: safe(renderCell(child))
+                description: safe(renderCell(child)),
+                diagram:     diagramOf(child)
             }))
         } })
 
@@ -625,7 +641,7 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
     return render("TableChunked", { Table: {
         head:  childs[0].kind !== "" ? childs[0].kind : "Name",
         width: Math.round(100 / maxColumns),
-        rows:  childs.map((child) => {
+        rows:  childs.map((child, i) => {
             const cells = keys.map((key) => ({ key, desc: false, span: 1,
                 value: inlineValue(child.kind, child.properties.find((property) => property.key === key)) }))
             if (desc)
@@ -641,16 +657,24 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
                 paren:   child.paren,
                 primary: child.primary,
                 name:    inline(child.name),
-                chunks
+                even:    i % 2 === 1,
+                chunks,
+                diagram: diagramOf(child)
             }
         })
     } })
 }
 
+/*  the pre-rendered diagram of an object as an embeddable block
+    (empty for an object without a configured or renderable diagram)  */
+const diagramOf = (object: SpecObject) => {
+    const diagram = diagrams?.get(object)
+    return diagram !== undefined ? safe(`<div class="diagram">${diagram}</div>`) : ""
+}
+
 /*  recursively render an object into HTML  */
 const renderObject = (object: SpecObject, level: number, concise: boolean): string => {
     const properties = effectiveProperties(object)
-    const diagram    = diagrams?.get(object)
     return render("Object", { Object: {
         level:       Math.min(level, 6),
         kind:        object.kind,
@@ -658,7 +682,7 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
         paren:       object.paren,
         primary:     object.primary,
         name:        inline(object.name),
-        diagram:     diagram !== undefined ? safe(`<div class="diagram">${diagram}</div>`) : "",
+        diagram:     diagramOf(object),
         properties:  properties.length > 0 ?
             safe(render("Properties", { Properties: inlineProperties(object, properties) })) : "",
         description: object.description !== undefined ?
