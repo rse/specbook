@@ -5,6 +5,43 @@ ChangeLog
 1.1.0 (2026-08-29)
 ------------------
 
+-   FEATURE [code, spec, docs]: State Machine Checks
+    The new object kind field "automaton" declares the child kinds acting as the states and
+    transitions of a finite state machine, whose structural sanity the linter now checks: every
+    state has to be reachable from the initial state, a state without outgoing transition has to
+    be final (dead-end), and a final state has to be reachable from every state (livelock).
+
+-   FEATURE [code, spec, docs]: Scoped Reference Resolution
+    A reference matching several objects is now narrowed down to the ones nearest to the
+    referencing object (sharing the longest ancestor chain with it), so a short reference like
+    `[[STATE:Draft]]` resolves within its own lifecycle, even if other lifecycles carry a state
+    of the same name, and is an ambiguity only if still more than one match remains.
+
+-   FEATURE [code, spec, docs]: Local References
+    The new property flag "local" demands that a reference-valued property references objects
+    below the parent object of the referencing object only, ruling out a transition between the
+    states of two different lifecycles.
+
+-   FEATURE [code, spec, docs]: Sibling Presence
+    The new property flag "present", the counterpart of "unique", demands that some value (or a
+    value matching a regexp or enum expression) occurs on at least one sibling object, so that
+    "unique" plus "present" demand exactly one (e.g. exactly one initial state per lifecycle and
+    exactly one "Main" scenario per use case).
+
+-   IMPROVEMENT [code]: Badged List Members
+    The HTML/PDF export now badges the items of a "list(...)" constrained property value which
+    are literal members of its "enum(...)"/"tags(...)" alternatives (e.g. the `System` of an
+    "ACTOR" value), exactly like the members of a plain "enum(...)"/"tags(...)" value, while the
+    other items (like references) stay prose.
+
+-   IMPROVEMENT [spec, docs]: State Model Schema
+    The standard "State Model" now checks its lifecycles as automata, scopes the transition
+    endpoints to their own lifecycle, demands exactly one initial and at least one final state,
+    carries the guard as a "GUARD" property (instead of a "WHEN" prose clause) beside the new
+    optional "ACTOR" (personas, "System", or "Time") and "RULES" properties, allows dashed
+    transition names, and expects every transition to be referenced from a use case (new
+    "TRANSITIONS" property) or a test case ("VERIFIES" now admits transitions).
+
 -   FEATURE [code, spec, docs]: Reference Coverage
     The new object kind flag "referenced" lists the wildcard references (e.g. `[[*]]` for any
     object) matching the objects -- themselves or through their descendants -- from which every

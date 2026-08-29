@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-06-18 10:18
+Modified: 2026-08-29 15:05
 ---
 
 SPEC: State Model (SM)
@@ -27,21 +27,19 @@ LIFECYCLE: Event {{event}}
 
 ### TRANSITION
 
--   publish; FROM: [[STATE:Planning]]; TO: [[STATE:Published]];
-    The event becomes visible to invited attendees,
-    **WHEN** the manager publishes the configured event.
+-   publish; FROM: [[STATE:Planning]]; TO: [[STATE:Published]]; ACTOR: [[PERSONA:manager]];
+    GUARD: The event is fully configured.;
+    The event becomes visible to invited attendees.
 
--   start; FROM: [[STATE:Published]]; TO: [[STATE:Running]];
-    The live stream and interaction channels open for attendees,
-    **WHEN** the manager starts the event.
+-   start; FROM: [[STATE:Published]]; TO: [[STATE:Running]]; ACTOR: [[PERSONA:manager]];
+    The live stream and interaction channels open for attendees.
 
--   start {{start-unpublished}}; FROM: [[STATE:Planning]]; TO: [[STATE:Running]];
-    The event goes live directly from planning,
-    **WHEN** the manager starts an unpublished event.
+-   start {{start-unpublished}}; FROM: [[STATE:Planning]]; TO: [[STATE:Running]]; ACTOR: [[PERSONA:manager]];
+    The event goes live directly from planning, without ever having been visible beforehand.
 
--   finish; FROM: [[STATE:Running]]; TO: [[STATE:Finished]];
-    The anonymization procedure runs and access is closed,
-    **WHEN** the manager finishes the event.
+-   finish; FROM: [[STATE:Running]]; TO: [[STATE:Finished]]; ACTOR: [[PERSONA:manager]];
+    RULES: [[RULE:anonymize]];
+    The anonymization procedure runs and access is closed.
 
 LIFECYCLE: Message {{message}}
 ------------------------------
@@ -70,25 +68,26 @@ LIFECYCLE: Message {{message}}
 
 ### TRANSITION
 
--   `accept`; FROM: [[STATE:Pending]]; TO: [[STATE:Accepted]];
-    The message becomes visible to the audience,
-    **WHEN** a moderator approves it or sentiment auto-accept applies.
+-   `accept`; FROM: [[STATE:Pending]]; TO: [[STATE:Accepted]]; ACTOR: [[PERSONA:moderator-qa]], System;
+    GUARD: A system-triggered acceptance requires a sentiment score at or above the threshold.;
+    RULES: [[RULE:moderation-gate]], [[RULE:sentiment-threshold]];
+    The message becomes visible to the audience.
 
--   `reject`; FROM: [[STATE:Pending]]; TO: [[STATE:Rejected]];
-    The message is hidden and marked for deletion,
-    **WHEN** a moderator declines it or sentiment auto-reject applies.
+-   `reject`; FROM: [[STATE:Pending]]; TO: [[STATE:Rejected]]; ACTOR: [[PERSONA:moderator-qa]], System;
+    GUARD: A system-triggered rejection requires a sentiment score below the threshold.;
+    RULES: [[RULE:moderation-gate]], [[RULE:sentiment-threshold]];
+    The message is hidden and marked for deletion.
 
--   `forward`; FROM: [[STATE:Accepted]]; TO: [[STATE:Forwarded]];
-    The message enters the presenter's work basket and becomes immutable,
-    **WHEN** a moderator forwards it to the presenter.
+-   `forward`; FROM: [[STATE:Accepted]]; TO: [[STATE:Forwarded]]; ACTOR: [[PERSONA:moderator-qa]];
+    GUARD: The message is a question.;
+    RULES: [[RULE:type-states]], [[RULE:forward-lock]];
+    The message enters the presenter's work basket and becomes immutable.
 
--   `answer`; FROM: [[STATE:Forwarded]]; TO: [[STATE:Answered]];
-    The answered timestamp is recorded,
-    **WHEN** the presenter or moderator marks the message as answered on stage.
+-   `answer`; FROM: [[STATE:Forwarded]]; TO: [[STATE:Answered]]; ACTOR: [[PERSONA:presenter]], [[PERSONA:moderator-qa]];
+    The answered timestamp is recorded.
 
--   `suspend`; FROM: [[STATE:Forwarded]]; TO: [[STATE:Suspended]];
-    The message is set aside for the live event,
-    **WHEN** the presenter or moderator decides not to process it.
+-   `suspend`; FROM: [[STATE:Forwarded]]; TO: [[STATE:Suspended]]; ACTOR: [[PERSONA:presenter]], [[PERSONA:moderator-qa]];
+    The message is set aside for the live event.
 
 LIFECYCLE: AuthorizationToken {{authtoken}}
 -------------------------------------------
@@ -108,14 +107,17 @@ LIFECYCLE: AuthorizationToken {{authtoken}}
 
 ### TRANSITION
 
--   `send`; FROM: [[STATE:Issued]]; TO: [[STATE:Sent]];
-    The token is emailed to the user,
-    **WHEN** the user requests a login challenge.
+-   `send`; FROM: [[STATE:Issued]]; TO: [[STATE:Sent]]; ACTOR: [[PERSONA:attendee]];
+    GUARD: The email of the attendee is on the access list or matches the access pattern.;
+    RULES: [[RULE:access-grant]];
+    The token is emailed to the attendee requesting a login challenge.
 
--   `consume`; FROM: [[STATE:Sent]]; TO: [[STATE:Used]];
-    The token is marked spent,
-    **WHEN** the user submits it in a successful or unsuccessful login attempt.
+-   `consume`; FROM: [[STATE:Sent]]; TO: [[STATE:Used]]; ACTOR: [[PERSONA:attendee]];
+    GUARD: The token has not expired.;
+    RULES: [[RULE:token-format]], [[RULE:single-session]];
+    The token is marked spent by a successful or unsuccessful login attempt.
 
--   `consume {{consume-automatic}}`; FROM: [[STATE:Issued]]; TO: [[STATE:Used]];
-    The pre-generated token is marked spent,
-    **WHEN** an automatic-access URL carrying the token is used.
+-   `consume {{consume-automatic}}`; FROM: [[STATE:Issued]]; TO: [[STATE:Used]]; ACTOR: [[PERSONA:attendee]];
+    GUARD: The event allows automatic-access URLs.;
+    RULES: [[RULE:token-format]];
+    The pre-generated token is marked spent by the use of an automatic-access URL carrying it.

@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 14:25
+Modified: 2026-08-29 15:05
 ---
 
 SPEC: Test Cases (TC)
@@ -8,7 +8,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Valid Token Grants Access {{valid-token}}
 
--   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-token]], [[RULE:access-grant]]
+-   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-token]], [[RULE:access-grant]], [[consume]]
 -   PRE-CONDITION:  An invited user with a sent, unexpired authorization token exists for a running event.
 -   INPUT:          The user submits the correct six-digit token for their email.
 -   EXPECTED:       The system issues a session token and grants access to the stream.
@@ -24,7 +24,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: URL Token Skips Login Dialog {{auto-token}}
 
--   VERIFIES:       [[FR.automatic-url]], [[SCENARIO:authenticate-auto]], [[RULE:token-format]]
+-   VERIFIES:       [[FR.automatic-url]], [[SCENARIO:authenticate-auto]], [[RULE:token-format]], [[consume-automatic]]
 -   PRE-CONDITION:  An event allows URL tokens and a pre-generated token exists for an invited email.
 -   INPUT:          The user opens the event URL carrying that email and token.
 -   EXPECTED:       The system issues a session token and grants access without showing the login dialog.

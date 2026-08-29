@@ -108,7 +108,7 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
             const value = node.properties.find((property) => property.key === key)?.value
             if (value !== undefined) {
                 const text = expandReferences(value, (reference) =>
-                    resolveUnique(index, reference).target?.name ?? reference)
+                    resolveUnique(index, reference, node).target?.name ?? reference)
                 attrs.push(`${atom(key)}: ${atom(plainText(text))}`)
             }
         }
@@ -176,7 +176,7 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
                 }
                 for (const { text, name } of texts)
                     for (const m of text.matchAll(referenceRegex)) {
-                        let target = resolveUnique(index, m[1].trim()).target
+                        let target = resolveUnique(index, m[1].trim(), object).target
                         if (diagram.deep === true)
                             target = lift(target)
                         if (target !== undefined && target !== node && nodeSet.has(target)) {
@@ -201,7 +201,7 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
                 edgeObject.properties.filter((property) => property.key !== diagram.edgeSource)
                     .map((property) => property.value).find((v) => referenceOnce.test(v))
             const reference = value?.match(referenceOnce)?.[1].trim()
-            return reference !== undefined ? resolveUnique(index, reference).target : undefined
+            return reference !== undefined ? resolveUnique(index, reference, edgeObject).target : undefined
         }
         for (const edgeObject of edgeObjects) {
             const source = diagram.edgeSource !== undefined ?
@@ -326,7 +326,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         errors.push({ reason: `"${type}" diagram cannot carry a "center" configuration` })
     if (type === "hub" && diagram.center !== undefined && diagram.center !== "self") {
         const reference = diagram.center.match(referenceOnce)?.[1].trim()
-        const resolved  = reference !== undefined ? resolveUnique(index, reference) : undefined
+        const resolved  = reference !== undefined ? resolveUnique(index, reference, object) : undefined
         if (resolved?.target === undefined) {
             errors.push({ reason: (resolved?.ambiguous === true ? "ambiguous" : "unresolvable") +
                 ` diagram "center" reference "${diagram.center}"` })

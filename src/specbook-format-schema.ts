@@ -13,8 +13,9 @@ import { Gradia, type Config as GradiaConfig } from "@rse/gradia"
 export type Schema = SchemaObject[]
 
 /*  an object kind: an artifact (level 1, with its "file" and exact
-    "name") or an object nested below it (with a "name" regex), and the
-    reference coverage every object of the kind has to receive  */
+    "name") or an object nested below it (with a "name" regex), the
+    reference coverage every object of the kind has to receive, and the
+    finite state machine its child objects optionally form  */
 export type SchemaObject = {
     kind:              string
     name?:             string
@@ -23,10 +24,24 @@ export type SchemaObject = {
     desc?:             string
     optional?:         boolean
     referenced?:       string[]
+    automaton?:        SchemaAutomaton
     diagram?:          SchemaDiagram
     format?:           SchemaFormat
     props?:            SchemaProperty[]
     childs?:           SchemaObject[]
+}
+
+/*  the finite state machine the child objects of an object kind form:
+    the child kinds acting as nodes and edges, the edge properties
+    referencing the source and target nodes, and the node properties
+    flagging (with the value "true") the initial and final nodes  */
+export type SchemaAutomaton = {
+    nodes:             string
+    edges:             string
+    source:            string
+    target:            string
+    initial:           string
+    final:             string
 }
 
 /*  the diagram derived for every object of an object kind: its shape,
@@ -61,15 +76,18 @@ export type SchemaFormat = {
 
 /*  a property allowed on the objects of an object kind, with its
     value constraint (regexp, link, enum, tags, or list expression),
-    its uniqueness among the sibling objects (all values, or only the
-    values matching a regexp or enum expression), and the relation
-    shape of a reference-valued property (symmetric and/or acyclic)  */
+    its uniqueness and presence among the sibling objects (all values,
+    or only the values matching a regexp or enum expression), and the
+    locality and relation shape of a reference-valued property
+    (local, symmetric, and/or acyclic)  */
 export type SchemaProperty = {
     name:              string
     desc?:             string
     value?:            string
     optional?:         boolean
     unique?:           boolean | string
+    present?:          boolean | string
+    local?:            boolean
     symmetric?:        boolean
     acyclic?:          boolean
 }
@@ -97,8 +115,18 @@ const SchemaProperty: v.GenericSchema<SchemaProperty> = v.strictObject({
     value:             v.optional(v.string()),
     optional:          v.optional(v.boolean()),
     unique:            v.optional(v.union([ v.boolean(), v.string() ])),
+    present:           v.optional(v.union([ v.boolean(), v.string() ])),
+    local:             v.optional(v.boolean()),
     symmetric:         v.optional(v.boolean()),
     acyclic:           v.optional(v.boolean())
+})
+const SchemaAutomaton: v.GenericSchema<SchemaAutomaton> = v.strictObject({
+    nodes:             v.string(),
+    edges:             v.string(),
+    source:            v.string(),
+    target:            v.string(),
+    initial:           v.string(),
+    final:             v.string()
 })
 const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     type:              v.optional(v.picklist([ "graph", "hub", "grid" ])),
@@ -131,6 +159,7 @@ const SchemaObject: v.GenericSchema<SchemaObject> = v.strictObject({
     desc:              v.optional(v.string()),
     optional:          v.optional(v.boolean()),
     referenced:        v.optional(v.pipe(v.array(v.string()), v.minLength(1))),
+    automaton:         v.optional(SchemaAutomaton),
     diagram:           v.optional(SchemaDiagram),
     format:            v.optional(SchemaFormat),
     props:             v.optional(v.array(SchemaProperty)),

@@ -8,7 +8,7 @@ import { type Spec, type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
 import { type Schema, type SchemaObject, type SchemaProperty }
     from "./specbook-format-schema.js"
-import { referenceRegex, resolveUnique, resolveSet, plainText }
+import { referenceRegex, resolveUnique, resolveSet, chainOf, plainText }
     from "./specbook-link.js"
 import { compileValueExpr, splitItems, anchored, type ValueExpr }
     from "./specbook-parse-value.js"
@@ -24,18 +24,28 @@ const directMatches = (expr: ValueExpr, text: string): boolean =>
     (expr.kind === "regex" && expr.regex.test(text))
     || (expr.kind === "enum" && expr.members.includes(text))
 
-/*  match a single list item against the alternatives of a list
-    constraint (a reference item resolves leniently, as unresolvable
-    and ambiguous ones are already reported by the reference pass)  */
-const matchAlternatives = (ctx: ParseContext, alternatives: ValueExpr[], item: string): boolean => {
-    const rm = item.match(singleReferenceRegex)
+/*  resolve a text consisting of exactly one Wiki-style reference from
+    its carrying object (leniently, as unresolvable and ambiguous
+    references are already reported by the reference pass)  */
+const singleTarget = (ctx: ParseContext, object: SpecObject,
+    text: string): { ref: string, target?: SpecObject } | undefined => {
+    const rm = text.match(singleReferenceRegex)
+    if (rm === null)
+        return undefined
+    const ref = rm[1].trim()
+    return { ref, target: resolveUnique(ctx.linkIndex, ref, object).target }
+}
+
+/*  match a single list item against the alternatives of a list constraint  */
+const matchAlternatives = (ctx: ParseContext, object: SpecObject,
+    alternatives: ValueExpr[], item: string): boolean => {
+    const single = singleTarget(ctx, object, item)
     for (const alternative of alternatives) {
         if (alternative.kind === "reference") {
-            if (rm === null)
+            if (single === undefined)
                 continue
-            const target = resolveUnique(ctx.linkIndex, rm[1].trim()).target
-            if (target === undefined
-                || resolveSet(ctx.linkIndex, alternative.pattern).includes(target))
+            if (single.target === undefined
+                || resolveSet(ctx.linkIndex, alternative.pattern).includes(single.target))
                 return true
         }
         else if (alternative.kind === "tags") {
@@ -64,23 +74,38 @@ const splitPropItems = (ctx: ParseContext, prop: SchemaProperty,
     return items.filter((item) => item !== "")
 }
 
-/*  check a property value against the compiled value expression of its
-    configured schema property  */
-const checkPropValue = (ctx: ParseContext, prop: SchemaProperty,
+/*  check a resolved reference of a property flagged "local": the
+    referenced object has to lie below the parent object of the
+    referencing object (a top-level object has no parent, and hence
+    no locality to keep)  */
+const checkLocal = (ctx: ParseContext, object: SpecObject, prop: SchemaProperty,
+    single: { ref: string, target?: SpecObject } | undefined, meta: ObjectMeta) => {
+    if (prop.local !== true || single?.target === undefined)
+        return
+    const chain  = chainOf(ctx.linkIndex, object)
+    const parent = chain.length >= 2 ? chain[chain.length - 2] : undefined
+    if (parent !== undefined && !chainOf(ctx.linkIndex, single.target).includes(parent))
+        ctx.diagnose(meta.file, meta.line,
+            `link reference "[[${single.ref}]]" of local property "${prop.name}" ` +
+            `leaves the enclosing ${parent.kind} "${parent.name}"`)
+}
+
+/*  check a property value of an object against the compiled value
+    expression of its configured schema property  */
+const checkPropValue = (ctx: ParseContext, object: SpecObject, prop: SchemaProperty,
     expr: ValueExpr, property: SpecProperty, meta: ObjectMeta) => {
     if (expr.kind === "reference") {
         /*  a reference constraint: the value has to be exactly one
             reference resolving into the constraint's wildcard match set  */
-        const rm = plainText(property.value).trim().match(singleReferenceRegex)
-        if (rm === null)
+        const single = singleTarget(ctx, object, plainText(property.value).trim())
+        if (single === undefined)
             ctx.diagnose(meta.file, meta.line,
                 `property "${prop.name}" value "${property.value}" is not a single link reference`)
         else {
-            const ref    = rm[1].trim()
-            const target = resolveUnique(ctx.linkIndex, ref).target
-            if (target !== undefined && !resolveSet(ctx.linkIndex, expr.pattern).includes(target))
+            if (single.target !== undefined && !resolveSet(ctx.linkIndex, expr.pattern).includes(single.target))
                 ctx.diagnose(meta.file, meta.line,
-                    `link reference "[[${ref}]]" does not match constraint "${prop.value}"`)
+                    `link reference "[[${single.ref}]]" does not match constraint "${prop.value}"`)
+            checkLocal(ctx, object, prop, single, meta)
         }
     }
     else if (expr.kind === "tags") {
@@ -100,10 +125,13 @@ const checkPropValue = (ctx: ParseContext, prop: SchemaProperty,
     else if (expr.kind === "list") {
         /*  a list constraint: the value is a comma-separated list
             of items, each matching at least one alternative  */
-        for (const item of splitPropItems(ctx, prop, property, meta))
-            if (!matchAlternatives(ctx, expr.alternatives, item))
+        for (const item of splitPropItems(ctx, prop, property, meta)) {
+            if (!matchAlternatives(ctx, object, expr.alternatives, item))
                 ctx.diagnose(meta.file, meta.line,
                     `list item "${item}" of property "${prop.name}" does not match constraint "${prop.value}"`)
+            else
+                checkLocal(ctx, object, prop, singleTarget(ctx, object, item), meta)
+        }
     }
     else if (!directMatches(expr, plainText(property.value)))
         ctx.diagnose(meta.file, meta.line, expr.kind === "enum" ?
@@ -155,7 +183,7 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
                 ctx.diagnose(meta.file, line,
                     `duplicate property "${prop.name}" on ${object.kind} "${object.name}"`)
             if (expr !== undefined)
-                checkPropValue(ctx, prop, expr, match, { file: meta.file, line })
+                checkPropValue(ctx, object, prop, expr, match, { file: meta.file, line })
         }
     }
 
@@ -179,20 +207,30 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
     }
 
     /*  check the property values flagged unique for distinctness among
-        the sibling objects of the same kind (all values, or only the
-        values matching the regexp or enum expression of the flag)  */
+        the sibling objects of the same kind and the ones flagged present
+        for occurring on at least one of the (existing) siblings (all
+        values, or only the values matching the regexp or enum expression
+        of the flag)  */
     for (const child of childs) {
+        const siblings = object.childs.filter((c) => c.kind === child.kind)
         for (const prop of child.props ?? []) {
-            if (prop.unique === undefined || prop.unique === false)
+            const marker = (flag: boolean | string | undefined) =>
+                flag === undefined || flag === false ? undefined :
+                    { filter: typeof flag === "string" ? compileValueExpr(flag) : undefined }
+            const unique  = marker(prop.unique)
+            const present = marker(prop.present)
+            if (unique === undefined && present === undefined)
                 continue
-            const filter = typeof prop.unique === "string" ? compileValueExpr(prop.unique) : undefined
-            const seen   = new Map<string, SpecObject>()
-            for (const sibling of object.childs.filter((c) => c.kind === child.kind)) {
+            const seen  = new Map<string, SpecObject>()
+            let   found = false
+            for (const sibling of siblings) {
                 const property = findProp(sibling, prop.name)
                 if (property === undefined)
                     continue
                 const value = plainText(property.value).trim()
-                if (filter !== undefined && !directMatches(filter, value))
+                if (present !== undefined && (present.filter === undefined || directMatches(present.filter, value)))
+                    found = true
+                if (unique === undefined || (unique.filter !== undefined && !directMatches(unique.filter, value)))
                     continue
                 const first = seen.get(value)
                 if (first === undefined)
@@ -204,6 +242,10 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
                         `already used by preceding ${sibling.kind} "${first.name}"`)
                 }
             }
+            if (present !== undefined && siblings.length > 0 && !found)
+                ctx.diagnose(meta.file, meta.line,
+                    `no ${child.kind} below ${object.kind} "${object.name}" carries property "${prop.name}"` +
+                    (typeof prop.present === "string" ? ` with a value matching "${prop.present}"` : ""))
         }
     }
 
@@ -289,11 +331,78 @@ const referencedObjects = (ctx: ParseContext, object: SpecObject, name: string):
         return []
     const targets = new Array<SpecObject>()
     for (const m of plainText(property.value).matchAll(referenceRegex)) {
-        const target = resolveUnique(ctx.linkIndex, m[1].trim()).target
+        const target = resolveUnique(ctx.linkIndex, m[1].trim(), object).target
         if (target !== undefined && !targets.includes(target))
             targets.push(target)
     }
     return targets
+}
+
+/*  check the object kinds configured with an "automaton": the child
+    objects of the node kind form a finite state machine through the
+    child objects of the edge kind (each connecting the nodes its source
+    and target properties reference), in which every node has to be
+    reachable from an initial node, every node without outgoing edge has
+    to be a final node (else it is a dead-end), and a final node has to
+    be reachable from every node (else it is a livelock), where the
+    initial and final nodes carry the value "true" in the respective flag
+    property (a machine lacking initial or final nodes altogether skips
+    the reachability checks, as the "present" flag reports the lack)  */
+const checkAutomata = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject>) => {
+    for (const [ object, schema ] of schemas) {
+        const automaton = schema.automaton
+        if (automaton === undefined)
+            continue
+        const nodes   = object.childs.filter((child) => child.kind === automaton.nodes)
+        const nodeSet = new Set<SpecObject>(nodes)
+        const flagged = (node: SpecObject, name: string) => {
+            const property = findProp(node, name)
+            return property !== undefined && plainText(property.value).trim() === "true"
+        }
+        const initials = nodes.filter((node) => flagged(node, automaton.initial))
+        const finals   = nodes.filter((node) => flagged(node, automaton.final))
+
+        /*  the successors and predecessors of every node (an edge leaving
+            the node set is skipped, as the property checks report it)  */
+        const succs = new Map<SpecObject, Set<SpecObject>>(nodes.map((node) => [ node, new Set<SpecObject>() ]))
+        const preds = new Map<SpecObject, Set<SpecObject>>(nodes.map((node) => [ node, new Set<SpecObject>() ]))
+        for (const edge of object.childs.filter((child) => child.kind === automaton.edges)) {
+            const source = referencedObjects(ctx, edge, automaton.source)[0]
+            const target = referencedObjects(ctx, edge, automaton.target)[0]
+            if (source !== undefined && target !== undefined && nodeSet.has(source) && nodeSet.has(target)) {
+                succs.get(source)?.add(target)
+                preds.get(target)?.add(source)
+            }
+        }
+
+        /*  the transitive closure of a node set along a neighbor map  */
+        const closure = (starts: SpecObject[], next: Map<SpecObject, Set<SpecObject>>) => {
+            const seen  = new Set<SpecObject>(starts)
+            const queue = [ ...starts ]
+            for (let node = queue.shift(); node !== undefined; node = queue.shift())
+                for (const other of next.get(node) ?? [])
+                    if (!seen.has(other)) {
+                        seen.add(other)
+                        queue.push(other)
+                    }
+            return seen
+        }
+        const reachable   = closure(initials, succs)
+        const coreachable = closure(finals, preds)
+        for (const node of nodes) {
+            const meta = ctx.objectMeta.get(node) ?? { file: "", line: 1 }
+            const name = `${node.kind} "${node.name}" of ${object.kind} "${object.name}"`
+            if (initials.length > 0 && !reachable.has(node))
+                ctx.diagnose(meta.file, meta.line,
+                    `${name} is not reachable from the initial ${node.kind} through any ${automaton.edges}`)
+            if ((succs.get(node)?.size ?? 0) === 0 && !finals.includes(node))
+                ctx.diagnose(meta.file, meta.line,
+                    `${name} has no outgoing ${automaton.edges} but is not flagged "${automaton.final}" (dead-end)`)
+            else if (finals.length > 0 && !coreachable.has(node))
+                ctx.diagnose(meta.file, meta.line,
+                    `${name} reaches no final ${node.kind} through any ${automaton.edges} (livelock)`)
+        }
+    }
 }
 
 /*  check the reference properties flagged symmetric or acyclic across
@@ -374,7 +483,7 @@ const checkReferenced = (ctx: ParseContext, specification: Spec, schemas: Map<Sp
             texts.push(object.description.description, object.description.rationale ?? "")
         for (const text of texts)
             for (const m of plainText(text).matchAll(referenceRegex)) {
-                const target = resolveUnique(ctx.linkIndex, m[1].trim()).target
+                const target = resolveUnique(ctx.linkIndex, m[1].trim(), object).target
                 if (target !== undefined && !chain.includes(target))
                     referrers.set(target, (referrers.get(target) ?? new Set<SpecObject>()).add(object))
             }
@@ -470,10 +579,12 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
         }
     }
 
-    /*  check the relation shapes of the flagged reference properties and
-        the reference coverage of the flagged object kinds, now that every
-        object has been validated on its own  */
+    /*  check the relation shapes of the flagged reference properties, the
+        state machines of the configured object kinds, and the reference
+        coverage of the flagged object kinds, now that every object has
+        been validated on its own  */
     checkRelations(ctx, schemas)
+    checkAutomata(ctx, schemas)
     checkReferenced(ctx, specification, schemas)
 
     /*  order the artifacts exactly along the schema definition  */
@@ -481,13 +592,13 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
         (position.get(a) ?? config.length) - (position.get(b) ?? config.length))
 }
 
-/*  validate every Wiki-style reference for unique resolvability,
-    independent of any configuration  */
+/*  validate every Wiki-style reference for unique resolvability (from
+    its carrying object), independent of any configuration  */
 export const validateReferences = (ctx: ParseContext, specification: Spec) => {
-    const check = (text: string, file: string, line: number) => {
+    const check = (object: SpecObject, text: string, file: string, line: number) => {
         for (const m of text.matchAll(referenceRegex)) {
             const ref        = m[1].trim()
-            const resolution = resolveUnique(ctx.linkIndex, ref)
+            const resolution = resolveUnique(ctx.linkIndex, ref, object)
             if (resolution.ambiguous)
                 ctx.diagnose(file, line, `ambiguous link reference "[[${ref}]]"`)
             else if (resolution.target === undefined)
@@ -496,13 +607,13 @@ export const validateReferences = (ctx: ParseContext, specification: Spec) => {
     }
     const walk = (object: SpecObject) => {
         const meta = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
-        check(object.name, meta.file, meta.line)
+        check(object, object.name, meta.file, meta.line)
         for (const property of object.properties)
-            check(property.value, meta.file, ctx.propMeta.get(property)?.line ?? meta.line)
+            check(object, property.value, meta.file, ctx.propMeta.get(property)?.line ?? meta.line)
         if (object.description !== undefined) {
-            check(object.description.description, meta.file, meta.line)
+            check(object, object.description.description, meta.file, meta.line)
             if (object.description.rationale !== undefined)
-                check(object.description.rationale, meta.file, meta.line)
+                check(object, object.description.rationale, meta.file, meta.line)
         }
         object.childs.forEach(walk)
     }

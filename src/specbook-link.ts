@@ -24,6 +24,27 @@ interface LinkNode {
 /*  the pre-built resolution index over a specification  */
 export type LinkIndex = LinkNode[]
 
+/*  the per-index lookup of the nodes by their objects, built lazily on
+    the first scoped resolution (as the index itself stays a plain list)  */
+const lookups = new WeakMap<LinkIndex, Map<SpecObject, LinkNode>>()
+const lookup = (index: LinkIndex, object: SpecObject): LinkNode | undefined => {
+    let nodes = lookups.get(index)
+    if (nodes === undefined) {
+        nodes = new Map<SpecObject, LinkNode>(index.map((node) => [ node.object, node ]))
+        lookups.set(index, nodes)
+    }
+    return nodes.get(object)
+}
+
+/*  the ancestor-or-self chain of an object, root first
+    (empty for an object unknown to the index)  */
+export const chainOf = (index: LinkIndex, object: SpecObject): SpecObject[] => {
+    const chain = new Array<SpecObject>()
+    for (let node = lookup(index, object); node !== undefined; node = node.parent)
+        chain.unshift(node.object)
+    return chain
+}
+
 /*  the result of a unique reference resolution  */
 export interface LinkTarget {
     target?:   SpecObject
@@ -106,11 +127,31 @@ export const resolveSet = (index: LinkIndex, reference: string): SpecObject[] =>
     }).map((node) => node.object)
 }
 
+/*  narrow several matches down to the ones nearest to the referencing
+    object, i.e. sharing the longest ancestor chain with it (the lexical
+    scoping rule: a match within the same parent beats one in a sibling
+    subtree, which beats one in another artifact)  */
+const nearest = (index: LinkIndex, matches: SpecObject[], from: SpecObject): SpecObject[] => {
+    const chain    = chainOf(index, from)
+    const distance = (object: SpecObject): number => {
+        const other = chainOf(index, object)
+        let i = 0
+        while (i < chain.length && i < other.length && chain[i] === other[i])
+            i++
+        return i
+    }
+    const distances = matches.map((object) => distance(object))
+    const best      = Math.max(...distances)
+    return matches.filter((_, i) => distances[i] === best)
+}
+
 /*  resolve a reference into a unique target: a single segment tries the
     ordered variants (1) id/anchor, (2) name, (3) "KIND:name-or-id", where
-    the first variant yielding matches decides (several matches are an
-    ambiguity), while a hierarchical path resolves via its full match set  */
-export const resolveUnique = (index: LinkIndex, reference: string): LinkTarget => {
+    the first variant yielding matches decides, while a hierarchical path
+    resolves via its full match set; several matches are narrowed down to
+    the ones nearest to the referencing object (if known) and remain an
+    ambiguity only if still more than one remains  */
+export const resolveUnique = (index: LinkIndex, reference: string, from?: SpecObject): LinkTarget => {
     const segments = segmentsOf(reference)
     let   matches: SpecObject[] = []
     if (segments.length === 1) {
@@ -129,6 +170,8 @@ export const resolveUnique = (index: LinkIndex, reference: string): LinkTarget =
     }
     else
         matches = resolveSet(index, reference)
+    if (matches.length > 1 && from !== undefined)
+        matches = nearest(index, matches, from)
     return { target: matches.length === 1 ? matches[0] : undefined, ambiguous: matches.length > 1 }
 }
 

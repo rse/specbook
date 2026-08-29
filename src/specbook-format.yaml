@@ -136,8 +136,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[SPEC:GL.TERM:*]], [[SPEC:BR.RULE:*]], [[SPEC:DM.ENTITY:*]],
-                    [[SPEC:UP.PERSONA:*]]"
+                nodes: "[[SPEC:GL.TERM:*]], [[SPEC:BR.RULE:*]], [[SPEC:DM.ENTITY:*]], [[SPEC:UP.PERSONA:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -515,7 +514,7 @@
                 type: hub
                 center: self
                 nodes: "[[SPEC:UC.USE-CASE:*]], [[SPEC:UP.PERSONA:*]], [[SPEC:UJ.JOURNEY:*.STEP:*]],
-                    [[SPEC:FR.REQUIREMENT:*]], [[SPEC:BR.RULE:*]]"
+                    [[SPEC:FR.REQUIREMENT:*]], [[SPEC:BR.RULE:*]], [[SPEC:SM.LIFECYCLE:*.TRANSITION:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -546,6 +545,14 @@
                         the use case apply, i.e. whose condition a scenario step checks or enforces
                         (e.g. an access rule in an authentication step).
                     value: list([[SPEC:BR.RULE:*]])
+                    optional: true
+                -   name: TRANSITIONS
+                    desc: >
+                        Comma-separated references to the STATE-MODEL transition objects the
+                        scenarios of the use case trigger, i.e. whose state change a scenario
+                        step causes, so that every transition is exercised by at least one use
+                        case or test case.
+                    value: list([[SPEC:SM.LIFECYCLE:*.TRANSITION:*]])
                     optional: true
                 -   name: INCLUDES
                     desc: >
@@ -591,6 +598,7 @@
                                 flow).
                             value: enum(Main,Alternative,Exceptional)
                             unique: enum(Main)
+                            present: enum(Main)
                         -   name: RESULT
                             desc: >
                                 How an `Alternative` or `Exceptional` scenario ends: `Success` (the
@@ -744,7 +752,17 @@
         -   kind: LIFECYCLE
             desc: >
                 The lifecycle of a single entity, named with the short (1-3 word) name of the
-                lifecycle, normally the name of the entity it governs.
+                lifecycle, normally the name of the entity it governs. A lifecycle is a flat finite
+                state machine: exactly one initial state, at least one final state, every state
+                reachable from the initial state, and some final state reachable from every state
+                (a state from which no final state can be reached anymore is a livelock).
+            automaton:
+                nodes: STATE
+                edges: TRANSITION
+                source: FROM
+                target: TO
+                initial: INITIAL
+                final: FINAL
             diagram:
                 type: graph
                 edges: "[[SPEC:SM.LIFECYCLE:*.TRANSITION:*]]"
@@ -760,7 +778,7 @@
                 -   name: ENTITY
                     desc: >
                         Reference to the DATA-MODEL entity whose lifecycle this models, at most one
-                        lifecycle per entity.
+                        lifecycle per entity (an entity without a lifecycle has a trivial one).
                     value: "[[SPEC:DM.ENTITY:*]]"
                     unique: true
             childs:
@@ -771,43 +789,77 @@
                         per-lifecycle unique name (e.g. `Draft`, `Shipped`) and described by a
                         1-sentence description of what holds true in it.
 
-                        Every state used in a transition *MUST* be declared, and every state with no
-                        outgoing transition *MUST* be final (a non-final state with no outgoing
-                        transition would be a stuck dead-end). The converse does *not* hold: a final
-                        state *MAY* still have outgoing transitions, modeling a resting state that
-                        can later be left again (e.g. a `Closed` state with a `reopen` transition
-                        back to `Active`). Thus the final states are a superset of, but not
-                        necessarily equal to, the states without outgoing transitions.
+                        Every state used in a transition *MUST* be declared, every state *MUST* be
+                        reachable from the initial state, and every state with no outgoing
+                        transition *MUST* be final (a non-final state with no outgoing transition
+                        would be a stuck dead-end). The converse does *not* hold: a final state
+                        *MAY* still have outgoing transitions, modeling a resting state that can
+                        later be left again (e.g. a `Closed` state with a `reopen` transition back
+                        to `Active`). Thus the final states are the "accepting" states of the
+                        automaton, a superset of, but not necessarily equal to, the states without
+                        outgoing transitions.
                     props:
                         -   name: INITIAL
                             desc: >
                                 Whether the state is the initial one, i.e. the single state every
-                                instance of the entity enters upon creation.
+                                instance of the entity enters upon creation (exactly one per
+                                lifecycle).
                             value: /^(?:true|false)$/
                             unique: enum(true)
+                            present: enum(true)
                             optional: true
                         -   name: FINAL
                             desc: >
                                 Whether the state is a final one, i.e. a terminal state in which the
-                                entity may legally come to rest permanently.
+                                entity may legally come to rest permanently (at least one per
+                                lifecycle).
                             value: /^(?:true|false)$/
+                            present: enum(true)
                             optional: true
                 -   kind: TRANSITION
-                    name: "[a-z]+"
+                    name: "[a-z][a-z-]*"
                     desc: >
                         A single permitted transition between two states, named with the short,
                         lower-cased verb of the triggering event or action (e.g. `submit`, `ship`,
                         `cancel`) and described by a 1-sentence description of its side effect
-                        ("what happens"), followed by a ", **WHEN** `<guard>`" clause stating the
-                        condition that must hold for the transition to be permitted. Any move not
-                        listed as a transition is implicitly forbidden.
+                        ("what happens"). The same verb *MAY* name several transitions departing
+                        from different states (told apart by their anchors), and a transition *MAY*
+                        arrive at the very state it departs from (an internal transition, e.g.
+                        `edit` on `Draft`). Any move not listed as a transition is implicitly
+                        forbidden.
+                    referenced:
+                        -   "[[SPEC:UC.USE-CASE:*]]"
+                        -   "[[SPEC:TC.TEST-CASE:*]]"
                     props:
                         -   name: FROM
-                            desc: The state the transition departs from.
+                            desc: The state (of the same lifecycle) the transition departs from.
                             value: "[[SPEC:SM.LIFECYCLE:*.STATE:*]]"
+                            local: true
                         -   name: TO
-                            desc: The state the transition arrives at.
+                            desc: The state (of the same lifecycle) the transition arrives at.
                             value: "[[SPEC:SM.LIFECYCLE:*.STATE:*]]"
+                            local: true
+                        -   name: ACTOR
+                            desc: >
+                                Comma-separated references to the PERSONAS objects able to trigger
+                                the transition, and/or `System` for a transition the solution
+                                triggers on its own or `Time` for one triggered by the passing of
+                                time (e.g. an expiry); omitted when the trigger is irrelevant.
+                            value: list([[SPEC:UP.PERSONA:*]], enum(System,Time))
+                            optional: true
+                        -   name: GUARD
+                            desc: >
+                                The condition which, beyond being in the `FROM` state, has to be
+                                satisfied for the transition to be permitted, stated as a
+                                1-sentence statement of what has to hold (e.g. `The order has at
+                                least one item.`); omitted when the `FROM` state alone permits it.
+                            optional: true
+                        -   name: RULES
+                            desc: >
+                                Comma-separated references to the BUSINESS-RULES objects the
+                                transition enforces, usually through its `GUARD`.
+                            value: list([[SPEC:BR.RULE:*]])
+                            optional: true
 
 -   kind: SPEC
     name: Test Cases
@@ -829,7 +881,7 @@
                 type: hub
                 center: self
                 nodes: "[[SPEC:TC.TEST-CASE:*]], [[SPEC:FR.REQUIREMENT:*]], [[SPEC:NR.REQUIREMENT:*]],
-                    [[SPEC:BR.RULE:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]]"
+                    [[SPEC:BR.RULE:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]], [[SPEC:SM.LIFECYCLE:*.TRANSITION:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -839,12 +891,16 @@
                 -   name: VERIFIES
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
-                        NON-FUNCTIONAL-REQUIREMENTS objects, the BUSINESS-RULES objects, and/or the
-                        USE-CASES scenario objects the test case verifies, so that a scenario (in
-                        particular an `Exceptional` one, judged by its `OUTCOME`) is covered by an
-                        acceptance test beside the requirements it exercises, and a rule (judged
-                        by the condition it states) is proven to hold, not just to be documented.
-                    value: list([[SPEC:*.REQUIREMENT:*]], [[SPEC:BR.RULE:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]])
+                        NON-FUNCTIONAL-REQUIREMENTS objects, the BUSINESS-RULES objects, the
+                        USE-CASES scenario objects, and/or the STATE-MODEL transition objects the
+                        test case verifies, so that a scenario (in particular an `Exceptional`
+                        one, judged by its `OUTCOME`) is covered by an acceptance test beside the
+                        requirements it exercises, a rule (judged by the condition it states) is
+                        proven to hold, not just to be documented, and a transition (judged by its
+                        `GUARD` and the resulting state) is proven to be permitted exactly as
+                        modeled.
+                    value: list([[SPEC:*.REQUIREMENT:*]], [[SPEC:BR.RULE:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]],
+                        [[SPEC:SM.LIFECYCLE:*.TRANSITION:*]])
                 -   name: PRE-CONDITION
                     desc: >
                         The state or setup that must hold before the test is executed.

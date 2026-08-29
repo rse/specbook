@@ -71,10 +71,19 @@ type SchemaObject = {
     desc?:             string
     optional?:         boolean
     referenced?:       string[]
+    automaton?:        SchemaAutomaton
     diagram?:          SchemaDiagram
     format?:           SchemaFormat
     props?:            SchemaProperty[]
     childs?:           SchemaObject[]
+}
+type SchemaAutomaton = {
+    nodes:             string
+    edges:             string
+    source:            string
+    target:            string
+    initial:           string
+    final:             string
 }
 type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid"
@@ -105,6 +114,8 @@ type SchemaProperty = {
     value?:            string
     optional?:         boolean
     unique?:           boolean | string
+    present?:          boolean | string
+    local?:            boolean
     symmetric?:        boolean
     acyclic?:          boolean
 }
@@ -199,6 +210,10 @@ type SchemaGradiaConfig = Partial<{
     at least once, where a lapse is reported as a warning only,
     BECAUSE a term nobody uses or a requirement no use case exercises is dead weight
 
+-   `SchemaObject.automaton?: SchemaAutomaton`:
+    finite state machine the child objects of every object of this kind form,
+    BECAUSE a lifecycle is only trustworthy when its dead-ends and livelocks are ruled out
+
 -   `SchemaObject.diagram?: SchemaDiagram`:
     diagram generated for every object of this kind,
     BECAUSE relations buried in references are graspable only when drawn
@@ -214,6 +229,37 @@ type SchemaGradiaConfig = Partial<{
 -   `SchemaObject.childs?: SchemaObject[]`:
     object kinds allowed one level below this object (RECURSION),
     BECAUSE the nesting defines and bounds the document structure
+
+-   `SchemaAutomaton`:
+    finite state machine formed by the child objects of an object: the
+    nodes have to be reachable from an initial node, a node without
+    outgoing edge has to be final (else it is a dead-end), and a final
+    node has to be reachable from every node (else it is a livelock),
+    BECAUSE the structural sanity of a state machine is checkable, not just describable
+
+-   `SchemaAutomaton.nodes: string`:
+    child object kind whose objects are the nodes (e.g. `STATE`),
+    BECAUSE the states are objects of their own, carrying descriptions and flags
+
+-   `SchemaAutomaton.edges: string`:
+    child object kind whose objects are the edges (e.g. `TRANSITION`),
+    BECAUSE the transitions are objects of their own, carrying guards and effects
+
+-   `SchemaAutomaton.source: string`:
+    reference-valued property of an edge object referencing its source node,
+    BECAUSE an edge is directed
+
+-   `SchemaAutomaton.target: string`:
+    reference-valued property of an edge object referencing its target node,
+    BECAUSE an edge is directed
+
+-   `SchemaAutomaton.initial: string`:
+    property of a node object flagging (with the value `true`) an initial node,
+    BECAUSE reachability needs a start (the check is skipped without any initial node)
+
+-   `SchemaAutomaton.final: string`:
+    property of a node object flagging (with the value `true`) a final node,
+    BECAUSE resting is legal in a final node only (the livelock check is skipped without any final node)
 
 -   `SchemaDiagram`:
     diagram derived for every object of an object kind,
@@ -326,6 +372,17 @@ type SchemaGradiaConfig = Partial<{
     whether every value (`true`) or only the values matching a regexp or
     enum expression occur at most once among the sibling objects of the kind,
     BECAUSE some markers, like a `Main` flow, designate a single sibling
+
+-   `SchemaProperty.present?: boolean | string`:
+    whether some value (`true`) or a value matching a regexp or enum
+    expression has to occur on at least one of the (existing) sibling
+    objects of the kind, so that `unique` plus `present` demand exactly one,
+    BECAUSE some markers, like an initial state, are not just single but indispensable
+
+-   `SchemaProperty.local?: boolean`:
+    whether the reference-valued property has to reference objects below
+    the parent object of the referencing object only (default: `false`),
+    BECAUSE a transition between the states of two different lifecycles is nonsense
 
 -   `SchemaProperty.symmetric?: boolean`:
     whether every object the reference-valued property references has to
@@ -793,7 +850,11 @@ below the artifact with id `FV`).
 A reference has to resolve to exactly one object: a single-segment
 reference tries the variants (1) id/anchor, (2) name, and (3)
 `<kind/>:<name-or-id/>` in order, where the first variant yielding any
-matches decides; several matches are an ambiguity and zero matches an
+matches decides; several matches are narrowed down to the ones nearest
+to the referencing object, i.e. sharing the longest ancestor chain with
+it (so `[[STATE:Draft]]` inside a lifecycle picks the `Draft` state of
+this very lifecycle, even if other lifecycles carry a `Draft` state,
+too); still several matches are an ambiguity and zero matches an
 unresolvable reference, both reported by the linter. Wildcard references
 resolve into match *sets* and are used in the schema configuration to
 constrain reference-valued properties (e.g. `[[PERSONA:*]]` or

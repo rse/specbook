@@ -17,7 +17,7 @@ import type { Schema, SchemaObject, SchemaFormat }
     from "./specbook-format-schema.js"
 import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths, plainText }
     from "./specbook-link.js"
-import { compileValueExpr, splitItems }
+import { compileValueExpr, splitItems, type ValueExpr }
     from "./specbook-parse-value.js"
 import { embeddingRegex, embeddingMimeType, embeddingThemes, embeddingVariants }
     from "./specbook-parse-common.js"
@@ -352,13 +352,29 @@ const render = (name: keyof typeof templates, context: object): string =>
     env.renderString(templates[name], context)
 
 /*  the active per-document reference expander, fully-qualified
-    anchor paths, enum/tags property value kinds, object schema nodes,
-    and pre-rendered diagram SVGs (all set during HTML rendering)  */
+    anchor paths, member-carrying property value constraints, object
+    schema nodes, and pre-rendered diagram SVGs (all set during HTML
+    rendering)  */
 let linker:   ((text: string, compact: boolean) => string) | null = null
 let anchors:  Map<SpecObject, string> | null       = null
-let members:  Map<string, "enum" | "tags"> | null  = null
+let members:  Map<string, ValueExpr> | null        = null
 let schemas:  Map<SpecObject, SchemaObject> | null = null
 let diagrams: Map<SpecObject, string> | null       = null
+
+/*  the object whose texts are currently rendered, scoping the
+    resolution of the references inside them (nearest object wins),
+    established around every object rendering and restored afterwards  */
+let scope: SpecObject | null = null
+const scoped = <T>(object: SpecObject, render: () => T): T => {
+    const outer = scope
+    scope = object
+    try {
+        return render()
+    }
+    finally {
+        scope = outer
+    }
+}
 
 /*  the cache of the pre-rendered diagram SVGs, keyed by specification,
     as the PDF export renders the very same document multiple times  */
@@ -451,17 +467,25 @@ const renderDescription = (description: SpecDescription): string => {
     } })
 }
 
-/*  collect the "enum(...)"/"tags(...)" constrained properties of the
-    schema configuration, keyed by object kind and property name  */
-const collectMembers = (nodes: SchemaObject[], result: Map<string, "enum" | "tags">) => {
+/*  the literal members of an "enum(...)"/"tags(...)" expression, or
+    of the "enum(...)"/"tags(...)" alternatives of a "list(...)" one
+    (empty for every other expression)  */
+const literalMembers = (expr: ValueExpr): string[] =>
+    expr.kind === "enum" || expr.kind === "tags" ? expr.members :
+        expr.kind === "list" ? expr.alternatives.flatMap(literalMembers) : []
+
+/*  collect the properties of the schema configuration constrained by
+    literal members (an "enum(...)", a "tags(...)", or a "list(...)"
+    with such alternatives), keyed by object kind and property name  */
+const collectMembers = (nodes: SchemaObject[], result: Map<string, ValueExpr>) => {
     for (const schema of nodes) {
         for (const property of schema.props ?? []) {
             if (property.value === undefined)
                 continue
             try {
                 const expr = compileValueExpr(property.value)
-                if (expr.kind === "enum" || expr.kind === "tags")
-                    result.set(`${schema.kind} ${property.name}`, expr.kind)
+                if (literalMembers(expr).length > 0)
+                    result.set(`${schema.kind} ${property.name}`, expr)
             }
             catch {
                 /*  an invalid expression is the concern of lint  */
@@ -474,27 +498,32 @@ const collectMembers = (nodes: SchemaObject[], result: Map<string, "enum" | "tag
 
 /*  render a property value, badging the individual members of an
     "enum(...)" (a single member) or "tags(...)" (a member set) value
-    and moving its image embeddings behind the value, rendered from the
-    embedded image contents (as for a description), not from the markup;
-    an absent property renders as the marker telling it apart from a
-    property given with an empty value  */
+    and the literal member items of a "list(...)" value (the other items,
+    like references, stay prose), moving its image embeddings behind the
+    value, rendered from the embedded image contents (as for a
+    description), not from the markup; an absent property renders as the
+    marker telling it apart from a property given with an empty value  */
 const inlineValue = (kind: string, property: SpecProperty | undefined) => {
     if (property === undefined)
         return safe("<span class=\"value-absent\"></span>")
     const { key, value, embedding } = property
-    const member = members?.get(`${kind} ${key}`)
+    const expr = members?.get(`${kind} ${key}`)
     const text = value
         .replace(embeddingMarkup, (markup, _alt, reference: string) =>
             embeddingMimeType(reference.trim()) !== undefined ? "" : markup)
         .trim()
     const embeddings = renderEmbeddings(value, embedding ?? [])
         .map((content) => `<div class="embedding">${content}</div>`).join("")
-    if (member === undefined || text === "")
+    if (expr === undefined || text === "")
         return safe(`${inline(text)}${embeddings}`)
-    const items = member === "tags" ?
-        splitItems(text).filter((item) => item !== "") : [ text ]
-    return safe(items.map((item) =>
-        `<span class="value-member">${inline(item)}</span>`).join(" ") + embeddings)
+    const badge = (item: string) => `<span class="value-member">${inline(item)}</span>`
+    if (expr.kind === "enum")
+        return safe(badge(text) + embeddings)
+    const items = splitItems(text).filter((item) => item !== "")
+    if (expr.kind === "tags")
+        return safe(items.map(badge).join(" ") + embeddings)
+    const literals = new Set(literalMembers(expr))
+    return safe(items.map((item) => literals.has(item) ? badge(item) : inline(item)).join(", ") + embeddings)
 }
 
 /*  expand the inline Markdown of the property values, with the
@@ -612,7 +641,7 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
             /*  under the fixed table layout the description column claims
                 twice the share of a regular column, compressing the others  */
             width: Math.round(200 / (keys.length + 3)),
-            rows: childs.map((child, i) => ({
+            rows: childs.map((child, i) => scoped(child, () => ({
                 id:          anchorOf(child),
                 paren:       child.paren,
                 primary:     child.primary,
@@ -621,7 +650,7 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
                 values:      keys.map((key) =>
                     inlineValue(child.kind, child.properties.find((property) => property.key === key))),
                 description: safe(renderCell(child))
-            }))
+            })))
         } })
 
     /*  the embedded rows hold at most maxColumns - 1 cells (of the
@@ -631,7 +660,7 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
     return render("TableChunked", { Table: {
         head:  childs[0].kind !== "" ? childs[0].kind : "Name",
         width: Math.round(100 / maxColumns),
-        rows:  childs.map((child, i) => {
+        rows:  childs.map((child, i) => scoped(child, () => {
             const cells = keys.map((key) => ({ key, desc: false, span: 1,
                 value: inlineValue(child.kind, child.properties.find((property) => property.key === key)) }))
             if (desc)
@@ -658,7 +687,7 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
                 even:    i % 2 === 1,
                 chunks
             }
-        })
+        }))
     } })
 }
 
@@ -672,7 +701,7 @@ const diagramOf = (object: SpecObject) => {
 /*  recursively render an object into HTML  */
 const renderObject = (object: SpecObject, level: number, concise: boolean): string => {
     const properties = effectiveProperties(object)
-    return render("Object", { Object: {
+    return scoped(object, () => render("Object", { Object: {
         level:       Math.min(level, 6),
         kind:        object.kind,
         id:          anchorOf(object),
@@ -687,7 +716,7 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
         childs:      conciseChilds(object, schemas, concise) ?
             safe(groupChilds(flowChilds(object)).map((group) => renderTable(group, maxColumnsOf(object))).join("")) :
             safe(flowChilds(object).map((child) => renderObject(child, level + 1, concise)).join(""))
-    } })
+    } }))
 }
 
 /*  format a timestamp as its calendar date in local time (the
@@ -715,7 +744,7 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
         in both its theme variants  */
     const logo  = object.properties.find((property) => property.key === "LOGO")
     const image = logo !== undefined ? renderEmbeddings(logo.value, logo.embedding ?? []) : []
-    return render("TitlePage", { TitlePage: {
+    return scoped(object, () => render("TitlePage", { TitlePage: {
         logo:        logo === undefined ?
             safe(renderThemed(embeddingThemes.map((theme) =>
                 `<img src="${fallbackLogo(theme)}" alt="SpecBook"/>`))) :
@@ -729,7 +758,7 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
         properties:  rest.length > 0 ?
             safe(render("Properties", { Properties: inlineProperties(object, rest) })) : "",
         created, modified
-    } })
+    } }))
 }
 
 /*  render an artifact into HTML  */
@@ -824,8 +853,9 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     quotes = quoteStyles[lang?.toLowerCase().split(/[-_]/)[0] ?? "en"] ?? quoteStyles.en
 
     /*  expand "[[xxx]]" references into hyperlinks (an unresolvable or
-        ambiguous reference stays literal, marked as broken), targeting
-        the fully-qualified anchor paths of the objects: in the full form
+        ambiguous reference stays literal, marked as broken), resolved
+        from the object currently rendered and targeting the
+        fully-qualified anchor paths of the objects: in the full form
         (kind, name, and link symbol), or in the compact form for prose
         (the object icon and the name only, via CSS and markup, with the
         full form as a hover tooltip)  */
@@ -835,7 +865,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     schemas  = config !== undefined ? collectSchemas(specification, config) : null
     diagrams = rendered
     linker   = (text, compact) => expandReferences(text, (reference) => {
-        const target = resolveUnique(index, reference).target
+        const target = resolveUnique(index, reference, scope ?? undefined).target
         if (target === undefined)
             return `<span class="link-broken">[[${escapeHtml(reference)}]]</span>`
         const full = `<span class="object-kind">${escapeHtml(target.kind)}:</span> <strong>${target.name}</strong>` +
