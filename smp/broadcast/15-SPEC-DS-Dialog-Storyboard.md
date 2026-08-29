@@ -10,7 +10,7 @@ STORYBOARD: Attendee Joins and Watches {{attendee-join}}
 --------------------------------------
 
 -   USE-CASE: [[USE-CASE:join-event]]
--   SCENARIO: [[SCENARIO:join-event-token-login]]
+-   SCENARIO: [[SCENARIO:join-event-watch]]
 -   PATTERN:  [[PATTERN:two-factor-login]]
 
 ### FRAME

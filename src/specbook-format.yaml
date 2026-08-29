@@ -371,9 +371,10 @@
             desc: >
                 A discrete goal a user pursues with the solution, named with a short (3-8 word)
                 summary phrased as an actor goal (e.g. `Reset Forgotten Password`) and described in
-                a concise (1-3 sentence) paragraph at a glance, without prescribing the step-by-step
-                flow, which belongs to its `SCENARIO` objects: exactly one `Main` scenario, listed
-                first, followed by any number of `Alternative` and `Exceptional` scenarios.
+                a concise (1-3 sentence) paragraph at a glance, plus a 1-sentence rationale ("why")
+                stating the value the actor gains, without prescribing the step-by-step flow, which
+                belongs to its `SCENARIO` objects: exactly one `Main` scenario, listed first,
+                followed by any number of `Alternative` and `Exceptional` scenarios.
 
                 The use case is at user-goal level: a goal the actor completes in one sitting,
                 neither a summary of many sittings (which belongs to the User Journey as a whole)
@@ -400,13 +401,19 @@
                 -   name: REQUIREMENTS
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects the use
-                        case realizes.
+                        case exercises, i.e. whose behavior its scenarios walk through, so that every
+                        Functional Requirement is exercised by at least one use case.
                     value: list([[SPEC:FR.*]])
                     optional: true
-                -   name: GOAL
+                -   name: INCLUDES
                     desc: >
-                        The 1-sentence statement of what the actor wants to achieve through this use
-                        case.
+                        Comma-separated references to the other USE-CASES objects this use case
+                        includes as sub-flows, i.e. whose entire flow one of its scenario steps
+                        invokes (e.g. `The attendee authenticates ([[USE-CASE:authenticate]]).`),
+                        factoring a flow shared by several use cases out into a use case of its own
+                        instead of restating its steps.
+                    value: list([[SPEC:UC.USE-CASE:*]])
+                    optional: true
                 -   name: PRE-CONDITION
                     desc: >
                         The condition that must hold before the use case can begin.
