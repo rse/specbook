@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 13:25
+Modified: 2026-08-29 14:20
 ---
 
 SPEC: Test Cases (TC)
@@ -52,6 +52,21 @@ SPEC: Test Cases (TC)
 -   INPUT:         An attendee submits a chat message.
 -   EXPECTED:      The message is stored in state accepted and is immediately visible.
 
+##  TEST-CASE: Chat Cannot Enter Question States {{type-states}}
+
+-   VERIFIES:       [[FR.moderation]], [[RULE:type-states]]
+-   PRE-CONDITION:  An accepted chat message exists in a running event.
+-   INPUT:          A moderator attempts to forward the chat message to the presenter.
+-   EXPECTED:       The system refuses the transition, as a chat message permits only the states pending, accepted, and rejected.
+-   POST-CONDITION: The chat message remains in state accepted.
+
+##  TEST-CASE: Moderator Message Starts Accepted {{moderator-accept}}
+
+-   VERIFIES:      [[FR.moderator-messages]], [[RULE:moderator-accept]]
+-   PRE-CONDITION: An event with chat moderation enabled is running.
+-   INPUT:         A moderator posts a chat message without overriding the sender name.
+-   EXPECTED:      The message is stored directly in state accepted with the sender name "Moderator" and is immediately visible.
+
 ##  TEST-CASE: Forwarded Message Is Locked {{forward-lock}}
 
 -   VERIFIES:      [[FR.message-editing]], [[RULE:forward-lock]]
@@ -89,6 +104,14 @@ SPEC: Test Cases (TC)
 -   EXPECTED:       All connected clients switch to the new stream without user interaction.
 -   POST-CONDITION: Exactly one resource of the channel is active.
 
+##  TEST-CASE: Channel Activation Deactivates Previous {{single-channel}}
+
+-   VERIFIES:       [[FR.provider-switch]], [[RULE:single-channel]]
+-   PRE-CONDITION:  A running event with two configured channels, the first one active.
+-   INPUT:          The manager activates the second channel.
+-   EXPECTED:       The second channel becomes active and the first one is deactivated in the same step.
+-   POST-CONDITION: Exactly one channel of the event is active.
+
 ##  TEST-CASE: Config Change Reaches Clients {{config-propagation}}
 
 -   VERIFIES:      [[FR.config-propagation]]
@@ -118,12 +141,28 @@ SPEC: Test Cases (TC)
 -   EXPECTED:       Sender names become "Anonymous", likes become bare counts, and tokens, users, and Moderator roles are deleted.
 -   POST-CONDITION: No personal attendee data remains and Manager roles are retained.
 
+##  TEST-CASE: User Vanishes Without Role or Access {{no-accounts}}
+
+-   VERIFIES:       [[RULE:no-accounts]]
+-   PRE-CONDITION:  A user exists solely through the access list of a running event, holding no role.
+-   INPUT:          The manager removes the user from the access list.
+-   EXPECTED:       The user record is deleted together with the access list entry, as nothing else keeps it alive.
+-   POST-CONDITION: No user record for the email address exists.
+
 ##  TEST-CASE: Export Contains Required Fields {{export-fields}}
 
 -   VERIFIES:      [[FR.export-inputs]], [[RULE:like-count]]
 -   PRE-CONDITION: A finished, anonymized event with messages.
 -   INPUT:         The manager exports the attendee inputs.
 -   EXPECTED:      The export includes at least timestamp, state, number of likes, and message text per message.
+
+##  TEST-CASE: Manager Role Survives Finish {{manager-retained}}
+
+-   VERIFIES:       [[FR.export-inputs]], [[SCENARIO:export-data-after]], [[RULE:manager-retained]]
+-   PRE-CONDITION:  A running event with a manager role and a moderator role assigned.
+-   INPUT:          The manager finishes the event.
+-   EXPECTED:       The moderator role is deleted by the anonymization while the manager role remains and can still export the event data.
+-   POST-CONDITION: The manager role exists until the event is deleted.
 
 ##  TEST-CASE: Concurrent Attendee Load {{load}}
 
