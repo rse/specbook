@@ -815,6 +815,7 @@
             -   ENTITY
         config:
             size-node-width-max: 440
+            size-node-height-scale: 2
             grid-columns-max: 5
     childs:
         -   kind: LIFECYCLE
@@ -952,6 +953,10 @@
     diagram:
         type: grid
         nodes: "[[SPEC:TC.TEST-CASE:*]]"
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 4
     childs:
         -   kind: TEST-CASE
             desc: >
@@ -1051,6 +1056,7 @@
             -   CATEGORY
         config:
             size-node-width-max: 440
+            size-node-height-scale: 2
             grid-columns-max: 4
     childs:
         -   kind: PRINCIPLE
@@ -1123,6 +1129,7 @@
             -   CATEGORY
         config:
             size-node-width-max: 440
+            size-node-height-scale: 2
             grid-columns-max: 4
     childs:
         -   kind: CONVENTION
@@ -1177,7 +1184,7 @@
     file: 14-SPEC-DP-Dialog-Patterns.md
     desc: >
         The reusable interaction structures governing how the system and user exchange information
-        across recurring conversational or UI flows (e.g. master-detail dialog).
+        across recurring UI flows (e.g. master-detail dialog).
     refs: >
         -   Alexander et al.: A Pattern Language: Towns, Buildings, Construction (1977),
             https://global.oup.com/academic/product/a-pattern-language-9780195019193
@@ -1185,6 +1192,16 @@
             https://www.wiley.com/en-us/A+Pattern+Approach+to+Interaction+Design-p-9780471498285
         -   Tidwell et al.: Designing Interfaces: Patterns for Effective Interaction Design, 3rd ed. (2020),
             https://www.oreilly.com/library/view/designing-interfaces-3rd/9781492051954/
+    optional: true
+    diagram:
+        type: grid
+        nodes: "[[SPEC:DP.PATTERN:*]]"
+        properties:
+            -   CATEGORY
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 4
     childs:
         -   kind: PATTERN
             desc: >
@@ -1193,8 +1210,35 @@
                 paragraph by the interaction structure and how the system and user exchange
                 information within it, plus a 1-sentence rationale ("why") stating why this
                 particular structure is worth adopting -- the benefit it secures or the trade-off it
-                wins.
+                wins. A pattern is a structure recurring in at least two flows (a structure
+                occurring in a single flow is a Dialog Storyboard frame instead) and is bound to a
+                particular kind of screen or flow (a solution-wide rule independent of any screen
+                is an Interaction Concept principle instead).
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[SPEC:DP.PATTERN:*]], [[SPEC:IC.PRINCIPLE:*]], [[SPEC:DS.STORYBOARD:*]]"
+                deep: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
             props:
+                -   name: CATEGORY
+                    desc: >
+                        The aspect of the interaction the pattern structures: `Navigation` (moving
+                        between the screens and places of the solution), `Layout` (arranging the
+                        regions of a screen), `List` (browsing, filtering, and selecting among many
+                        items), `Data` (presenting complex data and information graphics), `Form`
+                        (entering and editing data), `Action` (issuing commands and handling their
+                        effects), or `Feedback` (conveying status, progress, and notifications).
+                    value: enum(Navigation,Layout,List,Data,Form,Action,Feedback)
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects whose interaction
+                        the pattern structures, omitted for a pattern applied to the interaction of
+                        all users alike.
+                    value: list([[SPEC:UP.PERSONA:*]])
+                    optional: true
                 -   name: CONTEXT
                     desc: >
                         The recurring situation or flow in which the pattern is applied.
@@ -1211,6 +1255,21 @@
                         pattern rather than merely declared.
                     value: list([[SPEC:IC.PRINCIPLE:*]])
                     optional: true
+                -   name: USES
+                    desc: >
+                        Comma-separated references to the smaller DIALOG-PATTERNS objects the
+                        pattern is composed of (e.g. a `Master-Detail` using an `Inline Edit` in
+                        its detail), so that the patterns form a language of related structures
+                        rather than a flat catalogue.
+                    value: list([[SPEC:DP.PATTERN:*]])
+                    optional: true
+                -   name: TRADE-OFF
+                    desc: >
+                        The liability the pattern accepts in exchange for its benefit, stated so
+                        that not applying the pattern is a defensible choice, too (e.g. `the
+                        horizontal space of two panes, cramped on small screens` for
+                        `Master-Detail`), as opposed to the rationale which states why the benefit
+                        wins.
 
 -   kind: SPEC
     name: Dialog Storyboard
@@ -1229,6 +1288,10 @@
     diagram:
         type: grid
         nodes: "[[SPEC:DS.STORYBOARD:*]]"
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 4
     childs:
         -   kind: STORYBOARD
             desc: >
@@ -1239,6 +1302,7 @@
                 center: self
                 nodes: "[[SPEC:DS.STORYBOARD:*]], [[SPEC:UC.USE-CASE:*]],
                     [[SPEC:UC.USE-CASE:*.SCENARIO:*]], [[SPEC:DP.PATTERN:*]]"
+                deep: true
                 qualified: true
                 config:
                     size-node-width-max: 440
@@ -1253,11 +1317,6 @@
                         Reference to the USE-CASES scenario object the storyboard visualizes.
                     value: "[[SPEC:UC.USE-CASE:*.SCENARIO:*]]"
                     optional: true
-                -   name: PATTERN
-                    desc: >
-                        Reference to the DIALOG-PATTERNS object the storyboard instantiates.
-                    value: "[[SPEC:DP.PATTERN:*]]"
-                    optional: true
             childs:
                 -   kind: FRAME
                     desc: >
@@ -1265,6 +1324,14 @@
                         the screen, turn, or state depicted and described in a concise (1-2
                         sentence) paragraph by what the user sees and does at this frame of the
                         interaction.
+                    props:
+                        -   name: PATTERNS
+                            desc: >
+                                Comma-separated references to the DIALOG-PATTERNS objects the frame
+                                instantiates, so that a pattern is shown to recur across the
+                                concrete flows rather than merely being catalogued.
+                            value: list([[SPEC:DP.PATTERN:*]])
+                            optional: true
 
 -   kind: SPEC
     name: Visual Design
