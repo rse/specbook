@@ -36,6 +36,7 @@ export type SchemaDiagram = {
     edges?:            string
     center?:           string
     links?:            "props" | "all"
+    labeled?:          boolean
     edgeSource?:       string
     edgeTarget?:       string
     edgeArity?:        string
@@ -98,6 +99,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     edges:             v.optional(v.string()),
     center:            v.optional(v.string()),
     links:             v.optional(v.picklist([ "props", "all" ])),
+    labeled:           v.optional(v.boolean()),
     edgeSource:        v.optional(v.string()),
     edgeTarget:        v.optional(v.string()),
     edgeArity:         v.optional(v.string()),

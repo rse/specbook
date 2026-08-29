@@ -81,6 +81,7 @@ type SchemaDiagram = {
     edges?:            string
     center?:           string
     links?:            "props" | "all"
+    labeled?:          boolean
     edgeSource?:       string
     edgeTarget?:       string
     edgeArity?:        string
@@ -228,6 +229,11 @@ type SchemaGradiaConfig = Partial<{
     edge source: property values (`props`) or also texts (`all`),
     BECAUSE prose references are incidental and need an opt-in
 
+-   `SchemaDiagram.labeled?: boolean`:
+    whether the edges derived from property values carry the lower-cased
+    property key as their label (default: `false`),
+    BECAUSE edges of several reference properties need telling apart
+
 -   `SchemaDiagram.edgeSource?: string`:
     edge property naming the source node (default: the parent object),
     BECAUSE an edge object is not always nested below its own source
@@ -352,7 +358,10 @@ descendants of a node object count as its own, every referenced object
 is lifted to its nearest ancestor-or-self within the node set, and the
 number of references behind an edge becomes its arity, so a diagram of
 coarse objects (like the artifacts of a whole specification) shows the
-relations living in their fine-grained parts.
+relations living in their fine-grained parts. With `labeled: true` an
+edge derived from a property value carries the lower-cased property key
+as its label, telling the edges of different properties apart, while
+the edges derived from descriptions stay unlabeled.
 
 An object acting as an edge (`edges`) connects its parent object to the
 object its target property references. Where an edge object is a sibling

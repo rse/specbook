@@ -124,9 +124,10 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
 }
 
 /*  derive the edges of a diagram: from the "[[...]]" references of the
-    node objects (per the "links" selection, and for a "deep" diagram
-    also of their descendants, with every target lifted to its nearest
-    node and the reference count as the arity) and from the edge objects
+    node objects (per the "links" selection, named with the property key
+    when "labeled", and for a "deep" diagram also of their descendants,
+    with every target lifted to its nearest node and the reference count
+    as the arity) and from the edge objects
     by convention (source: parent object, target: first reference in the
     property values, name: object name, arity: "ARITY" property),
     overridable via "edgeSource"/"edgeTarget"/"edgeArity" (a "grid"
@@ -158,25 +159,32 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
                             walk(child)
             }
             walk(node)
-            const counts = new Map<SpecObject, number>()
+            const counts = new Map<string, { target: SpecObject, name?: string, count: number }>()
             for (const object of objects) {
-                const texts = object.properties.map((property) => property.value)
+                const texts: { text: string, name?: string }[] = object.properties.map((property) => ({
+                    text: property.value,
+                    name: diagram.labeled === true ? property.key.toLowerCase() : undefined
+                }))
                 if (diagram.links === "all" && object.description !== undefined) {
-                    texts.push(object.description.description)
+                    texts.push({ text: object.description.description })
                     if (object.description.rationale !== undefined)
-                        texts.push(object.description.rationale)
+                        texts.push({ text: object.description.rationale })
                 }
-                for (const text of texts)
+                for (const { text, name } of texts)
                     for (const m of text.matchAll(referenceRegex)) {
                         let target = resolveUnique(index, m[1].trim()).target
                         if (diagram.deep === true)
                             target = lift(target)
-                        if (target !== undefined && target !== node && nodeSet.has(target))
-                            counts.set(target, (counts.get(target) ?? 0) + 1)
+                        if (target !== undefined && target !== node && nodeSet.has(target)) {
+                            const key   = `${anchors.get(target) ?? target.id} ${name ?? ""}`
+                            const entry = counts.get(key) ?? { target, name, count: 0 }
+                            entry.count++
+                            counts.set(key, entry)
+                        }
                     }
             }
-            for (const [ target, count ] of counts)
-                edges.push({ source: node, target,
+            for (const { target, name, count } of counts.values())
+                edges.push({ source: node, target, name,
                     arity: diagram.deep === true ? String(count) : undefined })
         }
 
@@ -229,6 +237,8 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
             errors.push({ reason: "\"grid\" diagram cannot carry a \"hierarchy\" configuration" })
         if (diagram.deep === true)
             errors.push({ reason: "\"grid\" diagram cannot carry a \"deep\" configuration" })
+        if (diagram.labeled === true)
+            errors.push({ reason: "\"grid\" diagram cannot carry a \"labeled\" configuration" })
         if (diagram.onlyConnected === true)
             errors.push({ reason: "\"grid\" diagram cannot carry an \"onlyConnected\" configuration" })
     }
