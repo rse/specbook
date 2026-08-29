@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 13:25
+Modified: 2026-08-29 17:28
 ---
 
 #   SPEC: Data Model (DM)
@@ -499,7 +499,7 @@ BECAUSE questions are categorized by topic or addressed person for routing and g
 A one-time second factor proving an attendee controls the email address used as the first factor,
 BECAUSE email-verified access is the core mechanism limiting the audience.
 
--   ATTRIBUTE: token (*); TYPE: `string`;
+-   ATTRIBUTE: token (*); TYPE: `string`; CONSTRAINT: `six digits as NNN-NNN`;
     The generated one-time token for the next login attempt,
     BECAUSE the attendee proves control of the email by returning this token.
 

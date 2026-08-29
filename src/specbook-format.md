@@ -810,7 +810,7 @@ whole.
 
 The description of a Complex Format object is all block content below
 its heading (up to the next heading) except the property list:
-paragraphs, blockquotes, ordered lists (e.g. scenario steps), and
+paragraphs, blockquotes, ordered lists (e.g. scenario steps or test case procedures), and
 fenced code blocks. A fenced code block
 of language `gradia` is skipped, as it is the derived diagram which
 **SpecBook** itself emits into exported Markdown and which must not

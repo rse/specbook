@@ -893,12 +893,17 @@
                 is redundant and should be sharpened or dropped. Conversely, one scenario can require
                 several test cases (one per boundary or equivalence class), and one test case can
                 verify a requirement, a rule, and a scenario at once.
+
+                A test case whose stimulus is a sequence rather than a single action carries the
+                procedure in its body as sequentially numbered, imperative steps, mirroring the
+                steps of a use case scenario (e.g. `1. The user logs in on device A. 2. The same
+                user logs in on device B.`), with `INPUT` naming the decisive stimulus among them.
             diagram:
                 type: hub
                 center: self
                 nodes: "[[SPEC:TC.TEST-CASE:*]], [[SPEC:FR.REQUIREMENT:*]], [[SPEC:NR.REQUIREMENT:*]],
                     [[SPEC:BR.RULE:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]],
-                    [[SPEC:SM.LIFECYCLE:*.TRANSITION:*]]"
+                    [[SPEC:SM.LIFECYCLE:*.TRANSITION:*]], [[SPEC:DM.ENTITY:*.ATTRIBUTE:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -909,29 +914,41 @@
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
                         NON-FUNCTIONAL-REQUIREMENTS objects, the BUSINESS-RULES objects, the
-                        USE-CASES scenario objects, and/or the STATE-MODEL transition objects the
-                        test case verifies, so that a scenario (in particular an `Exceptional`
-                        one, judged by its `OUTCOME`) is covered by an acceptance test beside the
-                        requirements it exercises, a rule (judged by the condition it states) is
-                        proven to hold, not just to be documented, and a transition (judged by its
-                        `GUARD` and the resulting state) is proven to be permitted exactly as
-                        modeled.
+                        USE-CASES scenario objects, the STATE-MODEL transition objects, and/or the
+                        DATA-MODEL attribute objects the test case verifies, so that a scenario (in
+                        particular an `Exceptional` one, judged by its `OUTCOME`) is covered by an
+                        acceptance test beside the requirements it exercises, a rule (judged by
+                        the condition it states) is proven to hold, not just to be documented, a
+                        transition (judged by its `GUARD` and the resulting state) is proven to be
+                        permitted exactly as modeled, and an attribute (judged by its `TYPE` and
+                        `CONSTRAINT`) is proven to reject the values outside its range, pattern, or
+                        invariant.
                     value: list([[SPEC:*.REQUIREMENT:*]], [[SPEC:BR.RULE:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]],
-                        [[SPEC:SM.LIFECYCLE:*.TRANSITION:*]])
+                        [[SPEC:SM.LIFECYCLE:*.TRANSITION:*]], [[SPEC:DM.ENTITY:*.ATTRIBUTE:*]])
                 -   name: PRE-CONDITION
                     desc: >
                         The state or setup that must hold before the test is executed.
                     optional: true
                 -   name: INPUT
                     desc: >
-                        The mandatory, concrete input data or actions applied during the test.
+                        The mandatory, concrete input data or action applied during the test, i.e.
+                        the stimulus whose response the `EXPECTED` judges.
                 -   name: EXPECTED
                     desc: >
-                        The mandatory, concrete expected outcome or observable result that defines a
-                        passing test.
+                        The mandatory, concrete, observable response of the solution to the `INPUT`
+                        (a message shown, a session issued, a submission rejected) that defines a
+                        passing test, as opposed to the `POST-CONDITION` which is the state left
+                        behind. When the test case verifies a NON-FUNCTIONAL-REQUIREMENTS object,
+                        the expected response restates the `METRIC` threshold of that requirement
+                        as the pass criterion (e.g. `p95 latency < 200 ms`) rather than a
+                        qualitative phrase (e.g. `remains responsive`).
                 -   name: POST-CONDITION
                     desc: >
-                        The state that must hold after the test completes.
+                        The persisted state that must hold after the test completes (e.g. `the
+                        authorization token is in state used`), including the state that must not
+                        have changed (e.g. `no session token exists`), as opposed to the `EXPECTED`
+                        which is the immediate response, and omitted for a test whose input leaves
+                        no state behind.
                     optional: true
 
 -   kind: SPEC

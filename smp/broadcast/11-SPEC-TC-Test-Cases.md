@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 15:05
+Modified: 2026-08-29 17:28
 ---
 
 SPEC: Test Cases (TC)
@@ -38,6 +38,10 @@ SPEC: Test Cases (TC)
 -   EXPECTED:       The first connection is closed and only the new session remains active.
 -   POST-CONDITION: Exactly one active session token exists for the user and event.
 
+1.  The user watches the stream on the first device.
+2.  The same user completes a login with a fresh authorization token on a second device.
+3.  The tester observes the first device.
+
 ##  TEST-CASE: Moderated Question Starts Pending {{moderated-pending}}
 
 -   VERIFIES:      [[FR.moderation]], [[SCENARIO:ask-question-moderated]], [[RULE:moderation-gate]]
@@ -69,10 +73,14 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Forwarded Message Is Locked {{forward-lock}}
 
--   VERIFIES:      [[FR.message-editing]], [[RULE:forward-lock]]
--   PRE-CONDITION: An accepted question has been forwarded to the presenter.
--   INPUT:         The original attendee attempts to edit or delete the message.
--   EXPECTED:      The system refuses the edit and the message remains unchanged.
+-   VERIFIES:      [[FR.message-editing]], [[SCENARIO:chat-locked]], [[RULE:forward-lock]]
+-   PRE-CONDITION: An accepted question of an attendee exists in a running event.
+-   INPUT:         The original attendee attempts to edit and then to delete the forwarded message.
+-   EXPECTED:      The system refuses both the edit and the deletion and the message remains unchanged.
+
+1.  The moderator forwards the accepted question to the presenter.
+2.  The original attendee attempts to edit the text of the question.
+3.  The original attendee attempts to delete the question.
 
 ##  TEST-CASE: Sentiment Auto-Reject Below Threshold {{sentiment-reject}}
 
@@ -91,10 +99,14 @@ SPEC: Test Cases (TC)
 ##  TEST-CASE: Throttled Submission Not Stored {{throttled}}
 
 -   VERIFIES:       [[NR.throttling]], [[SCENARIO:ask-question-throttled]]
--   PRE-CONDITION:  An attendee has already submitted the per-minute maximum of questions within the current minute.
--   INPUT:          The attendee submits one more question.
--   EXPECTED:       The system rejects the submission and informs the attendee to wait.
--   POST-CONDITION: The rejected question is not stored and the earlier questions remain unchanged.
+-   PRE-CONDITION:  A running event with the default submission limit of 10 per user per minute.
+-   INPUT:          The attendee submits an eleventh question within the same minute.
+-   EXPECTED:       The system rejects the eleventh submission and informs the attendee to wait, but accepts the twelfth one after the minute has passed.
+-   POST-CONDITION: The eleventh question is not stored, while the ten earlier ones remain unchanged and the twelfth one is stored.
+
+1.  The attendee submits ten distinct questions within one minute.
+2.  The attendee submits an eleventh question before that minute has passed.
+3.  The attendee submits a twelfth question after the minute has passed.
 
 ##  TEST-CASE: Live Provider Switch Propagates {{provider-switch}}
 
@@ -122,13 +134,17 @@ SPEC: Test Cases (TC)
 ##  TEST-CASE: Registration Import Avoids Duplicates {{registration-dedup}}
 
 -   VERIFIES:      [[FR.registration-import]]
--   PRE-CONDITION: An event whose access list already contains some imported emails.
--   INPUT:         The manager imports a registration sheet overlapping the existing emails.
--   EXPECTED:      Existing users are not duplicated and their prior tokens are returned.
+-   PRE-CONDITION: A running event with an empty access list.
+-   INPUT:         The manager imports a second registration sheet overlapping the first one.
+-   EXPECTED:      The overlapping users are not duplicated, their tokens from the first import are returned unchanged, and only the new users receive fresh tokens.
+
+1.  The manager imports a registration sheet with the emails A, B, and C.
+2.  The manager records the tokens returned for A, B, and C.
+3.  The manager imports a second registration sheet with the emails B, C, and D.
 
 ##  TEST-CASE: Returned URL Format {{url-format}}
 
--   VERIFIES:      [[FR.registration-export]], [[RULE:token-format]]
+-   VERIFIES:      [[FR.registration-export]], [[RULE:token-format]], [[AuthorizationToken.token]]
 -   PRE-CONDITION: A registration import has generated tokens for new users.
 -   INPUT:         The manager exports the access URLs.
 -   EXPECTED:      Each URL contains event, user, and a six-digit "NNN-NNN" token in the URL column.
@@ -151,7 +167,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Export Contains Required Fields {{export-fields}}
 
--   VERIFIES:      [[FR.export-inputs]], [[RULE:like-count]]
+-   VERIFIES:      [[FR.export-inputs]], [[RULE:like-count]], [[Message.timestamp]], [[Message.state]], [[Message.likes]], [[MessageText.text]]
 -   PRE-CONDITION: A finished, anonymized event with messages.
 -   INPUT:         The manager exports the attendee inputs.
 -   EXPECTED:      The export includes at least timestamp, state, number of likes, and message text per message.
@@ -160,9 +176,13 @@ SPEC: Test Cases (TC)
 
 -   VERIFIES:       [[FR.export-inputs]], [[SCENARIO:export-data-after]], [[RULE:manager-retained]]
 -   PRE-CONDITION:  A running event with a manager role and a moderator role assigned.
--   INPUT:          The manager finishes the event.
+-   INPUT:          The manager exports the event data after having finished the event.
 -   EXPECTED:       The moderator role is deleted by the anonymization while the manager role remains and can still export the event data.
 -   POST-CONDITION: The manager role exists until the event is deleted.
+
+1.  The manager finishes the event.
+2.  The moderator attempts to open the event.
+3.  The manager exports the attendee inputs of the finished event.
 
 ##  TEST-CASE: Chat Message Shows Configured Name {{name-appearance}}
 
@@ -180,13 +200,24 @@ SPEC: Test Cases (TC)
 -   EXPECTED:       The like count reads 1 after the like and 0 again after the undo.
 -   POST-CONDITION: No like of the attendee is recorded for the message.
 
+1.  The attendee likes the message.
+2.  The tester reads the like count shown on the message.
+3.  The attendee undoes the like on the same message.
+4.  The tester reads the like count shown on the message again.
+
 ##  TEST-CASE: Deleted Message Leaves Placeholder {{deleted-placeholder}}
 
 -   VERIFIES:       [[FR.message-editing]], [[FR.deleted-placeholder]], [[SCENARIO:chat-delete]]
--   PRE-CONDITION:  An attendee has an accepted chat message between two other messages in the stream.
--   INPUT:          The attendee deletes their message.
--   EXPECTED:       The stream keeps the position of the message and shows a "This message was deleted" placeholder instead of its text.
+-   PRE-CONDITION:  A running event with chat enabled and chat moderation disabled, with two attendees watching.
+-   INPUT:          The first attendee deletes their own message from between the two other messages.
+-   EXPECTED:       The stream keeps the position of the message and shows a "This message was deleted" placeholder instead of its text on both attendee screens.
 -   POST-CONDITION: The message text is no longer retrievable by any attendee.
+
+1.  The second attendee posts a chat message.
+2.  The first attendee posts a chat message.
+3.  The second attendee posts another chat message.
+4.  The first attendee deletes their own message.
+5.  The tester inspects the stream on the screens of both attendees.
 
 ##  TEST-CASE: Client-Side Check Holds Back Improper Input {{client-block}}
 
@@ -199,10 +230,14 @@ SPEC: Test Cases (TC)
 ##  TEST-CASE: Direct Moderator Reply Stays Private {{direct-reply}}
 
 -   VERIFIES:       [[FR.answer-inputs]], [[SCENARIO:moderate-chat-answer]], [[RULE:moderator-accept]]
--   PRE-CONDITION:  A running event with a chat message of an attendee and a second attendee watching the stream.
--   INPUT:          The moderator replies to the message as a direct message.
--   EXPECTED:       The reply reaches the addressed attendee in state accepted while the second attendee does not see it.
--   POST-CONDITION: The reply is stored as accepted with the addressed attendee as its sole recipient.
+-   PRE-CONDITION:  A running event with chat enabled and two attendees watching the stream.
+-   INPUT:          The moderator replies to the message of the first attendee as a direct message.
+-   EXPECTED:       The reply reaches the first attendee in state accepted while the second attendee does not see it.
+-   POST-CONDITION: The reply is stored as accepted with the first attendee as its sole recipient.
+
+1.  The first attendee posts a chat message.
+2.  The moderator replies to that message as a direct message.
+3.  The tester inspects the stream on the screens of both attendees.
 
 ##  TEST-CASE: Resource URL Selects the Resource {{resource-url}}
 
@@ -222,7 +257,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Concurrent Attendee Load {{load}}
 
--   VERIFIES:      [[NR.attendee-scale]]
+-   VERIFIES:      [[NR.attendee-scale]], [[NR.scalability]]
 -   PRE-CONDITION: A running event deployed with scaled proxy, relay, and server instances.
 -   INPUT:         10000 simulated attendees connect simultaneously and interact.
--   EXPECTED:      All connections are served and message round-trips remain responsive under load.
+-   EXPECTED:      All 10000 attendees hold a served WebSocket connection at the same time, meeting the upper bound of the 2500 to 10000 attendees per event metric.
