@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-06-18 10:34
 ---
 
-SPEC: Functional Requirements (FR)
+REQS: Functional Requirements (FR)
 ==================================
 
 -   REQUIREMENT: User Authentication {{authentication}}; PRIORITY: MUST;

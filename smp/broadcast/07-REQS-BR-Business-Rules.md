@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-08-29 14:05
 ---
 
-#   SPEC: Business Rules (BR)
+#   REQS: Business Rules (BR)
 
 ##  RULE: Single Active Session per Event {{single-session}}
 

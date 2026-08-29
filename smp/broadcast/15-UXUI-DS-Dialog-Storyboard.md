@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-08-30 10:00
 ---
 
-SPEC: Dialog Storyboard (DS)
+UXUI: Dialog Storyboard (DS)
 ============================
 
 STORYBOARD: Attendee Joins and Watches {{attendee-join}}

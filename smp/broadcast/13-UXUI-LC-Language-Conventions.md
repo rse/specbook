@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-08-29 12:00
 ---
 
-SPEC: Language Conventions (LC)
+UXUI: Language Conventions (LC)
 ===============================
 
 -   CONVENTION: Plain Organizer Voice {{voice}};

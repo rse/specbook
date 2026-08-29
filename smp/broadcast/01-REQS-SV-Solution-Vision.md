@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-08-28 18:00
 ---
 
-SPEC: Solution Vision (SV)
+REQS: Solution Vision (SV)
 ==========================
 
 -   PURPOSE:

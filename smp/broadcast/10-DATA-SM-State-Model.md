@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-08-29 15:05
 ---
 
-SPEC: State Model (SM)
+DATA: State Model (SM)
 ======================
 
 LIFECYCLE: Event {{event}}

@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-08-29 11:45
 ---
 
-SPEC: Interaction Concept (IC)
+UXUI: Interaction Concept (IC)
 ==============================
 
 -   PRINCIPLE: Moderation-Gated Visibility {{moderation-gated}};

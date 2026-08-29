@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-06-18 10:18
 ---
 
-SPEC: User Journey (UJ)
+REQS: User Journey (UJ)
 =======================
 
 JOURNEY: Attend a Broadcast event {{attend}}

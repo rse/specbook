@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-08-29 17:28
 ---
 
-#   SPEC: Data Model (DM)
+#   DATA: Data Model (DM)
 
 ##  ENTITY: Event (*)
 

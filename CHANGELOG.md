@@ -5,6 +5,11 @@ ChangeLog
 1.1.0 (2026-08-29)
 ------------------
 
+-   IMPROVEMENT [spec, docs]: Split Specification Kind
+    The standard schema configuration replaces its catch-all artifact
+    kind "SPEC" (which named just a part of what the whole specification
+    is) by the four kinds "REQS", "DATA", "TEST", "UXUI" and "ARCH".
+
 -   FEATURE [code, spec, docs]: Per-Kind Rendering Format
     The "format" schema field now configures the HTML/PDF rendering of the objects of the kind
     it is placed on (among their siblings), instead of the rendering of all child objects of

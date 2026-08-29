@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-08-29 15:05
 ---
 
-SPEC: Use Cases (UC)
+REQS: Use Cases (UC)
 ====================
 
 USE-CASE: Join Event and Watch Stream {{join-event}}

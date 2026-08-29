@@ -178,7 +178,7 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE artifacts and their content follow one recursive structure
 
 -   `SchemaObject.kind: string`:
-    kind name of the object (e.g. `SPEC`, `REQUIREMENT`), unique among
+    kind name of the object (e.g. `REQS`, `REQUIREMENT`), unique among
     its siblings, on level 1 together with its `id`,
     BECAUSE it discriminates objects and anchors `[[xxx]]` references
 
@@ -790,7 +790,7 @@ order:
     (e.g. `## ENTITY: Attendee Browser {{attendee}}`).
 
 -   `(<token/>)`: a parenthesized token with three possible roles: on
-    level 1 it becomes the artifact id (e.g. `# SPEC: Data Model (DM)`);
+    level 1 it becomes the artifact id (e.g. `# DATA: Data Model (DM)`);
     on deeper levels it acts as the implicit anchor id.
 
 -   `(*)`: the *primary* marker, flagging the object as primary (e.g.

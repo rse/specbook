@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-06-18 10:18
 ---
 
-SPEC: Non-Functional Requirements (NR)
+REQS: Non-Functional Requirements (NR)
 ======================================
 
 -   REQUIREMENT: Concurrent Attendee Scale {{attendee-scale}};

@@ -1,21 +1,21 @@
 + 00-META-TI-Title.md
 
-+ 01-SPEC-SV-Solution-Vision.md
-+ 02-SPEC-GL-Domain-Glossary.md
-+ 03-SPEC-UP-User-Personas.md
-+ 04-SPEC-UJ-User-Journey.md
-+ 05-SPEC-FR-Functional-Requirements.md
-+ 06-SPEC-NR-Non-Functional-Requirements.md
-+ 07-SPEC-BR-Business-Rules.md
-+ 08-SPEC-UC-Use-Cases.md
-+ 09-SPEC-DM-Data-Model.md
-+ 10-SPEC-SM-State-Model.md
-+ 11-SPEC-TC-Test-Cases.md
-+ 12-SPEC-IC-Interaction-Concept.md
-+ 13-SPEC-LC-Language-Conventions.md
-+ 14-SPEC-DP-Dialog-Patterns.md
-+ 15-SPEC-DS-Dialog-Storyboard.md
-+ 16-SPEC-VD-Visual-Design.md
++ 01-REQS-SV-Solution-Vision.md
++ 02-REQS-GL-Domain-Glossary.md
++ 03-REQS-UP-User-Personas.md
++ 04-REQS-UJ-User-Journey.md
++ 05-REQS-FR-Functional-Requirements.md
++ 06-REQS-NR-Non-Functional-Requirements.md
++ 07-REQS-BR-Business-Rules.md
++ 08-REQS-UC-Use-Cases.md
++ 09-DATA-DM-Data-Model.md
++ 10-DATA-SM-State-Model.md
++ 11-TEST-TC-Test-Cases.md
++ 12-UXUI-IC-Interaction-Concept.md
++ 13-UXUI-LC-Language-Conventions.md
++ 14-UXUI-DP-Dialog-Patterns.md
++ 15-UXUI-DS-Dialog-Storyboard.md
++ 16-UXUI-VD-Visual-Design.md
 
 - 17-ARCH-CV-Context-View.md
 - 18-ARCH-FV-Functionality-View.md
