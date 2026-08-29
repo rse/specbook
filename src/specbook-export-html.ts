@@ -611,7 +611,9 @@ const groupChilds = (childs: SpecObject[]): SpecObject[][] => {
 /*  render the description cell of a table row: the description of the
     object followed by its recursively rendered childs (implicitly or
     explicitly concise childs as nested sub-tables, explicitly complex
-    ones as regular nested object renderings pressed into the cell)  */
+    ones as regular nested object renderings pressed into the cell);
+    a cell left without any content renders as the absent marker,
+    exactly like a property cell of a not given property  */
 const renderCell = (child: SpecObject): string => {
     let html = child.description !== undefined ? renderDescription(child.description) : ""
     const childs = flowChilds(child)
@@ -619,7 +621,7 @@ const renderCell = (child: SpecObject): string => {
         html += conciseChilds(child, schemas, true) ?
             groupChilds(childs).map((group) => renderTable(group, maxColumnsOf(child))).join("") :
             childs.map((sub) => renderObject(sub, 6, true)).join("")
-    return html
+    return html.trim() !== "" ? html : "<span class=\"value-absent\"></span>"
 }
 
 /*  render a single-kind group of childs into one compact table:
