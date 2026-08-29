@@ -956,19 +956,63 @@
     id: IC
     file: 12-SPEC-IC-Interaction-Concept.md
     desc: >
-        The overarching idea of how users interact with the solution, describing the intended
-        workflows and interaction philosophy (e.g. auto-save behavior).
+        The interaction philosophy of the solution, stated as the set of cross-cutting principles
+        (e.g. auto-save instead of explicit saving) which govern how users interact with the
+        solution and which the Dialog Patterns, Dialog Storyboard, and Visual Design have to obey,
+        while the concrete workflows belong to the User Journey, Use Cases, and Dialog Storyboard.
+
+        References:
+        -   ISO 9241-110:2020
+    diagram:
+        type: grid
+        nodes: "[[SPEC:IC.PRINCIPLE:*]]"
+        properties:
+            -   CATEGORY
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 4
     childs:
         -   kind: PRINCIPLE
             desc: >
                 A single interaction principle, named with a short (2-5 word) summary (e.g.
                 `Auto-Save`, `Optimistic Updates`, `Undo over Confirm`) and described in a concise
                 (1-3 sentence) paragraph by how it governs the user's experience across the
-                solution, plus a 1-sentence rationale ("why").
+                solution, plus a 1-sentence rationale ("why"). A principle is solution-wide and
+                independent of any particular screen or flow (a structure recurring within one flow
+                is a Dialog Pattern instead), decides between design alternatives (the alternative
+                it rejects is its `TRADE-OFF`), and is not verifiable by a metric (a measurable
+                quality bound is a Non-Functional Requirement instead).
+            referenced:
+                -   "[[SPEC:DP.PATTERN:*]]"
             props:
                 -   name: CATEGORY
-                    desc: The aspect of interaction the principle governs.
-                    value: enum(Onboarding,Navigation,Input,Feedback,Workflow,Personalization,Awareness,Resilience,Privacy)
+                    desc: >
+                        The interaction principle of ISO 9241-110:2020 the principle primarily
+                        promotes: `Task-Suitability` (suitability for the user's tasks),
+                        `Self-Descriptiveness`, `Expectation-Conformity` (conformity with user
+                        expectations), `Learnability`, `Controllability`, `Error-Robustness` (use
+                        error robustness), or `Engagement` (user engagement).
+                    value: enum(Task-Suitability,Self-Descriptiveness,Expectation-Conformity,Learnability,Controllability,Error-Robustness,Engagement)
+                -   name: TRADE-OFF
+                    desc: >
+                        The competing concern the principle deliberately subordinates, stated so
+                        that the opposite of the principle is a defensible choice, too (e.g.
+                        `explicit confirmation before every destructive action` for `Undo over
+                        Confirm`), as opposed to the rationale which states why this side wins.
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects whose experience
+                        the principle governs, omitted for a principle governing the experience of
+                        all users alike.
+                    value: list([[SPEC:UP.PERSONA:*]])
+                    optional: true
+                -   name: MOTIVATED-BY
+                    desc: >
+                        Comma-separated references to the User Journey step objects whose
+                        `PAIN-POINT` or `OPPORTUNITY` the principle answers, so that a principle is
+                        grounded in the observed experience rather than in taste alone.
+                    value: list([[SPEC:UJ.JOURNEY:*.STEP:*]])
+                    optional: true
 
 -   kind: SPEC
     name: Language Conventions
@@ -1018,6 +1062,13 @@
                         pattern needed"), stated independently of its solution (which belongs to the
                         description) and of its rationale (which states why this particular solution
                         is worth adopting).
+                -   name: PRINCIPLES
+                    desc: >
+                        Comma-separated references to the INTERACTION-CONCEPT objects the pattern
+                        embodies, so that every principle is shown to be honored by at least one
+                        pattern rather than merely declared.
+                    value: list([[SPEC:IC.PRINCIPLE:*]])
+                    optional: true
 
 -   kind: SPEC
     name: Dialog Storyboard
