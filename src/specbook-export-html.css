@@ -189,7 +189,7 @@ span.value-absent::before   { content: "\2205"; color: var(--theme-color-specboo
                               -webkit-user-select: none; user-select: none; }
 
 /*  the key/value property tables  */
-table.props                 { border-collapse: collapse; margin: 0.5rem 0;
+table.props                 { border-collapse: collapse; margin: 0.5rem 0 1.25rem 0;
                               width: 100%; }
 table.props td              { border: 0; border-left: 1px solid var(--theme-color-specbook-border);
                               padding: 0.3rem 0.6rem;
@@ -236,7 +236,7 @@ table.objects td section h6 { margin: 0.5rem 0 0.25rem 0; }
 
 /*  the object descriptions and their embedded images  */
 p.description,
-div.description             { margin: 1.0rem 0 0.5rem 0; }
+div.description             { margin: 1.0rem 0 1.25rem 0; }
 div.description p           { margin: 0.5rem 0; }
 div.description ol,
 div.description ul          { margin: 0.5rem 0; padding-left: 1.6rem; }
@@ -271,7 +271,7 @@ div.titlepage .logo img     { max-width: 50%; max-height: 12rem; height: auto; }
 div.titlepage .title        { font-size: 3.50rem; font-weight: bold; color: var(--theme-color-specbook-accent); letter-spacing: -0.10rem; }
 div.titlepage .subtitle     { font-size: 1.50rem; color: var(--theme-color-specbook-accent); margin-top: 0.5rem; }
 div.titlepage .author       { font-size: 1.25rem; margin-top: 2rem; }
-div.titlepage p.description { margin-top: 2rem; }
+div.titlepage p.description { margin: 2rem 0 0.5rem 0; }
 div.titlepage table.meta    { margin: 1rem auto 0 auto; color: var(--theme-color-specbook-muted);
                               font-size: 1.0rem; border-collapse: collapse; }
 div.titlepage table.meta td { padding: 0.0rem 0.5rem; text-align: left; }
