@@ -995,12 +995,6 @@
                         expectations), `Learnability`, `Controllability`, `Error-Robustness` (use
                         error robustness), or `Engagement` (user engagement).
                     value: enum(Task-Suitability,Self-Descriptiveness,Expectation-Conformity,Learnability,Controllability,Error-Robustness,Engagement)
-                -   name: TRADE-OFF
-                    desc: >
-                        The competing concern the principle deliberately subordinates, stated so
-                        that the opposite of the principle is a defensible choice, too (e.g.
-                        `explicit confirmation before every destructive action` for `Undo over
-                        Confirm`), as opposed to the rationale which states why this side wins.
                 -   name: ACTORS
                     desc: >
                         Comma-separated references to the User Personas objects whose experience
@@ -1015,6 +1009,12 @@
                         grounded in the observed experience rather than in taste alone.
                     value: list([[SPEC:UJ.JOURNEY:*.STEP:*]])
                     optional: true
+                -   name: TRADE-OFF
+                    desc: >
+                        The competing concern the principle deliberately subordinates, stated so
+                        that the opposite of the principle is a defensible choice, too (e.g.
+                        `explicit confirmation before every destructive action` for `Undo over
+                        Confirm`), as opposed to the rationale which states why this side wins.
 
 -   kind: SPEC
     name: Language Conventions
