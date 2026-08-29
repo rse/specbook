@@ -1049,6 +1049,7 @@
             https://www.nngroup.com/articles/ten-usability-heuristics/
         -   Shneiderman: The Eight Golden Rules of Interface Design (1987),
             https://www.cs.umd.edu/users/ben/goldenrules.html
+    optional: true
     diagram:
         type: grid
         nodes: "[[SPEC:IC.PRINCIPLE:*]]"
@@ -1285,9 +1286,12 @@
             https://shop.elsevier.com/books/sketching-user-experiences-getting-the-design-right-and-the-right-design/buxton/978-0-12-374037-3
         -   NN/g: Storyboards Help Visualize UX Ideas (2018),
             https://www.nngroup.com/articles/storyboards-visualize-ideas/
+    optional: true
     diagram:
         type: grid
         nodes: "[[SPEC:DS.STORYBOARD:*]]"
+        properties:
+            -   ACTORS
         config:
             size-node-width-max: 440
             size-node-height-scale: 2
@@ -1296,41 +1300,74 @@
         -   kind: STORYBOARD
             desc: >
                 A single depicted dialog flow, named with a short (3-8 word) summary of the flow and
-                comprised of sequentially numbered frames.
+                comprised of frames in sequence. A storyboard shows the concrete user interface of
+                one flow, as seen by its actors (the intent and the information exchanged is a Use
+                Cases scenario instead, and a structure recurring across flows is a Dialog Pattern
+                instead).
+            format:
+                type: concise
+                maxTableColumns: 5
             diagram:
                 type: hub
                 center: self
-                nodes: "[[SPEC:DS.STORYBOARD:*]], [[SPEC:UC.USE-CASE:*]],
+                nodes: "[[SPEC:DS.STORYBOARD:*]], [[SPEC:UP.PERSONA:*]],
                     [[SPEC:UC.USE-CASE:*.SCENARIO:*]], [[SPEC:DP.PATTERN:*]]"
                 deep: true
                 qualified: true
                 config:
                     size-node-width-max: 440
+                    size-node-height-scale: 1.75
             props:
-                -   name: USE-CASE
+                -   name: ACTORS
                     desc: >
-                        Reference to the USE-CASES object the storyboard visualizes.
-                    value: "[[SPEC:UC.USE-CASE:*]]"
-                    optional: true
+                        Comma-separated references to the User Personas objects whose story the
+                        storyboard tells, in the order of their appearance, so that a storyboard
+                        switching its viewpoint between actors (e.g. from a moderator to a
+                        presenter) names all of them.
+                    value: list([[SPEC:UP.PERSONA:*]])
                 -   name: SCENARIO
                     desc: >
-                        Reference to the USE-CASES scenario object the storyboard visualizes.
+                        Reference to the USE-CASES scenario object the storyboard renders as user
+                        interface, omitted for a storyboard of a flow no scenario covers.
                     value: "[[SPEC:UC.USE-CASE:*.SCENARIO:*]]"
                     optional: true
             childs:
                 -   kind: FRAME
                     desc: >
                         A single frame of the storyboard, named with a short (2-5 word) label for
-                        the screen, turn, or state depicted and described in a concise (1-2
-                        sentence) paragraph by what the user sees and does at this frame of the
-                        interaction.
+                        the screen, turn, or state depicted, shown by its `SKETCH`, and described in
+                        a concise (1-2 sentence) paragraph by what the actor sees and does at this
+                        frame of the interaction.
                     props:
+                        -   name: SCENARIO-STEP
+                            desc: >
+                                The number of the step of the referenced USE-CASES scenario the
+                                frame renders, so that a frame traces back to the intent it gives a
+                                user interface to, omitted for a frame setting the scene before or
+                                between the steps.
+                            value: /^[1-9][0-9]*$/
+                            optional: true
+                        -   name: ACTOR
+                            desc: >
+                                Reference to the User Personas object from whose viewpoint the frame
+                                is depicted, given whenever the storyboard names several `ACTORS`
+                                and omitted for a storyboard of a single actor.
+                            value: "[[SPEC:UP.PERSONA:*]]"
+                            optional: true
                         -   name: PATTERNS
                             desc: >
                                 Comma-separated references to the DIALOG-PATTERNS objects the frame
                                 instantiates, so that a pattern is shown to recur across the
                                 concrete flows rather than merely being catalogued.
                             value: list([[SPEC:DP.PATTERN:*]])
+                            optional: true
+                        -   name: SKETCH
+                            desc: >
+                                An image (`![...](...)`) of the frame, preferably a low-fidelity
+                                sketch or wireframe which invites critique, or a screenshot for an
+                                already existing user interface, so that the frame is seen rather
+                                than only read, omitted for a frame whose depiction differs from
+                                the preceding one only in a detail the description names.
                             optional: true
 
 -   kind: SPEC
@@ -1347,6 +1384,7 @@
             https://atomicdesign.bradfrost.com/
         -   Kholmatova: Design Systems: A practical guide for creating design languages for digital products (2017),
             https://www.smashingmagazine.com/printed-books/design-systems/
+    optional: true
     childs:
         -   kind: ELEMENT
             desc: >
