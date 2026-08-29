@@ -134,7 +134,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[SPEC:GL.TERM:*]]"
+                nodes: "[[SPEC:GL.TERM:*]], [[SPEC:BR.RULE:*]], [[SPEC:DM.ENTITY:*]],
+                    [[SPEC:UP.PERSONA:*]]"
                 labeled: true
                 qualified: true
                 config:
