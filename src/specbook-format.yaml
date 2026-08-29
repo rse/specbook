@@ -101,9 +101,37 @@
             optional: true
 
 -   kind: SPEC
+    name: Glossary
+    id: GL
+    file: 02-SPEC-GL-Glossary.md
+    desc: >
+        The ubiquitous language of the domain, defining the meaning of each domain term in business
+        language, together with its synonyms and the ambiguities to avoid, shared consistently
+        across all Artifacts.
+    diagram:
+        type: grid
+        nodes: "[[SPEC:GL.TERM:*]]"
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 5
+    childs:
+        -   kind: TERM
+            desc: >
+                A single domain term, named with its canonical, preferred form (capitalized as it
+                should appear in all artifacts) and defined in a concise (1-3 sentence) paragraph in
+                business language, independent of any implementation, referencing other terms by
+                their name where helpful.
+            props:
+                -   name: SYNONYMS
+                    desc: >
+                        Comma-separated list of alternative names or abbreviations that refer to the
+                        same term but are *not* the preferred form.
+                    optional: true
+
+-   kind: SPEC
     name: User Personas
     id: UP
-    file: 02-SPEC-UP-User-Personas.md
+    file: 03-SPEC-UP-User-Personas.md
     desc: >
         The *archetypal* user profiles representing distinct user groups, capturing their goals,
         needs, behaviors, and context.
@@ -151,7 +179,7 @@
 -   kind: SPEC
     name: User Journey
     id: UJ
-    file: 03-SPEC-UJ-User-Journey.md
+    file: 04-SPEC-UJ-User-Journey.md
     desc: >
         The end-to-end experience a user has while discovering, adopting, and using the solution,
         mapping their steps, touchpoints, and emotions over time. The journey is the *target*
@@ -220,7 +248,7 @@
 -   kind: SPEC
     name: Functional Requirements
     id: FR
-    file: 04-SPEC-FR-Functional-Requirements.md
+    file: 05-SPEC-FR-Functional-Requirements.md
     desc: >
         The concrete behaviors and capabilities the solution must provide, describing *what* the
         system does in terms of functions, features, and operations, while the quality bounds and
@@ -259,7 +287,7 @@
 -   kind: SPEC
     name: Non-Functional Requirements
     id: NR
-    file: 05-SPEC-NR-Non-Functional-Requirements.md
+    file: 06-SPEC-NR-Non-Functional-Requirements.md
     desc: >
         The quality attributes and constraints the solution must satisfy, such as performance,
         security, scalability, reliability, and usability.
@@ -320,7 +348,7 @@
 -   kind: SPEC
     name: Business Rules
     id: BR
-    file: 06-SPEC-BR-Business-Rules.md
+    file: 07-SPEC-BR-Business-Rules.md
     desc: >
         The domain invariants, policies, and decision logic that must always hold true in the
         problem domain, independent of any single feature, constraining the Functional and
@@ -395,7 +423,7 @@
 -   kind: SPEC
     name: Use Cases
     id: UC
-    file: 07-SPEC-UC-Use-Cases.md
+    file: 08-SPEC-UC-Use-Cases.md
     desc: >
         The discrete goals users pursue with the solution, each describing an actor's interaction to
         achieve a specific outcome, together with the concrete step-by-step flows for main,
@@ -525,7 +553,7 @@
 -   kind: SPEC
     name: Data Model
     id: DM
-    file: 08-SPEC-DM-Data-Model.md
+    file: 09-SPEC-DM-Data-Model.md
     desc: >
         The structure of named entities, with named attributes and directed relationships, of the
         data the solution manages, defining how information is organized and connected.
@@ -622,7 +650,7 @@
 -   kind: SPEC
     name: State Model
     id: SM
-    file: 09-SPEC-SM-State-Model.md
+    file: 10-SPEC-SM-State-Model.md
     desc: >
         For each entity with a non-trivial lifecycle, the legal states it can occupy and the
         permitted transitions between them over its lifetime, making the forbidden moves as explicit
@@ -703,34 +731,6 @@
                         -   name: TO
                             desc: The state the transition arrives at.
                             value: "[[SPEC:SM.LIFECYCLE:*.STATE:*]]"
-
--   kind: SPEC
-    name: Glossary
-    id: GL
-    file: 10-SPEC-GL-Glossary.md
-    desc: >
-        The ubiquitous language of the domain, defining the meaning of each domain term in business
-        language, together with its synonyms and the ambiguities to avoid, shared consistently
-        across all Artifacts.
-    diagram:
-        type: grid
-        nodes: "[[SPEC:GL.TERM:*]]"
-        config:
-            size-node-width-max: 440
-            grid-columns-max: 5
-    childs:
-        -   kind: TERM
-            desc: >
-                A single domain term, named with its canonical, preferred form (capitalized as it
-                should appear in all artifacts) and defined in a concise (1-3 sentence) paragraph in
-                business language, independent of any implementation, referencing other terms by
-                their name where helpful.
-            props:
-                -   name: SYNONYMS
-                    desc: >
-                        Comma-separated list of alternative names or abbreviations that refer to the
-                        same term but are *not* the preferred form.
-                    optional: true
 
 -   kind: SPEC
     name: Test Cases
