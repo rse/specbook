@@ -14,9 +14,16 @@ SPEC: Glossary (GL)
 
 -   TERM: Attendee {{attendee}};
     SYNONYMS: Participant, Viewer;
-    A person invited to and logged into a specific [[TERM:Event]] who
-    watches the stream and may use the interaction channels; an Attendee
-    exists only for the duration of the [[TERM:Event]].
+    A [[TERM:User]] invited to and logged into a specific [[TERM:Event]]
+    who watches the stream and may use the interaction channels; an
+    Attendee exists only for the duration of the [[TERM:Event]].
+
+-   TERM: User {{user}};
+    A person identified by their email address within a specific
+    [[TERM:Event]], existing only while granted a [[TERM:Role]], present
+    on the [[TERM:Access List]], or joining via the access email pattern
+    of the [[TERM:Event]]; a User is never a permanent account, and an
+    [[TERM:Attendee]] is a User logged into the [[TERM:Event]].
 
 -   TERM: Manager {{manager}};
     An event-level role that can edit, start, stop, and delete an
@@ -40,6 +47,13 @@ SPEC: Glossary (GL)
     physical server while the Software Administrator manages the
     software configuration and creates [[TERM:Event]]s.
 
+-   TERM: Role {{role}};
+    SYNONYMS: Event Role;
+    A grant of special rights to a [[TERM:User]] within a specific
+    [[TERM:Event]], of type [[TERM:Manager]], [[TERM:Moderator]], or
+    [[TERM:Presenter]]; the [[TERM:Administrator]] is a permanent system
+    role, not an event Role.
+
 -   TERM: Channel {{channel}};
     A logical content stream of an [[TERM:Event]] grouping language- and
     resolution-specific [[TERM:Resource]]s; exactly one Channel of an
@@ -57,9 +71,34 @@ SPEC: Glossary (GL)
     by a [[TERM:Resource]] through configured provider parameters.
 
 -   TERM: Message {{message}};
-    A single unit of [[TERM:Event]] interaction of type Chat, Question,
-    or Support, carrying language-specific texts and moving through a
-    moderation and presentation lifecycle.
+    A single unit of [[TERM:Event]] interaction of type [[TERM:Chat]],
+    [[TERM:Question]], or [[TERM:Support]], carrying language-specific
+    texts and moving through a moderation and presentation lifecycle.
+
+-   TERM: Question {{question}};
+    SYNONYMS: Question Message;
+    A [[TERM:Message]] submitted by an [[TERM:Attendee]] as structured
+    audience input for the Q&A rounds; it passes through the full
+    moderation and presentation lifecycle, may carry
+    [[TERM:Question Tag]]s, and may receive [[TERM:Like]]s.
+
+-   TERM: Chat {{chat}};
+    SYNONYMS: Chat Message;
+    A [[TERM:Message]] sent by an [[TERM:Attendee]] as direct live
+    commentary on the [[TERM:Event]], visible to the audience once
+    accepted; it may receive [[TERM:Like]]s and, where enabled, replies.
+
+-   TERM: Support {{support}};
+    SYNONYMS: Support Message;
+    A [[TERM:Message]] exchanged privately between an [[TERM:Attendee]]
+    and the [[TERM:Moderator]]s for clarification and help; it is never
+    visible to the audience and needs no moderation.
+
+-   TERM: Like {{like}};
+    The marking of a [[TERM:Question]] or [[TERM:Chat]] as relevant by
+    an [[TERM:Attendee]], tracked per [[TERM:User]] and revocable until
+    the [[TERM:Event]] finishes, thereafter conserved as a bare count by
+    the [[TERM:Anonymization]].
 
 -   TERM: Authorization Token {{authtoken}};
     SYNONYMS: Access Token, Token;
