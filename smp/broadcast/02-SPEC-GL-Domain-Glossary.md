@@ -3,8 +3,8 @@ Created:  2026-06-18 10:18
 Modified: 2026-08-19 22:04
 ---
 
-SPEC: Glossary (GL)
-===================
+SPEC: Domain Glossary (GL)
+==========================
 
 -   TERM: Event {{event}};
     The central, organizer-defined live broadcast occasion to which an

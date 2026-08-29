@@ -101,9 +101,9 @@
             optional: true
 
 -   kind: SPEC
-    name: Glossary
+    name: Domain Glossary
     id: GL
-    file: 02-SPEC-GL-Glossary.md
+    file: 02-SPEC-GL-Domain-Glossary.md
     desc: >
         The ubiquitous language of the domain, defining the meaning of each domain term in business
         language, together with its synonyms, its place in the hierarchy of terms, and the terms it
@@ -134,7 +134,7 @@
                     desc: >
                         Comma-separated list of alternative names or abbreviations that refer to the
                         same term but are *not* the preferred form; a synonym is unambiguous within
-                        the Glossary, so a shorthand shared by several terms (the ambiguity a
+                        the Domain Glossary, so a shorthand shared by several terms (the ambiguity a
                         `DISTINCT-FROM` marks) is not a synonym of any of them.
                     optional: true
                 -   name: BROADER
@@ -406,7 +406,7 @@
                 must hold, written with the keyword `MUST` or `MUST NOT` (`SHOULD` or `SHOULD NOT`
                 for a `Policy` only, as a `SHOULD` on any other kind contradicts its "must always
                 hold" nature) to indicate the obligation level and naming the domain terms it
-                governs (as defined in the Glossary and listed in `GOVERNS`), plus a 1-sentence
+                governs (as defined in the Domain Glossary and listed in `GOVERNS`), plus a 1-sentence
                 rationale ("why"). A permission (`MAY`) is not a rule: state the obligation which
                 bounds the permitted choice instead (e.g. `MUST use only ...` rather than
                 `MAY use ...`).
@@ -803,7 +803,7 @@
                 type: hub
                 center: self
                 nodes: "[[SPEC:TC.TEST-CASE:*]], [[SPEC:FR.REQUIREMENT:*]], [[SPEC:NR.REQUIREMENT:*]],
-                    [[SPEC:UC.USE-CASE:*.SCENARIO:*]]"
+                    [[SPEC:BR.RULE:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -812,11 +812,12 @@
                 -   name: VERIFIES
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
-                        NON-FUNCTIONAL-REQUIREMENTS objects and/or the USE-CASES scenario objects the
-                        test case verifies, so that a scenario (in particular an `Exceptional` one,
-                        judged by its `OUTCOME`) is covered by an acceptance test beside the
-                        requirements it exercises.
-                    value: list([[SPEC:*.REQUIREMENT:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]])
+                        NON-FUNCTIONAL-REQUIREMENTS objects, the BUSINESS-RULES objects, and/or the
+                        USE-CASES scenario objects the test case verifies, so that a scenario (in
+                        particular an `Exceptional` one, judged by its `OUTCOME`) is covered by an
+                        acceptance test beside the requirements it exercises, and a rule (judged
+                        by the condition it states) is proven to hold, not just to be documented.
+                    value: list([[SPEC:*.REQUIREMENT:*]], [[SPEC:BR.RULE:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]])
                 -   name: PRE-CONDITION
                     desc: >
                         The state or setup that must hold before the test is executed.

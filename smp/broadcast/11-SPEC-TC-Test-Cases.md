@@ -8,7 +8,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Valid Token Grants Access {{valid-token}}
 
--   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-token]]
+-   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-token]], [[RULE:access-grant]]
 -   PRE-CONDITION:  An invited user with a sent, unexpired authorization token exists for a running event.
 -   INPUT:          The user submits the correct six-digit token for their email.
 -   EXPECTED:       The system issues a session token and grants access to the stream.
@@ -16,7 +16,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Unauthorized Email Rejected {{unauthorized}}
 
--   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-denied]]
+-   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-denied]], [[RULE:access-grant]]
 -   PRE-CONDITION:  An email not on the access list and not matching the access pattern.
 -   INPUT:          The user enters that email in the login dialog.
 -   EXPECTED:       The system denies access and shows a not-authorized notice.
@@ -24,7 +24,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: URL Token Skips Login Dialog {{auto-token}}
 
--   VERIFIES:       [[FR.automatic-url]], [[SCENARIO:authenticate-auto]]
+-   VERIFIES:       [[FR.automatic-url]], [[SCENARIO:authenticate-auto]], [[RULE:token-format]]
 -   PRE-CONDITION:  An event allows URL tokens and a pre-generated token exists for an invited email.
 -   INPUT:          The user opens the event URL carrying that email and token.
 -   EXPECTED:       The system issues a session token and grants access without showing the login dialog.
@@ -32,7 +32,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Second Login Closes First Session {{single-session}}
 
--   VERIFIES:       [[FR.parallel-access]]
+-   VERIFIES:       [[FR.parallel-access]], [[RULE:single-session]]
 -   PRE-CONDITION:  A user holds an active session for an event from one device.
 -   INPUT:          The same user completes a login from a second device.
 -   EXPECTED:       The first connection is closed and only the new session remains active.
@@ -40,35 +40,35 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Moderated Question Starts Pending {{moderated-pending}}
 
--   VERIFIES:      [[FR.moderation]], [[SCENARIO:ask-question-moderated]]
+-   VERIFIES:      [[FR.moderation]], [[SCENARIO:ask-question-moderated]], [[RULE:moderation-gate]]
 -   PRE-CONDITION: An event with question moderation enabled is running.
 -   INPUT:         An attendee submits a question.
 -   EXPECTED:      The question is stored in state pending and is not visible to the audience.
 
 ##  TEST-CASE: Unmoderated Chat Starts Accepted {{unmoderated-accepted}}
 
--   VERIFIES:      [[FR.moderation]]
+-   VERIFIES:      [[FR.moderation]], [[RULE:moderation-gate]]
 -   PRE-CONDITION: An event with chat moderation disabled is running.
 -   INPUT:         An attendee submits a chat message.
 -   EXPECTED:      The message is stored in state accepted and is immediately visible.
 
 ##  TEST-CASE: Forwarded Message Is Locked {{forward-lock}}
 
--   VERIFIES:      [[FR.message-editing]]
+-   VERIFIES:      [[FR.message-editing]], [[RULE:forward-lock]]
 -   PRE-CONDITION: An accepted question has been forwarded to the presenter.
 -   INPUT:         The original attendee attempts to edit or delete the message.
 -   EXPECTED:      The system refuses the edit and the message remains unchanged.
 
 ##  TEST-CASE: Sentiment Auto-Reject Below Threshold {{sentiment-reject}}
 
--   VERIFIES:      [[FR.server-sentiment]]
+-   VERIFIES:      [[FR.server-sentiment]], [[RULE:sentiment-threshold]]
 -   PRE-CONDITION: Server-side sentiment analysis and auto-reject are enabled.
 -   INPUT:         An attendee submits a message scoring -0.5.
 -   EXPECTED:      The system stores the message directly in state rejected.
 
 ##  TEST-CASE: Sentiment Auto-Accept Above Threshold {{sentiment-accept}}
 
--   VERIFIES:      [[FR.server-sentiment]], [[SCENARIO:ask-question-auto]]
+-   VERIFIES:      [[FR.server-sentiment]], [[SCENARIO:ask-question-auto]], [[RULE:sentiment-threshold]]
 -   PRE-CONDITION: Server-side sentiment analysis and auto-accept are enabled for a moderated event.
 -   INPUT:         An attendee submits a question scoring +0.5.
 -   EXPECTED:      The system stores the question directly in state accepted, bypassing moderation.
@@ -83,7 +83,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Live Provider Switch Propagates {{provider-switch}}
 
--   VERIFIES:       [[FR.provider-switch]]
+-   VERIFIES:       [[FR.provider-switch]], [[RULE:single-resource]]
 -   PRE-CONDITION:  A running event with two configured resources and connected clients.
 -   INPUT:          The manager activates the second resource on the channel.
 -   EXPECTED:       All connected clients switch to the new stream without user interaction.
@@ -105,14 +105,14 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Returned URL Format {{url-format}}
 
--   VERIFIES:      [[FR.registration-export]]
+-   VERIFIES:      [[FR.registration-export]], [[RULE:token-format]]
 -   PRE-CONDITION: A registration import has generated tokens for new users.
 -   INPUT:         The manager exports the access URLs.
 -   EXPECTED:      Each URL contains event, user, and a six-digit "NNN-NNN" token in the URL column.
 
 ##  TEST-CASE: Anonymization Removes Personal Data {{anonymize}}
 
--   VERIFIES:       [[FR.user-consent]]
+-   VERIFIES:       [[FR.user-consent]], [[RULE:anonymize]]
 -   PRE-CONDITION:  A running event with messages, likes, tokens, and an access list.
 -   INPUT:          The manager finishes the event.
 -   EXPECTED:       Sender names become "Anonymous", likes become bare counts, and tokens, users, and Moderator roles are deleted.
@@ -120,7 +120,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Export Contains Required Fields {{export-fields}}
 
--   VERIFIES:      [[FR.export-inputs]]
+-   VERIFIES:      [[FR.export-inputs]], [[RULE:like-count]]
 -   PRE-CONDITION: A finished, anonymized event with messages.
 -   INPUT:         The manager exports the attendee inputs.
 -   EXPECTED:      The export includes at least timestamp, state, number of likes, and message text per message.
