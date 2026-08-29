@@ -64,8 +64,7 @@
         desired future state it aims to achieve. Every vision aspect is
         stated in a concise (1-3 sentence) paragraph in an aspirational
         but unambiguous tone.
-
-        References:
+    refs: >
         -   ISO/IEC/IEEE 29148:2018: Systems and software engineering -- Life cycle processes -- Requirements engineering (2018),
             https://www.iso.org/standard/72089.html
         -   Moore: Crossing the Chasm, 3rd ed. (2014),
@@ -116,8 +115,7 @@
         The ubiquitous language of the domain, defining the meaning of each domain term in business
         language, together with its synonyms, its place in the hierarchy of terms, and the terms it
         has to be kept apart from, shared consistently across all Artifacts.
-
-        References:
+    refs: >
         -   ISO 704:2022: Terminology work -- Principles and methods (2022),
             https://www.iso.org/standard/79077.html
         -   ISO 1087:2019: Terminology work and terminology science -- Vocabulary (2019),
@@ -198,8 +196,7 @@
     desc: >
         The *archetypal* user profiles representing distinct user groups, capturing their goals,
         needs, behaviors, and context.
-
-        References:
+    refs: >
         -   Cooper: The Inmates Are Running the Asylum, 2nd ed. (2004),
             https://www.informit.com/store/inmates-are-running-the-asylum-why-high-tech-products-9780672326141
         -   Cooper et al.: About Face: The Essentials of Interaction Design, 4th ed. (2014),
@@ -263,8 +260,7 @@
         mapping their steps, touchpoints, and emotions over time. The journey is the *target*
         journey with the solution in place, so the friction it records is what the solution has
         to mitigate, not the status quo it replaces.
-
-        References:
+    refs: >
         -   NN/g: Journey Mapping 101 (2018),
             https://www.nngroup.com/articles/journey-mapping-101/
         -   Kalbach: Mapping Experiences, 2nd ed. (2020),
@@ -339,8 +335,7 @@
         The concrete behaviors and capabilities the solution must provide, describing *what* the
         system does in terms of functions, features, and operations, while the quality bounds and
         constraints on them belong to the Non-Functional Requirements.
-
-        References:
+    refs: >
         -   Mavin et al.: Easy Approach to Requirements Syntax (EARS) (2009),
             https://ieeexplore.ieee.org/document/5328509
         -   ISO/IEC/IEEE 29148:2018: Systems and software engineering -- Life cycle processes -- Requirements engineering (2018),
@@ -387,8 +382,7 @@
     desc: >
         The quality attributes and constraints the solution must satisfy, such as performance,
         security, scalability, reliability, and usability.
-
-        References:
+    refs: >
         -   ISO/IEC 25010:2023: Systems and software engineering -- Systems and software Quality Requirements and Evaluation (SQuaRE) -- Product quality model (2023),
             https://www.iso.org/standard/78176.html
         -   ISO/IEC/IEEE 29148:2018: Systems and software engineering -- Life cycle processes -- Requirements engineering (2018),
@@ -458,8 +452,7 @@
         The domain invariants, policies, and decision logic that must always hold true in the
         problem domain, independent of any single feature, constraining the Functional and
         Non-Functional Requirements.
-
-        References:
+    refs: >
         -   Hay/Healy: Defining Business Rules ~ What Are They Really? (2000),
             https://www.businessrulesgroup.org/first_paper/br01c0.htm
         -   BRG: Business Rules Manifesto (2003),
@@ -551,8 +544,7 @@
         The discrete goals users pursue with the solution, each describing an actor's interaction to
         achieve a specific outcome, together with the concrete step-by-step flows for main,
         alternative, and exceptional paths.
-
-        References:
+    refs: >
         -   Cockburn: Writing Effective Use Cases (2001),
             https://www.informit.com/store/writing-effective-use-cases-9780201702255
         -   Jacobson et al.: Object-Oriented Software Engineering: A Use Case Driven Approach (1992),
@@ -700,8 +692,7 @@
     desc: >
         The structure of named entities, with named attributes and directed relationships, of the
         data the solution manages, defining how information is organized and connected.
-
-        References:
+    refs: >
         -   Chen: The Entity-Relationship Model -- Toward a Unified View of Data (1976),
             https://dl.acm.org/doi/10.1145/320434.320440
         -   OMG UML 2.5.1: Unified Modeling Language (2017),
@@ -811,8 +802,7 @@
         For each entity with a non-trivial lifecycle, the legal states it can occupy and the
         permitted transitions between them over its lifetime, making the forbidden moves as explicit
         as the allowed ones.
-
-        References:
+    refs: >
         -   Shlaer/Mellor: Object Lifecycles: Modeling the World in States (1992)
         -   Harel: Statecharts: A Visual Formalism for Complex Systems (1987),
             https://doi.org/10.1016/0167-6423(87)90035-9
@@ -952,8 +942,7 @@
         flow, while a test case fixes the concrete data and the observable assertions that decide pass
         or fail, and many test cases (e.g. of Non-Functional Requirements or of cross-session rules)
         have no use case counterpart at all.
-
-        References:
+    refs: >
         -   ISO/IEC/IEEE 29119-3:2021: Software and systems engineering -- Software testing -- Part 3: Test documentation (2021),
             https://www.iso.org/standard/79429.html
         -   ISO/IEC/IEEE 29119-4:2021: Software and systems engineering -- Software testing -- Part 4: Test techniques (2021),
@@ -1048,8 +1037,7 @@
         while the concrete workflows belong to the User Journey, Use Cases, and Dialog Storyboard.
         The principles are listed in decreasing precedence, so that whenever two principles
         conflict in a particular design decision, the earlier one wins.
-
-        References:
+    refs: >
         -   ISO 9241-110:2020: Ergonomics of human-system interaction -- Part 110: Interaction principles (2020),
             https://www.iso.org/standard/75258.html
         -   Nielsen: 10 Usability Heuristics for User Interface Design (1994),
@@ -1114,8 +1102,7 @@
     desc: >
         The terminology, naming, tone, and wording standards used consistently across the solution
         and its content.
-
-        References:
+    refs: >
         -   Microsoft: Microsoft Writing Style Guide (2018),
             https://learn.microsoft.com/en-us/style-guide/welcome/
         -   Google: Google developer documentation style guide (2017),
@@ -1144,8 +1131,7 @@
     desc: >
         The reusable interaction structures governing how the system and user exchange information
         across recurring conversational or UI flows (e.g. master-detail dialog).
-
-        References:
+    refs: >
         -   Alexander et al.: A Pattern Language: Towns, Buildings, Construction (1977),
             https://global.oup.com/academic/product/a-pattern-language-9780195019193
         -   Borchers: A Pattern Approach to Interaction Design (2001),
@@ -1186,8 +1172,7 @@
     desc: >
         The sequenced visual or textual depiction of a specific dialog flow, illustrating how an
         interaction unfolds screen by screen or turn by turn.
-
-        References:
+    refs: >
         -   Truong et al.: Storyboarding: An Empirical Determination of Best Practices and Effective Guidelines (2006),
             https://dl.acm.org/doi/10.1145/1142405.1142410
         -   Buxton: Sketching User Experiences: Getting the Design Right and the Right Design (2007),
@@ -1241,8 +1226,7 @@
     desc: >
         The aesthetic and layout aspects of the solution, defining colors, typography, spacing,
         imagery, and overall look and feel.
-
-        References:
+    refs: >
         -   DTCG: Design Tokens Format Module (2025),
             https://www.designtokens.org/tr/format/
         -   Frost: Atomic Design (2016),
@@ -1268,8 +1252,7 @@
     desc: >
         The relationships, dependencies, and interactions between the solution and its environment,
         defining the system's scope, external entities, and boundaries.
-
-        References:
+    refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Context Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/context/
         -   Brown: The C4 Model: System Context Diagram (2018),
@@ -1325,8 +1308,7 @@
     desc: >
         The functional components of the solution, their responsibilities, interfaces, and primary
         interactions, describing *what* the system does at runtime.
-
-        References:
+    refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Functional Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/functional/
         -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
@@ -1388,8 +1370,7 @@
     desc: >
         The way the solution stores, manages, manipulates, and distributes information, defining the
         static data structure and dynamic information flow.
-
-        References:
+    refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Information Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/information/
         -   Kleppmann: Designing Data-Intensive Applications (2017),
@@ -1445,8 +1426,7 @@
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
         threads, and defining how they coordinate and communicate.
-
-        References:
+    refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Concurrency Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/concurrency/
         -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
@@ -1508,8 +1488,7 @@
     desc: >
         The architecture supporting the software development process, defining the module
         organization, build approach, and codeline conventions.
-
-        References:
+    refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Development Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/development/
         -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
@@ -1543,8 +1522,7 @@
     desc: >
         The environment into which the solution is deployed, mapping software elements to the
         runtime platform, hardware, and network topology.
-
-        References:
+    refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Deployment Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/deployment/
         -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
@@ -1608,8 +1586,7 @@
     desc: >
         The way the solution is operated, administered, and supported in production, defining
         installation, monitoring, and management concerns.
-
-        References:
+    refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Operational Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/operational/
         -   Beyer et al.: Site Reliability Engineering: How Google Runs Production Systems (2016),
@@ -1648,8 +1625,7 @@
     file: 24-ARCH-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed.
-
-        References:
+    refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Perspectives (2011),
             https://www.viewpoints-and-perspectives.info/home/perspectives/
         -   Bass/Clements/Kazman: Software Architecture in Practice, 4th ed. (2021),
@@ -1718,8 +1694,7 @@
     desc: >
         The major decisions related to the architecture, each recording the forces at play, the
         chosen response, and the reasoning that justifies it.
-
-        References:
+    refs: >
         -   Nygard: Documenting Architecture Decisions (2011),
             https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions
         -   Tyree/Akerman: Architecture Decisions: Demystifying Architecture (2005),
@@ -1900,8 +1875,7 @@
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives
         that were considered but not chosen.
-
-        References:
+    refs: >
         -   ThoughtWorks: Technology Radar (2010),
             https://www.thoughtworks.com/radar
         -   Ford: Build Your Own Technology Radar (2013),

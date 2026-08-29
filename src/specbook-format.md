@@ -69,6 +69,7 @@ type SchemaObject = {
     id?:               string
     file?:             string
     desc?:             string
+    refs?:             string
     optional?:         boolean
     referenced?:       string[]
     automaton?:        SchemaAutomaton
@@ -197,6 +198,12 @@ type SchemaGradiaConfig = Partial<{
 -   `SchemaObject.desc?: string`:
     prose description of the object kind,
     BECAUSE it guides the authors and instructs the AI
+
+-   `SchemaObject.refs?: string`:
+    Markdown list of the standards, books, articles, or websites
+    (`-   <id>: <title> (<year>),` followed by an indented `<url>` line)
+    primarily describing the methodology the object kind picks up,
+    BECAUSE the authors and the AI can consult the original method
 
 -   `SchemaObject.optional?: boolean`:
     whether the kind may be absent below its parent or, for a level 1

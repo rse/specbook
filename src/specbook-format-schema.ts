@@ -22,6 +22,7 @@ export type SchemaObject = {
     id?:               string
     file?:             string
     desc?:             string
+    refs?:             string
     optional?:         boolean
     referenced?:       string[]
     automaton?:        SchemaAutomaton
@@ -157,6 +158,7 @@ const SchemaObject: v.GenericSchema<SchemaObject> = v.strictObject({
     id:                v.optional(v.string()),
     file:              v.optional(v.string()),
     desc:              v.optional(v.string()),
+    refs:              v.optional(v.string()),
     optional:          v.optional(v.boolean()),
     referenced:        v.optional(v.pipe(v.array(v.string()), v.minLength(1))),
     automaton:         v.optional(SchemaAutomaton),
