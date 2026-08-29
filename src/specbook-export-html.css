@@ -181,6 +181,13 @@ span.link-symbol            { color: var(--theme-color-specbook-symbol); font-fa
 span.value-member           { border: 1px solid var(--theme-color-specbook-border); border-radius: 0.25rem;
                               padding: 0.05rem 0.30rem; white-space: nowrap; }
 
+/*  the marker of an absent property (an "empty set" glyph in the
+    muted symbol color), telling a not given property apart from one
+    given with an empty value  */
+span.value-absent::before   { content: "\2205"; color: var(--theme-color-specbook-symbol);
+                              font-family: "Source Sans 3", "Noto Sans Symbols", sans-serif;
+                              -webkit-user-select: none; user-select: none; }
+
 /*  the key/value property tables  */
 table.props                 { border-collapse: collapse; margin: 0.5rem 0;
                               width: 100%; }
@@ -206,7 +213,7 @@ table.objects td:first-child { font-weight: bold; }
 table.objects th            { background-color: var(--theme-color-specbook-tint); }
 table.objects tbody tr:nth-child(even) td { background-color: var(--theme-color-specbook-stripe); }
 
-/*  keep the cells of absent property values one text line high  */
+/*  keep the cells of empty property values one text line high  */
 table.objects td:empty::after { content: "\00A0"; }
 table.objects p.description,
 table.objects div.description { margin: 0; }

@@ -474,8 +474,13 @@ const collectMembers = (nodes: SchemaObject[], result: Map<string, "enum" | "tag
 /*  render a property value, badging the individual members of an
     "enum(...)" (a single member) or "tags(...)" (a member set) value
     and moving its image embeddings behind the value, rendered from the
-    embedded image contents (as for a description), not from the markup  */
-const inlineValue = (kind: string, { key, value, embedding }: SpecProperty) => {
+    embedded image contents (as for a description), not from the markup;
+    an absent property renders as the marker telling it apart from a
+    property given with an empty value  */
+const inlineValue = (kind: string, property: SpecProperty | undefined) => {
+    if (property === undefined)
+        return safe("<span class=\"value-absent\"></span>")
+    const { key, value, embedding } = property
     const member = members?.get(`${kind} ${key}`)
     const text = value
         .replace(embeddingMarkup, (markup, _alt, reference: string) =>
@@ -491,10 +496,12 @@ const inlineValue = (kind: string, { key, value, embedding }: SpecProperty) => {
         `<span class="value-member">${inline(item)}</span>`).join(" ") + embeddings)
 }
 
-/*  expand the inline Markdown of the property values  */
-const inlineProperties = (kind: string, properties: SpecProperty[]) =>
+/*  expand the inline Markdown of the property values, with the
+    entries injected for unused properties (foreign to the object)
+    rendered as absent  */
+const inlineProperties = (object: SpecObject, properties: SpecProperty[]) =>
     properties.map((property) => ({ key: property.key,
-        value: inlineValue(kind, property) }))
+        value: inlineValue(object.kind, object.properties.includes(property) ? property : undefined) }))
 
 /*  resolve the format configuration of an object  */
 const formatOf = (object: SpecObject): SchemaFormat | undefined =>
@@ -605,10 +612,8 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
                 paren:       child.paren,
                 primary:     child.primary,
                 name:        inline(child.name),
-                values:      keys.map((key) => {
-                    const property = child.properties.find((property) => property.key === key)
-                    return property !== undefined ? inlineValue(child.kind, property) : ""
-                }),
+                values:      keys.map((key) =>
+                    inlineValue(child.kind, child.properties.find((property) => property.key === key))),
                 description: safe(renderCell(child))
             }))
         } })
@@ -621,11 +626,8 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
         head:  childs[0].kind !== "" ? childs[0].kind : "Name",
         width: Math.round(100 / maxColumns),
         rows:  childs.map((child) => {
-            const cells = keys.map((key) => {
-                const property = child.properties.find((property) => property.key === key)
-                return { key, desc: false, span: 1,
-                    value: property !== undefined ? inlineValue(child.kind, property) : "" }
-            })
+            const cells = keys.map((key) => ({ key, desc: false, span: 1,
+                value: inlineValue(child.kind, child.properties.find((property) => property.key === key)) }))
             if (desc)
                 cells.push({ key: "Description", desc: true, span: 1,
                     value: safe(renderCell(child)) })
@@ -658,7 +660,7 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
         name:        inline(object.name),
         diagram:     diagram !== undefined ? safe(`<div class="diagram">${diagram}</div>`) : "",
         properties:  properties.length > 0 ?
-            safe(render("Properties", { Properties: inlineProperties(object.kind, properties) })) : "",
+            safe(render("Properties", { Properties: inlineProperties(object, properties) })) : "",
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
         childs:      conciseChilds(object, schemas, concise) ?
@@ -704,7 +706,7 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
         properties:  rest.length > 0 ?
-            safe(render("Properties", { Properties: inlineProperties(object.kind, rest) })) : "",
+            safe(render("Properties", { Properties: inlineProperties(object, rest) })) : "",
         created, modified
     } })
 }

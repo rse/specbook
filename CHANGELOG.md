@@ -5,6 +5,11 @@ ChangeLog
 1.0.4 (2026-08-28)
 ------------------
 
+-   IMPROVEMENT [code, docs]: Absent Property Marker
+    The HTML/PDF export now renders an "empty set" marker into the property table lines and table
+    cells of properties absent from an object (including the ones injected by "withUnusedProps"),
+    telling a not given property apart from one given with an empty value.
+
 -   FEATURE [code, spec, docs]: Diagram of Contents
     The HTML/PDF export renders the diagram of the "META: Title" object on its own "Diagram of
     Contents" page directly after the Table of Contents (while the MD/AST exports suppress this

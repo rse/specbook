@@ -400,7 +400,10 @@ rendering pressed into a cell. `maxTableColumns` (default: `4`) bounds
 the columns of the compact tables below the object (wider groups chunk
 their properties into embedded per-object tables), and `withUnusedProps`
 (default: `false`) unconditionally renders the defined but unused
-properties of that kind, as empty property table lines or table columns.
+properties of that kind, as property table lines or table columns. In
+the HTML/PDF export, a property absent from an object shows an "empty
+set" marker in place of its value, which tells it apart from a property
+given with an empty value.
 Property lines and table columns follow the property order of the
 schema, with properties unknown to the schema appended in document order.
 Objects collapsed into tables carry no headings and hence leave the
