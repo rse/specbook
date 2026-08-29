@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-06-18 10:18
+Modified: 2026-08-29 12:00
 ---
 
 SPEC: Use Cases (UC)
@@ -14,6 +14,7 @@ USE-CASE: Join Event and Watch Stream {{join-event}}
 -   REQUIREMENTS:   [[FR.authentication]], [[FR.individual-url]], [[FR.user-consent]], [[FR.parallel-access]]
 -   GOAL:           Authenticate and watch the live video stream of an event.
 -   PRE-CONDITION:  The attendee holds an event URL and their email is granted access.
+-   TRIGGER:        The attendee opens the individual event URL received by invitation.
 -   POST-CONDITION: The attendee holds an active session token and sees the stream.
 
 The attendee opens the individual event URL, proves control of their
@@ -26,7 +27,7 @@ closed.
 -   TYPE: Main
 
 1.  The attendee opens the individual event URL in a browser.
-2.  The system shows the login dialog and optional login message.
+2.  The system asks for the email address and presents the optional login message.
 3.  The attendee enters their email address.
 4.  The system sends a six-digit authorization token to that email.
 5.  The attendee enters the received token.
@@ -36,20 +37,21 @@ closed.
 
 ### SCENARIO: Automatic Token in URL {{join-event-auto}}
 
--   TYPE: Alternative
+-   TYPE:         Alternative
+-   AT-MAIN-STEP: 1
 
 1.  The attendee opens an event URL containing email and a pre-generated token.
 2.  The system validates the embedded token against the event settings.
-3.  The system issues a session token without showing a login dialog.
+3.  The system issues a session token without asking for the email address.
 4.  The system grants the attendee access to the live video stream.
 
 ### SCENARIO: Email Not Authorized {{join-event-denied}}
 
--   TYPE: Exceptional
+-   TYPE:         Exceptional
+-   AT-MAIN-STEP: 4
 
-1.  The attendee opens the event URL and enters their email.
-2.  The system finds the email neither on the access list nor matching the access pattern.
-3.  The system denies access and informs the attendee that they are not authorized.
+4.  The system finds the email neither on the access list nor matching the access pattern.
+5.  The system denies access and informs the attendee that they are not authorized.
 
 USE-CASE: Ask a Question {{ask-question}}
 ------------------------
@@ -59,6 +61,7 @@ USE-CASE: Ask a Question {{ask-question}}
 -   REQUIREMENTS:   [[FR.questions]], [[FR.question-tags]], [[FR.moderation]]
 -   GOAL:           Submit a question for the Q&A round.
 -   PRE-CONDITION:  The attendee has an active session and questions are enabled.
+-   TRIGGER:        The attendee decides to raise a question during the running event.
 -   POST-CONDITION: The question is stored and, depending on moderation, pending or accepted.
 
 The attendee writes a question, optionally tags it, and submits it; the system stores it and routes it through moderation if
@@ -68,28 +71,28 @@ the event requires approval before it becomes visible.
 
 -   TYPE: Main
 
-1.  The attendee opens the questions panel.
-2.  The attendee types a question and optionally selects predefined tags.
+1.  The attendee starts a new question.
+2.  The attendee writes the question and optionally assigns predefined tags.
 3.  The attendee submits the question.
 4.  The system stores the question in state pending.
 5.  The system shows the question to moderators for approval.
 
 ### SCENARIO: Auto-Accepted by Sentiment {{ask-question-auto}}
 
--   TYPE: Alternative
+-   TYPE:         Alternative
+-   AT-MAIN-STEP: 4
 
-1.  The attendee submits a question.
-2.  The system runs server-side sentiment analysis on the text.
-3.  The system finds the sentiment proper and auto-accept is enabled.
-4.  The system stores the question directly in state accepted.
+4.  The system runs server-side sentiment analysis on the text.
+5.  The system finds the sentiment proper and auto-accept is enabled.
+6.  The system stores the question directly in state accepted.
 
 ### SCENARIO: Throttled Submission {{ask-question-throttled}}
 
--   TYPE: Exceptional
+-   TYPE:         Exceptional
+-   AT-MAIN-STEP: 4
 
-1.  The attendee submits questions in rapid succession.
-2.  The system detects the per-minute limit is exceeded.
-3.  The system rejects the new submission and informs the attendee to wait.
+4.  The system detects that the attendee exceeded the per-minute submission limit.
+5.  The system rejects the new submission and informs the attendee to wait.
 
 USE-CASE: Moderate and Forward Messages {{moderate}}
 ---------------------------------------
@@ -99,6 +102,7 @@ USE-CASE: Moderate and Forward Messages {{moderate}}
 -   REQUIREMENTS:   [[FR.moderation]], [[FR.forward-presenter]], [[FR.sort-filter]], [[FR.presenter-hints]]
 -   GOAL:           Approve, reject, and forward attendee input to the presenter.
 -   PRE-CONDITION:  The event is running and the moderator has the Moderator role.
+-   TRIGGER:        A pending attendee message appears on the moderation board.
 -   POST-CONDITION: Messages are accepted, rejected, or forwarded with optional hints.
 
 The moderator reviews pending messages on a Kanban board, approves or rejects them, forwards selected approved questions to
@@ -108,7 +112,7 @@ the presenter in a chosen order, and may attach hints or raise a presenter alert
 
 -   TYPE: Main
 
-1.  The moderator filters the board to pending questions.
+1.  The moderator narrows the messages down to the pending questions.
 2.  The moderator approves a relevant question, setting it accepted.
 3.  The moderator forwards the accepted question to the presenter.
 4.  The moderator optionally attaches a hint for the presenter.
@@ -116,10 +120,10 @@ the presenter in a chosen order, and may attach hints or raise a presenter alert
 
 ### SCENARIO: Reject Improper Message {{moderate-reject}}
 
--   TYPE: Alternative
+-   TYPE:         Alternative
+-   AT-MAIN-STEP: 2
 
-1.  The moderator selects a pending message.
-2.  The moderator rejects the message.
+2.  The moderator rejects an improper message.
 3.  The system sets the message to rejected and hides it from the audience.
 
 USE-CASE: Switch Streaming Provider {{switch-provider}}
@@ -130,6 +134,7 @@ USE-CASE: Switch Streaming Provider {{switch-provider}}
 -   REQUIREMENTS:   [[FR.multi-provider]], [[FR.provider-switch]], [[FR.config-propagation]]
 -   GOAL:           Change the active streaming provider during a running event.
 -   PRE-CONDITION:  The event runs and the channel has multiple configured resources.
+-   TRIGGER:        The active streaming resource shows problems during a running event.
 -   POST-CONDITION: A new resource is active and all clients follow it automatically.
 
 When a provider has problems, the manager activates a fallback resource on the channel and the system propagates the change
@@ -153,6 +158,7 @@ USE-CASE: Create Event from Ventari Import {{create-event}}
 -   REQUIREMENTS:   [[FR.ventari-import]], [[FR.ventari-export]], [[FR.event-portability]]
 -   GOAL:           Provision an event's attendees and return their access URLs.
 -   PRE-CONDITION:  The manager has a Ventari Excel sheet and an event to populate.
+-   TRIGGER:        Ventari delivers the Excel sheet of the attendees of an upcoming event.
 -   POST-CONDITION: The access list and tokens are created and URLs returned to Ventari.
 
 The manager imports the Ventari Excel sheet to fill the event access list and generate authorization tokens, then exports an
@@ -176,6 +182,7 @@ USE-CASE: Export Anonymized Event Data {{export-data}}
 -   REQUIREMENTS:   [[FR.export-inputs]], [[FR.event-stats]]
 -   GOAL:           Obtain the recorded interaction of a finished event.
 -   PRE-CONDITION:  The event has finished and the manager retains the Manager role.
+-   TRIGGER:        The manager is asked to hand over the recorded interaction of a finished event.
 -   POST-CONDITION: An export file of anonymized messages and statistics is produced.
 
 After the event finishes and personal data is anonymized, the manager exports all attendee inputs with timestamps, states,
@@ -185,7 +192,7 @@ like counts, and texts, together with the event statistics.
 
 -   TYPE: Main
 
-1.  The manager opens the finished event in the management screen.
+1.  The manager selects the finished event.
 2.  The manager triggers the export of attendee inputs.
 3.  The system produces a file containing timestamp, state, likes, and text per message.
 4.  The manager downloads the export file.
@@ -197,6 +204,7 @@ USE-CASE: Present Forwarded Questions {{present}}
 -   REQUIREMENTS:   [[FR.forward-presenter]], [[FR.presenter-dashboard]], [[FR.presenter-hints]]
 -   GOAL:           Process forwarded questions live on stage.
 -   PRE-CONDITION:  The event is running and questions have been forwarded.
+-   TRIGGER:        The moderator forwards a question to the presenter.
 -   POST-CONDITION: Processed questions are marked answered or suspended.
 
 The presenter views the forwarded questions in their intended order with any moderator hints, addresses them on stage, and
