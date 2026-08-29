@@ -866,9 +866,14 @@
     id: TC
     file: 11-SPEC-TC-Test-Cases.md
     desc: >
-        The verifiable conditions and steps used to confirm that requirements and use case
-        scenarios are correctly implemented, with mandatory defined inputs, mandatory expected
-        outcomes, and optional pre- and post-conditions.
+        The verifiable conditions and steps used to confirm that requirements, business rules, use
+        case scenarios, and state transitions are correctly implemented, with mandatory defined
+        inputs, mandatory expected outcomes, and optional pre- and post-conditions.
+
+        Test cases are not derived from use cases alone: a use case scenario describes an intent-level
+        flow, while a test case fixes the concrete data and the observable assertions that decide pass
+        or fail, and many test cases (e.g. of Non-Functional Requirements or of cross-session rules)
+        have no use case counterpart at all.
     diagram:
         type: grid
         nodes: "[[SPEC:TC.TEST-CASE:*]]"
@@ -877,11 +882,23 @@
             desc: >
                 A single verifiable test case, named with a short (3-8 word) summary and defined by
                 its mandatory input and expected outcome plus its optional pre- and post-conditions.
+
+                The test case is at verification level: it pins down what the objects it verifies
+                leave open, namely concrete data (e.g. `the correct six-digit token`), a boundary
+                or equivalence class (e.g. `one more question within the same minute`), and an
+                observable assertion, including the negative one (e.g. `the rejected question is
+                not stored and the earlier questions remain unchanged`).
+
+                A test case which merely rephrases a scenario in different words, adding none of these,
+                is redundant and should be sharpened or dropped. Conversely, one scenario can require
+                several test cases (one per boundary or equivalence class), and one test case can
+                verify a requirement, a rule, and a scenario at once.
             diagram:
                 type: hub
                 center: self
                 nodes: "[[SPEC:TC.TEST-CASE:*]], [[SPEC:FR.REQUIREMENT:*]], [[SPEC:NR.REQUIREMENT:*]],
-                    [[SPEC:BR.RULE:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]], [[SPEC:SM.LIFECYCLE:*.TRANSITION:*]]"
+                    [[SPEC:BR.RULE:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]],
+                    [[SPEC:SM.LIFECYCLE:*.TRANSITION:*]]"
                 labeled: true
                 qualified: true
                 config:
