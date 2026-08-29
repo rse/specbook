@@ -325,11 +325,14 @@
         The domain invariants, policies, and decision logic that must always hold true in the
         problem domain, independent of any single feature, constraining the Functional and
         Non-Functional Requirements.
+    format:
+        maxTableColumns: 6
     diagram:
         type: grid
         nodes: "[[SPEC:BR.RULE:*]]"
         properties:
             -   CATEGORY
+            -   SOURCE
         config:
             size-node-width-max: 440
             grid-columns-max: 5
@@ -338,22 +341,50 @@
             desc: >
                 A single business rule, named with a short (3-8 word) summary and described in a
                 concise (1-3 sentence) paragraph stating the rule declaratively as a condition that
-                must hold, written with the keyword `MUST`, `SHOULD`, or `MUST NOT` to indicate the
-                obligation level and naming the domain terms it governs (as defined in the
-                Glossary), plus a 1-sentence rationale ("why").
+                must hold, written with the keyword `MUST` or `MUST NOT` (`SHOULD` or `SHOULD NOT`
+                for a `Policy` only, as a `SHOULD` on any other kind contradicts its "must always
+                hold" nature) to indicate the obligation level and naming the domain terms it
+                governs (as defined in the Glossary), plus a 1-sentence rationale ("why"). A
+                permission (`MAY`) is not a rule: state the obligation which bounds the permitted
+                choice instead (e.g. `MUST use only ...` rather than `MAY use ...`).
 
                 The subject of the statement is a domain term, never the system: a rule holds in
                 the problem domain even if the solution were replaced, so if the sentence needs
                 `The system` as its subject, it is a Functional Requirement, not a rule.
+
+                A rule whose outcome depends on more than two conditions is stated as a decision
+                list instead of prose, in the manner of a DMN decision table: a lead sentence
+                naming the governed term and the obligation, an ordered list with one `<condition>:
+                <outcome>` item per case, applied in order with the first matching case winning,
+                and a closing sentence stating the outcome of the remaining cases ("otherwise")
+                and carrying the rationale.
             props:
                 -   name: CATEGORY
                     desc: >
-                        The kind of rule: `Invariant` (a condition that must always hold),
-                        `Constraint` (a limit on allowed *domain* values or actions, as opposed to
-                        a constraint on the solution, which is a Non-Functional Requirement),
-                        `Derivation` (a value computed from others), or `Policy` (a deliberate
-                        business decision or guideline).
-                    value: enum(Invariant,Constraint,Derivation,Policy)
+                        The kind of rule: `Constraint` (a structural condition that must always
+                        hold, limiting the allowed *domain* states, values, or actions, as opposed
+                        to a constraint on the solution, which is a Non-Functional Requirement),
+                        `Derivation` (a value computed or a fact inferred from others), `Action`
+                        (an obligation triggered by a domain event, stated as `When <trigger>,
+                        <term> MUST ...` and told apart from an event-driven Functional Requirement
+                        by its domain subject alone), or `Policy` (a deliberate business guideline
+                        stated with `SHOULD`/`SHOULD NOT`, which may be deviated from with
+                        justification, whereas the other kinds are stated with `MUST`/`MUST NOT`
+                        and cannot).
+                    value: enum(Constraint,Derivation,Action,Policy)
+                -   name: SOURCE
+                    desc: >
+                        The authority the rule originates from, determining who can change it:
+                        `Law` (a statutory or regulatory obligation, changeable by the legislator
+                        only), `Contract` (an agreement with a customer, partner, or supplier,
+                        changeable by renegotiation only), `Standard` (an industry norm or
+                        standard, deviated from with justification only), `Business` (a deliberate
+                        decision of the organization, changeable by its owner), or `Domain` (an
+                        inherent truth of the problem domain, not changeable without redefining
+                        the domain). The concrete authority (e.g. `GDPR Art. 17`) is named in the
+                        rationale of the rule.
+                    value: enum(Law,Contract,Standard,Business,Domain)
+                    optional: true
                 -   name: CONSTRAINS
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
