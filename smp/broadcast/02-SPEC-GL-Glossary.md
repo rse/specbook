@@ -29,7 +29,7 @@ SPEC: Glossary (GL)
 -   TERM: Manager {{manager}};
     BROADER: [[TERM:Role]];
     DISTINCT-FROM: [[TERM:Administrator]];
-    An event-level role that can edit, start, stop, and delete an
+    An event-level [[TERM:Role]] that can edit, start, stop, and delete an
     [[TERM:Event]] and export its anonymized data; the Manager role is
     retained after the [[TERM:Event]] finishes until the [[TERM:Event]]
     is deleted.
@@ -37,18 +37,18 @@ SPEC: Glossary (GL)
 -   TERM: Moderator {{moderator}};
     BROADER: [[TERM:Role]];
     DISTINCT-FROM: [[TERM:Presenter]];
-    An event-specific role that moderates chat and question
+    An event-specific [[TERM:Role]] that moderates chat and question
     [[TERM:Message]]s by rejecting, approving, and forwarding them, and
     that supports the [[TERM:Presenter]] with hints and curated input.
 
 -   TERM: Presenter {{presenter}};
     BROADER: [[TERM:Role]];
     DISTINCT-FROM: [[TERM:Moderator]];
-    The person on stage in a recorded video [[TERM:Event]] who receives
-    the [[TERM:Message]]s forwarded by the [[TERM:Moderator]] and marks
-    them answered or suspended after processing them live; unlike the
-    [[TERM:Moderator]], the Presenter curates nothing and sees only the
-    forwarded subset.
+    An event-specific [[TERM:Role]] held by the person on stage in a
+    recorded video [[TERM:Event]], receiving the [[TERM:Message]]s
+    forwarded by the [[TERM:Moderator]] and marking them answered or
+    suspended after processing them live; unlike the [[TERM:Moderator]],
+    the Presenter curates nothing and sees only the forwarded subset.
 
 -   TERM: Administrator {{administrator}};
     SYNONYMS: Software Administrator, Hardware Administrator;
@@ -116,14 +116,13 @@ SPEC: Glossary (GL)
     the [[TERM:Anonymization]].
 
 -   TERM: Authorization Token {{authtoken}};
-    SYNONYMS: Access Token, Token;
+    SYNONYMS: Access Token;
     DISTINCT-FROM: [[TERM:Session Token]];
     A one-time, time-limited "NNN-NNN" six-digit second factor proving
     an [[TERM:Attendee]] controls their email address; it may be
     pre-generated for automatic access.
 
 -   TERM: Session Token {{sessiontoken}};
-    SYNONYMS: Session;
     DISTINCT-FROM: [[TERM:Authorization Token]];
     The result of a successful login granting an [[TERM:Attendee]] an
     active connection to an [[TERM:Event]]; only one Session Token per

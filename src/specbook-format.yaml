@@ -106,8 +106,8 @@
     file: 02-SPEC-GL-Glossary.md
     desc: >
         The ubiquitous language of the domain, defining the meaning of each domain term in business
-        language, together with its synonyms and the ambiguities to avoid, shared consistently
-        across all Artifacts.
+        language, together with its synonyms, its place in the hierarchy of terms, and the terms it
+        has to be kept apart from, shared consistently across all Artifacts.
     format:
         maxTableColumns: 5
     diagram:
@@ -124,11 +124,18 @@
                 capitalized, as it should appear in all artifacts) and defined in a concise (1-3
                 sentence) paragraph in business language, independent of any implementation,
                 referencing other terms by their name where helpful.
+
+                The definition is intensional (ISO 704): it opens with the superordinate concept
+                (the `BROADER` term where one exists) and adds the characteristics delimiting the
+                term from its siblings (e.g. `A Message submitted by an Attendee as ...`), so that
+                the hierarchy and the definitions cross-check each other.
             props:
                 -   name: SYNONYMS
                     desc: >
                         Comma-separated list of alternative names or abbreviations that refer to the
-                        same term but are *not* the preferred form.
+                        same term but are *not* the preferred form; a synonym is unambiguous within
+                        the Glossary, so a shorthand shared by several terms (the ambiguity a
+                        `DISTINCT-FROM` marks) is not a synonym of any of them.
                     optional: true
                 -   name: BROADER
                     desc: >
