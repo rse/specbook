@@ -815,7 +815,8 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         ambiguous reference stays literal, marked as broken), targeting
         the fully-qualified anchor paths of the objects: in the full form
         (kind, name, and link symbol), or in the compact form for prose
-        (the name only, with the full form as a hover tooltip)  */
+        (the object icon and the name only, via CSS and markup, with the
+        full form as a hover tooltip)  */
     const index = buildLinkIndex(specification)
     anchors  = anchorPaths(index)
     members  = config !== undefined ? collectMembers(config, new Map()) : null

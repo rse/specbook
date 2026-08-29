@@ -171,9 +171,12 @@ a                           { color: var(--theme-color-specbook-accent); text-de
                               font-size: 120%; margin-right: 0.25rem; vertical-align: -0.075em; }
 span.link-broken            { color: var(--theme-color-specbook-error); }
 
-/*  the compact hyperlinks of the prose (name only), revealing their
-    full form (kind, name, and link symbol) as a tooltip on hovering  */
+/*  the compact hyperlinks of the prose (object icon and name only),
+    revealing their full form (kind, name, and link symbol) as a
+    tooltip on hovering  */
 a.link-compact              { position: relative; }
+a.link-compact::before      { content: "\25CF"; color: var(--theme-color-specbook-accent); font-weight: normal;
+                              font-size: 120%; margin-right: 0.25rem; vertical-align: -0.075em; }
 a.link-compact span.link-tooltip { display: none; position: absolute; left: 0; bottom: 1.4em; z-index: 10;
                               white-space: nowrap; font-weight: normal; padding: 0.15rem 0.5rem;
                               color: var(--theme-color-specbook-text);
