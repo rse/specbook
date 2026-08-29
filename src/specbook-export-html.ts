@@ -796,9 +796,21 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             try {
                 const svg = await Gradia.render(result.spec,
                     { format: "svg:embedded", config: result.config })
+
+                /*  a "hub" diagram is capped to the width share it would
+                    occupy on its full three-column canvas (padded by the
+                    minimum widths of the absent columns and their channels),
+                    so all hub diagrams share the zoom level of the
+                    three-column ones and are centered in the leftover space  */
+                const absent = result.columns !== undefined ? 3 - result.columns : 0
+                const pad    = absent * (
+                    (result.config?.["size-node-width-min"]  ?? Gradia.config["size-node-width-min"]) +
+                    (result.config?.["hub-channel-width-min"] ?? Gradia.config["hub-channel-width-min"]))
                 rendered.set(object, svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
                     (_, head: string, w: string, h: string) =>
-                        `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"`))
+                        `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"` +
+                        (result.columns !== undefined ? " class=\"hub\"" : "") +
+                        (absent > 0 ? ` style="max-width: ${(Number(w) / (Number(w) + pad) * 100).toFixed(2)}%"` : "")))
             }
             catch {
                 /*  intentionally omitted  */

@@ -30,11 +30,15 @@ export interface DiagramError {
 /*  the result of a per-object Gradia spec derivation: either the spec
     text with the Gradia rendering options (which a rendering has to
     receive explicitly, as Gradia drops the trust-sensitive font options
-    from the "#config" directives) or the reasons for omitting the diagram  */
+    from the "#config" directives) and, for a "hub" diagram, its number
+    of occupied columns (the center plus the non-empty input and output
+    columns of the three-column layout), or the reasons for omitting
+    the diagram  */
 export interface DiagramResult {
-    spec?:   string
-    config?: SchemaDiagram["config"]
-    errors:  DiagramError[]
+    spec?:    string
+    config?:  SchemaDiagram["config"]
+    columns?: number
+    errors:   DiagramError[]
 }
 
 /*  the diagram shape, i.e., the "type" of a diagram configuration
@@ -334,7 +338,11 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     /*  a "hub" diagram is the hub-projection onto its center object:
         only the edges incident to the center and only the nodes
         connected through them remain, with self-loops dropped, as
-        Gradia requires exactly this constrained topology  */
+        Gradia requires exactly this constrained topology (and the
+        occupied columns are the center plus the input column, when
+        an edge targets the center, plus the output column, when an
+        edge originates from the center)  */
+    let columns: number | undefined
     if (type === "hub") {
         if (!nodeSet.has(center))
             errors.push({ reason: `"hub" diagram center "${center.name}" is not part of the node set` })
@@ -347,6 +355,9 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
                 connected.add(edge.target)
             }
             nodes = nodes.filter((node) => connected.has(node))
+            columns = 1 +
+                (edges.some((edge) => edge.target === center) ? 1 : 0) +
+                (edges.some((edge) => edge.source === center) ? 1 : 0)
         }
     }
 
@@ -371,7 +382,8 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     if (diagram.collapse !== false && nodes.length === 1 && edges.length === 0)
         return { errors }
 
-    return { spec: renderSpec(diagram, type, center, nodes, edges, index, anchors), config: diagram.config, errors }
+    return { spec: renderSpec(diagram, type, center, nodes, edges, index, anchors),
+        config: diagram.config, columns, errors }
 }
 
 /*  derive the Gradia specs of all diagram-configured objects

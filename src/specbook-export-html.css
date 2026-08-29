@@ -276,6 +276,7 @@ html.theme-dark span.theme-dark-only  { display: contents; }
 /*  the diagrams, rationales, keywords, and code spans  */
 div.diagram                 { margin: 1.0rem 0; }
 div.diagram svg             { max-width: 100%; height: auto; }
+div.diagram svg.hub         { display: block; margin: 0 auto; }
 span.rationale              { color: var(--theme-color-specbook-muted); }
 p.rationale                 { color: var(--theme-color-specbook-muted); margin: 0.5rem 0 0 0; }
 span.keyword                { font-weight: bold; }
