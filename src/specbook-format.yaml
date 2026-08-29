@@ -1417,6 +1417,13 @@
                 (a bound is a Non-Functional Requirement instead).
             format:
                 maxTableColumns: 5
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[SPEC:VD.ELEMENT:*]], [[SPEC:UP.PERSONA:*]], [[SPEC:IC.PRINCIPLE:*]], [[SPEC:VD.MOCKUP:*]]"
+                qualified: true
+                config:
+                    size-node-width-max: 440
             props:
                 -   name: CATEGORY
                     desc: >

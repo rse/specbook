@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 14:00
+Modified: 2026-08-30 10:00
 ---
 
 SPEC: Dialog Storyboard (DS)
@@ -79,6 +79,25 @@ STORYBOARD: Attendee Gets Support from a Moderator {{support-request}}
     The moderator writes a reply in the board's composer and marks it as a direct message to the attendee instead of a public one.
 -   Reply Received; SCENARIO-STEP: 5; ACTOR: [[PERSONA:attendee]]; PATTERNS: [[PATTERN:message-stream]];
     The attendee sees the amber-tinted moderator reply below their own request in the Support tab, without any further approval step.
+
+STORYBOARD: Chat Moderator Triages Messages {{chat-moderation}}
+-------------------------------------------
+
+-   ACTORS:   [[PERSONA:moderator-chat]]
+-   SCENARIO: [[SCENARIO:moderate-reject]]
+
+### FRAME
+
+-   Board Overview; PATTERNS: [[PATTERN:kanban-board]];
+    The moderator opens the chat moderation board with the stream preview beside the rejected, pending, and accepted lanes, each lane heading counting its messages.
+-   Narrow Lane; PATTERNS: [[PATTERN:kanban-board]];
+    The moderator narrows a lane through the timestamp and tag label filter chips at its head, collapsing the messages outside the filter.
+-   Assess Pending; PATTERNS: [[PATTERN:kanban-board]];
+    Each pending card shows the sentiment pre-assessment chip (safe, iffy, risk) beside sender and time, above the outlined reject and filled accept buttons.
+-   Reject Improper; SCENARIO-STEP: 2; PATTERNS: [[PATTERN:kanban-board]];
+    The moderator clicks reject on an improper message, which leaves the pending lane immediately.
+-   Hidden from Audience; SCENARIO-STEP: 3; PATTERNS: [[PATTERN:kanban-board]];
+    The card reappears at the top of the rejected lane marked rejected, while the accepted lane the audience sees stays unchanged.
 
 STORYBOARD: Moderator Forwards to Presenter {{moderate-forward}}
 -------------------------------------------

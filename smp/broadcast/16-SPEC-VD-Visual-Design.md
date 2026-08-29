@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 16:00
+Modified: 2026-08-30 10:00
 ---
 
 #   SPEC: Visual Design (VD)
@@ -162,6 +162,7 @@ filled selected profile, and the blue-tinted profile summary.
 ##  MOCKUP: Chat Moderation Board {{mockup-moderator-chat}}
 
 -   ACTORS: [[PERSONA:moderator-chat]]
+-   STORYBOARD: [[STORYBOARD:chat-moderation]]
 -   ELEMENTS: [[ELEMENT:color-palette]], [[ELEMENT:iconography]], [[ELEMENT:spacing]], [[ELEMENT:shape]], [[ELEMENT:imagery]]
 -   IMAGE: ![](16-SPEC-VD-Visual-Design-5.png)
 
