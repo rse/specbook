@@ -14,6 +14,7 @@ SPEC: Glossary (GL)
 
 -   TERM: Attendee {{attendee}};
     SYNONYMS: Participant, Viewer;
+    BROADER: [[TERM:User]];
     A [[TERM:User]] invited to and logged into a specific [[TERM:Event]]
     who watches the stream and may use the interaction channels; an
     Attendee exists only for the duration of the [[TERM:Event]].
@@ -26,23 +27,32 @@ SPEC: Glossary (GL)
     [[TERM:Attendee]] is a User logged into the [[TERM:Event]].
 
 -   TERM: Manager {{manager}};
+    BROADER: [[TERM:Role]];
+    DISTINCT-FROM: [[TERM:Administrator]];
     An event-level role that can edit, start, stop, and delete an
     [[TERM:Event]] and export its anonymized data; the Manager role is
     retained after the [[TERM:Event]] finishes until the [[TERM:Event]]
     is deleted.
 
 -   TERM: Moderator {{moderator}};
+    BROADER: [[TERM:Role]];
+    DISTINCT-FROM: [[TERM:Presenter]];
     An event-specific role that moderates chat and question
     [[TERM:Message]]s by rejecting, approving, and forwarding them, and
     that supports the [[TERM:Presenter]] with hints and curated input.
 
 -   TERM: Presenter {{presenter}};
-    The physical moderator on stage in a recorded video [[TERM:Event]]
-    who receives forwarded [[TERM:Message]]s from the [[TERM:Moderator]]
-    and marks them answered or suspended after processing them live.
+    BROADER: [[TERM:Role]];
+    DISTINCT-FROM: [[TERM:Moderator]];
+    The person on stage in a recorded video [[TERM:Event]] who receives
+    the [[TERM:Message]]s forwarded by the [[TERM:Moderator]] and marks
+    them answered or suspended after processing them live; unlike the
+    [[TERM:Moderator]], the Presenter curates nothing and sees only the
+    forwarded subset.
 
 -   TERM: Administrator {{administrator}};
     SYNONYMS: Software Administrator, Hardware Administrator;
+    DISTINCT-FROM: [[TERM:Manager]];
     A permanent system role; the Hardware Administrator manages the
     physical server while the Software Administrator manages the
     software configuration and creates [[TERM:Event]]s.
@@ -55,11 +65,13 @@ SPEC: Glossary (GL)
     role, not an event Role.
 
 -   TERM: Channel {{channel}};
+    DISTINCT-FROM: [[TERM:Resource]];
     A logical content stream of an [[TERM:Event]] grouping language- and
     resolution-specific [[TERM:Resource]]s; exactly one Channel of an
     [[TERM:Event]] is active at a time.
 
 -   TERM: Resource {{resource}};
+    DISTINCT-FROM: [[TERM:Channel]];
     A physical content delivery endpoint backing a [[TERM:Channel]],
     such as a provider video stream or a static website; exactly one
     Resource of a [[TERM:Channel]] is active at a time.
@@ -77,6 +89,7 @@ SPEC: Glossary (GL)
 
 -   TERM: Question {{question}};
     SYNONYMS: Question Message;
+    BROADER: [[TERM:Message]];
     A [[TERM:Message]] submitted by an [[TERM:Attendee]] as structured
     audience input for the Q&A rounds; it passes through the full
     moderation and presentation lifecycle, may carry
@@ -84,12 +97,14 @@ SPEC: Glossary (GL)
 
 -   TERM: Chat {{chat}};
     SYNONYMS: Chat Message;
+    BROADER: [[TERM:Message]];
     A [[TERM:Message]] sent by an [[TERM:Attendee]] as direct live
     commentary on the [[TERM:Event]], visible to the audience once
     accepted; it may receive [[TERM:Like]]s and, where enabled, replies.
 
 -   TERM: Support {{support}};
     SYNONYMS: Support Message;
+    BROADER: [[TERM:Message]];
     A [[TERM:Message]] exchanged privately between an [[TERM:Attendee]]
     and the [[TERM:Moderator]]s for clarification and help; it is never
     visible to the audience and needs no moderation.
@@ -102,12 +117,14 @@ SPEC: Glossary (GL)
 
 -   TERM: Authorization Token {{authtoken}};
     SYNONYMS: Access Token, Token;
+    DISTINCT-FROM: [[TERM:Session Token]];
     A one-time, time-limited "NNN-NNN" six-digit second factor proving
     an [[TERM:Attendee]] controls their email address; it may be
     pre-generated for automatic access.
 
 -   TERM: Session Token {{sessiontoken}};
     SYNONYMS: Session;
+    DISTINCT-FROM: [[TERM:Authorization Token]];
     The result of a successful login granting an [[TERM:Attendee]] an
     active connection to an [[TERM:Event]]; only one Session Token per
     User per [[TERM:Event]] may be active at a time.

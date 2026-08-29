@@ -108,24 +108,42 @@
         The ubiquitous language of the domain, defining the meaning of each domain term in business
         language, together with its synonyms and the ambiguities to avoid, shared consistently
         across all Artifacts.
+    format:
+        maxTableColumns: 5
     diagram:
-        type: grid
+        type: graph
         nodes: "[[SPEC:GL.TERM:*]]"
+        labeled: true
         config:
             size-node-width-max: 440
-            grid-columns-max: 5
     childs:
         -   kind: TERM
+            name: "[A-Z][A-Za-z0-9-]*( [A-Z][A-Za-z0-9-]*)*"
             desc: >
-                A single domain term, named with its canonical, preferred form (capitalized as it
-                should appear in all artifacts) and defined in a concise (1-3 sentence) paragraph in
-                business language, independent of any implementation, referencing other terms by
-                their name where helpful.
+                A single domain term, named with its canonical, preferred form (each word
+                capitalized, as it should appear in all artifacts) and defined in a concise (1-3
+                sentence) paragraph in business language, independent of any implementation,
+                referencing other terms by their name where helpful.
             props:
                 -   name: SYNONYMS
                     desc: >
                         Comma-separated list of alternative names or abbreviations that refer to the
                         same term but are *not* the preferred form.
+                    optional: true
+                -   name: BROADER
+                    desc: >
+                        Reference to the GLOSSARY term this term is a kind of (or a part of), so
+                        that the terms form a hierarchy in which a rule governing the broader term
+                        covers the narrower ones, too; at most one broader term, keeping the
+                        hierarchy a tree.
+                    value: "[[SPEC:GL.TERM:*]]"
+                    optional: true
+                -   name: DISTINCT-FROM
+                    desc: >
+                        Comma-separated references to the GLOSSARY terms easily confused with this
+                        one but deliberately *not* synonymous, listed on both terms of each pair,
+                        with the distinction stated in the definitions.
+                    value: list([[SPEC:GL.TERM:*]])
                     optional: true
 
 -   kind: SPEC
@@ -457,6 +475,7 @@
                 center: self
                 nodes: "[[SPEC:UC.USE-CASE:*]], [[SPEC:UP.PERSONA:*]], [[SPEC:UJ.JOURNEY:*.STEP:*]],
                     [[SPEC:FR.REQUIREMENT:*]], [[SPEC:BR.RULE:*]]"
+                labeled: true
                 qualified: true
                 config:
                     size-node-width-max: 440
@@ -761,6 +780,7 @@
                 center: self
                 nodes: "[[SPEC:TC.TEST-CASE:*]], [[SPEC:FR.REQUIREMENT:*]], [[SPEC:NR.REQUIREMENT:*]],
                     [[SPEC:UC.USE-CASE:*.SCENARIO:*]]"
+                labeled: true
                 qualified: true
                 config:
                     size-node-width-max: 440
