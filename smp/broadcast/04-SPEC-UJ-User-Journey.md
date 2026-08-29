@@ -58,7 +58,7 @@ JOURNEY: Operate a Broadcast Event {{operate}}
 
 -   STAGE:       Usage
 -   GOAL:        Set up, start, and control an event end-to-end
--   TOUCHPOINT:  Manager configuration screen and Ventari Excel import/export
+-   TOUCHPOINT:  Manager configuration screen and Event Registration System Excel import/export
 -   ACTION:      The manager imports attendees, configures channels and options, and starts the event.
 -   EMOTION:     Focused (0)
 -   PAIN-POINT:  Coordinating streaming providers, access lists, and tokens before going live is error-prone.

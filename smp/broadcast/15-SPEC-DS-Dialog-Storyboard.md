@@ -81,8 +81,8 @@ STORYBOARD: Manager Switches Provider Live {{switch-provider}}
 -   Propagation Confirmed; The system confirms the change has been pushed to all connected clients.
 -   Seamless Switch; Attendee players transition to the new stream with no user action required.
 
-STORYBOARD: Manager Imports Ventari Sheet {{ventari-import}}
------------------------------------------
+STORYBOARD: Manager Imports Registration Sheet {{registration-import}}
+----------------------------------------------
 
 -   USE-CASE: [[USE-CASE:create-event]]
 -   SCENARIO: [[SCENARIO:create-event-import]]
@@ -91,7 +91,7 @@ STORYBOARD: Manager Imports Ventari Sheet {{ventari-import}}
 ### FRAME
 
 -   Event Config; The manager opens the event configuration and selects the attendee import action.
--   Upload Sheet; The manager uploads the Ventari Excel sheet with attendee columns.
+-   Upload Sheet; The manager uploads the Excel sheet of the Event Registration System with attendee columns.
 -   Import Summary; The system reports new users created and existing users skipped, with tokens generated.
 -   URL Preview; The system shows the composed personal access URLs per attendee.
--   Return Download; The manager downloads the returned Excel sheet with the URL column filled for Ventari.
+-   Return Download; The manager downloads the returned Excel sheet with the URL column filled for the Event Registration System.

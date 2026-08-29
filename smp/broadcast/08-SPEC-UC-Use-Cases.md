@@ -184,30 +184,30 @@ provider recovers.
 4.  The system propagates the change to all connected clients.
 5.  The attendee clients switch to the new stream without user interaction.
 
-USE-CASE: Create Event from Ventari Import {{create-event}}
-------------------------------------------
+USE-CASE: Create Event from Registration Import {{create-event}}
+-----------------------------------------------
 
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEY:        [[STEP:configure]]
--   REQUIREMENTS:   [[FR.ventari-import]], [[FR.ventari-export]], [[FR.event-portability]]
+-   REQUIREMENTS:   [[FR.registration-import]], [[FR.registration-export]], [[FR.event-portability]]
 -   RULES:          [[RULE:token-format]], [[RULE:no-accounts]]
--   PRE-CONDITION:  The manager has a Ventari Excel sheet and an event to populate.
--   TRIGGER:        Ventari delivers the Excel sheet of the attendees of an upcoming event.
--   POST-CONDITION: The access list and tokens are created and URLs returned to Ventari.
+-   PRE-CONDITION:  The manager has an Excel sheet of the Event Registration System and an event to populate.
+-   TRIGGER:        The Event Registration System delivers the Excel sheet of the attendees of an upcoming event.
+-   POST-CONDITION: The access list and tokens are created and URLs returned to the Event Registration System.
 
-The manager imports the Ventari Excel sheet to fill the event access list and generate authorization tokens, then exports an
-Excel sheet of personal access URLs back to Ventari, avoiding duplicate invitations on repeated imports, BECAUSE provisioning
-hundreds of attendees by hand is error-prone and does not scale.
+The manager imports the Excel sheet of the Event Registration System to fill the event access list and generate authorization
+tokens, then exports an Excel sheet of personal access URLs back to the Event Registration System, avoiding duplicate
+invitations on repeated imports, BECAUSE provisioning hundreds of attendees by hand is error-prone and does not scale.
 
 ### SCENARIO: Import and Return URLs {{create-event-import}}
 
 -   TYPE: Main
 
-1.  The manager uploads the Ventari Excel sheet to the event.
+1.  The manager uploads the Excel sheet of the Event Registration System to the event.
 2.  The system creates access-list users for new emails and skips existing ones.
 3.  The system generates a "NNN-NNN" authorization token per user in state issued.
 4.  The system composes each user's personal access URL with event, user, and token.
-5.  The system returns an Excel sheet with the URL column filled to Ventari.
+5.  The system returns an Excel sheet with the URL column filled to the Event Registration System.
 
 USE-CASE: Export Anonymized Event Data {{export-data}}
 --------------------------------------

@@ -57,7 +57,7 @@ ARCH: Decision Record (DR)
 -   AFFECTS:  [[FV.auth]]
 -   WHEN:
     Access must be limited to invited attendees without permanent credentials, while also supporting frictionless and fully
-    automated joining for large distributions provisioned from Ventari.
+    automated joining for large distributions provisioned from the Event Registration System.
 -   WHAT:
     We authenticate via a one-time "NNN-NNN" token emailed to the attendee's address, with optionally pre-generated tokens
     embeddable in the access URL for automatic entry, and we enforce a single active session per user per event.

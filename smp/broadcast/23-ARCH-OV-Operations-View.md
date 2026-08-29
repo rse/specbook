@@ -22,9 +22,9 @@ concerns kept out of the database.
 -   ELEMENT:  [[FV.service]]
 
 An event with its related entities can be serialized to YAML and
-re-imported, and attendees are provisioned from Ventari Excel sheets,
-BECAUSE operators need a repeatable way to create recurring and
-demonstration events.
+re-imported, and attendees are provisioned from Excel sheets of the
+Event Registration System, BECAUSE operators need a repeatable way to
+create recurring and demonstration events.
 
 ##  CONCERN: Role Assignment {{role-assignment}}
 

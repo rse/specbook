@@ -51,14 +51,14 @@ A Cloudflare content delivery network fronts static content for fast,
 stable distribution, BECAUSE static assets must load quickly and
 reliably for a global, large-scale audience.
 
-##  ENTITY: Ventari Platform {{ventari}}
+##  ENTITY: Event Registration System {{registration-system}}
 
 -   KIND:      System
 -   DIRECTION: Bidirectional
 -   INTERFACE: Excel sheet import and export
 -   DATA:      Attendee registration data and generated access URLs
 
-The U2D Ventari platform supplies attendee registration data and
+The Event Registration System supplies attendee registration data and
 receives generated access URLs via Excel exchange, BECAUSE events are
 provisioned from the organization's existing registration system.
 

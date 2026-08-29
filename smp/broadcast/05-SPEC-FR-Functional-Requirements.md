@@ -177,17 +177,17 @@ SPEC: Functional Requirements (FR)
     interaction, BECAUSE provider outages must be mitigated without
     disrupting the audience.
 
--   REQUIREMENT: Import Ventari Attendees {{ventari-import}}; PRIORITY: MUST;
-    The system MUST import a Ventari Excel sheet to populate an event's
-    access list and generate authorization tokens, avoiding duplicate
-    invitations on repeated imports, BECAUSE events are provisioned from
-    the Ventari registration system.
+-   REQUIREMENT: Import Registered Attendees {{registration-import}}; PRIORITY: MUST;
+    The system MUST import an Excel sheet of the Event Registration
+    System to populate an event's access list and generate authorization
+    tokens, avoiding duplicate invitations on repeated imports, BECAUSE
+    events are provisioned from the Event Registration System.
 
--   REQUIREMENT: Return Access URLs to Ventari {{ventari-export}}; PRIORITY: MUST;
+-   REQUIREMENT: Return Access URLs to Registration {{registration-export}}; PRIORITY: MUST;
     The system MUST generate each attendee's personal access URL
     containing event, user, and a "NNN-NNN" six-digit token and return
-    it in an Excel sheet to Ventari, BECAUSE Ventari distributes the
-    join URLs to attendees.
+    it in an Excel sheet to the Event Registration System, BECAUSE the
+    Event Registration System distributes the join URLs to attendees.
 
 -   REQUIREMENT: Import and Export Event {{event-portability}}; PRIORITY: SHOULD;
     The system SHOULD export an event with its related entities to a

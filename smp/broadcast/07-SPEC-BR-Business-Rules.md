@@ -135,7 +135,7 @@ liker relations are removed, BECAUSE like totals must survive anonymization for 
 -   CATEGORY:   Constraint
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:authtoken]], [[TERM:event]]
--   CONSTRAINS: [[FR.ventari-export]], [[FR.automatic-url]]
+-   CONSTRAINS: [[FR.registration-export]], [[FR.automatic-url]]
 
 An Authorization Token MUST be formatted as six digits "NNN-NNN"; a normal login token MUST expire within 5 minutes while a
 pre-generated token lasts until the event ends, expiring on first use only if the Event so configures, BECAUSE token

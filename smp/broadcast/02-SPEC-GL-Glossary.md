@@ -134,8 +134,8 @@ SPEC: Glossary (GL)
     [[TERM:Event]]; together with the access email pattern it determines
     who may be granted [[TERM:Event]] access.
 
--   TERM: Ventari {{ventari}};
-    The external U2D registration platform from which [[TERM:Attendee]]
+-   TERM: Event Registration System {{registration-system}};
+    The external registration platform from which [[TERM:Attendee]]
     data is imported via Excel and to which generated access URLs are
     returned.
 

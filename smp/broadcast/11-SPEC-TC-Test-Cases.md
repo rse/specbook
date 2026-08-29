@@ -96,17 +96,17 @@ SPEC: Test Cases (TC)
 -   INPUT:         The manager enables chat for the event.
 -   EXPECTED:      Connected clients show the chat panel within 2 seconds without a reload.
 
-##  TEST-CASE: Ventari Import Avoids Duplicates {{ventari-dedup}}
+##  TEST-CASE: Registration Import Avoids Duplicates {{registration-dedup}}
 
--   VERIFIES:      [[FR.ventari-import]]
+-   VERIFIES:      [[FR.registration-import]]
 -   PRE-CONDITION: An event whose access list already contains some imported emails.
--   INPUT:         The manager imports a Ventari sheet overlapping the existing emails.
+-   INPUT:         The manager imports a registration sheet overlapping the existing emails.
 -   EXPECTED:      Existing users are not duplicated and their prior tokens are returned.
 
 ##  TEST-CASE: Returned URL Format {{url-format}}
 
--   VERIFIES:      [[FR.ventari-export]]
--   PRE-CONDITION: A Ventari import has generated tokens for new users.
+-   VERIFIES:      [[FR.registration-export]]
+-   PRE-CONDITION: A registration import has generated tokens for new users.
 -   INPUT:         The manager exports the access URLs.
 -   EXPECTED:      Each URL contains event, user, and a six-digit "NNN-NNN" token in the URL column.
 

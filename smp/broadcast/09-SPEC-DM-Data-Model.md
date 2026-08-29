@@ -322,7 +322,7 @@ BECAUSE the application is role-based and rights are granted through roles.
 ##  ENTITY: User
 
 -   REQUIREMENTS: [[FR.authentication]], [[FR.name-appearance]], [[FR.likes]],
-    [[FR.personalized-url]], [[FR.ventari-import]]
+    [[FR.personalized-url]], [[FR.registration-import]]
 
 A helper entity enabling event-based logins for invited or pattern-matched attendees,
 BECAUSE the system holds no permanent accounts yet must identify attendees per event.
@@ -481,8 +481,8 @@ BECAUSE questions are categorized by topic or addressed person for routing and g
 
 ##  ENTITY: AuthorizationToken
 
--   REQUIREMENTS: [[FR.authentication]], [[FR.automatic-url]], [[FR.ventari-import]],
-    [[FR.ventari-export]], [[FR.debug-stats]]
+-   REQUIREMENTS: [[FR.authentication]], [[FR.automatic-url]], [[FR.registration-import]],
+    [[FR.registration-export]], [[FR.debug-stats]]
 
 A one-time second factor proving an attendee controls the email address used as the first factor,
 BECAUSE email-verified access is the core mechanism limiting the audience.
