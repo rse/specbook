@@ -155,6 +155,7 @@ export class SpecBook {
         config?:  string,
         basedir?: string,
         embed?:   boolean,         /*  embed the schema configuration instead of referencing it  */
+        compress?: CompressLevel,  /*  compression level of the schema configuration (default: 1)  */
         format?:  DescribeFormat,  /*  output format (default: "md")  */
         part?:    DescribePart     /*  document part (default: "all")  */
     }): Promise<string>
@@ -182,13 +183,15 @@ export interface Diagnostic {
     message:       string
 }
 
-/*  the supported export formats and describe formats/parts  */
+/*  the supported export formats and describe formats/parts/compression levels  */
 export const formats:         readonly [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ]
 export const describeFormats: readonly [ "md", "raw" ]
 export const describeParts:   readonly [ "all", "meta", "schema", "spec" ]
+export const compressLevels:  readonly [ 0, 1, 2, 3 ]
 export type  ExportFormat   = typeof formats[number]
 export type  DescribeFormat = typeof describeFormats[number]
 export type  DescribePart   = typeof describeParts[number]
+export type  CompressLevel  = typeof compressLevels[number]
 
 /*  the Abstract Syntax Tree (AST) of a parsed specification  */
 export type Spec = {
@@ -292,6 +295,7 @@ $ specbook describe \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
   [-e|--embed] \
+  [-z|--compress [<level>]] \
   [-f|--format <format>] \
   [-p|--part <part>] \
   [-o|--output <output-file>]
@@ -357,13 +361,22 @@ Options:
     Markdown document.
 
 -   `-e|--embed` (`describe` only):
-    Embed the given YAML schema configuration verbatim instead of just
+    Embed the given YAML schema configuration itself instead of just
     referencing it, so the resulting document describes the specification
     format entirely on its own.
 
+-   `-z|--compress [<level>]` (`describe` only):
+    The compression level (default and bare flag: `1`) of the YAML
+    schema configuration (embedded into the Markdown or emitted as the
+    raw file content), so the configuration costs fewer tokens: `0`
+    emits it verbatim, `1` re-emits it with 2-space indentation and
+    unwrapped lines, `2` additionally leaves out its `refs` fields, and
+    `3` additionally leaves out its `desc` fields of objects and properties.
+
 -   `-f|--format <format>` (`describe` only):
     The output format (default: `md`) switches from the rendered Markdown
-    onto the raw original file content with `raw`, which is available for
+    onto the raw original file content (the `schema` one compressed by the
+    `-z|--compress` level) with `raw`, which is available for
     the file-backed parts `meta` and `schema` only.
 
 -   `-p|--part <part>` (`describe` only):

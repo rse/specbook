@@ -10,7 +10,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z }                    from "zod"
 
 import { SpecBook, renderDiagnostic, renderVerbose, formats, parseOutputSpec, describeFormats,
-    describeParts, version, type VerboseSink } from "./specbook-api.js"
+    describeParts, parseCompressLevel, version, type VerboseSink } from "./specbook-api.js"
 
 /*  render an error with its cause chain into a tool error result  */
 const errorResult = (err: unknown) => {
@@ -123,10 +123,14 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             "single part and emitted as the raw original file content instead of Markdown.",
         inputSchema: {
             config:  z.string().optional().describe("YAML schema configuration file " +
-                "(default: the bundled standard schema configuration, embedded verbatim)"),
+                "(default: the bundled standard schema configuration, embedded)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files"),
             embed:   z.boolean().optional().describe("embed the given YAML schema configuration instead " +
                 "of just referencing it (default: false; the bundled standard one is always embedded)"),
+            compress: z.number().int().min(0).max(3).optional().describe("compression level of the emitted " +
+                "YAML schema configuration (embedded or raw): 0 for verbatim, 1 for re-emitted with 2-space " +
+                "indentation, 2 for additionally without its \"refs\" fields, or 3 for additionally without " +
+                "its \"desc\" fields (default: 1)"),
             format:  z.enum(describeFormats).optional().describe("output format: \"md\" for Markdown or " +
                 "\"raw\" for the raw original file content of the part (default: \"md\")"),
             part:    z.enum(describeParts).optional().describe("document part: \"all\" for the entire " +
@@ -137,7 +141,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         }
     }, async (args) => {
         try {
-            const text = await specbook.describe(args)
+            const text = await specbook.describe({ ...args,
+                compress: args.compress !== undefined ? parseCompressLevel(args.compress) : undefined })
             if (args.output !== undefined && args.output !== "-") {
                 await fs.promises.writeFile(args.output, text, "utf8")
                 return { content: [ { type: "text", text: `described specification format into "${args.output}"` } ] }

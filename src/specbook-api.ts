@@ -16,7 +16,8 @@ import { exportSpecification, watchSpecification, parseOutputSpec, formats,
     type ExportFormat }                                  from "./specbook-cmd-export.js"
 import { servePreview, previewAddr, previewPort }        from "./specbook-cmd-preview.js"
 import { describeFormat, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
-    type DescribeFormat, type DescribePart }             from "./specbook-cmd-describe.js"
+    compressLevels, parseCompressLevel, type DescribeFormat, type DescribePart, type CompressLevel }
+    from "./specbook-cmd-describe.js"
 import { requireBrowser }                                from "./specbook-export-pdf.js"
 import { literal, renderVerbose, type Verbose, type VerboseLevel } from "./specbook-verbose.js"
 import { type Schema }                                   from "./specbook-format-schema.js"
@@ -26,7 +27,8 @@ export { literal, renderVerbose, type Verbose, type VerboseLevel }
 export { formats, parseOutputSpec, type ExportFormat }
 export { previewAddr, previewPort }
 export { describeFormats, describeParts, parseDescribeFormat, parseDescribePart }
-export { type DescribeFormat, type DescribePart }
+export { compressLevels, parseCompressLevel }
+export { type DescribeFormat, type DescribePart, type CompressLevel }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
 export { type LintResult }
 export type { Spec, SpecArtifact, SpecObject, SpecDescription, SpecProperty } from "./specbook-format-spec.js"
@@ -196,8 +198,8 @@ export class SpecBook {
         as the raw original file content), either entirely or reduced to
         a single part, optionally pointing to the artifacts of the
         particular project, whose YAML schema configuration is validated
-        before use  */
-    async describe (options: { config?: string, basedir?: string, embed?: boolean,
+        before use and optionally emitted compressed by level  */
+    async describe (options: { config?: string, basedir?: string, embed?: boolean, compress?: CompressLevel,
         format?: DescribeFormat, part?: DescribePart }): Promise<string> {
         const verbose = this.verboseOf("describe")
         const format  = options.format ?? "md"

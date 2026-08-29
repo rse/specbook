@@ -202,7 +202,8 @@ type SchemaGradiaConfig = Partial<{
 -   `SchemaObject.refs?: string`:
     Markdown list of the standards, books, articles, or websites
     (`-   <id>: <title> (<year>),` followed by an indented `<url>` line)
-    primarily describing the methodology the object kind picks up,
+    primarily describing the methodology the object kind picks up (left
+    out when the configuration is emitted compressed by level 2 or higher),
     BECAUSE the authors and the AI can consult the original method
 
 -   `SchemaObject.optional?: boolean`:

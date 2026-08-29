@@ -95,7 +95,7 @@ specbook mcp      [-v]
 The YAML schema configuration of `init`, `lint`, `export`, and `preview` falls back
 onto the bundled standard one (`src/specbook-format.yaml`, copied to
 `dst/` at build time), while `describe` references the given one only
-and falls back onto the standard one by embedding it verbatim.
+and falls back onto the standard one by embedding it.
 Exactly the artifact files referenced by its `file` fields are loaded and parsed,
 resolved against the base directory, in which generated specification
 Markdown files are placed, too. All other Markdown files below the base
@@ -134,12 +134,18 @@ followed by a "SpecBook Project Instantiation" section pointing to the
 YAML schema configuration (`-c`, falling back onto the embedded standard
 one) and the base directory (`-b`) whenever one of them is present, where
 `-e`/`--embed` embeds the given YAML schema configuration itself instead
-of just referencing it.
+of just referencing it, and `-z`/`--compress [<level>]` (default and
+bare flag `1`) emits the YAML schema configuration (embedded into the
+Markdown or as the `raw` file content) compressed instead of verbatim:
+level `1` re-emits it with 2-space indentation and unwrapped lines,
+level `2` additionally drops its `refs` fields, and level `3`
+additionally drops its `desc` fields of objects and properties.
 The `describe` option `-p`/`--part` (default: `all`) reduces the output
 to the generic description alone (`meta`), the YAML schema configuration
 alone (`schema`, falling back onto the embedded standard one), or the base
 directory reference alone (`spec`), while `-f`/`--format` (default: `md`)
 switches from the rendered Markdown onto the raw original file content
+(the `schema` one compressed by the `--compress` level)
 (`raw`), which is available for the file-backed parts `meta` and
 `schema` only.
 The default value of every CLI option `--xxx` can be overridden by a

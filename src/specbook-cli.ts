@@ -11,7 +11,7 @@ import chalk                       from "chalk"
 
 import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, renderVerbose, literal,
     parseOutputSpec, previewAddr, previewPort, describeFormats, describeParts,
-    parseDescribeFormat, parseDescribePart,
+    parseDescribeFormat, parseDescribePart, parseCompressLevel,
     version, type VerboseSink, type VerboseLevel } from "./specbook-api.js"
 import { serveMcp }        from "./specbook-mcp.js"
 
@@ -192,20 +192,24 @@ withCommonOptions(program.command("preview"))
 withVerboseOption(program.command("describe"))
     .description("describe the SpecBook models and formats as Markdown")
     .option("-c, --config <yaml-file>", "YAML schema configuration file " +
-        "(default: the bundled standard schema configuration, embedded verbatim)", envDefault("config"))
+        "(default: the bundled standard schema configuration, embedded)", envDefault("config"))
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir"))
     .option("-e, --embed", "embed the given YAML schema configuration instead of just referencing it",
         envDefaultFlag("embed", false))
+    .option("-z, --compress [level]", "compression level of the emitted YAML schema configuration " +
+        "(0: verbatim, 1: re-emitted with 2-space indentation, 2: also without \"refs\" fields, " +
+        "3: also without \"desc\" fields; default and bare flag: 1)", envDefault("compress", "1"))
     .option("-f, --format <format>", `output format (${describeFormats.join(", ")})`,
         envDefault("format", "md"))
     .option("-p, --part <part>", `document part (${describeParts.join(", ")})`,
         envDefault("part", "all"))
     .option("-o, --output <markdown-file>", "output file (\"-\" for stdout)", envDefault("output", "-"))
     .action(async (opts: { verbose: boolean, config?: string, basedir?: string,
-        embed: boolean, format: string, part: string, output: string }) => {
+        embed: boolean, compress: string | boolean, format: string, part: string, output: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const text = await specbook.describe({ config: opts.config, basedir: opts.basedir,
-            embed: opts.embed, format: parseDescribeFormat(opts.format), part: parseDescribePart(opts.part) })
+            embed: opts.embed, compress: parseCompressLevel(opts.compress),
+            format: parseDescribeFormat(opts.format), part: parseDescribePart(opts.part) })
         await writeOutput(opts.output, text, "describe", verboseOf(opts))
     })
 
