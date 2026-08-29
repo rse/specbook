@@ -448,6 +448,16 @@
                                 flow).
                             value: enum(Main,Alternative,Exceptional)
                             unique: enum(Main)
+                        -   name: RESULT
+                            desc: >
+                                How an `Alternative` or `Exceptional` scenario ends: `Success` (the
+                                goal is reached, possibly in an end state differing from the `Main`
+                                scenario), `Failure` (the goal is abandoned), or `Resume` (the flow
+                                returns to the `Main` scenario at the step named in the `OUTCOME`),
+                                omitted on the `Main` scenario, which ends in the `POST-CONDITION`
+                                of the use case.
+                            value: enum(Success,Failure,Resume)
+                            optional: true
                         -   name: AT-MAIN-STEP
                             desc: >
                                 The number of the step of the `Main` scenario at which an
@@ -457,6 +467,14 @@
                                 replace the remaining ones (not applicable to the `Main` scenario
                                 itself).
                             value: /^[1-9][0-9]*$/
+                            optional: true
+                        -   name: OUTCOME
+                            desc: >
+                                The condition that holds when an `Alternative` or `Exceptional`
+                                scenario ends, stated like a post-condition and replacing the
+                                `POST-CONDITION` of the use case for this scenario (naming the
+                                `Main` step at which the flow continues in case of `Resume`),
+                                omitted on the `Main` scenario.
                             optional: true
 
 -   kind: SPEC

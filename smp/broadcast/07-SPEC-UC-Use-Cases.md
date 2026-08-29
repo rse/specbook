@@ -59,7 +59,9 @@ entitles the attendee to the event they were invited to.
 ### SCENARIO: Automatic Token in URL {{authenticate-auto}}
 
 -   TYPE:         Alternative
+-   RESULT:       Success
 -   AT-MAIN-STEP: 1
+-   OUTCOME:      The attendee holds an active session token, obtained without entering email or token.
 
 1.  The system finds the email and a pre-generated token embedded in the event URL.
 2.  The system validates the embedded token against the event settings.
@@ -68,7 +70,9 @@ entitles the attendee to the event they were invited to.
 ### SCENARIO: Email Not Authorized {{authenticate-denied}}
 
 -   TYPE:         Exceptional
+-   RESULT:       Resume
 -   AT-MAIN-STEP: 3
+-   OUTCOME:      No session exists and no token was sent, and the attendee may retry with another email address (resumes at step 1).
 
 3.  The system finds the email neither on the access list nor matching the access pattern.
 4.  The system denies access and informs the attendee that they are not authorized.
@@ -81,7 +85,7 @@ USE-CASE: Ask a Question {{ask-question}}
 -   REQUIREMENTS:   [[FR.questions]], [[FR.question-tags]], [[FR.moderation]]
 -   PRE-CONDITION:  The attendee has an active session and questions are enabled.
 -   TRIGGER:        The attendee decides to raise a question during the running event.
--   POST-CONDITION: The question is stored and, depending on moderation, pending or accepted.
+-   POST-CONDITION: The question is stored in state pending and awaits moderation.
 
 The attendee writes a question, optionally tags it, and submits it; the system stores it and routes it through moderation if
 the event requires approval before it becomes visible, BECAUSE getting their own question answered turns the attendee from a
@@ -100,7 +104,9 @@ passive viewer into a participant.
 ### SCENARIO: Auto-Accepted by Sentiment {{ask-question-auto}}
 
 -   TYPE:         Alternative
+-   RESULT:       Success
 -   AT-MAIN-STEP: 4
+-   OUTCOME:      The question is stored in state accepted and visible to the audience without moderation.
 
 4.  The system runs server-side sentiment analysis on the text.
 5.  The system finds the sentiment proper and auto-accept is enabled.
@@ -109,7 +115,9 @@ passive viewer into a participant.
 ### SCENARIO: Throttled Submission {{ask-question-throttled}}
 
 -   TYPE:         Exceptional
+-   RESULT:       Failure
 -   AT-MAIN-STEP: 4
+-   OUTCOME:      The question is not stored, and the attendee may submit it again once the limit window has passed.
 
 4.  The system detects that the attendee exceeded the per-minute submission limit.
 5.  The system rejects the new submission and informs the attendee to wait.
@@ -141,7 +149,9 @@ curated, ordered selection of the audience input while on stage.
 ### SCENARIO: Reject Improper Message {{moderate-reject}}
 
 -   TYPE:         Alternative
+-   RESULT:       Success
 -   AT-MAIN-STEP: 2
+-   OUTCOME:      The message is in state rejected and hidden from the audience, without reaching the presenter.
 
 2.  The moderator rejects an improper message.
 3.  The system sets the message to rejected and hides it from the audience.
