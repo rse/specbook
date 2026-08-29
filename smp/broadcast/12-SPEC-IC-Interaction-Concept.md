@@ -1,29 +1,10 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 11:30
+Modified: 2026-08-29 11:45
 ---
 
 SPEC: Interaction Concept (IC)
 ==============================
-
--   PRINCIPLE: Frictionless Joining {{frictionless-join}};
-    CATEGORY: Task-Suitability;
-    TRADE-OFF: An explicit registration with a permanent account, which would give organizers richer attendee profiles;
-    ACTORS: [[PERSONA:attendee]];
-    MOTIVATED-BY: [[STEP:arrival]], [[STEP:authenticate]];
-    The attendee is carried into the event with the least possible effort,
-    with email and token pre-filled from the URL where available and
-    automatic access when a valid token is embedded, BECAUSE large audiences
-    must enter quickly without a support burden.
-
--   PRINCIPLE: Live Reactivity {{live-reactivity}};
-    CATEGORY: Self-Descriptiveness;
-    TRADE-OFF: Lower server load and simpler clients through polling or a manual reload;
-    MOTIVATED-BY: [[STEP:participate]], [[STEP:support]];
-    Every configuration change, provider switch, and moderation outcome is
-    pushed to connected clients over WebSockets so the UI updates without a
-    reload, BECAUSE a live event demands that all participants see a single,
-    current state at all times.
 
 -   PRINCIPLE: Moderation-Gated Visibility {{moderation-gated}};
     CATEGORY: Expectation-Conformity;
@@ -44,6 +25,35 @@ SPEC: Interaction Concept (IC)
     marked distinct from the human original, BECAUSE participants must
     always know who said what and in which language.
 
+-   PRINCIPLE: Frictionless Joining {{frictionless-join}};
+    CATEGORY: Task-Suitability;
+    TRADE-OFF: An explicit registration with a permanent account, which would give organizers richer attendee profiles;
+    ACTORS: [[PERSONA:attendee]];
+    MOTIVATED-BY: [[STEP:arrival]], [[STEP:authenticate]];
+    The attendee is carried into the event with the least possible effort,
+    with email and token pre-filled from the URL where available and
+    automatic access when a valid token is embedded, BECAUSE large audiences
+    must enter quickly without a support burden.
+
+-   PRINCIPLE: Live Reactivity {{live-reactivity}};
+    CATEGORY: Self-Descriptiveness;
+    TRADE-OFF: Lower server load and simpler clients through polling or a manual reload;
+    MOTIVATED-BY: [[STEP:participate]], [[STEP:support]];
+    Every configuration change, provider switch, and moderation outcome is
+    pushed to connected clients over WebSockets so the UI updates without a
+    reload, BECAUSE a live event demands that all participants see a single,
+    current state at all times.
+
+-   PRINCIPLE: Validate Before Going Live {{validate-before-live}};
+    CATEGORY: Error-Robustness;
+    TRADE-OFF: The freedom to save any partial or inconsistent configuration unchecked;
+    ACTORS: [[PERSONA:manager]];
+    MOTIVATED-BY: [[STEP:configure]];
+    Imported attendee lists and streaming settings are validated at entry
+    and problems are reported in place before the event starts, BECAUSE
+    a configuration mistake surfacing during the broadcast hits the whole
+    audience at once.
+
 -   PRINCIPLE: Never Leave the Stream {{never-leave-stream}};
     CATEGORY: Controllability;
     TRADE-OFF: A dedicated settings page with room for more options than the header can hold;
@@ -63,16 +73,6 @@ SPEC: Interaction Concept (IC)
     instead, as the attendee can edit and delete own messages while a
     deleted message leaves a placeholder, BECAUSE a fast conversation
     tolerates a repaired mistake better than a delay before every message.
-
--   PRINCIPLE: Validate Before Going Live {{validate-before-live}};
-    CATEGORY: Error-Robustness;
-    TRADE-OFF: The freedom to save any partial or inconsistent configuration unchecked;
-    ACTORS: [[PERSONA:manager]];
-    MOTIVATED-BY: [[STEP:configure]];
-    Imported attendee lists and streaming settings are validated at entry
-    and problems are reported in place before the event starts, BECAUSE
-    a configuration mistake surfacing during the broadcast hits the whole
-    audience at once.
 
 -   PRINCIPLE: Familiar Conventions {{familiar-conventions}};
     CATEGORY: Learnability;

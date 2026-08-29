@@ -960,6 +960,8 @@
         (e.g. auto-save instead of explicit saving) which govern how users interact with the
         solution and which the Dialog Patterns, Dialog Storyboard, and Visual Design have to obey,
         while the concrete workflows belong to the User Journey, Use Cases, and Dialog Storyboard.
+        The principles are listed in decreasing precedence, so that whenever two principles
+        conflict in a particular design decision, the earlier one wins.
 
         References:
         -   ISO 9241-110:2020

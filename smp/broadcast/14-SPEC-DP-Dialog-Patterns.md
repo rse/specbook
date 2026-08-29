@@ -19,7 +19,6 @@ pre-filling fields from the URL, BECAUSE a challenge-response over email proves 
 
 -   CONTEXT: Entry to an event or interaction channel that requires acknowledged terms.
 -   PROBLEM: Participation must be blocked until the attendee explicitly accepts the stated conditions.
--   PRINCIPLES: [[PRINCIPLE:privacy-identity]]
 
 A modal presents the configured login or interaction information with required-to-accept controls and only releases the
 attendee onward once accepted, BECAUSE explicit acknowledgement is both a legal and psychological safeguard.
