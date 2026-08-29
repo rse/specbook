@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 14:20
+Modified: 2026-08-29 14:25
 ---
 
 SPEC: Test Cases (TC)
@@ -163,6 +163,62 @@ SPEC: Test Cases (TC)
 -   INPUT:          The manager finishes the event.
 -   EXPECTED:       The moderator role is deleted by the anonymization while the manager role remains and can still export the event data.
 -   POST-CONDITION: The manager role exists until the event is deleted.
+
+##  TEST-CASE: Chat Message Shows Configured Name {{name-appearance}}
+
+-   VERIFIES:       [[FR.chat]], [[FR.name-appearance]], [[SCENARIO:chat-post]], [[RULE:moderation-gate]]
+-   PRE-CONDITION:  A running event with chat enabled, chat moderation disabled, and the name appearance set to first name only.
+-   INPUT:          An attendee sends a chat message.
+-   EXPECTED:       The message appears in state accepted under the first name of the attendee, with the email address shown on hover.
+-   POST-CONDITION: The message is stored as a chat in state accepted.
+
+##  TEST-CASE: Like Toggles the Count {{like-toggle}}
+
+-   VERIFIES:       [[FR.likes]], [[SCENARIO:chat-like]]
+-   PRE-CONDITION:  A visible chat message of another attendee with a like count of 0.
+-   INPUT:          An attendee likes the message and then undoes the like.
+-   EXPECTED:       The like count reads 1 after the like and 0 again after the undo.
+-   POST-CONDITION: No like of the attendee is recorded for the message.
+
+##  TEST-CASE: Deleted Message Leaves Placeholder {{deleted-placeholder}}
+
+-   VERIFIES:       [[FR.message-editing]], [[FR.deleted-placeholder]], [[SCENARIO:chat-delete]]
+-   PRE-CONDITION:  An attendee has an accepted chat message between two other messages in the stream.
+-   INPUT:          The attendee deletes their message.
+-   EXPECTED:       The stream keeps the position of the message and shows a "This message was deleted" placeholder instead of its text.
+-   POST-CONDITION: The message text is no longer retrievable by any attendee.
+
+##  TEST-CASE: Client-Side Check Holds Back Improper Input {{client-block}}
+
+-   VERIFIES:       [[FR.client-sentiment]], [[SCENARIO:ask-question-client]]
+-   PRE-CONDITION:  A running event with client-side sentiment analysis enabled.
+-   INPUT:          An attendee submits a question with clearly improper wording.
+-   EXPECTED:       The client prevents the submission and informs the attendee, and no request reaches the server.
+-   POST-CONDITION: No message exists for the submission.
+
+##  TEST-CASE: Direct Moderator Reply Stays Private {{direct-reply}}
+
+-   VERIFIES:       [[FR.answer-inputs]], [[SCENARIO:moderate-chat-answer]], [[RULE:moderator-accept]]
+-   PRE-CONDITION:  A running event with a chat message of an attendee and a second attendee watching the stream.
+-   INPUT:          The moderator replies to the message as a direct message.
+-   EXPECTED:       The reply reaches the addressed attendee in state accepted while the second attendee does not see it.
+-   POST-CONDITION: The reply is stored as accepted with the addressed attendee as its sole recipient.
+
+##  TEST-CASE: Resource URL Selects the Resource {{resource-url}}
+
+-   VERIFIES:       [[FR.resource-url]], [[SCENARIO:join-event-resource]]
+-   PRE-CONDITION:  A running event with a default stream and a second, static resource, and an attendee holding an active session.
+-   INPUT:          The attendee opens the event URL carrying the resource parameter naming the static resource.
+-   EXPECTED:       The system shows the static resource instead of the default stream.
+-   POST-CONDITION: The session of the attendee remains active.
+
+##  TEST-CASE: Language Switch Applies Immediately {{language-switch}}
+
+-   VERIFIES:       [[FR.language-switch]], [[SCENARIO:join-event-language]]
+-   PRE-CONDITION:  An attendee watches a running event with the interface in German.
+-   INPUT:          The attendee switches the language to English in the header.
+-   EXPECTED:       The interface and the translated messages appear in English without a page reload.
+-   POST-CONDITION: The stream continues uninterrupted.
 
 ##  TEST-CASE: Concurrent Attendee Load {{load}}
 
