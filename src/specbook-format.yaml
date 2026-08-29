@@ -131,6 +131,8 @@
                 (the `BROADER` term where one exists) and adds the characteristics delimiting the
                 term from its siblings (e.g. `A Message submitted by an Attendee as ...`), so that
                 the hierarchy and the definitions cross-check each other.
+            referenced:
+                -   "[[*]]"
             diagram:
                 type: hub
                 center: self
@@ -326,6 +328,8 @@
                 event-driven (`When <trigger>, the system MUST ...`), state-driven (`While <state>,
                 the system MUST ...`), optional-feature (`Where <feature>, the system MUST ...`), or
                 unwanted-behavior (`If <condition>, then the system MUST ...`).
+            referenced:
+                -   "[[SPEC:UC.USE-CASE:*]]"
             props:
                 -   name: PRIORITY
                     desc: >
@@ -439,6 +443,8 @@
                 <outcome>` item per case, applied in order with the first matching case winning,
                 and a closing sentence stating the outcome of the remaining cases ("otherwise")
                 and carrying the rationale.
+            referenced:
+                -   "[[SPEC:TC.TEST-CASE:*]]"
             props:
                 -   name: CATEGORY
                     desc: >

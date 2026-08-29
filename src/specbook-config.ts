@@ -32,9 +32,10 @@ const lineColOfPath = (doc: Document, lines: LineCounter, path: YamlPath) => {
 /*  check the constraints of a structurally valid configuration which
     are beyond its schema: sibling objects have to stay distinctly
     resolvable, "file" fields are allowed on the first (artifact) level
-    only, property value expressions have to be syntactically valid, and
-    the names of non-artifact objects have to be valid patterns (as they
-    are compiled into regular expressions)  */
+    only, property value expressions have to be syntactically valid,
+    "referenced" entries have to be reference expressions, and the names
+    of non-artifact objects have to be valid patterns (as they are
+    compiled into regular expressions)  */
 const checkConstraints = (
     config:    Schema,
     file:      string,
@@ -43,7 +44,7 @@ const checkConstraints = (
     const diagnostics = new Array<Diagnostic>()
     const diagnose = (path: YamlPath, message: string) => {
         const pos = posOfPath(path)
-        diagnostics.push({ file, line: pos.line, column: pos.column, message })
+        diagnostics.push({ file, line: pos.line, column: pos.column, severity: "error", message })
     }
     const check = (objects: SchemaObject[], path: YamlPath, depth: number) => {
         /*  the sibling objects are resolved by kind and id on the first
@@ -82,6 +83,22 @@ const checkConstraints = (
                         diagnose([ ...at, "props", j, flag ],
                             `"${flag}" flag requires a reference-valued property`)
             }
+            for (const [ j, entry ] of (object.referenced ?? []).entries()) {
+                /*  a reference coverage entry has to be a single
+                    (usually wildcard) reference expression  */
+                let expr: ValueExpr | undefined
+                try {
+                    expr = compileValueExpr(entry)
+                }
+                catch (err) {
+                    diagnose([ ...at, "referenced", j ],
+                        `invalid "referenced" entry "${entry}": ` +
+                            (err instanceof Error ? err.message : String(err)))
+                }
+                if (expr !== undefined && expr.kind !== "reference")
+                    diagnose([ ...at, "referenced", j ],
+                        `"referenced" entry "${entry}" is not a single "[[xxx]]" reference`)
+            }
             if (depth > 1 && object.name !== undefined) {
                 try {
                     anchored(object.name)
@@ -110,7 +127,7 @@ export const loadConfig = (file: string): { config?: Schema, diagnostics: Diagno
         yaml = fs.readFileSync(file, "utf8")
     }
     catch (err) {
-        diagnostics.push({ file, line: 1, column: 1,
+        diagnostics.push({ file, line: 1, column: 1, severity: "error",
             message: "cannot read configuration file: " +
                 (err instanceof Error ? err.message : String(err)) })
         return { diagnostics }
@@ -127,9 +144,10 @@ export const loadConfig = (file: string): { config?: Schema, diagnostics: Diagno
         for (const err of doc.errors)
             diagnostics.push({
                 file,
-                line:    err.linePos?.[0].line ?? 1,
-                column:  err.linePos?.[0].col  ?? 1,
-                message: "invalid YAML syntax: " + err.message.replace(/ at line \d+, column \d+(?::\n[\s\S]*)?$/, "")
+                line:     err.linePos?.[0].line ?? 1,
+                column:   err.linePos?.[0].col  ?? 1,
+                severity: "error",
+                message:  "invalid YAML syntax: " + err.message.replace(/ at line \d+, column \d+(?::\n[\s\S]*)?$/, "")
             })
         return { diagnostics }
     }
@@ -143,7 +161,7 @@ export const loadConfig = (file: string): { config?: Schema, diagnostics: Diagno
             const path  = (issue.path ?? []).map((item) => item.key as string | number)
             const pos   = posOfPath(path)
             const where = path.length > 0 ? `${path.join(".")}: ` : ""
-            diagnostics.push({ file, line: pos.line, column: pos.column,
+            diagnostics.push({ file, line: pos.line, column: pos.column, severity: "error",
                 message: `invalid configuration: ${where}${issue.message}` })
         }
         return { diagnostics }

@@ -358,6 +358,67 @@ const checkRelations = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject
     }
 }
 
+/*  check the object kinds flagged "referenced": every object of such a
+    kind has to be referenced from at least one object which matches one
+    of the flag's reference patterns, itself or through an ancestor, while
+    the references from within the subtree of the object itself do not
+    count (a lapse is a warning only, as the specification stays valid)  */
+const checkReferenced = (ctx: ParseContext, specification: Spec, schemas: Map<SpecObject, SchemaObject>) => {
+    /*  collect the referencing objects of every referenced object,
+        together with the parent of every object for the ancestor walk  */
+    const referrers = new Map<SpecObject, Set<SpecObject>>()
+    const parents   = new Map<SpecObject, SpecObject>()
+    const walk = (object: SpecObject, chain: SpecObject[]) => {
+        const texts = [ object.name, ...object.properties.map((p) => p.value) ]
+        if (object.description !== undefined)
+            texts.push(object.description.description, object.description.rationale ?? "")
+        for (const text of texts)
+            for (const m of plainText(text).matchAll(referenceRegex)) {
+                const target = resolveUnique(ctx.linkIndex, m[1].trim()).target
+                if (target !== undefined && !chain.includes(target))
+                    referrers.set(target, (referrers.get(target) ?? new Set<SpecObject>()).add(object))
+            }
+        for (const child of object.childs) {
+            parents.set(child, object)
+            walk(child, [ ...chain, child ])
+        }
+    }
+    for (const artifact of specification.artifacts)
+        for (const object of artifact.objects)
+            walk(object, [ object ])
+
+    /*  resolve the reference patterns of every flagged kind into the
+        admissible referencing objects (once per shared schema node)  */
+    const sources = new Map<SchemaObject, Set<SpecObject>>()
+    for (const [ object, schema ] of schemas) {
+        if (schema.referenced === undefined)
+            continue
+        let admissible = sources.get(schema)
+        if (admissible === undefined) {
+            admissible = new Set<SpecObject>()
+            for (const entry of schema.referenced) {
+                const expr = compileValueExpr(entry)
+                if (expr.kind === "reference")
+                    for (const source of resolveSet(ctx.linkIndex, expr.pattern))
+                        admissible.add(source)
+            }
+            sources.set(schema, admissible)
+        }
+        const covered = Array.from(referrers.get(object) ?? []).some((referrer) => {
+            for (let o: SpecObject | undefined = referrer; o !== undefined; o = parents.get(o))
+                if (admissible.has(o))
+                    return true
+            return false
+        })
+        if (!covered) {
+            const meta = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
+            ctx.diagnose(meta.file, meta.line,
+                `${object.kind} "${object.name}" is not referenced from any object matching ` +
+                schema.referenced.map((entry) => `"${entry}"`).join(" or "), "warning")
+        }
+    }
+}
+
 /*  validate the parsed specification against the configuration  */
 export const validate = (ctx: ParseContext, specification: Spec, config: Schema) => {
     /*  map all objects onto their schema nodes and assign the implicit
@@ -409,9 +470,11 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
         }
     }
 
-    /*  check the relation shapes of the flagged reference properties,
-        now that every object has been validated on its own  */
+    /*  check the relation shapes of the flagged reference properties and
+        the reference coverage of the flagged object kinds, now that every
+        object has been validated on its own  */
     checkRelations(ctx, schemas)
+    checkReferenced(ctx, specification, schemas)
 
     /*  order the artifacts exactly along the schema definition  */
     specification.artifacts.sort((a, b) =>

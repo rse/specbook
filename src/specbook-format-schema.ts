@@ -13,7 +13,8 @@ import { Gradia, type Config as GradiaConfig } from "@rse/gradia"
 export type Schema = SchemaObject[]
 
 /*  an object kind: an artifact (level 1, with its "file" and exact
-    "name") or an object nested below it (with a "name" regex)  */
+    "name") or an object nested below it (with a "name" regex), and the
+    reference coverage every object of the kind has to receive  */
 export type SchemaObject = {
     kind:              string
     name?:             string
@@ -21,6 +22,7 @@ export type SchemaObject = {
     file?:             string
     desc?:             string
     optional?:         boolean
+    referenced?:       string[]
     diagram?:          SchemaDiagram
     format?:           SchemaFormat
     props?:            SchemaProperty[]
@@ -128,6 +130,7 @@ const SchemaObject: v.GenericSchema<SchemaObject> = v.strictObject({
     file:              v.optional(v.string()),
     desc:              v.optional(v.string()),
     optional:          v.optional(v.boolean()),
+    referenced:        v.optional(v.pipe(v.array(v.string()), v.minLength(1))),
     diagram:           v.optional(SchemaDiagram),
     format:            v.optional(SchemaFormat),
     props:             v.optional(v.array(SchemaProperty)),

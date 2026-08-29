@@ -63,7 +63,7 @@ export const lint = (options: LintOptions): LintResult => {
         its artifacts are optional  */
     const files = config !== undefined ? schemaFiles(config) : new Map<string, boolean>()
     if (config !== undefined && files.size === 0)
-        diagnostics.push({ file: options.config, line: 1, column: 1,
+        diagnostics.push({ file: options.config, line: 1, column: 1, severity: "error",
             message: "no artifact files configured" })
     const sources = new Array<SourceFile>()
     const present = new Set<string>()
@@ -73,7 +73,7 @@ export const lint = (options: LintOptions): LintResult => {
         watched.push(path.resolve(file))
         if (!fs.existsSync(file)) {
             if (!optional)
-                diagnostics.push({ file, line: 1, column: 1,
+                diagnostics.push({ file, line: 1, column: 1, severity: "error",
                     message: "missing artifact file" })
             continue
         }
@@ -82,7 +82,7 @@ export const lint = (options: LintOptions): LintResult => {
             present.add(name)
         }
         catch (err) {
-            diagnostics.push({ file, line: 1, column: 1,
+            diagnostics.push({ file, line: 1, column: 1, severity: "error",
                 message: `unreadable file: ${err instanceof Error ? err.message : String(err)}` })
         }
     }
@@ -111,7 +111,7 @@ export const lint = (options: LintOptions): LintResult => {
                 continue
             const file  = schema.file !== undefined ? path.join(options.basedir, schema.file) : options.config
             const paren = schema.id !== undefined ? ` (${schema.id})` : ""
-            diagnostics.push({ file, line: 1, column: 1,
+            diagnostics.push({ file, line: 1, column: 1, severity: "error",
                 message: `missing artifact "${schema.kind}: ${schema.name ?? ""}${paren}"` })
         }
     }

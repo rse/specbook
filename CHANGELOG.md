@@ -2,8 +2,13 @@
 ChangeLog
 =========
 
-1.0.4 (2026-08-28)
+1.1.0 (2026-08-29)
 ------------------
+
+-   FEATURE [code, spec, docs]: Reference Coverage
+    The new object kind flag "referenced" lists the wildcard references (e.g. `[[*]]` for any
+    object) matching the objects -- themselves or through their descendants -- from which every
+    object of the kind has to be referenced at least once.
 
 -   IMPROVEMENT [code, docs]: Absent Property Marker
     The HTML/PDF export now renders an "empty set" marker into the property table lines and table

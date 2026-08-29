@@ -44,8 +44,9 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
     The YAML schema configuration strictly defines the allowed object
     kinds, hierarchies, and properties, whose values are constrained by an
     expression language (regex, enum, tags, list, and reference). Violations
-    are reported as file- and line-precise diagnostics. A bundled standard
-    schema configuration applies if no particular one is given.
+    are reported as file- and line-precise diagnostics, while the reference
+    coverage an object kind demands is reported as a warning only. A bundled
+    standard schema configuration applies if no particular one is given.
 
 -   **Object Model Diagram Visualisation**:
     Object kinds can declare "graph", "hub", or "grid" diagrams in the
@@ -118,8 +119,9 @@ export class SpecBook {
     }): Promise<LintResult>
 
     /*  export the specification, parsing the input just once and
-        returning one buffer per requested format (strict: any diagnostic
-        rejects the export with an "Error")  */
+        returning one buffer per requested format (strict: any error
+        diagnostic rejects the export with an "Error", while the warnings
+        are surfaced as "notice" verbose messages)  */
     export (options: {
         config?:  string,
         basedir?: string,
@@ -176,6 +178,7 @@ export interface Diagnostic {
     file:          string
     line:          number
     column:        number
+    severity:      "error" | "warning"
     message:       string
 }
 
@@ -310,8 +313,10 @@ Options:
     A referenced file which is absent is reported, unless all of its
     artifacts are `optional`, and so is an artifact absent from its present
     file, unless it is `optional` itself. Both `lint` and `export` report
-    all diagnostics and fail on any of them, so a partial or invalid
-    specification is never exported.
+    all diagnostics and fail on any error among them (a warning, like a
+    lapse of the reference coverage a `referenced` object kind demands,
+    is reported only), so a partial or invalid specification is never
+    exported.
 
 -   `-b|--basedir <spec-md-file-basedir>`:
     The base directory (default: `.`) is the directory the referenced

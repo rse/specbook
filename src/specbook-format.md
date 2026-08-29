@@ -70,6 +70,7 @@ type SchemaObject = {
     file?:             string
     desc?:             string
     optional?:         boolean
+    referenced?:       string[]
     diagram?:          SchemaDiagram
     format?:           SchemaFormat
     props?:            SchemaProperty[]
@@ -190,6 +191,13 @@ type SchemaGradiaConfig = Partial<{
     whether the kind may be absent below its parent or, for a level 1
     artifact, from its file (default: `false`),
     BECAUSE not every kind is mandatory below every parent object
+
+-   `SchemaObject.referenced?: string[]`:
+    wildcard references (e.g. `[[*]]` for any object, `[[UC.USE-CASE:*]]`
+    for the use cases) matching the objects -- themselves or through their
+    descendants -- from which every object of this kind has to be referenced
+    at least once, where a lapse is reported as a warning only,
+    BECAUSE a term nobody uses or a requirement no use case exercises is dead weight
 
 -   `SchemaObject.diagram?: SchemaDiagram`:
     diagram generated for every object of this kind,

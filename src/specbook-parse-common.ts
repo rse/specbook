@@ -6,7 +6,7 @@
 
 import { type Spec, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
-import { type Diagnostic }
+import { type Diagnostic, type DiagnosticSeverity }
     from "./specbook-diagnostic.js"
 import { type LinkIndex }
     from "./specbook-link.js"
@@ -41,9 +41,9 @@ export class ParseContext {
         an unreadable one, as a watching consumer has to observe it, too  */
     assets               = new Set<string>()
 
-    /*  record a single diagnostic  */
-    diagnose (file: string, line: number, message: string) {
-        this.diagnostics.push({ file, line, column: 1, message })
+    /*  record a single diagnostic (an error, unless flagged otherwise)  */
+    diagnose (file: string, line: number, message: string, severity: DiagnosticSeverity = "error") {
+        this.diagnostics.push({ file, line, column: 1, severity, message })
     }
 }
 

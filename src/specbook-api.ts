@@ -8,7 +8,8 @@ import * as fs                                           from "node:fs"
 import { fileURLToPath }                                 from "node:url"
 
 import { loadConfig }                                    from "./specbook-config.js"
-import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic } from "./specbook-diagnostic.js"
+import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
+    from "./specbook-diagnostic.js"
 import { initSpecification }                             from "./specbook-cmd-init.js"
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
 import { exportSpecification, watchSpecification, parseOutputSpec, formats,
@@ -26,7 +27,7 @@ export { formats, parseOutputSpec, type ExportFormat }
 export { previewAddr, previewPort }
 export { describeFormats, describeParts, parseDescribeFormat, parseDescribePart }
 export { type DescribeFormat, type DescribePart }
-export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic }
+export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
 export { type LintResult }
 export type { Spec, SpecArtifact, SpecObject, SpecDescription, SpecProperty } from "./specbook-format-spec.js"
 export type { Schema, SchemaObject, SchemaProperty }                          from "./specbook-format-schema.js"
@@ -96,14 +97,17 @@ export class SpecBook {
     }
 
     /*  render an already parsed specification into the requested formats
-        (strict: any diagnostic prevents the export, as a partial or
-        invalid specification must never be emitted), where "realtime"
-        injects the client-side script of the live preview into the HTML  */
+        (strict: any error diagnostic prevents the export, as a partial or
+        invalid specification must never be emitted, while the warnings
+        are just surfaced as notices), where "realtime" injects the
+        client-side script of the live preview into the HTML  */
     private async renderFormats (result: LintResult, formats: ExportFormat[],
         verbose: Verbose, realtime: boolean): Promise<Buffer[]> {
-        if (result.diagnostics.length > 0)
+        if (result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
             throw new Error("invalid specification:\n" +
                 result.diagnostics.map(renderDiagnostic).join("\n"))
+        for (const diagnostic of result.diagnostics)
+            verbose(renderDiagnostic(diagnostic), "notice")
         if (result.specification.artifacts.length === 0)
             throw new Error("unexportable specification: no artifacts found")
         const buffers = new Array<Buffer>()

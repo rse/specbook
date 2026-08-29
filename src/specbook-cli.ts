@@ -120,7 +120,7 @@ withCommonOptions(program.command("init"))
             "no artifact files were created\n")
     })
 
-/*  the lint command reports all diagnostics and fails on any of them  */
+/*  the lint command reports all diagnostics and fails on any error  */
 withCommonOptions(program.command("lint"))
     .description("lint the specification Markdown files below the base directory")
     .action(async (opts: { verbose: boolean, config?: string, basedir: string }) => {
@@ -130,7 +130,7 @@ withCommonOptions(program.command("lint"))
             await writeStdout(opts.verbose ?
                 renderDiagnosticVerbose(diagnostic, process.stdout.isTTY === true) :
                 `${renderDiagnostic(diagnostic)}\n`)
-        if (result.diagnostics.length > 0)
+        if (result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
             process.exitCode = 1
         else
             verboseOf(opts)("lint", "specification valid", "debug")

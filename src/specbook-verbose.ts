@@ -6,8 +6,8 @@
 
 /*  the severity of a verbose message: "debug" for the regular processing
     information, which a consumer usually surfaces on demand only, and
-    "notice" for the few environment-related messages, which a consumer
-    has to surface unconditionally  */
+    "notice" for the few environment-related messages and the warning
+    diagnostics, which a consumer has to surface unconditionally  */
 export type VerboseLevel = "debug" | "notice"
 
 /*  the sink of the verbose messages of a single command  */
