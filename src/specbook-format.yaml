@@ -440,6 +440,7 @@
                                 secondary flow), or `Exceptional` (an error or failure-handling
                                 flow).
                             value: enum(Main,Alternative,Exceptional)
+                            unique: enum(Main)
                         -   name: AT-MAIN-STEP
                             desc: >
                                 The number of the step of the `Main` scenario at which an
@@ -576,6 +577,7 @@
                                 Whether the state is the initial one, i.e. the single state every
                                 instance of the entity enters upon creation.
                             value: /^(?:true|false)$/
+                            unique: enum(true)
                             optional: true
                         -   name: FINAL
                             desc: >

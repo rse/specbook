@@ -102,6 +102,7 @@ type SchemaProperty = {
     desc?:             string
     value?:            string
     optional?:         boolean
+    unique?:           boolean | string
 }
 type SchemaGradiaConfig = Partial<{
     "font-family":               string
@@ -304,6 +305,11 @@ type SchemaGradiaConfig = Partial<{
 -   `SchemaProperty.optional?: boolean`:
     whether the property may be missing (default: `false`),
     BECAUSE not every property applies to every object
+
+-   `SchemaProperty.unique?: boolean | string`:
+    whether every value (`true`) or only the values matching a regexp or
+    enum expression occur at most once among the sibling objects of the kind,
+    BECAUSE some markers, like a `Main` flow, designate a single sibling
 
 -   `SchemaGradiaConfig`:
     the Gradia rendering options, mirrored from `@rse/gradia`,

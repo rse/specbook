@@ -178,6 +178,35 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
         validateObject(ctx, child, childSchema, level + 1)
     }
 
+    /*  check the property values flagged unique for distinctness among
+        the sibling objects of the same kind (all values, or only the
+        values matching the regexp or enum expression of the flag)  */
+    for (const child of childs) {
+        for (const prop of child.props ?? []) {
+            if (prop.unique === undefined || prop.unique === false)
+                continue
+            const filter = typeof prop.unique === "string" ? compileValueExpr(prop.unique) : undefined
+            const seen   = new Map<string, SpecObject>()
+            for (const sibling of object.childs.filter((c) => c.kind === child.kind)) {
+                const property = findProp(sibling, prop.name)
+                if (property === undefined)
+                    continue
+                const value = plainText(property.value).trim()
+                if (filter !== undefined && !directMatches(filter, value))
+                    continue
+                const first = seen.get(value)
+                if (first === undefined)
+                    seen.set(value, sibling)
+                else {
+                    const siblingMeta = ctx.objectMeta.get(sibling) ?? { file: "", line: 1 }
+                    ctx.diagnose(siblingMeta.file, ctx.propMeta.get(property)?.line ?? siblingMeta.line,
+                        `value "${value}" of unique property "${prop.name}" on ${sibling.kind} "${sibling.name}" ` +
+                        `already used by preceding ${sibling.kind} "${first.name}"`)
+                }
+            }
+        }
+    }
+
     /*  report the configured child object kinds which are missing  */
     for (const child of childs)
         if (child.optional !== true
