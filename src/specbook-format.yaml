@@ -662,9 +662,9 @@
     id: TC
     file: 11-SPEC-TC-Test-Cases.md
     desc: >
-        The verifiable conditions and steps used to confirm that requirements are correctly
-        implemented, with mandatory defined inputs, mandatory expected outcomes, and optional pre-
-        and post-conditions.
+        The verifiable conditions and steps used to confirm that requirements and use case
+        scenarios are correctly implemented, with mandatory defined inputs, mandatory expected
+        outcomes, and optional pre- and post-conditions.
     diagram:
         type: grid
         nodes: "[[SPEC:TC.TEST-CASE:*]]"
@@ -676,16 +676,20 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[SPEC:TC.TEST-CASE:*]], [[SPEC:FR.REQUIREMENT:*]], [[SPEC:NR.REQUIREMENT:*]]"
+                nodes: "[[SPEC:TC.TEST-CASE:*]], [[SPEC:FR.REQUIREMENT:*]], [[SPEC:NR.REQUIREMENT:*]],
+                    [[SPEC:UC.USE-CASE:*.SCENARIO:*]]"
                 qualified: true
                 config:
                     size-node-width-max: 440
             props:
                 -   name: VERIFIES
                     desc: >
-                        Reference to the FUNCTIONAL-REQUIREMENTS or NON-FUNCTIONAL-REQUIREMENTS
-                        object the test case verifies.
-                    value: "[[SPEC:*.REQUIREMENT:*]]"
+                        Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
+                        NON-FUNCTIONAL-REQUIREMENTS objects and/or the USE-CASES scenario objects the
+                        test case verifies, so that a scenario (in particular an `Exceptional` one,
+                        judged by its `OUTCOME`) is covered by an acceptance test beside the
+                        requirements it exercises.
+                    value: list([[SPEC:*.REQUIREMENT:*]], [[SPEC:UC.USE-CASE:*.SCENARIO:*]])
                 -   name: PRE-CONDITION
                     desc: >
                         The state or setup that must hold before the test is executed.

@@ -129,11 +129,11 @@ USE-CASE: Moderate and Forward Messages {{moderate}}
 -   JOURNEY:        [[STEP:support]]
 -   REQUIREMENTS:   [[FR.moderation]], [[FR.forward-presenter]], [[FR.sort-filter]], [[FR.presenter-hints]]
 -   PRE-CONDITION:  The event is running and the moderator has the Moderator role.
--   TRIGGER:        A pending attendee message appears on the moderation board.
+-   TRIGGER:        An attendee message arrives in state pending for moderation.
 -   POST-CONDITION: Messages are accepted, rejected, or forwarded with optional hints.
 
-The moderator reviews pending messages on a Kanban board, approves or rejects them, forwards selected approved questions to
-the presenter in a chosen order, and may attach hints or raise a presenter alert, BECAUSE the presenter can only handle a
+The moderator reviews the pending messages by state, approves or rejects them, forwards selected approved questions to the
+presenter in a chosen order, and may attach hints or raise a presenter alert, BECAUSE the presenter can only handle a
 curated, ordered selection of the audience input while on stage.
 
 ### SCENARIO: Approve and Forward Question {{moderate-forward}}

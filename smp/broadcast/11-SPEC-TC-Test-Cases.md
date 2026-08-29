@@ -8,7 +8,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Valid Token Grants Access {{valid-token}}
 
--   VERIFIES:       [[FR.authentication]]
+-   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-token]]
 -   PRE-CONDITION:  An invited user with a sent, unexpired authorization token exists for a running event.
 -   INPUT:          The user submits the correct six-digit token for their email.
 -   EXPECTED:       The system issues a session token and grants access to the stream.
@@ -16,10 +16,19 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Unauthorized Email Rejected {{unauthorized}}
 
--   VERIFIES:      [[FR.authentication]]
--   PRE-CONDITION: An email not on the access list and not matching the access pattern.
--   INPUT:         The user enters that email in the login dialog.
--   EXPECTED:      The system denies access and shows a not-authorized notice.
+-   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-denied]]
+-   PRE-CONDITION:  An email not on the access list and not matching the access pattern.
+-   INPUT:          The user enters that email in the login dialog.
+-   EXPECTED:       The system denies access and shows a not-authorized notice.
+-   POST-CONDITION: No session token exists and no authorization token was sent for the email.
+
+##  TEST-CASE: URL Token Skips Login Dialog {{auto-token}}
+
+-   VERIFIES:       [[FR.automatic-url]], [[SCENARIO:authenticate-auto]]
+-   PRE-CONDITION:  An event allows URL tokens and a pre-generated token exists for an invited email.
+-   INPUT:          The user opens the event URL carrying that email and token.
+-   EXPECTED:       The system issues a session token and grants access without showing the login dialog.
+-   POST-CONDITION: The user holds an active session token.
 
 ##  TEST-CASE: Second Login Closes First Session {{single-session}}
 
@@ -31,7 +40,7 @@ SPEC: Test Cases (TC)
 
 ##  TEST-CASE: Moderated Question Starts Pending {{moderated-pending}}
 
--   VERIFIES:      [[FR.moderation]]
+-   VERIFIES:      [[FR.moderation]], [[SCENARIO:ask-question-moderated]]
 -   PRE-CONDITION: An event with question moderation enabled is running.
 -   INPUT:         An attendee submits a question.
 -   EXPECTED:      The question is stored in state pending and is not visible to the audience.
@@ -56,6 +65,21 @@ SPEC: Test Cases (TC)
 -   PRE-CONDITION: Server-side sentiment analysis and auto-reject are enabled.
 -   INPUT:         An attendee submits a message scoring -0.5.
 -   EXPECTED:      The system stores the message directly in state rejected.
+
+##  TEST-CASE: Sentiment Auto-Accept Above Threshold {{sentiment-accept}}
+
+-   VERIFIES:      [[FR.server-sentiment]], [[SCENARIO:ask-question-auto]]
+-   PRE-CONDITION: Server-side sentiment analysis and auto-accept are enabled for a moderated event.
+-   INPUT:         An attendee submits a question scoring +0.5.
+-   EXPECTED:      The system stores the question directly in state accepted, bypassing moderation.
+
+##  TEST-CASE: Throttled Submission Not Stored {{throttled}}
+
+-   VERIFIES:       [[NR.throttling]], [[SCENARIO:ask-question-throttled]]
+-   PRE-CONDITION:  An attendee has already submitted the per-minute maximum of questions within the current minute.
+-   INPUT:          The attendee submits one more question.
+-   EXPECTED:       The system rejects the submission and informs the attendee to wait.
+-   POST-CONDITION: The rejected question is not stored and the earlier questions remain unchanged.
 
 ##  TEST-CASE: Live Provider Switch Propagates {{provider-switch}}
 
