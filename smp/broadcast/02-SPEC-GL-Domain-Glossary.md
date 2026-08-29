@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-19 22:04
+Modified: 2026-08-29 13:25
 ---
 
 SPEC: Domain Glossary (GL)
@@ -154,5 +154,12 @@ SPEC: Domain Glossary (GL)
 -   TERM: Question Tag {{questiontag}};
     SYNONYMS: Tag;
     A named label attachable to a Question [[TERM:Message]] giving it
-    context such as the addressed person or agenda point, optionally
-    restricted to [[TERM:Moderator]]s.
+    context such as the addressed person or [[TERM:Agenda Point]],
+    optionally restricted to [[TERM:Moderator]]s.
+
+-   TERM: Agenda Point {{agendapoint}};
+    A phase of an [[TERM:Event]], described by a short text and placed
+    in a defined sequence, letting [[TERM:Attendee]]s and
+    [[TERM:Moderator]]s track which part of the [[TERM:Event]] is
+    currently active and letting a [[TERM:Question Tag]] relate a
+    [[TERM:Question]] to it.

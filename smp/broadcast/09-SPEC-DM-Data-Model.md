@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-06-18 10:18
+Modified: 2026-08-29 13:25
 ---
 
 #   SPEC: Data Model (DM)
@@ -204,6 +204,7 @@ BECAUSE the entire data model is event-centric and every other entity hangs off 
 ##  ENTITY: AgendaPoint
 
 -   REQUIREMENTS: [[FR.question-tags]]
+-   TERMS: [[TERM:agendapoint]]
 
 The textual description of a phase in an event,
 BECAUSE attendees and moderators track which part of the event is currently active.
