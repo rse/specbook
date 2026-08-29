@@ -172,15 +172,10 @@ const templates = {
             <tbody>
                 {% for row in Table.rows %}
                 <tr id="{{ row.id }}"{% if row.even %} class="even"{% endif %}>
-                    <td{% if row.diagram %} rowspan="2"{% endif %}>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
+                    <td>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     {%- for value in row.values %}<td>{{ value }}</td>{% endfor %}
                     {%- if Table.desc %}<td>{{ row.description }}</td>{% endif %}
                 </tr>
-                {% if row.diagram %}
-                <tr class="diagram{% if row.even %} even{% endif %}">
-                    <td colspan="{{ Table.span }}">{{ row.diagram }}</td>
-                </tr>
-                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
@@ -198,7 +193,7 @@ const templates = {
             <tbody>
                 {% for row in Table.rows %}
                 <tr id="{{ row.id }}"{% if row.even %} class="even"{% endif %}>
-                    <td{% if row.diagram %} rowspan="2"{% endif %}>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
+                    <td>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     <td class="chunks">
                         <table class="chunks">
                             {% for chunk in row.chunks %}
@@ -208,11 +203,6 @@ const templates = {
                         </table>
                     </td>
                 </tr>
-                {% if row.diagram %}
-                <tr class="diagram{% if row.even %} even{% endif %}">
-                    <td>{{ row.diagram }}</td>
-                </tr>
-                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
@@ -604,11 +594,15 @@ const renderCell = (child: SpecObject): string => {
 
 /*  render a single-kind group of childs into one compact table:
     the name first, then the property columns, then the description;
-    a group wider than maxColumns instead chunks the property and
-    description cells of every object into an embedded per-object table  */
+    a group wider than maxColumns, or carrying diagrams, instead chunks
+    the property and description cells (and the leading diagram) of
+    every object into an embedded per-object table, as a diagram is
+    identifiable only under a header of its own, not under the column
+    headers of a plain table  */
 const renderTable = (childs: SpecObject[], maxColumns: number): string => {
     const { keys, desc } = tableShape(childs)
-    if (1 + keys.length + (desc ? 1 : 0) <= maxColumns)
+    const diagrams = childs.some((child) => diagramOf(child) !== "")
+    if (!diagrams && 1 + keys.length + (desc ? 1 : 0) <= maxColumns)
         return render("Table", { Table: {
             head: childs[0].kind !== "" ? childs[0].kind : "Name",
             keys,
@@ -617,10 +611,6 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
             /*  under the fixed table layout the description column claims
                 twice the share of a regular column, compressing the others  */
             width: Math.round(200 / (keys.length + 3)),
-
-            /*  the diagram row of an object spans all columns but the
-                first, which the name cell of the object row extends into  */
-            span:  keys.length + (desc ? 1 : 0),
             rows: childs.map((child, i) => ({
                 id:          anchorOf(child),
                 paren:       child.paren,
@@ -629,8 +619,7 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
                 even:        i % 2 === 1,
                 values:      keys.map((key) =>
                     inlineValue(child.kind, child.properties.find((property) => property.key === key))),
-                description: safe(renderCell(child)),
-                diagram:     diagramOf(child)
+                description: safe(renderCell(child))
             }))
         } })
 
@@ -650,16 +639,23 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
             const chunks = new Array<typeof cells>()
             for (let i = 0; i < cells.length; i += size)
                 chunks.push(cells.slice(i, i + size))
-            const last = chunks[chunks.length - 1]
-            last[last.length - 1].span = size - last.length + 1
+            if (chunks.length > 0) {
+                const last = chunks[chunks.length - 1]
+                last[last.length - 1].span = size - last.length + 1
+            }
+
+            /*  the diagram leads the chunks as a full-width chunk of its
+                own, headed like the description  */
+            const diagram = diagramOf(child)
+            if (diagram !== "")
+                chunks.unshift([ { key: "Diagram", desc: true, span: size, value: diagram } ])
             return {
                 id:      anchorOf(child),
                 paren:   child.paren,
                 primary: child.primary,
                 name:    inline(child.name),
                 even:    i % 2 === 1,
-                chunks,
-                diagram: diagramOf(child)
+                chunks
             }
         })
     } })

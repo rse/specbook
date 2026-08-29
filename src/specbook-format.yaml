@@ -109,7 +109,7 @@
         language, together with its synonyms, its place in the hierarchy of terms, and the terms it
         has to be kept apart from, shared consistently across all Artifacts.
     format:
-        maxTableColumns: 5
+        maxTableColumns: 4
     diagram:
         type: grid
         nodes: "[[SPEC:GL.TERM:*]]"
