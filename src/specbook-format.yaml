@@ -142,6 +142,7 @@
                 qualified: true
                 config:
                     size-node-width-max: 440
+                    size-node-height-scale: 1.75
             props:
                 -   name: TYPE
                     desc: >
@@ -519,6 +520,7 @@
                 qualified: true
                 config:
                     size-node-width-max: 440
+                    size-node-height-scale: 1.75
             props:
                 -   name: ACTOR
                     desc: >
@@ -832,6 +834,7 @@
                 qualified: true
                 config:
                     size-node-width-max: 440
+                    size-node-height-scale: 1.75
             props:
                 -   name: VERIFIES
                     desc: >
@@ -1584,6 +1587,7 @@
                     -   PRODUCT
                 config:
                     size-node-width-max: 440
+                    size-node-height-scale: 1.75
             childs:
                 -   kind: COMPONENT
                     desc: >
