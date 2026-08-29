@@ -300,8 +300,9 @@
                         covered by the Functional Requirements instead, and with `Usability` kept
                         as the name of `Interaction Capability`), plus the two non-quality
                         categories `Compliance` (a legal or regulatory obligation) and `Constraint`
-                        (a technical, business, or environmental constraint, e.g. a hosting,
-                        budget, or technology mandate).
+                        (a technical, business, or environmental constraint on the *solution*,
+                        e.g. a hosting, budget, or technology mandate, as opposed to a constraint
+                        on the domain, which is a Business Rule).
                     value: enum(Performance,Compatibility,Usability,Reliability,Security,Safety,Maintainability,Flexibility,Compliance,Constraint)
                 -   name: QUALIFIES
                     desc: >
@@ -340,13 +341,18 @@
                 must hold, written with the keyword `MUST`, `SHOULD`, or `MUST NOT` to indicate the
                 obligation level and naming the domain terms it governs (as defined in the
                 Glossary), plus a 1-sentence rationale ("why").
+
+                The subject of the statement is a domain term, never the system: a rule holds in
+                the problem domain even if the solution were replaced, so if the sentence needs
+                `The system` as its subject, it is a Functional Requirement, not a rule.
             props:
                 -   name: CATEGORY
                     desc: >
                         The kind of rule: `Invariant` (a condition that must always hold),
-                        `Constraint` (a limit on allowed values or actions), `Derivation` (a value
-                        computed from others), or `Policy` (a deliberate business decision or
-                        guideline).
+                        `Constraint` (a limit on allowed *domain* values or actions, as opposed to
+                        a constraint on the solution, which is a Non-Functional Requirement),
+                        `Derivation` (a value computed from others), or `Policy` (a deliberate
+                        business decision or guideline).
                     value: enum(Invariant,Constraint,Derivation,Policy)
                 -   name: CONSTRAINS
                     desc: >
@@ -510,6 +516,14 @@
                 edges: "[[SPEC:DM.ENTITY:*.RELATION:*]]"
                 config:
                     size-node-width-max: 440
+            props:
+                -   name: REQUIREMENTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects the
+                        entity supports, i.e. whose behavior needs the information it carries,
+                        tracing the requirements into the data model.
+                    value: list([[SPEC:FR.*]])
+                    optional: true
             childs:
                 -   kind: ATTRIBUTE
                     name: "[a-z][a-zA-Z0-9]*"
@@ -520,16 +534,26 @@
                     props:
                         -   name: TYPE
                             desc: >
-                                The type of the entity attribute, one of `boolean`, `string`,
-                                `integer`, `float`, `uuid`, `bytes`, `date`, `time`, `datetime`, or
-                                `enum(XXX,YYY[,...])`, optionally prefixed with the qualifier
-                                `unique` to indicate inclusion into the primary key of the entity,
-                                and optionally suffixed with `?` to indicate an optional (nullable)
-                                value.
-                            value: /^(?:unique\s+)?(?:boolean|string|integer|float|uuid|bytes|date|time|datetime|enum\((?:[A-Za-z0-9_]+)(?:,\s*[A-Za-z0-9_]+)*\))(?:\?)?$/
+                                The type of the entity attribute, one of `boolean`, `string`
+                                (short single-line text), `text` (long free-form text), `integer`,
+                                `float` (approximate), `decimal` (exact, e.g. for money), `uuid`,
+                                `bytes`, `date`, `time`, `datetime`, `duration` (time span), or
+                                `enum(XXX,YYY[,...])`, optionally prefixed with the qualifier `key`
+                                to indicate inclusion into the primary key of the entity or `unique`
+                                to indicate an alternate uniqueness constraint, or optionally
+                                suffixed with `?` to indicate an optional (nullable) value, where a
+                                `key` or `unique` attribute cannot be optional.
+                            value: /^(?!(?:key|unique)\s.*\?$)(?:(?:key|unique)\s+)?(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|enum\((?:[A-Za-z0-9_]+)(?:,\s*[A-Za-z0-9_]+)*\))(?:\?)?$/
                         -   name: DEFAULT
                             desc: The default value of the entity attribute.
                             value: /.*/
+                            optional: true
+                        -   name: CONSTRAINT
+                            desc: >
+                                The constraint on the value of the entity attribute beyond its type,
+                                as a short phrase stating a range, unit, pattern, or invariant (e.g.
+                                `1..60 seconds`, `RFC 5322 address`, `not before begin`).
+                            value: /.+/
                             optional: true
                 -   kind: RELATION
                     name: "[a-z][a-zA-Z0-9]*"
@@ -537,19 +561,31 @@
                         A named directed relation of the entity, carrying a camel-cased, 1-3 word
                         long, per-entity unique identifier and targeting another entity, and
                         described by a 1-sentence description ("what") plus a 1-sentence rationale
-                        ("why").
+                        ("why"). A relation carries no attributes of its own: a relation needing
+                        attributes (an "association class") is reified as an entity of its own,
+                        related from both sides.
                     optional: true
                     props:
-                        -   name: TYPE
+                        -   name: TARGET
                             desc: Reference to the DATA-MODEL entity the directed relation targets.
                             value: "[[SPEC:DM.ENTITY:*]]"
+                        -   name: KIND
+                            desc: >
+                                The kind of the directed relation: `association` for a plain
+                                reference to an independent target entity, `aggregation` for a
+                                shared part-of relation whose target outlives the entity, or
+                                `composition` for an exclusive part-of relation whose target is
+                                owned by and deleted with the entity; defaults to `association`.
+                            value: enum(association,aggregation,composition)
+                            optional: true
                         -   name: ARITY
                             desc: >
                                 The arity (cardinality) of the relation at the target entity: `0..1`
                                 or `?` for zero or one ("optional"), `1` for exactly one
                                 ("mandatory"), `0..n` or `*` for zero or more, `1..n` or `+` for one
-                                or more, or `{n}`/`{n,m}` for an exact number or range.
-                            value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n)$/
+                                or more, or `{n}`/`{n,m}` for an exact number or range; defaults to
+                                `1`.
+                            value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
                             optional: true
 
 -   kind: SPEC
