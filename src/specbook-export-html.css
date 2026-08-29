@@ -166,9 +166,9 @@ a                           { color: var(--theme-color-specbook-accent); text-de
 .property-name              { color: var(--theme-color-specbook-accent); }
 
 .object-kind::before        { content: "\25CF"; color: var(--theme-color-specbook-accent); font-weight: normal;
-                              font-size: 120%; margin-right: 0.25rem; vertical-align: -0.075em; }
+                              font-size: 120%; margin-right: 0.25rem; vertical-align: -0.075em; line-height: 0; }
 .property-name::before      { content: "\25CB"; color: var(--theme-color-specbook-accent); font-weight: normal;
-                              font-size: 120%; margin-right: 0.25rem; vertical-align: -0.075em; }
+                              font-size: 120%; margin-right: 0.25rem; vertical-align: -0.075em; line-height: 0; }
 span.link-broken            { color: var(--theme-color-specbook-error); }
 
 /*  the compact hyperlinks of the prose (object icon and name only),
@@ -176,7 +176,7 @@ span.link-broken            { color: var(--theme-color-specbook-error); }
     tooltip on hovering  */
 a.link-compact              { position: relative; }
 a.link-compact::before      { content: "\25CF"; color: var(--theme-color-specbook-accent); font-weight: normal;
-                              font-size: 120%; margin-right: 0.25rem; vertical-align: -0.075em; }
+                              font-size: 120%; margin-right: 0.25rem; vertical-align: -0.075em; line-height: 0; }
 a.link-compact span.link-tooltip { display: none; position: absolute; left: 0; bottom: 1.4em; z-index: 10;
                               white-space: nowrap; font-weight: normal; padding: 0.15rem 0.5rem;
                               color: var(--theme-color-specbook-text);
