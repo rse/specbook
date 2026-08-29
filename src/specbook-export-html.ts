@@ -354,7 +354,7 @@ const render = (name: keyof typeof templates, context: object): string =>
 /*  the active per-document reference expander, fully-qualified
     anchor paths, enum/tags property value kinds, object schema nodes,
     and pre-rendered diagram SVGs (all set during HTML rendering)  */
-let linker:   ((text: string) => string) | null    = null
+let linker:   ((text: string, compact: boolean) => string) | null = null
 let anchors:  Map<SpecObject, string> | null       = null
 let members:  Map<string, "enum" | "tags"> | null  = null
 let schemas:  Map<SpecObject, SchemaObject> | null = null
@@ -370,14 +370,15 @@ const anchorOf = (object: SpecObject): string =>
     anchors?.get(object) ?? object.id
 
 /*  expand the inline Markdown of a text (code spans, emphasis, etc.),
-    with Wiki-style references expanded upfront  */
-const inline = (text: string) =>
-    safe(marked.parseInline(linker !== null ? linker(text) : text, { async: false }))
+    with Wiki-style references expanded upfront (in their compact form
+    for prose, i.e. descriptions, in their full form otherwise)  */
+const inline = (text: string, compact = false) =>
+    safe(marked.parseInline(linker !== null ? linker(text, compact) : text, { async: false }))
 
 /*  expand the full Markdown of a text, keeping its block-level
     constructs (lists, quotes, code blocks, tables) intact  */
-const block = (text: string) =>
-    safe(marked.parse(linker !== null ? linker(text) : text, { async: false }))
+const block = (text: string, compact = false) =>
+    safe(marked.parse(linker !== null ? linker(text, compact) : text, { async: false }))
 
 /*  check whether a text carries any block-level Markdown, i.e. is
     anything other than the single paragraph a description usually is  */
@@ -443,9 +444,9 @@ const renderDescription = (description: SpecDescription): string => {
     const blocked = isBlock(text)
     return render("Description", { Description: {
         block:       blocked,
-        description: text !== "" ? (blocked ? block(text) : inline(text)) : "",
+        description: text !== "" ? (blocked ? block(text, true) : inline(text, true)) : "",
         rationale:   description.rationale !== undefined ?
-            inline(description.rationale) : undefined,
+            inline(description.rationale, true) : undefined,
         embeddings
     } })
 }
@@ -812,19 +813,24 @@ export const renderHtml = async (specification: Spec, config?: Schema,
 
     /*  expand "[[xxx]]" references into hyperlinks (an unresolvable or
         ambiguous reference stays literal, marked as broken), targeting
-        the fully-qualified anchor paths of the objects  */
+        the fully-qualified anchor paths of the objects: in the full form
+        (kind, name, and link symbol), or in the compact form for prose
+        (the name only, with the full form as a hover tooltip)  */
     const index = buildLinkIndex(specification)
     anchors  = anchorPaths(index)
     members  = config !== undefined ? collectMembers(config, new Map()) : null
     schemas  = config !== undefined ? collectSchemas(specification, config) : null
     diagrams = rendered
-    linker   = (text) => expandReferences(text, (reference) => {
+    linker   = (text, compact) => expandReferences(text, (reference) => {
         const target = resolveUnique(index, reference).target
         if (target === undefined)
             return `<span class="link-broken">[[${escapeHtml(reference)}]]</span>`
-        return `<a href="#${escapeHtml(anchorOf(target))}">` +
-            `<span class="object-kind">${escapeHtml(target.kind)}:</span> <strong>${target.name}</strong>` +
-            " <span class=\"link-symbol\">&#x26AD;</span></a>"
+        const full = `<span class="object-kind">${escapeHtml(target.kind)}:</span> <strong>${target.name}</strong>` +
+            " <span class=\"link-symbol\">&#x26AD;</span>"
+        return compact ?
+            `<a href="#${escapeHtml(anchorOf(target))}" class="link-compact"><strong>${target.name}</strong>` +
+                `<span class="link-tooltip">${full}</span></a>` :
+            `<a href="#${escapeHtml(anchorOf(target))}">${full}</a>`
     })
     const created  = new Date(Math.min(
         ...specification.artifacts.map((artifact) => artifact.created.getTime())))

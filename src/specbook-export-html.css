@@ -170,6 +170,17 @@ a                           { color: var(--theme-color-specbook-accent); text-de
 .property-name::before      { content: "\25CB"; color: var(--theme-color-specbook-accent); font-weight: normal;
                               font-size: 120%; margin-right: 0.25rem; vertical-align: -0.075em; }
 span.link-broken            { color: var(--theme-color-specbook-error); }
+
+/*  the compact hyperlinks of the prose (name only), revealing their
+    full form (kind, name, and link symbol) as a tooltip on hovering  */
+a.link-compact              { position: relative; }
+a.link-compact span.link-tooltip { display: none; position: absolute; left: 0; bottom: 1.4em; z-index: 10;
+                              white-space: nowrap; font-weight: normal; padding: 0.15rem 0.5rem;
+                              color: var(--theme-color-specbook-text);
+                              background-color: var(--theme-color-specbook-background);
+                              border: 1px solid var(--theme-color-specbook-border); border-radius: 0.25rem;
+                              box-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 0.3); }
+a.link-compact:hover span.link-tooltip { display: inline-block; }
 span.anchor-paren           { color: var(--theme-color-specbook-muted); font-weight: normal; }
 span.primary-marker         { color: var(--theme-color-specbook-accent-soft); font-weight: normal; font-size: 75%;
                               vertical-align: 0.15em; margin-left: 0.2em; -webkit-user-select: none; user-select: none; }
