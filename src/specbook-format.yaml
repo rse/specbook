@@ -111,11 +111,11 @@
     format:
         maxTableColumns: 5
     diagram:
-        type: graph
+        type: grid
         nodes: "[[SPEC:GL.TERM:*]]"
-        labeled: true
         config:
             size-node-width-max: 440
+            grid-columns-max: 4
     childs:
         -   kind: TERM
             name: "[A-Z][A-Za-z0-9-]*( [A-Z][A-Za-z0-9-]*)*"
