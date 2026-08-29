@@ -35,6 +35,7 @@ USE-CASE: Authenticate via Email Token {{authenticate}}
 -   ACTOR:          [[PERSONA:attendee]]
 -   JOURNEY:        [[STEP:authenticate]]
 -   REQUIREMENTS:   [[FR.authentication]], [[FR.user-consent]], [[FR.parallel-access]]
+-   RULES:          [[RULE:access-grant]], [[RULE:single-session]], [[RULE:token-format]]
 -   PRE-CONDITION:  The attendee's email is granted access to the event.
 -   TRIGGER:        The attendee requests access to an event without holding an active session.
 -   POST-CONDITION: The attendee holds an active session token and any prior session of the same user is closed.
@@ -83,6 +84,7 @@ USE-CASE: Ask a Question {{ask-question}}
 -   ACTOR:          [[PERSONA:attendee]]
 -   JOURNEY:        [[STEP:participate]]
 -   REQUIREMENTS:   [[FR.questions]], [[FR.question-tags]], [[FR.moderation]]
+-   RULES:          [[RULE:moderation-gate]], [[RULE:type-states]], [[RULE:sentiment-threshold]]
 -   PRE-CONDITION:  The attendee has an active session and questions are enabled.
 -   TRIGGER:        The attendee decides to raise a question during the running event.
 -   POST-CONDITION: The question is stored in state pending and awaits moderation.
@@ -128,6 +130,7 @@ USE-CASE: Moderate and Forward Messages {{moderate}}
 -   ACTOR:          [[PERSONA:moderator-qa]]
 -   JOURNEY:        [[STEP:support]]
 -   REQUIREMENTS:   [[FR.moderation]], [[FR.forward-presenter]], [[FR.sort-filter]], [[FR.presenter-hints]]
+-   RULES:          [[RULE:type-states]], [[RULE:forward-lock]]
 -   PRE-CONDITION:  The event is running and the moderator has the Moderator role.
 -   TRIGGER:        An attendee message arrives in state pending for moderation.
 -   POST-CONDITION: Messages are accepted, rejected, or forwarded with optional hints.
@@ -162,6 +165,7 @@ USE-CASE: Switch Streaming Provider {{switch-provider}}
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEY:        [[STEP:configure]]
 -   REQUIREMENTS:   [[FR.multi-provider]], [[FR.provider-switch]], [[FR.config-propagation]]
+-   RULES:          [[RULE:single-channel]], [[RULE:single-resource]]
 -   PRE-CONDITION:  The event runs and the channel has multiple configured resources.
 -   TRIGGER:        The active streaming resource shows problems during a running event.
 -   POST-CONDITION: A new resource is active and all clients follow it automatically.
@@ -186,6 +190,7 @@ USE-CASE: Create Event from Ventari Import {{create-event}}
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEY:        [[STEP:configure]]
 -   REQUIREMENTS:   [[FR.ventari-import]], [[FR.ventari-export]], [[FR.event-portability]]
+-   RULES:          [[RULE:token-format]], [[RULE:no-accounts]]
 -   PRE-CONDITION:  The manager has a Ventari Excel sheet and an event to populate.
 -   TRIGGER:        Ventari delivers the Excel sheet of the attendees of an upcoming event.
 -   POST-CONDITION: The access list and tokens are created and URLs returned to Ventari.
@@ -210,6 +215,7 @@ USE-CASE: Export Anonymized Event Data {{export-data}}
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEY:        [[STEP:export]]
 -   REQUIREMENTS:   [[FR.export-inputs]], [[FR.event-stats]]
+-   RULES:          [[RULE:anonymize]], [[RULE:like-count]], [[RULE:manager-retained]]
 -   PRE-CONDITION:  The event has finished and the manager retains the Manager role.
 -   TRIGGER:        The manager is asked to hand over the recorded interaction of a finished event.
 -   POST-CONDITION: An export file of anonymized messages and statistics is produced.

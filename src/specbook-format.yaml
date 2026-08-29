@@ -382,7 +382,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[SPEC:UC.USE-CASE:*]], [[SPEC:UP.PERSONA:*]], [[SPEC:UJ.JOURNEY:*.STEP:*]], [[SPEC:FR.REQUIREMENT:*]]"
+                nodes: "[[SPEC:UC.USE-CASE:*]], [[SPEC:UP.PERSONA:*]], [[SPEC:UJ.JOURNEY:*.STEP:*]],
+                    [[SPEC:FR.REQUIREMENT:*]], [[SPEC:BR.RULE:*]]"
                 qualified: true
                 config:
                     size-node-width-max: 440
@@ -404,6 +405,13 @@
                         case exercises, i.e. whose behavior its scenarios walk through, so that every
                         Functional Requirement is exercised by at least one use case.
                     value: list([[SPEC:FR.*]])
+                    optional: true
+                -   name: RULES
+                    desc: >
+                        Comma-separated references to the BUSINESS-RULES objects the scenarios of
+                        the use case apply, i.e. whose condition a scenario step checks or enforces
+                        (e.g. an access rule in an authentication step).
+                    value: list([[SPEC:BR.RULE:*]])
                     optional: true
                 -   name: INCLUDES
                     desc: >
