@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-06-18 10:18
+Modified: 2026-08-29 12:00
 ---
 
 ARCH: Development View (DV)
@@ -64,3 +64,13 @@ The project is versioned in a single Git repository hosted on the
 self-administered Gitea, with the Software Administrator granting
 repository access, BECAUSE self-hosted version control keeps source
 under full organizational control.
+
+##  ASPECT: Identifier Naming {{identifier-naming}}
+
+-   CATEGORY: Standardization
+
+Data-model entities are named in PascalCase and their attributes in
+camelCase, and both are referred to by exactly these identifiers, set in
+code font, wherever code or documents mention them (e.g.
+`Event.accessList`, `Message.senderName`), BECAUSE a single identifier
+form lets a reader grep from a document straight into the code.

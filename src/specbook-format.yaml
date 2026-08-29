@@ -1100,29 +1100,76 @@
     id: LC
     file: 13-SPEC-LC-Language-Conventions.md
     desc: >
-        The terminology, naming, tone, and wording standards used consistently across the solution
-        and its content.
+        The voice, tone, and wording of the user-facing text of the solution (labels, messages,
+        notifications, help), governing how the solution speaks to its users, so that the Interaction
+        Concept states how it behaves, the Language Conventions how it talks, and the Visual Design
+        how it looks. Domain terms are *defined* in the Domain Glossary and only *surfaced* here,
+        while the conventions of the specification text itself and of code identifiers are out of
+        scope (they belong to the Development View).
     refs: >
-        -   Microsoft: Microsoft Writing Style Guide (2018),
-            https://learn.microsoft.com/en-us/style-guide/welcome/
-        -   Google: Google developer documentation style guide (2017),
-            https://developers.google.com/style
         -   Podmajersky: Strategic Writing for UX (2019),
             https://www.oreilly.com/library/view/strategic-writing-for/9781492049388/
+        -   Metts/Welfle: Writing Is Designing: Words and the User Experience (2020),
+            https://rosenfeldmedia.com/books/writing-is-designing/
+        -   Mailchimp: Content Style Guide -- Voice and Tone (2015),
+            https://styleguide.mailchimp.com/
+        -   Microsoft: Microsoft Writing Style Guide (2018),
+            https://learn.microsoft.com/en-us/style-guide/welcome/
+    optional: true
+    diagram:
+        type: grid
+        nodes: "[[SPEC:LC.CONVENTION:*]]"
+        properties:
+            -   CATEGORY
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 4
     childs:
         -   kind: CONVENTION
             desc: >
-                A single language convention, named with a short (2-5 word) summary and described in
-                a concise (1-3 sentence) paragraph as the convention to be applied consistently
-                across the solution, optionally illustrated by a short, concrete example of the
-                convention in practice.
+                A single language convention, named with a short (2-5 word) summary (e.g. `Neutral
+                Error Tone`, `Second-Person Address`) and described in a concise (1-3 sentence)
+                paragraph as the rule the user-facing text of the solution has to follow
+                consistently, plus a 1-sentence rationale ("why"). A convention governs how the
+                solution phrases what it says, not what it does (a behavior is an Interaction
+                Concept principle instead) and not what a term means (a definition is a Domain
+                Glossary term instead).
             props:
                 -   name: CATEGORY
                     desc: >
-                        The aspect of language the convention governs: `Terminology` (preferred and
-                        forbidden terms), `Naming` (naming patterns), `Tone` (voice and register),
-                        `Capitalization`, `Punctuation`, or `Formatting`.
-                    value: enum(Terminology,Naming,Tone,Capitalization,Punctuation,Formatting)
+                        The aspect of language the convention governs: `Voice` (the stable persona
+                        the solution speaks with), `Tone` (the register varying with the situation,
+                        e.g. on errors), `Vocabulary` (preferred and forbidden words and phrasings),
+                        `Grammar` (person, tense, mood, sentence structure), `Capitalization`,
+                        `Punctuation`, `Formatting` (numbers, dates, units, quotations), or
+                        `Localization` (languages, translations, locale-dependent wording).
+                    value: enum(Voice,Tone,Vocabulary,Grammar,Capitalization,Punctuation,Formatting,Localization)
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects the convention
+                        addresses, omitted for a convention governing the text shown to all users
+                        alike.
+                    value: list([[SPEC:UP.PERSONA:*]])
+                    optional: true
+                -   name: PRINCIPLES
+                    desc: >
+                        Comma-separated references to the INTERACTION-CONCEPT objects the convention
+                        supports in wording, so that a convention is grounded in the interaction
+                        philosophy rather than in taste alone.
+                    value: list([[SPEC:IC.PRINCIPLE:*]])
+                    optional: true
+                -   name: TERMS
+                    desc: >
+                        Comma-separated references to the GLOSSARY terms whose surfacing in the
+                        user-facing text the convention governs, so that the Domain Glossary defines
+                        the term and the convention states how it is written.
+                    value: list([[SPEC:GL.TERM:*]])
+                    optional: true
+                -   name: EXAMPLE
+                    desc: >
+                        A short, concrete "do, not don't" pair illustrating the convention in
+                        practice, quoting the text as the user sees it (e.g. `"You are not
+                        authorized for this event.", not "Access forbidden!"`).
 
 -   kind: SPEC
     name: Dialog Patterns
