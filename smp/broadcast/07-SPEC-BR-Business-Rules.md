@@ -44,7 +44,7 @@ defines the current event feed.
 
 -   CATEGORY:   Constraint
 -   SOURCE:     Domain
--   GOVERNS:    [[TERM:resource]], [[TERM:channel]]
+-   GOVERNS:    [[TERM:resource]], [[TERM:channel]], [[TERM:provider]]
 -   CONSTRAINS: [[FR.provider-switch]], [[FR.multi-provider]]
 
 Exactly one Resource of a Channel MUST be active at any time, BECAUSE switching the active Resource is the mechanism by
@@ -54,7 +54,7 @@ which the live streaming provider is changed.
 
 -   CATEGORY:   Action
 -   SOURCE:     Business
--   GOVERNS:    [[TERM:message]]
+-   GOVERNS:    [[TERM:message]], [[TERM:chat]], [[TERM:question]], [[TERM:attendee]]
 -   CONSTRAINS: [[FR.moderation]], [[FR.chat]], [[FR.questions]]
 
 When moderation is enabled for a message type, an attendee Message MUST start in state pending and become visible only once
@@ -74,7 +74,7 @@ BECAUSE moderator-authored content is trusted and needs no further approval.
 
 -   CATEGORY:   Constraint
 -   SOURCE:     Business
--   GOVERNS:    [[TERM:message]], [[TERM:attendee]]
+-   GOVERNS:    [[TERM:message]], [[TERM:attendee]], [[TERM:presenter]]
 -   CONSTRAINS: [[FR.message-editing]], [[FR.forward-presenter]]
 
 Once a Message reaches state forwarded, the attendee MUST NOT edit or delete it, BECAUSE the presenter relies on the
@@ -111,8 +111,9 @@ predictable.
 
 -   CATEGORY:   Action
 -   SOURCE:     Law
--   GOVERNS:    [[TERM:anonymization]], [[TERM:event]], [[TERM:message]], [[TERM:like]], [[TERM:authtoken]],
-                [[TERM:sessiontoken]], [[TERM:accesslist]], [[TERM:user]], [[TERM:role]]
+-   GOVERNS:    [[TERM:anonymization]], [[TERM:event]], [[TERM:message]], [[TERM:chat]], [[TERM:question]],
+                [[TERM:like]], [[TERM:authtoken]], [[TERM:sessiontoken]], [[TERM:accesslist]], [[TERM:user]],
+                [[TERM:role]], [[TERM:moderator]], [[TERM:manager]]
 -   CONSTRAINS: [[FR.user-consent]], [[FR.gdpr-eu]]
 
 When an Event finishes, its Messages MUST be reduced to a bare like count with Chat and Question sender names set to
@@ -124,7 +125,7 @@ retained, BECAUSE personal data must not be retained beyond the event (GDPR Art.
 
 -   CATEGORY:   Action
 -   SOURCE:     Business
--   GOVERNS:    [[TERM:like]], [[TERM:message]], [[TERM:event]]
+-   GOVERNS:    [[TERM:like]], [[TERM:message]], [[TERM:event]], [[TERM:anonymization]]
 -   CONSTRAINS: [[FR.likes]], [[FR.export-inputs]]
 
 When an Event finishes, the number of likers of each Message MUST be computed and stored as its bare likes count before the
@@ -134,7 +135,7 @@ liker relations are removed, BECAUSE like totals must survive anonymization for 
 
 -   CATEGORY:   Constraint
 -   SOURCE:     Business
--   GOVERNS:    [[TERM:authtoken]], [[TERM:event]]
+-   GOVERNS:    [[TERM:authtoken]], [[TERM:event]], [[TERM:registration-system]]
 -   CONSTRAINS: [[FR.registration-export]], [[FR.automatic-url]]
 
 An Authorization Token MUST be formatted as six digits "NNN-NNN"; a normal login token MUST expire within 5 minutes while a
@@ -155,7 +156,7 @@ beyond operational need.
 
 -   CATEGORY:   Constraint
 -   SOURCE:     Business
--   GOVERNS:    [[TERM:role]], [[TERM:manager]], [[TERM:event]]
+-   GOVERNS:    [[TERM:role]], [[TERM:manager]], [[TERM:event]], [[TERM:anonymization]]
 -   CONSTRAINS: [[FR.export-inputs]]
 
 A Manager Role MUST be retained after Event finish until the Event is deleted entirely, BECAUSE Managers must still export

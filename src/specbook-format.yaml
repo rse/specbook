@@ -177,6 +177,13 @@
                 -   name: ROLE
                     desc: >
                         The role of the persona.
+                -   name: TERMS
+                    desc: >
+                        Comma-separated references to the GLOSSARY terms the persona embodies, i.e.
+                        the domain roles it acts in and the domain concepts it primarily deals
+                        with, so that every persona is anchored in the ubiquitous language.
+                    value: list([[SPEC:GL.TERM:*]])
+                    optional: true
                 -   name: PROFICIENCY
                     desc: >
                         The technical and domain skill level of the persona: `novice`,
@@ -207,14 +214,14 @@
         type: grid
         nodes: "[[SPEC:UJ.JOURNEY:*]]"
         properties:
-            -   ACTOR
+            -   ACTORS
     childs:
         -   kind: JOURNEY
             desc: >
                 The end-to-end journey of a single persona (or of multiple personas sharing the same
                 experience as role variants), named with a 2-5 word summary of the pursued scenario.
             props:
-                -   name: ACTOR
+                -   name: ACTORS
                     desc: >
                         Comma-separated references to the User Personas objects experiencing the
                         journey.
@@ -485,7 +492,7 @@
                         Reference to the PERSONAS object denoting the primary actor pursuing the
                         goal.
                     value: "[[SPEC:UP.PERSONA:*]]"
-                -   name: JOURNEY
+                -   name: JOURNEYS
                     desc: >
                         Comma-separated references to the User Journey STEP objects the use case
                         covers, tracing the journey into the use cases.
@@ -609,6 +616,13 @@
                         entity supports, i.e. whose behavior needs the information it carries,
                         tracing the requirements into the data model.
                     value: list([[SPEC:FR.*]])
+                    optional: true
+                -   name: TERMS
+                    desc: >
+                        Comma-separated references to the GLOSSARY terms the entity materializes,
+                        i.e. the domain terms whose information it carries, so that every entity
+                        is anchored in the ubiquitous language and every term shows its data.
+                    value: list([[SPEC:GL.TERM:*]])
                     optional: true
             childs:
                 -   kind: ATTRIBUTE
@@ -1263,7 +1277,7 @@
                         `Provisioning`, `Monitoring`, `Logging`, `Alerting`, `Backup`, `Recovery`,
                         `Upgrade`, or `Support`.
                     value: enum(Installation,Configuration,Provisioning,Monitoring,Logging,Alerting,Backup,Recovery,Upgrade,Support)
-                -   name: ELEMENT
+                -   name: ELEMENTS
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW
                         objects the concern applies to.

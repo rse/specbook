@@ -9,7 +9,7 @@ SPEC: User Journey (UJ)
 JOURNEY: Attend a Broadcast event {{attend}}
 ---------------------------------
 
--   ACTOR:       [[PERSONA:attendee]]
+-   ACTORS:      [[PERSONA:attendee]]
 
 ### STEP: Receive personal event invitation URL {{attend-invitation}}
 
@@ -52,7 +52,7 @@ JOURNEY: Attend a Broadcast event {{attend}}
 JOURNEY: Operate a Broadcast Event {{operate}}
 ----------------------------------
 
--   ACTOR:       [[PERSONA:manager]]
+-   ACTORS:      [[PERSONA:manager]]
 
 ### STEP: Configure and run the event {{configure}}
 
@@ -75,7 +75,7 @@ JOURNEY: Operate a Broadcast Event {{operate}}
 JOURNEY: Moderate a Broadcast Event {{moderate}}
 -----------------------------------
 
--   ACTOR:       [[PERSONA:moderator-chat]], [[PERSONA:moderator-qa]]
+-   ACTORS:      [[PERSONA:moderator-chat]], [[PERSONA:moderator-qa]]
 
 ### STEP: Moderate and support the presenter {{support}}
 

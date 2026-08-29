@@ -12,6 +12,7 @@ Modified: 2026-06-18 10:18
     [[FR.replies]], [[FR.questions]], [[FR.moderation]], [[FR.client-sentiment]],
     [[FR.server-sentiment]], [[FR.presenter-hints]], [[FR.manage-app]],
     [[FR.config-propagation]], [[FR.event-portability]]
+-   TERMS: [[TERM:event]]
 
 The master entity describing a single live broadcast event and all of its configuration,
 BECAUSE the entire data model is event-centric and every other entity hangs off an event.
@@ -226,6 +227,7 @@ BECAUSE attendees and moderators track which part of the event is currently acti
 ##  ENTITY: Channel
 
 -   REQUIREMENTS: [[FR.multi-provider]], [[FR.provider-switch]], [[FR.channel-stats]]
+-   TERMS: [[TERM:channel]]
 
 A logical content delivery stream linking video streams to an event,
 BECAUSE an event groups its streams by language and resolution into channels.
@@ -257,6 +259,7 @@ BECAUSE an event groups its streams by language and resolution into channels.
 ##  ENTITY: Resource
 
 -   REQUIREMENTS: [[FR.multi-provider]], [[FR.provider-switch]], [[FR.resource-url]]
+-   TERMS: [[TERM:resource]], [[TERM:provider]]
 
 A physical content delivery resource such as a provider stream or static website linked to a channel,
 BECAUSE a channel must map to concrete provider endpoints to be playable.
@@ -280,6 +283,7 @@ BECAUSE a channel must map to concrete provider endpoints to be playable.
 ##  ENTITY: ResourceProviderParam
 
 -   REQUIREMENTS: [[FR.multi-provider]]
+-   TERMS: [[TERM:provider]]
 
 A key-value parameter belonging to exactly one resource and provider, defined in the event configuration file,
 BECAUSE provider endpoints are parameterized by values an administrator supplies.
@@ -303,6 +307,7 @@ BECAUSE provider endpoints are parameterized by values an administrator supplies
 ##  ENTITY: Role
 
 -   REQUIREMENTS: [[FR.moderation]], [[FR.forward-presenter]], [[FR.export-inputs]]
+-   TERMS: [[TERM:role]], [[TERM:manager]], [[TERM:moderator]], [[TERM:presenter]]
 
 A grant of special rights to a specific user within an event,
 BECAUSE the application is role-based and rights are granted through roles.
@@ -323,6 +328,7 @@ BECAUSE the application is role-based and rights are granted through roles.
 
 -   REQUIREMENTS: [[FR.authentication]], [[FR.name-appearance]], [[FR.likes]],
     [[FR.personalized-url]], [[FR.registration-import]]
+-   TERMS: [[TERM:user]], [[TERM:attendee]], [[TERM:accesslist]]
 
 A helper entity enabling event-based logins for invited or pattern-matched attendees,
 BECAUSE the system holds no permanent accounts yet must identify attendees per event.
@@ -361,6 +367,8 @@ BECAUSE the system holds no permanent accounts yet must identify attendees per e
     [[FR.moderation]], [[FR.forward-presenter]], [[FR.answer-inputs]],
     [[FR.moderator-messages]], [[FR.message-editing]], [[FR.deleted-placeholder]],
     [[FR.server-sentiment]], [[FR.sort-filter]], [[FR.question-tags]], [[FR.export-inputs]]
+-   TERMS: [[TERM:message]], [[TERM:chat]], [[TERM:question]], [[TERM:support]], [[TERM:like]],
+    [[TERM:sentiment]]
 
 A single chat, support, or question item tracked for attendees and moderators,
 BECAUSE all event interaction is represented uniformly as messages with language-specific texts.
@@ -440,6 +448,7 @@ BECAUSE all event interaction is represented uniformly as messages with language
 ##  ENTITY: MessageText
 
 -   REQUIREMENTS: [[FR.language-switch]], [[FR.export-inputs]]
+-   TERMS: [[TERM:message]]
 
 A language-specific text of a message,
 BECAUSE a message is translated into multiple languages while retaining one original.
@@ -459,6 +468,7 @@ BECAUSE a message is translated into multiple languages while retaining one orig
 ##  ENTITY: QuestionTag
 
 -   REQUIREMENTS: [[FR.question-tags]]
+-   TERMS: [[TERM:questiontag]]
 
 A named tag attachable to question messages,
 BECAUSE questions are categorized by topic or addressed person for routing and grouping.
@@ -483,6 +493,7 @@ BECAUSE questions are categorized by topic or addressed person for routing and g
 
 -   REQUIREMENTS: [[FR.authentication]], [[FR.automatic-url]], [[FR.registration-import]],
     [[FR.registration-export]], [[FR.debug-stats]]
+-   TERMS: [[TERM:authtoken]]
 
 A one-time second factor proving an attendee controls the email address used as the first factor,
 BECAUSE email-verified access is the core mechanism limiting the audience.
@@ -510,6 +521,7 @@ BECAUSE email-verified access is the core mechanism limiting the audience.
 ##  ENTITY: SessionToken
 
 -   REQUIREMENTS: [[FR.authentication]], [[FR.parallel-access]], [[FR.event-stats]]
+-   TERMS: [[TERM:sessiontoken]]
 
 The result of a successful login of a user to an event,
 BECAUSE an active session must be tracked to enforce single concurrent access.
