@@ -129,6 +129,14 @@
                 (the `BROADER` term where one exists) and adds the characteristics delimiting the
                 term from its siblings (e.g. `A Message submitted by an Attendee as ...`), so that
                 the hierarchy and the definitions cross-check each other.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[SPEC:GL.TERM:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
             props:
                 -   name: SYNONYMS
                     desc: >
