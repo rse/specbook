@@ -109,10 +109,12 @@
         language, together with its synonyms, its place in the hierarchy of terms, and the terms it
         has to be kept apart from, shared consistently across all Artifacts.
     format:
-        maxTableColumns: 4
+        maxTableColumns: 5
     diagram:
         type: grid
         nodes: "[[SPEC:GL.TERM:*]]"
+        properties:
+            -   TYPE
         config:
             size-node-width-max: 440
             grid-columns-max: 4
@@ -138,6 +140,13 @@
                 config:
                     size-node-width-max: 440
             props:
+                -   name: TYPE
+                    desc: >
+                        The kind of concept the term denotes: `Entity` (a thing of the domain,
+                        usually materialized by a DATA-MODEL entity), `Actor` (a party acting in
+                        the domain, be it a human role usually embodied by a PERSONA or an external
+                        system), or `Activity` (a process or procedure of the domain).
+                    value: enum(Entity,Actor,Activity)
                 -   name: SYNONYMS
                     desc: >
                         Comma-separated list of alternative names or abbreviations that refer to the
