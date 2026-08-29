@@ -554,8 +554,10 @@
             props:
                 -   name: ENTITY
                     desc: >
-                        Reference to the DATA-MODEL entity whose lifecycle this models.
+                        Reference to the DATA-MODEL entity whose lifecycle this models, at most one
+                        lifecycle per entity.
                     value: "[[SPEC:DM.ENTITY:*]]"
+                    unique: true
             childs:
                 -   kind: STATE
                     name: "[A-Z][a-zA-Z0-9]*"
