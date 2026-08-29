@@ -67,8 +67,8 @@ export type SchemaDiagram = {
     config?:           Partial<GradiaConfig>
 }
 
-/*  the HTML/PDF rendering of the child objects of an object kind:
-    "complex" (sections), "concise" (tables), or "auto"  */
+/*  the HTML/PDF rendering of the objects of an object kind among their
+    siblings: "complex" (sections), "concise" (tables), or "auto"  */
 export type SchemaFormat = {
     type?:             "auto" | "complex" | "concise"
     maxTableColumns?:  number

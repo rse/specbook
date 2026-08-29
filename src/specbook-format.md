@@ -227,7 +227,7 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE relations buried in references are graspable only when drawn
 
 -   `SchemaObject.format?: SchemaFormat`:
-    HTML/PDF rendering format of the child objects of this kind,
+    HTML/PDF rendering format of the objects of this kind,
     BECAUSE rich objects need sections, uniform ones read as tables
 
 -   `SchemaObject.props?: SchemaProperty[]`:
@@ -341,7 +341,7 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE layout tuning is cosmetics, not a schema concern
 
 -   `SchemaFormat`:
-    HTML/PDF rendering of the child objects of an object kind,
+    HTML/PDF rendering of the objects of an object kind among their siblings,
     BECAUSE one uniform rendering fits neither rich nor numerous objects
 
 -   `SchemaFormat.type?: "auto" | "complex" | "concise"`:
@@ -349,7 +349,7 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE sections bury small objects, tables truncate rich ones
 
 -   `SchemaFormat.maxTableColumns?: number`:
-    maximum column count of the tables below (default: `4`),
+    maximum column count of the table of the kind (default: `4`),
     BECAUSE the fixed print/PDF page width bounds the table width
 
 -   `SchemaFormat.withUnusedProps?: boolean`:
@@ -483,17 +483,19 @@ rendering options (e.g. `grid-columns-max: 5`) through to the diagram.
 ### Format
 
 An object kind can furthermore carry a `format` field, which controls
-how the HTML/PDF export renders the child objects of every object of
-that kind. Its `type` selects the rendering: `complex` (nested
-sections), `concise` (compact per-kind tables), or the default `auto`,
-which collapses only the deepest level into tables.
+how the HTML/PDF export renders the objects of that kind among their
+siblings, so that the sibling kinds below one parent can render
+differently (e.g. one kind as a table, another as sections). Its `type`
+selects the rendering: `complex` (nested sections), `concise` (one
+compact table of all sibling objects of the kind), or the default
+`auto`, which collapses only the deepest level into tables.
 
-Below a `concise` object, unconfigured children implicitly stay
+Inside a `concise` table, unconfigured child kinds implicitly stay
 `concise` and render as sub-tables inside the description cells, while
 an explicitly configured `type` is always honored, even a `complex`
 rendering pressed into a cell. `maxTableColumns` (default: `4`) bounds
-the columns of the compact tables below the object (wider groups chunk
-their properties into embedded per-object tables), and `withUnusedProps`
+the columns of the compact table of the kind (a wider group chunks
+its properties into embedded per-object tables), and `withUnusedProps`
 (default: `false`) unconditionally renders the defined but unused
 properties of that kind, as property table lines or table columns. In
 the HTML/PDF export, a property absent from an object shows an "empty

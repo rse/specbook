@@ -533,12 +533,13 @@ const inlineProperties = (object: SpecObject, properties: SpecProperty[]) =>
     properties.map((property) => ({ key: property.key,
         value: inlineValue(object.kind, object.properties.includes(property) ? property : undefined) }))
 
-/*  resolve the format configuration of an object  */
+/*  resolve the format configuration of the kind of an object  */
 const formatOf = (object: SpecObject): SchemaFormat | undefined =>
     schemas?.get(object)?.format
 
-/*  determine the maximum table columns configured on an object (at
-    least two, as a single column cannot carry a name and a value)  */
+/*  determine the maximum table columns configured on the kind of an
+    object (at least two, as a single column cannot carry a name and a
+    value)  */
 const maxColumnsOf = (object: SpecObject): number =>
     Math.max(2, formatOf(object)?.maxTableColumns ?? 4)
 
@@ -580,19 +581,16 @@ const tableShape = (childs: SpecObject[]) => {
 const flowChilds = (object: SpecObject): SpecObject[] =>
     object.childs.filter((child) => !isTitleObject(child))
 
-/*  decide whether the childs of an object collapse into the concise
-    (tabular) rendering: an explicit "format" type wins, "auto" collapses
-    the deepest level only, and inside an already concise rendering
-    context "auto" childs implicitly stay concise, too  */
-const conciseChilds = (object: SpecObject, schemaMap: Map<SpecObject, SchemaObject> | null,
+/*  decide whether a single-kind group of childs collapses into the
+    concise (tabular) rendering: an explicit "format" type of the kind
+    wins, "auto" collapses the deepest level only, and inside an already
+    concise rendering context "auto" groups implicitly stay concise, too  */
+const conciseGroup = (group: SpecObject[], schemaMap: Map<SpecObject, SchemaObject> | null,
     concise: boolean): boolean => {
-    const childs = flowChilds(object)
-    if (childs.length === 0)
-        return false
-    const type = schemaMap?.get(object)?.format?.type ?? "auto"
+    const type = schemaMap?.get(group[0])?.format?.type ?? "auto"
     if (type !== "auto")
         return type === "concise"
-    return concise || childs.every((child) => child.childs.length === 0)
+    return concise || group.every((child) => child.childs.length === 0)
 }
 
 /*  group the childs of an object by their kind, preserving order  */
@@ -608,19 +606,23 @@ const groupChilds = (childs: SpecObject[]): SpecObject[][] => {
     return [ ...groups.values() ]
 }
 
+/*  render the childs of an object group-wise by kind: a concise group
+    as one compact table, a complex group as regular nested object
+    renderings  */
+const renderChilds = (object: SpecObject, level: number, concise: boolean): string =>
+    groupChilds(flowChilds(object)).map((group) => conciseGroup(group, schemas, concise) ?
+        renderTable(group, maxColumnsOf(group[0])) :
+        group.map((child) => renderObject(child, level, concise)).join("")).join("")
+
 /*  render the description cell of a table row: the description of the
     object followed by its recursively rendered childs (implicitly or
-    explicitly concise childs as nested sub-tables, explicitly complex
+    explicitly concise groups as nested sub-tables, explicitly complex
     ones as regular nested object renderings pressed into the cell);
     a cell left without any content renders as the absent marker,
     exactly like a property cell of a not given property  */
 const renderCell = (child: SpecObject): string => {
     let html = child.description !== undefined ? renderDescription(child.description) : ""
-    const childs = flowChilds(child)
-    if (childs.length > 0)
-        html += conciseChilds(child, schemas, true) ?
-            groupChilds(childs).map((group) => renderTable(group, maxColumnsOf(child))).join("") :
-            childs.map((sub) => renderObject(sub, 6, true)).join("")
+    html += renderChilds(child, 6, true)
     return html.trim() !== "" ? html : "<span class=\"value-absent\"></span>"
 }
 
@@ -715,9 +717,7 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
             safe(render("Properties", { Properties: inlineProperties(object, properties) })) : "",
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
-        childs:      conciseChilds(object, schemas, concise) ?
-            safe(groupChilds(flowChilds(object)).map((group) => renderTable(group, maxColumnsOf(object))).join("")) :
-            safe(flowChilds(object).map((child) => renderObject(child, level + 1, concise)).join(""))
+        childs:      safe(renderChilds(object, level + 1, concise))
     } }))
 }
 
@@ -775,7 +775,7 @@ const renderArtifact = (artifact: SpecArtifact): string =>
 export type OutlineEntry = { title: string, anchor: string, childs: OutlineEntry[] }
 
 /*  derive the hierarchy of the rendered object headings, skipping the
-    title page object and the childs collapsing into compact tables  */
+    title page object and the child groups collapsing into compact tables  */
 export const htmlOutline = (specification: Spec,
     config?: Schema): OutlineEntry[] => {
     const paths     = anchorPaths(buildLinkIndex(specification))
@@ -783,7 +783,9 @@ export const htmlOutline = (specification: Spec,
     const entry = (object: SpecObject): OutlineEntry => ({
         title:  (object.kind !== "" ? `${object.kind}: ` : "") + plainText(object.name),
         anchor: paths.get(object) ?? object.id,
-        childs: conciseChilds(object, schemaMap, false) ? [] : flowChilds(object).map(entry)
+        childs: groupChilds(flowChilds(object))
+            .filter((group) => !conciseGroup(group, schemaMap, false))
+            .flatMap((group) => group.map(entry))
     })
     return specification.artifacts
         .filter((artifact) => !artifact.objects.some(isTitleObject))

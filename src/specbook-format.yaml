@@ -122,8 +122,6 @@
             https://www.iso.org/standard/62330.html
         -   Evans: Domain-Driven Design: Tackling Complexity in the Heart of Software (2003),
             https://www.domainlanguage.com/ddd/
-    format:
-        maxTableColumns: 5
     diagram:
         type: grid
         nodes: "[[SPEC:GL.TERM:*]]"
@@ -145,6 +143,8 @@
                 (the `BROADER` term where one exists) and adds the characteristics delimiting the
                 term from its siblings (e.g. `A Message submitted by an Attendee as ...`), so that
                 the hierarchy and the definitions cross-check each other.
+            format:
+                maxTableColumns: 5
             referenced:
                 -   "[[*]]"
             diagram:
@@ -203,8 +203,6 @@
             https://www.wiley.com/en-gb/About+Face:+The+Essentials+of+Interaction+Design,+4th+Edition-p-9781118766576
         -   Pruitt/Adlin: The Persona Lifecycle: Keeping People in Mind Throughout Product Design (2006),
             https://www.sciencedirect.com/book/9780125662512/the-persona-lifecycle
-    format:
-        maxTableColumns: 5
     childs:
         -   kind: PERSONA
             desc: >
@@ -213,6 +211,8 @@
                 persona's own voice, like a "tagline", "mantra", or "defining statement" -- that
                 captures their core attitude, motivation, frustration, or need in a single memorable
                 line.
+            format:
+                maxTableColumns: 5
             props:
                 -   name: GENDER
                     desc: >
@@ -363,6 +363,8 @@
                 event-driven (`When <trigger>, the system MUST ...`), state-driven (`While <state>,
                 the system MUST ...`), optional-feature (`Where <feature>, the system MUST ...`), or
                 unwanted-behavior (`If <condition>, then the system MUST ...`).
+            format:
+                maxTableColumns: 6
             referenced:
                 -   "[[SPEC:UC.USE-CASE:*]]"
             props:
@@ -390,8 +392,6 @@
         -   DSDM: MoSCoW Prioritisation, DSDM Agile Project Framework (2014),
             https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html
         -   Doran: There's a S.M.A.R.T. Way to Write Management's Goals and Objectives, Management Review 70(11) (1981)
-    format:
-        maxTableColumns: 6
     diagram:
         type: grid
         nodes: "[[SPEC:NR.REQUIREMENT:*]]"
@@ -459,8 +459,6 @@
             https://www.businessrulesgroup.org/brmanifesto.htm
         -   OMG DMN 1.5: Decision Model and Notation (2024),
             https://www.omg.org/spec/DMN/
-    format:
-        maxTableColumns: 5
     diagram:
         type: grid
         nodes: "[[SPEC:BR.RULE:*]]"
@@ -493,6 +491,8 @@
                 <outcome>` item per case, applied in order with the first matching case winning,
                 and a closing sentence stating the outcome of the remaining cases ("otherwise")
                 and carrying the rationale.
+            format:
+                maxTableColumns: 5
             referenced:
                 -   "[[SPEC:TC.TEST-CASE:*]]"
             props:
@@ -1304,9 +1304,6 @@
                 one flow, as seen by its actors (the intent and the information exchanged is a Use
                 Cases scenario instead, and a structure recurring across flows is a Dialog Pattern
                 instead).
-            format:
-                type: concise
-                maxTableColumns: 5
             diagram:
                 type: hub
                 center: self
@@ -1338,6 +1335,9 @@
                         the screen, turn, or state depicted, shown by its `SKETCH`, and described in
                         a concise (1-2 sentence) paragraph by what the actor sees and does at this
                         frame of the interaction.
+                    format:
+                        type: concise
+                        maxTableColumns: 5
                     props:
                         -   name: SCENARIO-STEP
                             desc: >
@@ -1375,27 +1375,121 @@
     id: VD
     file: 16-SPEC-VD-Visual-Design.md
     desc: >
-        The aesthetic and layout aspects of the solution, defining colors, typography, spacing,
-        imagery, and overall look and feel.
+        The visual design decisions of the solution (brand, color, typography, spacing, shape,
+        iconography, imagery, and motion), each stated as a rule with its rationale, plus the
+        high-fidelity mockups showing the decisions applied to concrete screens, so that the
+        Interaction Concept states how the solution behaves, the Language Conventions how it
+        talks, and the Visual Design how it looks. The concrete token values live in the design
+        system (token file, design tool library) and are referenced rather than restated, the
+        arrangement of the regions of a screen is a Dialog Pattern, the screen of a particular
+        flow step is a Dialog Storyboard frame, and a measurable visual bound (e.g. a contrast
+        ratio) is a Non-Functional Requirement.
     refs: >
         -   DTCG: Design Tokens Format Module (2025),
             https://www.designtokens.org/tr/format/
-        -   Frost: Atomic Design (2016),
-            https://atomicdesign.bradfrost.com/
+        -   Google: Material Design 3 -- Styles: Color, Typography, Shape, Motion, Icons, Elevation (2021),
+            https://m3.material.io/styles
         -   Kholmatova: Design Systems: A practical guide for creating design languages for digital products (2017),
             https://www.smashingmagazine.com/printed-books/design-systems/
     optional: true
+    diagram:
+        type: grid
+        nodes: "[[SPEC:VD.ELEMENT:*]]"
+        properties:
+            -   CATEGORY
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 4
     childs:
         -   kind: ELEMENT
             desc: >
-                A single visual design element, named with a short (2-5 word) summary and described
-                in a concise (1-3 sentence) paragraph specifying the concrete values, tokens, or
-                rules that define it (e.g. palette, font family, scale), plus a 1-sentence rationale
-                ("why").
+                A single visual design element, named with a short (2-5 word) summary (e.g. `Brand
+                Color Palette`, `Self-Hosted Typography`) and described in a concise (1-3 sentence)
+                paragraph as the rule the appearance of the solution has to follow consistently,
+                naming its stable concrete values (e.g. the primary color, the font family, the
+                type scale) and deferring the remaining ones to its `SOURCE`, plus a 1-sentence
+                rationale ("why"). An element decides how the solution looks (a behavior is an
+                Interaction Concept principle instead, a wording is a Language Conventions
+                convention instead), solution-wide rather than for one screen (a screen is a
+                `MOCKUP` or a Dialog Storyboard frame instead), and is a decision rather than a
+                list of token values (the values are in the design system) or a measurable bound
+                (a bound is a Non-Functional Requirement instead).
+            format:
+                maxTableColumns: 5
             props:
                 -   name: CATEGORY
-                    desc: The aspects of visual design the element governs.
-                    value: tags(Color,Typography,Iconography,Imagery,Layout,Animation)
+                    desc: >
+                        The aspect of visual design the element governs: `Brand` (logo, wordmark,
+                        and identity marks), `Color` (palettes, themes, and semantic color roles),
+                        `Typography` (font families, type scale, and text styles), `Spacing`
+                        (spacing scale, grid, and breakpoints, i.e. the metrics of the arrangements
+                        the Dialog Patterns structure), `Shape` (corner radii, borders, and
+                        elevation), `Iconography` (icon set and its usage), `Imagery`
+                        (photography, illustration, and video treatment), or `Motion`
+                        (transitions, animations, and their timing).
+                    value: enum(Brand,Color,Typography,Spacing,Shape,Iconography,Imagery,Motion)
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects for whom the
+                        element governs the appearance, omitted for an element governing the
+                        appearance for all users alike.
+                    value: list([[SPEC:UP.PERSONA:*]])
+                    optional: true
+                -   name: PRINCIPLES
+                    desc: >
+                        Comma-separated references to the INTERACTION-CONCEPT objects the element
+                        supports in appearance, so that an element is grounded in the interaction
+                        philosophy rather than in taste alone.
+                    value: list([[SPEC:IC.PRINCIPLE:*]])
+                    optional: true
+                -   name: SOURCE
+                    desc: >
+                        The authoritative external artifact holding the concrete values of the
+                        element (e.g. a design token file, a design tool library, a stylesheet),
+                        so that the values are maintained there and only referenced here, omitted
+                        for an element whose values are fully named in its description.
+                    optional: true
+                -   name: TRADE-OFF
+                    desc: >
+                        The liability the element accepts in exchange for its benefit, stated so
+                        that the opposite decision is a defensible choice, too (e.g. `a larger
+                        initial download` for `Self-Hosted Typography`), as opposed to the
+                        rationale which states why the benefit wins.
+        -   kind: MOCKUP
+            desc: >
+                A single high-fidelity mockup, named with a short (2-5 word) label for the screen
+                depicted, shown by its `IMAGE`, and described in a concise (1-2 sentence) paragraph
+                by which visual design elements it shows applied and where on the screen. A mockup
+                is a reference rendering of the final look of one screen (a low-fidelity sketch of
+                a screen within its flow is a Dialog Storyboard frame instead) and shows rules
+                applied rather than stating them (a rule is an `ELEMENT` instead).
+            format:
+                type: complex
+            props:
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects who see the
+                        depicted screen.
+                    value: list([[SPEC:UP.PERSONA:*]])
+                -   name: STORYBOARD
+                    desc: >
+                        Reference to the DIALOG-STORYBOARD object whose flow the depicted screen
+                        belongs to, so that the high-fidelity look traces back to the sketched
+                        flow, omitted for a mockup of a screen no storyboard covers.
+                    value: "[[SPEC:DS.STORYBOARD:*]]"
+                    optional: true
+                -   name: ELEMENTS
+                    desc: >
+                        Comma-separated references to the `ELEMENT` objects the mockup shows
+                        applied, so that an element is shown to be realized rather than merely
+                        declared.
+                    value: list([[SPEC:VD.ELEMENT:*]])
+                -   name: IMAGE
+                    desc: >
+                        An image (`![...](...)`) of the mockup, a high-fidelity rendering from
+                        the design tool or a screenshot of an already existing user interface, so
+                        that the look is seen rather than only read.
 
 -   kind: ARCH
     name: Context View
@@ -1480,6 +1574,8 @@
                 described in a concise (1-3 sentence) paragraph by *what* it does and how it
                 collaborates with the components it depends on, plus a 1-sentence rationale ("why")
                 for the component's existence and boundary.
+            format:
+                maxTableColumns: 5
             diagram:
                 type: hub
                 center: self
@@ -2047,8 +2143,6 @@
                 -   `Server`:     Runs on the server side (e.g. backend, application, API).
                 -   `Middleware`: Runs between client and server (e.g. message broker, gateway).
                 -   `Database`:   Runs as the data store (e.g. relational or document database).
-            format:
-                maxTableColumns: 5
             diagram:
                 type: hub
                 center: self

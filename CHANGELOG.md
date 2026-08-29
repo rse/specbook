@@ -5,6 +5,22 @@ ChangeLog
 1.1.0 (2026-08-29)
 ------------------
 
+-   FEATURE [code, spec, docs]: Per-Kind Rendering Format
+    The "format" schema field now configures the HTML/PDF rendering of the objects of the kind
+    it is placed on (among their siblings), instead of the rendering of all child objects of
+    the kind, so that the sibling kinds below one parent render differently (e.g. one kind as a
+    compact table, another one as sections), where the standard schema configuration moved its
+    existing "format" fields down onto the affected child kinds accordingly.
+
+-   IMPROVEMENT [spec, docs]: Visual Design Schema
+    The standard "Visual Design" now states the visual design decisions with their rationale
+    (new mandatory "TRADE-OFF" and optional "ACTORS", "PRINCIPLES", and "SOURCE" properties,
+    "CATEGORY" as an explained "enum" of "Brand", "Color", "Typography", "Spacing", "Shape",
+    "Iconography", "Imagery", and "Motion", bounded against the Dialog Patterns, Dialog
+    Storyboard, and Non-Functional Requirements), carries its high-fidelity mockups as the new
+    "MOCKUP" objects (linked to personas, storyboards, and elements) rendered as sections,
+    and shows its elements in a category grid diagram.
+
 -   FEATURE [code, spec, docs]: State Machine Checks
     The new object kind field "automaton" declares the child kinds acting as the states and
     transitions of a finite state machine, whose structural sanity the linter now checks: every
