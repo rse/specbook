@@ -117,6 +117,12 @@ export const compileValueExpr = (source: string): ValueExpr => {
     return expr
 }
 
+/*  whether a value expression admits Wiki-style references at all: a
+    reference constraint, or a list with a reference alternative  */
+export const admitsReferences = (expr: ValueExpr): boolean =>
+    expr.kind === "reference"
+    || (expr.kind === "list" && expr.alternatives.some((alternative) => alternative.kind === "reference"))
+
 /*  split a property value at top-level commas, honoring double-quoted
     sections and "[[...]]" reference bracketing (empty items are kept,
     as only the caller can decide whether to report or skip them)  */

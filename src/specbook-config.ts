@@ -8,9 +8,9 @@ import * as fs                                               from "node:fs"
 import { parseDocument, isNode, LineCounter, type Document } from "yaml"
 import * as v                                                from "valibot"
 
-import { Schema, type SchemaObject }  from "./specbook-format-schema.js"
-import { compileValueExpr, anchored } from "./specbook-parse-value.js"
-import { type Diagnostic }            from "./specbook-diagnostic.js"
+import { Schema, type SchemaObject }                                  from "./specbook-format-schema.js"
+import { compileValueExpr, anchored, admitsReferences, type ValueExpr } from "./specbook-parse-value.js"
+import { type Diagnostic }                                            from "./specbook-diagnostic.js"
 
 /*  a path into the YAML document (object keys and sequence indexes)  */
 type YamlPath = (string | number)[]
@@ -62,16 +62,25 @@ const checkConstraints = (
                 diagnose([ ...at, "file" ],
                     `"file" field is only allowed on the first (artifact) level (found on level ${depth})`)
             for (const [ j, prop ] of (object.props ?? []).entries()) {
-                if (prop.value === undefined)
-                    continue
-                try {
-                    compileValueExpr(prop.value)
+                /*  the relation shape flags apply to reference-valued
+                    properties only (an invalid expression is reported on
+                    its own, without a cascading flag diagnostic)  */
+                let expr: ValueExpr | undefined
+                if (prop.value !== undefined) {
+                    try {
+                        expr = compileValueExpr(prop.value)
+                    }
+                    catch (err) {
+                        diagnose([ ...at, "props", j, "value" ],
+                            `invalid value expression "${prop.value}": ` +
+                                (err instanceof Error ? err.message : String(err)))
+                        continue
+                    }
                 }
-                catch (err) {
-                    diagnose([ ...at, "props", j, "value" ],
-                        `invalid value expression "${prop.value}": ` +
-                            (err instanceof Error ? err.message : String(err)))
-                }
+                for (const flag of [ "symmetric", "acyclic" ] as const)
+                    if (prop[flag] === true && (expr === undefined || !admitsReferences(expr)))
+                        diagnose([ ...at, "props", j, flag ],
+                            `"${flag}" flag requires a reference-valued property`)
             }
             if (depth > 1 && object.name !== undefined) {
                 try {

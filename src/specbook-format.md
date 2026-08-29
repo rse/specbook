@@ -104,6 +104,8 @@ type SchemaProperty = {
     value?:            string
     optional?:         boolean
     unique?:           boolean | string
+    symmetric?:        boolean
+    acyclic?:          boolean
 }
 type SchemaGradiaConfig = Partial<{
     "font-family":               string
@@ -316,6 +318,17 @@ type SchemaGradiaConfig = Partial<{
     whether every value (`true`) or only the values matching a regexp or
     enum expression occur at most once among the sibling objects of the kind,
     BECAUSE some markers, like a `Main` flow, designate a single sibling
+
+-   `SchemaProperty.symmetric?: boolean`:
+    whether every object the reference-valued property references has to
+    reference the referencing object back through the same property
+    (default: `false`),
+    BECAUSE an undirected relation authored on one side only is half a lie
+
+-   `SchemaProperty.acyclic?: boolean`:
+    whether following the reference-valued property from object to object
+    must never return to an object already passed (default: `false`),
+    BECAUSE a hierarchy with a loop has no root and an inclusion with a loop never ends
 
 -   `SchemaGradiaConfig`:
     the Gradia rendering options, mirrored from `@rse/gradia`,

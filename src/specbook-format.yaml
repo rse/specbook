@@ -145,6 +145,7 @@
                         hierarchy a tree.
                     value: "[[SPEC:GL.TERM:*]]"
                     optional: true
+                    acyclic: true
                 -   name: DISTINCT-FROM
                     desc: >
                         Comma-separated references to the GLOSSARY terms easily confused with this
@@ -152,6 +153,7 @@
                         with the distinction stated in the definitions.
                     value: list([[SPEC:GL.TERM:*]])
                     optional: true
+                    symmetric: true
 
 -   kind: SPEC
     name: User Personas
@@ -528,6 +530,7 @@
                         instead of restating its steps.
                     value: list([[SPEC:UC.USE-CASE:*]])
                     optional: true
+                    acyclic: true
                 -   name: PRE-CONDITION
                     desc: >
                         The condition that must hold before the use case can begin.

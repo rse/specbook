@@ -280,6 +280,84 @@ const checkIds = (ctx: ParseContext, objects: SpecObject[]) => {
     }
 }
 
+/*  the objects a property of an object references (resolved and
+    distinct, in document order), leniently skipping the unresolvable
+    ones, as those are already reported by the reference pass  */
+const referencedObjects = (ctx: ParseContext, object: SpecObject, name: string): SpecObject[] => {
+    const property = findProp(object, name)
+    if (property === undefined)
+        return []
+    const targets = new Array<SpecObject>()
+    for (const m of plainText(property.value).matchAll(referenceRegex)) {
+        const target = resolveUnique(ctx.linkIndex, m[1].trim()).target
+        if (target !== undefined && !targets.includes(target))
+            targets.push(target)
+    }
+    return targets
+}
+
+/*  check the reference properties flagged symmetric or acyclic across
+    all objects of their kind: a symmetric property has to be referenced
+    back by every referenced object through the same property, while an
+    acyclic property must never lead from an object back to itself  */
+const checkRelations = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject>) => {
+    /*  group the objects by their flagged schema properties (a schema
+        property is shared by all objects of its kind)  */
+    const groups = new Map<SchemaProperty, SpecObject[]>()
+    for (const [ object, schema ] of schemas)
+        for (const prop of schema.props ?? [])
+            if (prop.symmetric === true || prop.acyclic === true)
+                groups.set(prop, [ ...(groups.get(prop) ?? []), object ])
+    for (const [ prop, objects ] of groups) {
+        const members = new Set<SpecObject>(objects)
+        const locate  = (object: SpecObject) => {
+            const meta     = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
+            const property = findProp(object, prop.name)
+            const line     = property !== undefined ? ctx.propMeta.get(property)?.line : undefined
+            return { file: meta.file, line: line ?? meta.line }
+        }
+        if (prop.symmetric === true)
+            for (const object of objects)
+                for (const target of referencedObjects(ctx, object, prop.name)) {
+                    const { file, line } = locate(object)
+                    if (target === object)
+                        ctx.diagnose(file, line,
+                            `symmetric property "${prop.name}" on ${object.kind} "${object.name}" references itself`)
+                    else if (!referencedObjects(ctx, target, prop.name).includes(object))
+                        ctx.diagnose(file, line,
+                            `symmetric property "${prop.name}" on ${object.kind} "${object.name}" references ` +
+                            `${target.kind} "${target.name}", which does not reference it back`)
+                }
+        if (prop.acyclic === true) {
+            /*  depth-first search along the references: an edge onto an
+                object still on the current path closes a cycle, which is
+                reported once, at the object closing it, with its path
+                (objects outside the group act as leaves)  */
+            const done = new Set<SpecObject>()
+            const path = new Array<SpecObject>()
+            const walk = (object: SpecObject) => {
+                path.push(object)
+                for (const target of referencedObjects(ctx, object, prop.name)) {
+                    const at = path.indexOf(target)
+                    if (at >= 0) {
+                        const { file, line } = locate(object)
+                        const cycle = [ ...path.slice(at), target ].map((o) => plainText(o.name)).join(" -> ")
+                        ctx.diagnose(file, line,
+                            `acyclic property "${prop.name}" on ${object.kind} "${object.name}" forms a cycle: ${cycle}`)
+                    }
+                    else if (members.has(target) && !done.has(target))
+                        walk(target)
+                }
+                path.pop()
+                done.add(object)
+            }
+            for (const object of objects)
+                if (!done.has(object))
+                    walk(object)
+        }
+    }
+}
+
 /*  validate the parsed specification against the configuration  */
 export const validate = (ctx: ParseContext, specification: Spec, config: Schema) => {
     /*  map all objects onto their schema nodes and assign the implicit
@@ -330,6 +408,10 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
             validateObject(ctx, object, schema, 1)
         }
     }
+
+    /*  check the relation shapes of the flagged reference properties,
+        now that every object has been validated on its own  */
+    checkRelations(ctx, schemas)
 
     /*  order the artifacts exactly along the schema definition  */
     specification.artifacts.sort((a, b) =>

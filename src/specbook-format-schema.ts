@@ -58,15 +58,18 @@ export type SchemaFormat = {
 }
 
 /*  a property allowed on the objects of an object kind, with its
-    value constraint (regexp, link, enum, tags, or list expression) and
+    value constraint (regexp, link, enum, tags, or list expression),
     its uniqueness among the sibling objects (all values, or only the
-    values matching a regexp or enum expression)  */
+    values matching a regexp or enum expression), and the relation
+    shape of a reference-valued property (symmetric and/or acyclic)  */
 export type SchemaProperty = {
     name:              string
     desc?:             string
     value?:            string
     optional?:         boolean
     unique?:           boolean | string
+    symmetric?:        boolean
+    acyclic?:          boolean
 }
 
 /*  ==== Schema ====  */
@@ -91,7 +94,9 @@ const SchemaProperty: v.GenericSchema<SchemaProperty> = v.strictObject({
     desc:              v.optional(v.string()),
     value:             v.optional(v.string()),
     optional:          v.optional(v.boolean()),
-    unique:            v.optional(v.union([ v.boolean(), v.string() ]))
+    unique:            v.optional(v.union([ v.boolean(), v.string() ])),
+    symmetric:         v.optional(v.boolean()),
+    acyclic:           v.optional(v.boolean())
 })
 const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     type:              v.optional(v.picklist([ "graph", "hub", "grid" ])),
