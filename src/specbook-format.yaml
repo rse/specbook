@@ -354,7 +354,7 @@
         problem domain, independent of any single feature, constraining the Functional and
         Non-Functional Requirements.
     format:
-        maxTableColumns: 6
+        maxTableColumns: 5
     diagram:
         type: grid
         nodes: "[[SPEC:BR.RULE:*]]"
@@ -372,9 +372,10 @@
                 must hold, written with the keyword `MUST` or `MUST NOT` (`SHOULD` or `SHOULD NOT`
                 for a `Policy` only, as a `SHOULD` on any other kind contradicts its "must always
                 hold" nature) to indicate the obligation level and naming the domain terms it
-                governs (as defined in the Glossary), plus a 1-sentence rationale ("why"). A
-                permission (`MAY`) is not a rule: state the obligation which bounds the permitted
-                choice instead (e.g. `MUST use only ...` rather than `MAY use ...`).
+                governs (as defined in the Glossary and listed in `GOVERNS`), plus a 1-sentence
+                rationale ("why"). A permission (`MAY`) is not a rule: state the obligation which
+                bounds the permitted choice instead (e.g. `MUST use only ...` rather than
+                `MAY use ...`).
 
                 The subject of the statement is a domain term, never the system: a rule holds in
                 the problem domain even if the solution were replaced, so if the sentence needs
@@ -412,6 +413,13 @@
                         the domain). The concrete authority (e.g. `GDPR Art. 17`) is named in the
                         rationale of the rule.
                     value: enum(Law,Contract,Standard,Business,Domain)
+                    optional: true
+                -   name: GOVERNS
+                    desc: >
+                        Comma-separated references to the GLOSSARY terms the rule governs, i.e.
+                        the domain terms its statement is about, so that every rule is anchored in
+                        the ubiquitous language and every term shows the rules that hold for it.
+                    value: list([[SPEC:GL.TERM:*]])
                     optional: true
                 -   name: CONSTRAINS
                     desc: >
