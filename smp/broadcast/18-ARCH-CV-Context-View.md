@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-06-18 10:18
+Modified: 2026-08-30 00:49
 ---
 
 ARCH: Context View (CV)
@@ -10,7 +10,6 @@ ARCH: Context View (CV)
 
 -   KIND:      Person
 -   DIRECTION: Bidirectional
--   INTERFACE: Web UI over HTTPS and MQTT-over-WebSocket
 -   DATA:      Login credentials, video playback, chat, questions, likes
 
 The attendee's web browser is the primary client through which a person
@@ -21,7 +20,6 @@ browser-delivered solution serving thousands of concurrent attendees.
 
 -   KIND:      Person
 -   DIRECTION: Bidirectional
--   INTERFACE: Web UI over HTTPS and MQTT-over-WebSocket
 -   DATA:      Event configuration, moderation actions, statistics, exports
 
 Managers, moderators, and presenters use their browsers to configure
@@ -32,7 +30,6 @@ event operation happens through the same web application as attendance.
 
 -   KIND:      System
 -   DIRECTION: Outbound
--   INTERFACE: RTMP/SRT ingest and HLS/WebRTC egress URLs
 -   DATA:      Live video ingest and playback streams
 
 External streaming providers such as msg Filmstudio, msg Broadcast,
@@ -44,7 +41,6 @@ provider endpoints rather than hosting video.
 
 -   KIND:      Service
 -   DIRECTION: Outbound
--   INTERFACE: HTTPS edge delivery (Cloudflare)
 -   DATA:      Static client assets and static resources
 
 A Cloudflare content delivery network fronts static content for fast,
@@ -55,7 +51,6 @@ reliably for a global, large-scale audience.
 
 -   KIND:      System
 -   DIRECTION: Bidirectional
--   INTERFACE: Excel sheet import and export
 -   DATA:      Attendee registration data and generated access URLs
 
 The Event Registration System supplies attendee registration data and
@@ -66,7 +61,6 @@ provisioned from the organization's existing registration system.
 
 -   KIND:      Service
 -   DIRECTION: Outbound
--   INTERFACE: GraphQL mail-sending API over HTTPS
 -   DATA:      Authorization token emails
 
 An external mail-sending service delivers one-time authorization tokens
@@ -77,7 +71,6 @@ access is verified.
 
 -   KIND:      Service
 -   DIRECTION: Outbound
--   INTERFACE: AI SDK over HTTPS
 -   DATA:      Source and translated message texts
 
 An external AI/LLM service translates message texts between the
@@ -88,7 +81,6 @@ German and English on the fly.
 
 -   KIND:      System
 -   DIRECTION: Bidirectional
--   INTERFACE: Embedded iframe with user and admin URLs
 -   DATA:      Interactive app content and administration
 
 An optional third-party application is embedded into the event for

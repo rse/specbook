@@ -13,7 +13,7 @@
         Some of the information is rendered onto the title page.
     diagram:
         type: graph
-        nodes: "[[REQS:*]], [[DATA:*]], [[TEST:*]], [[UXUI:*]], [[ARCH:*]]"
+        nodes: "[[REQS:*]], [[DATA:*]], [[TEST:*]], [[APIS:*]], [[UXUI:*]], [[ARCH:*]]"
         deep: true
         qualified: true
     props:
@@ -1031,10 +1031,466 @@
                         no state behind.
                     optional: true
 
+-   kind: APIS
+    name: Interface Model
+    id: IM
+    file: 12-APIS-IM-Interface-Model.md
+    desc: >
+        The machine-facing interfaces the solution provides to, or requires from, other programs
+        (REST, GraphQL, gRPC, WebSocket, MQTT, AMQP, MCP, CLI, library, or custom ones), each
+        described by one generic model of its named types, constants, and endpoints, where an
+        endpoint consumes types and constants through its positional arguments and named options
+        and returns them through its results. The artifact is absent when the solution neither
+        provides nor requires any machine-facing interface.
+    optional: true
+    refs: >
+        -   OpenAPI Initiative: OpenAPI Specification 3.1 (2021),
+            https://spec.openapis.org/oas/v3.1.0
+        -   GraphQL Foundation: GraphQL Specification (2021),
+            https://spec.graphql.org/October2021/
+        -   OASIS: MQTT Version 5.0 (2019),
+            https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html
+        -   Anthropic: Model Context Protocol Specification (2025),
+            https://modelcontextprotocol.io/specification/
+        -   IEEE/The Open Group: POSIX.1-2024, Utility Conventions (2024),
+            https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap12.html
+    diagram:
+        type: grid
+        nodes: "[[APIS:IM.INTERFACE:*]]"
+        properties:
+            -   KIND
+            -   DIRECTION
+    childs:
+        -   kind: INTERFACE
+            desc: >
+                A single interface, named with a short (2-5 word) summary (e.g. `Public REST API`,
+                `Event Topics`, `Command Line`) and described in a concise (1-3 sentence) paragraph
+                by its purpose and its consumers, plus a 1-sentence rationale ("why") for the
+                interface's existence and boundary. All kinds of interfaces share the same model:
+                the `TYPE` objects are the data shapes exchanged, the `CONSTANT` objects the fixed
+                values agreed upon, and the `ENDPOINT` objects the operations offered, whose
+                kind-specific parts (HTTP method, GraphQL operation, topic direction, command) are
+                carried by their `OPERATION` and `LOCATOR` properties only.
+            diagram:
+                type: graph
+                nodes: "[[APIS:IM.INTERFACE:*.TYPE:*]], [[APIS:IM.INTERFACE:*.ENDPOINT:*]], [[APIS:IM.INTERFACE:*.ENDPOINT:*.ENDPOINT:*]]"
+                deep: true
+                onlyConnected: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the interface, one of:
+                        -   `REST`:      HTTP resources addressed by URL paths and HTTP methods.
+                        -   `GraphQL`:   A GraphQL schema of queries, mutations, and subscriptions.
+                        -   `gRPC`:      Protocol Buffers based remote procedure calls.
+                        -   `WebSocket`: Messages exchanged over a WebSocket connection.
+                        -   `MQTT`:      Messages published to and subscribed from MQTT topics.
+                        -   `MCP`:       Tools, resources, and prompts of a Model Context Protocol server.
+                        -   `CLI`:       Commands, options, and arguments of a command-line program.
+                        -   `Library`:   Functions, methods, and classes of a programming language library.
+                        -   `Custom`:    Any other kind of interface, explained in the description.
+                    value: enum(REST,GraphQL,gRPC,WebSocket,MQTT,MCP,CLI,Library,Custom)
+                -   name: DIRECTION
+                    desc: >
+                        Whether the interface is `Provided` by the solution to its consumers or
+                        `Required` by the solution from an external system; defaults to `Provided`.
+                    value: enum(Provided,Required)
+                    optional: true
+                -   name: LOCATION
+                    desc: >
+                        Where the interface is reached, depending on its `KIND`: the base URL
+                        (e.g. `https://api.example.com/v1`), the broker URL or topic prefix (e.g.
+                        `wss://broker.example.com/mqtt`, `event/`), the server name (MCP), the
+                        executable name (e.g. `specbook`), or the package or module name (e.g.
+                        `@rse/specbook`).
+                -   name: VERSION
+                    desc: The version of the interface contract (e.g. `1.2`, `2026-08`).
+                    optional: true
+                -   name: CONSUMERS
+                    desc: >
+                        Comma-separated references to the PERSONAS objects which use the interface
+                        (the external systems using it reference the interface from the
+                        CONTEXT-VIEW instead).
+                    value: list([[REQS:UP.PERSONA:*]])
+                    optional: true
+            childs:
+                -   kind: TYPE
+                    name: "[A-Z][A-Za-z0-9_]*"
+                    desc: >
+                        A named data type exchanged through the interface, carrying a Pascal-cased,
+                        per-interface unique name (e.g. `Event`, `ChatMessage`, `Diagnostic`) and
+                        described by a 1-sentence description ("what") plus a 1-sentence rationale
+                        ("why"). A type without a `BASE` is an object type composed of its `FIELD`
+                        objects; a type with a `BASE` is a scalar, enumeration, alias, or union
+                        type without fields.
+                    optional: true
+                    diagram:
+                        type: hub
+                        center: self
+                        nodes: "[[APIS:IM.INTERFACE:*.TYPE:*]]"
+                        deep: true
+                        config:
+                            size-node-width-max: 440
+                    props:
+                        -   name: BASE
+                            desc: >
+                                The underlying type of a non-object type: one of the primitives
+                                `boolean`, `string` (short single-line text), `text` (long
+                                free-form text), `integer`, `float` (approximate), `decimal`
+                                (exact, e.g. for money), `uuid`, `bytes`, `date`, `time`,
+                                `datetime`, `duration` (time span), or `any` (a named scalar), an
+                                enumeration `enum(XXX,YYY[,...])`, or a reference to another `TYPE`
+                                object of the interface model (an alias), where several
+                                comma-separated alternatives form a named union type; omitted for
+                                an object type composed of fields.
+                            value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            optional: true
+                        -   name: ENTITY
+                            desc: >
+                                Reference to the DATA-MODEL entity the type materializes (e.g. as a
+                                data transfer object), tracing the interface into the data model.
+                            value: "[[DATA:DM.ENTITY:*]]"
+                            optional: true
+                    childs:
+                        -   kind: FIELD
+                            name: "[A-Za-z_][A-Za-z0-9_-]*"
+                            desc: >
+                                A named field of an object type, carrying a per-type unique
+                                identifier in the naming convention of the interface (e.g.
+                                `eventId`, `event_id`, `event-id`) and described by a 1-sentence
+                                description ("what") plus a 1-sentence rationale ("why").
+                            optional: true
+                            props:
+                                -   name: TYPE
+                                    desc: >
+                                        The type of the field: a reference to a `TYPE` object of
+                                        the interface, one of the primitives `boolean`, `string`,
+                                        `text`, `integer`, `float`, `decimal`, `uuid`, `bytes`,
+                                        `date`, `time`, `datetime`, `duration`, or `any`, or an inline
+                                        enumeration `enum(XXX,YYY[,...])` (a reusable one is a `TYPE`
+                                        object with an `enum(...)` base), where several comma-separated
+                                        alternatives form a union type.
+                                    value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                                -   name: ARITY
+                                    desc: >
+                                        The arity (cardinality) of the field value: `0..1` or `?`
+                                        for zero or one ("optional"), `1` for exactly one
+                                        ("mandatory"), `0..n` or `*` for zero or more, `1..n` or
+                                        `+` for one or more, or `{n}`/`{n,m}` for an exact number
+                                        or range; defaults to `1`.
+                                    value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
+                                    optional: true
+                                -   name: DEFAULT
+                                    desc: The default value of the field.
+                                    value: /.*/
+                                    optional: true
+                                -   name: CONSTRAINT
+                                    desc: >
+                                        The constraint on the value of the field beyond its type,
+                                        as a short phrase stating a range, unit, pattern, or
+                                        invariant (e.g. `1..100`, `RFC 5322 address`).
+                                    value: /.+/
+                                    optional: true
+                -   kind: CONSTANT
+                    name: "[A-Z][A-Z0-9_]*"
+                    desc: >
+                        A named fixed value agreed upon through the interface, carrying an
+                        upper-cased, per-interface unique name (e.g. `MAX_PAGE_SIZE`,
+                        `DEFAULT_PORT`, `TOPIC_PREFIX`) and described by a 1-sentence description
+                        ("what") plus a 1-sentence rationale ("why").
+                    optional: true
+                    format:
+                        type: concise
+                    props:
+                        -   name: TYPE
+                            desc: >
+                                The type of the constant: a reference to a `TYPE` object of the
+                                interface, one of the primitives `boolean`, `string`, `text`,
+                                `integer`, `float`, `decimal`, `uuid`, `bytes`, `date`, `time`,
+                                `datetime`, `duration`, or `any`, or an inline enumeration
+                                `enum(XXX,YYY[,...])` (a reusable one is a `TYPE` object with
+                                an `enum(...)` base).
+                            value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                        -   name: VALUE
+                            desc: The literal value of the constant (e.g. `100`, `event/`).
+                            value: /.+/
+                -   kind: ENDPOINT
+                    name: "[A-Za-z_][A-Za-z0-9_-]*"
+                    desc: >
+                        A single operation of the interface, carrying a technical, per-interface
+                        unique name in the naming convention of the interface (e.g.
+                        `createEvent`, `chat_message`, `lint`) and described by a 1-sentence
+                        description ("what") plus a 1-sentence rationale ("why"). An endpoint
+                        consumes its input through its positional `ARGUMENT` objects (in document
+                        order, e.g. the URL path placeholders, a request body, a message payload,
+                        or the operands of a command) and its named `OPTION` objects (e.g. the
+                        query parameters, the arguments of a GraphQL field or MCP tool, or the
+                        options of a command), and returns its output through its `RESULT`
+                        objects (e.g. a response body, a subscription message, or the output and
+                        exit code of a command). An endpoint *MAY* nest further endpoints as its
+                        sub-endpoints (e.g. the sub-commands of a command or the sub-resources of
+                        a resource), whose `LOCATOR` is relative to its own.
+                    props:
+                        -   name: OPERATION
+                            desc: |
+                                The kind-specific operation the endpoint performs, one of:
+                                -   `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`:
+                                    the HTTP method (`REST`).
+                                -   `query`, `mutation`, `subscription`: the GraphQL operation
+                                    type (`GraphQL`).
+                                -   `call`, `stream`: a unary or streaming remote procedure call
+                                    (`gRPC`).
+                                -   `publish`, `subscribe`: the message direction from the
+                                    perspective of the interface consumer (`WebSocket`, `MQTT`,
+                                    `AMQP`).
+                                -   `tool`, `resource`, `prompt`: the MCP primitive (`MCP`).
+                                -   `command`: a command or sub-command (`CLI`).
+                                -   `function`, `method`, `constructor`, `event`: the callable or
+                                    emitted member (`Library`).
+                                -   `custom`: any other operation, explained in the description.
+                            value: enum(GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS,query,mutation,subscription,call,stream,publish,subscribe,tool,resource,prompt,command,function,method,constructor,event,custom)
+                        -   name: LOCATOR
+                            desc: >
+                                How the endpoint is addressed within the interface, depending on
+                                its `KIND`: the URL path with `{xxx}` placeholders (e.g.
+                                `/events/{eventId}`), the GraphQL field name, the topic pattern
+                                (e.g. `event/{eventId}/chat`), the tool, resource, or prompt name,
+                                the command word (e.g. `lint`), or the symbol (e.g.
+                                `SpecBook.lint`); defaults to the endpoint name.
+                            value: /.+/
+                            optional: true
+                        -   name: USE-CASES
+                            desc: >
+                                Comma-separated references to the USE-CASES objects the endpoint
+                                realizes, tracing the requirements into the interface.
+                            value: list([[REQS:UC.USE-CASE:*]])
+                            optional: true
+                    childs:
+                        -   kind: ARGUMENT
+                            name: "[A-Za-z_][A-Za-z0-9_-]*"
+                            desc: >
+                                A positional input of the endpoint, in document order, carrying a
+                                per-endpoint unique identifier (e.g. `eventId`, `body`, `file`)
+                                and described by a 1-sentence description ("what") plus a
+                                1-sentence rationale ("why").
+                            optional: true
+                            props:
+                                -   name: TYPE
+                                    desc: >
+                                        The type of the argument: a reference to a `TYPE` object
+                                        of the interface, one of the primitives `boolean`,
+                                        `string`, `text`, `integer`, `float`, `decimal`, `uuid`,
+                                        `bytes`, `date`, `time`, `datetime`, `duration`, or `any`, or an
+                                        inline enumeration `enum(XXX,YYY[,...])` (a reusable one is a
+                                        `TYPE` object with an `enum(...)` base), where several comma-separated
+                                        alternatives form a union type.
+                                    value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                                -   name: ARITY
+                                    desc: >
+                                        The arity (cardinality) of the argument: `0..1` or `?` for
+                                        zero or one ("optional"), `1` for exactly one
+                                        ("mandatory"), `0..n` or `*` for zero or more, `1..n` or
+                                        `+` for one or more, or `{n}`/`{n,m}` for an exact number
+                                        or range; defaults to `1`.
+                                    value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
+                                    optional: true
+                                -   name: DEFAULT
+                                    desc: The default value of the argument.
+                                    value: /.*/
+                                    optional: true
+                                -   name: CONSTRAINT
+                                    desc: >
+                                        The constraint on the value of the argument beyond its
+                                        type, as a short phrase stating a range, unit, pattern, or
+                                        invariant (e.g. `existing file`, `1..100`).
+                                    value: /.+/
+                                    optional: true
+                        -   kind: OPTION
+                            name: "-{0,2}[A-Za-z_][A-Za-z0-9_-]*"
+                            desc: >
+                                A named input of the endpoint, carrying a per-endpoint unique
+                                identifier in the syntax of the interface (e.g. `--output`,
+                                `first`, `file_path`) and described by a 1-sentence description
+                                ("what") plus a 1-sentence rationale ("why").
+                            optional: true
+                            props:
+                                -   name: TYPE
+                                    desc: >
+                                        The type of the option: a reference to a `TYPE` object of
+                                        the interface, one of the primitives `boolean`, `string`,
+                                        `text`, `integer`, `float`, `decimal`, `uuid`, `bytes`,
+                                        `date`, `time`, `datetime`, `duration`, or `any`, or an inline
+                                        enumeration `enum(XXX,YYY[,...])` (a reusable one is a `TYPE`
+                                        object with an `enum(...)` base), where several comma-separated
+                                        alternatives form a union type.
+                                    value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                                -   name: ALIAS
+                                    desc: >
+                                        Comma-separated alternative names of the option in the
+                                        syntax of the interface (e.g. `-o` for `--output`).
+                                    value: /^-{0,2}[A-Za-z_][A-Za-z0-9_-]*(?:,\s*-{0,2}[A-Za-z_][A-Za-z0-9_-]*)*$/
+                                    optional: true
+                                -   name: ARITY
+                                    desc: >
+                                        The arity (cardinality) of the option: `0..1` or `?` for
+                                        zero or one ("optional"), `1` for exactly one
+                                        ("mandatory"), `0..n` or `*` for zero or more, `1..n` or
+                                        `+` for one or more, or `{n}`/`{n,m}` for an exact number
+                                        or range; defaults to `?`.
+                                    value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
+                                    optional: true
+                                -   name: DEFAULT
+                                    desc: The default value of the option.
+                                    value: /.*/
+                                    optional: true
+                                -   name: CONSTRAINT
+                                    desc: >
+                                        The constraint on the value of the option beyond its type,
+                                        as a short phrase stating a range, unit, pattern, or
+                                        invariant (e.g. `1..65535`, `readable directory`).
+                                    value: /.+/
+                                    optional: true
+                        -   kind: RESULT
+                            name: "[A-Za-z_][A-Za-z0-9_-]*"
+                            desc: >
+                                A named output of the endpoint, carrying a per-endpoint unique
+                                identifier (e.g. `body`, `message`, `stdout`, `exit-code`) and
+                                described by a 1-sentence description ("what") plus a 1-sentence
+                                rationale ("why"). An error outcome is a result of its own (e.g.
+                                `error` with an HTTP status in its `CONSTRAINT`).
+                            optional: true
+                            props:
+                                -   name: TYPE
+                                    desc: >
+                                        The type of the result: a reference to a `TYPE` object of
+                                        the interface, one of the primitives `boolean`, `string`,
+                                        `text`, `integer`, `float`, `decimal`, `uuid`, `bytes`,
+                                        `date`, `time`, `datetime`, `duration`, or `any`, or an inline
+                                        enumeration `enum(XXX,YYY[,...])` (a reusable one is a `TYPE`
+                                        object with an `enum(...)` base), where several comma-separated
+                                        alternatives form a union type.
+                                    value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                                -   name: ARITY
+                                    desc: >
+                                        The arity (cardinality) of the result: `0..1` or `?` for
+                                        zero or one ("optional"), `1` for exactly one
+                                        ("mandatory"), `0..n` or `*` for zero or more, `1..n` or
+                                        `+` for one or more, or `{n}`/`{n,m}` for an exact number
+                                        or range; defaults to `1`.
+                                    value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
+                                    optional: true
+                                -   name: CONSTRAINT
+                                    desc: >
+                                        The constraint on the value of the result beyond its type,
+                                        as a short phrase stating a range, unit, pattern, or
+                                        invariant (e.g. `HTTP 201`, `0 iff no diagnostics`).
+                                    value: /.+/
+                                    optional: true
+                        -   kind: ENDPOINT
+                            name: "[A-Za-z_][A-Za-z0-9_-]*"
+                            desc: >
+                                A sub-endpoint of the endpoint (e.g. a sub-command of a command
+                                or a sub-resource of a resource), carrying a technical,
+                                per-endpoint unique name and described by a 1-sentence
+                                description ("what") plus a 1-sentence rationale ("why"). It is
+                                modeled exactly like its parent endpoint, with its `LOCATOR`
+                                relative to the parent one, but cannot nest further endpoints.
+                            optional: true
+                            props:
+                                -   name: OPERATION
+                                    desc: >
+                                        The kind-specific operation the sub-endpoint performs, one
+                                        of the operations of its parent endpoint kind.
+                                    value: enum(GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS,query,mutation,subscription,call,stream,publish,subscribe,tool,resource,prompt,command,function,method,constructor,event,custom)
+                                -   name: LOCATOR
+                                    desc: >
+                                        How the sub-endpoint is addressed relative to its parent
+                                        endpoint (e.g. `/{eventId}` below `/events`, `add` below
+                                        `remote`); defaults to the sub-endpoint name.
+                                    value: /.+/
+                                    optional: true
+                                -   name: USE-CASES
+                                    desc: >
+                                        Comma-separated references to the USE-CASES objects the
+                                        sub-endpoint realizes.
+                                    value: list([[REQS:UC.USE-CASE:*]])
+                                    optional: true
+                            childs:
+                                -   kind: ARGUMENT
+                                    name: "[A-Za-z_][A-Za-z0-9_-]*"
+                                    desc: >
+                                        A positional input of the sub-endpoint, in document
+                                        order, modeled exactly like the `ARGUMENT` of an
+                                        endpoint.
+                                    optional: true
+                                    props:
+                                        -   name: TYPE
+                                            desc: The type of the argument, as for an endpoint.
+                                            value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                                        -   name: ARITY
+                                            desc: The arity of the argument, as for an endpoint.
+                                            value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
+                                            optional: true
+                                        -   name: DEFAULT
+                                            desc: The default value of the argument.
+                                            value: /.*/
+                                            optional: true
+                                        -   name: CONSTRAINT
+                                            desc: The constraint on the argument, as for an endpoint.
+                                            value: /.+/
+                                            optional: true
+                                -   kind: OPTION
+                                    name: "-{0,2}[A-Za-z_][A-Za-z0-9_-]*"
+                                    desc: >
+                                        A named input of the sub-endpoint, modeled exactly like
+                                        the `OPTION` of an endpoint.
+                                    optional: true
+                                    props:
+                                        -   name: TYPE
+                                            desc: The type of the option, as for an endpoint.
+                                            value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                                        -   name: ALIAS
+                                            desc: The alternative names of the option, as for an endpoint.
+                                            value: /^-{0,2}[A-Za-z_][A-Za-z0-9_-]*(?:,\s*-{0,2}[A-Za-z_][A-Za-z0-9_-]*)*$/
+                                            optional: true
+                                        -   name: ARITY
+                                            desc: The arity of the option, as for an endpoint.
+                                            value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
+                                            optional: true
+                                        -   name: DEFAULT
+                                            desc: The default value of the option.
+                                            value: /.*/
+                                            optional: true
+                                        -   name: CONSTRAINT
+                                            desc: The constraint on the option, as for an endpoint.
+                                            value: /.+/
+                                            optional: true
+                                -   kind: RESULT
+                                    name: "[A-Za-z_][A-Za-z0-9_-]*"
+                                    desc: >
+                                        A named output of the sub-endpoint, modeled exactly like
+                                        the `RESULT` of an endpoint.
+                                    optional: true
+                                    props:
+                                        -   name: TYPE
+                                            desc: The type of the result, as for an endpoint.
+                                            value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                                        -   name: ARITY
+                                            desc: The arity of the result, as for an endpoint.
+                                            value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
+                                            optional: true
+                                        -   name: CONSTRAINT
+                                            desc: The constraint on the result, as for an endpoint.
+                                            value: /.+/
+                                            optional: true
+
 -   kind: UXUI
     name: Interaction Concept
     id: IC
-    file: 12-UXUI-IC-Interaction-Concept.md
+    file: 13-UXUI-IC-Interaction-Concept.md
     desc: >
         The interaction philosophy of the solution, stated as the set of cross-cutting principles
         (e.g. auto-save instead of explicit saving) which govern how users interact with the
@@ -1105,7 +1561,7 @@
 -   kind: UXUI
     name: Language Conventions
     id: LC
-    file: 13-UXUI-LC-Language-Conventions.md
+    file: 14-UXUI-LC-Language-Conventions.md
     desc: >
         The voice, tone, and wording of the user-facing text of the solution (labels, messages,
         notifications, help), governing how the solution speaks to its users, so that the Interaction
@@ -1182,7 +1638,7 @@
 -   kind: UXUI
     name: Dialog Patterns
     id: DP
-    file: 14-UXUI-DP-Dialog-Patterns.md
+    file: 15-UXUI-DP-Dialog-Patterns.md
     desc: >
         The reusable interaction structures governing how the system and user exchange information
         across recurring UI flows (e.g. master-detail dialog).
@@ -1275,7 +1731,7 @@
 -   kind: UXUI
     name: Dialog Storyboard
     id: DS
-    file: 15-UXUI-DS-Dialog-Storyboard.md
+    file: 16-UXUI-DS-Dialog-Storyboard.md
     desc: >
         The sequenced visual or textual depiction of a specific dialog flow, illustrating how an
         interaction unfolds screen by screen or turn by turn.
@@ -1373,7 +1829,7 @@
 -   kind: UXUI
     name: Visual Design
     id: VD
-    file: 16-UXUI-VD-Visual-Design.md
+    file: 17-UXUI-VD-Visual-Design.md
     desc: >
         The visual design decisions of the solution (brand, color, typography, spacing, shape,
         iconography, imagery, and motion), each stated as a rule with its rationale, plus the
@@ -1501,7 +1957,7 @@
 -   kind: ARCH
     name: Context View
     id: CV
-    file: 17-ARCH-CV-Context-View.md
+    file: 18-ARCH-CV-Context-View.md
     desc: >
         The relationships, dependencies, and interactions between the solution and its environment,
         defining the system's scope, external entities, and boundaries.
@@ -1548,8 +2004,13 @@
                     value: enum(Inbound,Outbound,Bidirectional)
                 -   name: INTERFACE
                     desc: >
-                        How the interaction happens (e.g. REST API, message queue, file exchange,
-                        web UI).
+                        Comma-separated references to the INTERFACE-MODEL interfaces through which
+                        the interaction happens, i.e. the interfaces the entity consumes (for a
+                        `Provided` one) or offers (for a `Required` one); omitted when the
+                        interaction happens through the user interface or outside any modeled
+                        interface (e.g. a file exchange).
+                    value: list([[APIS:IM.INTERFACE:*]])
+                    optional: true
                 -   name: DATA
                     desc: >
                         The principal information exchanged across the boundary with this entity.
@@ -1557,7 +2018,7 @@
 -   kind: ARCH
     name: Functionality View
     id: FV
-    file: 18-ARCH-FV-Functionality-View.md
+    file: 19-ARCH-FV-Functionality-View.md
     desc: >
         The functional components of the solution, their responsibilities, interfaces, and primary
         interactions, describing *what* the system does at runtime.
@@ -1607,10 +2068,14 @@
                     desc: >
                         The 1-sentence statement of the single, primary responsibility the component
                         owns.
-                -   name: INTERFACE
+                -   name: PROVIDES
                     desc: >
-                        How other components interact with this component (e.g. REST API, library
-                        API, message topic, CLI).
+                        Comma-separated references to the INTERFACE-MODEL interfaces the component
+                        provides, i.e. through which other components and external entities
+                        interact with it; omitted when the component provides no modeled interface
+                        (e.g. a user interface or an internal module).
+                    value: list([[APIS:IM.INTERFACE:*]])
+                    optional: true
                 -   name: DEPENDS-ON
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW objects this component
@@ -1621,7 +2086,7 @@
 -   kind: ARCH
     name: Information View
     id: IV
-    file: 19-ARCH-IV-Information-View.md
+    file: 20-ARCH-IV-Information-View.md
     desc: >
         The way the solution stores, manages, manipulates, and distributes information, defining the
         static data structure and dynamic information flow.
@@ -1677,7 +2142,7 @@
 -   kind: ARCH
     name: Concurrency View
     id: CO
-    file: 20-ARCH-CO-Concurrency-View.md
+    file: 21-ARCH-CO-Concurrency-View.md
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
         threads, and defining how they coordinate and communicate.
@@ -1739,7 +2204,7 @@
 -   kind: ARCH
     name: Development View
     id: DV
-    file: 21-ARCH-DV-Development-View.md
+    file: 22-ARCH-DV-Development-View.md
     desc: >
         The architecture supporting the software development process, defining the module
         organization, build approach, and codeline conventions.
@@ -1773,7 +2238,7 @@
 -   kind: ARCH
     name: Deployment View
     id: DP
-    file: 22-ARCH-DP-Deployment-View.md
+    file: 23-ARCH-DP-Deployment-View.md
     desc: >
         The environment into which the solution is deployed, mapping software elements to the
         runtime platform, hardware, and network topology.
@@ -1837,7 +2302,7 @@
 -   kind: ARCH
     name: Operations View
     id: OV
-    file: 23-ARCH-OV-Operations-View.md
+    file: 24-ARCH-OV-Operations-View.md
     desc: >
         The way the solution is operated, administered, and supported in production, defining
         installation, monitoring, and management concerns.
@@ -1877,7 +2342,7 @@
 -   kind: ARCH
     name: Quality Perspectives
     id: QP
-    file: 24-ARCH-QP-Quality-Perspectives.md
+    file: 25-ARCH-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed.
     refs: >
@@ -1945,7 +2410,7 @@
 -   kind: ARCH
     name: Decision Record
     id: DR
-    file: 25-ARCH-DR-Decision-Record.md
+    file: 26-ARCH-DR-Decision-Record.md
     desc: >
         The major decisions related to the architecture, each recording the forces at play, the
         chosen response, and the reasoning that justifies it.
@@ -2125,7 +2590,7 @@
 -   kind: ARCH
     name: Technology Stack
     id: TS
-    file: 26-ARCH-TS-Technology-Stack.md
+    file: 27-ARCH-TS-Technology-Stack.md
     desc: >
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives

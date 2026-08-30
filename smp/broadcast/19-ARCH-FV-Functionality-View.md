@@ -1,17 +1,16 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-06-18 10:18
+Modified: 2026-08-30 01:12
 ---
 
 #   ARCH: Functionality View (FV)
 
-![](18-ARCH-FV-Functionality-View-1.svg)
+![](19-ARCH-FV-Functionality-View-1.svg)
 
 ##  COMPONENT: Web Client {{client}}
 
 -   KIND:           Subsystem
 -   RESPONSIBILITY: Render the attendee and operator UI and drive all user interaction.
--   INTERFACE:      Browser application over HTTPS and MQTT-over-WebSocket
 -   DEPENDS-ON:     [[FV.relay]], [[FV.client-nlp]]
 
 The Vue.js single-page application renders the panel, attendee, studio, moderator, and manager screens, plays the video
@@ -21,7 +20,6 @@ stream, and exchanges live data over MQTT, BECAUSE msg.Broadcast delivers its en
 
 -   KIND:           Module
 -   RESPONSIBILITY: Perform lightweight client-side sentiment and language detection on input.
--   INTERFACE:      In-browser library API
 
 The client NLP module runs local sentiment analysis and language identification on attendee input before it is sent,
 BECAUSE filtering at the source reduces server load and can prevent improper submissions.
@@ -30,7 +28,6 @@ BECAUSE filtering at the source reduces server load and can prevent improper sub
 
 -   KIND:           Connector
 -   RESPONSIBILITY: Route incoming requests across proxy instances of an environment.
--   INTERFACE:      TCP/HTTP/WS front door
 
 The router (HAProxy with NFTables) directs incoming HTTP and WebSocket traffic to proxy instances using round-robin and
 separates the dev, QA, and production environments, BECAUSE traffic must be balanced and environments isolated at the edge.
@@ -39,7 +36,6 @@ separates the dev, QA, and production environments, BECAUSE traffic must be bala
 
 -   KIND:           Connector
 -   RESPONSIBILITY: Proxy environment HTTP and WebSocket requests to the relay layer.
--   INTERFACE:      HTTP/WS reverse proxy
 -   DEPENDS-ON:     [[FV.relay]]
 
 The proxy layer (HAProxy) forwards requests of a specific environment to the relay layer and scales horizontally per
@@ -49,7 +45,6 @@ environment, BECAUSE request handling must scale independently of the messaging 
 
 -   KIND:           Connector
 -   RESPONSIBILITY: Maintain thousands of bidirectional WebSocket/MQTT connections.
--   INTERFACE:      MQTT broker over WebSocket (Mosquitto, MQTT-Plus)
 -   DEPENDS-ON:     [[FV.service]]
 
 The relay layer brokers MQTT messages between clients and the service layer over many concurrent WebSockets and scales
@@ -59,7 +54,7 @@ horizontally, BECAUSE real-time fan-out to up to 10000 attendees is the central 
 
 -   KIND:           Service
 -   RESPONSIBILITY: Execute all business logic for events, messages, auth, and statistics.
--   INTERFACE:      MQTT topics and REST API
+-   PROVIDES:       [[IM.server-cli]]
 -   DEPENDS-ON:     [[FV.database]], [[FV.translation]], [[FV.auth]], [[FV.statistics]]
 
 The service layer is the main server holding event, moderation, access, and configuration logic, reacting to MQTT messages
@@ -69,7 +64,6 @@ and persisting state, BECAUSE the authoritative business rules must live in a si
 
 -   KIND:           Module
 -   RESPONSIBILITY: Issue and validate authorization and session tokens.
--   INTERFACE:      Service-internal API
 -   DEPENDS-ON:     [[FV.database]]
 
 The authentication module generates one-time tokens, sends them via the email gateway, validates logins, and enforces a
@@ -79,7 +73,6 @@ single active session per user per event, BECAUSE email-verified, single-session
 
 -   KIND:           Module
 -   RESPONSIBILITY: Produce language-specific message texts via an external LLM.
--   INTERFACE:      Service-internal API over the AI SDK
 
 The translation module translates message texts into the supported languages on the fly while preserving the original,
 BECAUSE chat and questions must be available in both German and English.
@@ -88,7 +81,6 @@ BECAUSE chat and questions must be available in both German and English.
 
 -   KIND:           Module
 -   RESPONSIBILITY: Generate periodic event, channel, and user statistics snapshots.
--   INTERFACE:      Service-internal scheduled API
 -   DEPENDS-ON:     [[FV.database]]
 
 The statistics module periodically captures cumulative counts of tokens, sessions, connections, and viewers during a running
@@ -98,7 +90,6 @@ event, BECAUSE trend dashboards require regular snapshots over the event's lifet
 
 -   KIND:           Component
 -   RESPONSIBILITY: Serve the static client content and orchestrate backend delivery over MQTT+.
--   INTERFACE:      CLI and MQTT-Plus backend
 
 The Junction component serves the static client bundle and orchestrates its delivery to the relay over MQTT+, BECAUSE the
 client must be distributed alongside the same messaging infrastructure used for live data.
@@ -107,7 +98,6 @@ client must be distributed alongside the same messaging infrastructure used for 
 
 -   KIND:           Component
 -   RESPONSIBILITY: Persist all business objects and static assets.
--   INTERFACE:      SQL via Drizzle
 
 The PostgreSQL database with the filesystem stores all events, messages, tokens, statistics, and static assets accessed
 through the Drizzle persistence layer, BECAUSE the authoritative, durable state of every event must be persisted in one tier.
