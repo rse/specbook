@@ -554,6 +554,9 @@
     diagram:
         type: grid
         nodes: "[[REQS:UC.USE-CASE:*]]"
+        config:
+            size-node-height-scale: 4
+            grid-columns-max: 4
     childs:
         -   kind: USE-CASE
             desc: >
