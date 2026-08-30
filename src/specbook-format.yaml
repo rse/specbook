@@ -441,7 +441,7 @@
                         categories `Compliance` (a legal or regulatory obligation) and `Constraint`
                         (a technical, business, or environmental constraint on the *solution*,
                         e.g. a hosting, budget, or technology mandate, as opposed to a constraint
-                        on the domain, which is a Business Rule).
+                        on the domain, which is a Domain Rule).
                     value: enum(Performance,Compatibility,Usability,Reliability,Security,Safety,Maintainability,Flexibility,Compliance,Constraint)
                 -   name: QUALIFIES
                     desc: >
@@ -457,9 +457,9 @@
                         e.g. `p95 latency < 200 ms` or `uptime >= 99.9 % per month`.
 
 -   kind: REQS
-    name: Business Rules
+    name: Domain Rules
     id: BR
-    file: 07-REQS-BR-Business-Rules.md
+    file: 07-REQS-BR-Domain-Rules.md
     desc: >
         The domain invariants, policies, and decision logic that must always hold true in the
         problem domain, independent of any single feature, constraining the Functional and
@@ -483,7 +483,7 @@
     childs:
         -   kind: RULE
             desc: >
-                A single business rule, named with a short (3-8 word) summary and described in a
+                A single domain rule, named with a short (3-8 word) summary and described in a
                 concise (1-3 sentence) paragraph stating the rule declaratively as a condition that
                 must hold, written with the keyword `MUST` or `MUST NOT` (`SHOULD` or `SHOULD NOT`
                 for a `Policy` only, as a `SHOULD` on any other kind contradicts its "must always
@@ -549,9 +549,183 @@
                     optional: true
 
 -   kind: REQS
+    name: Domain Processes
+    id: BP
+    file: 08-REQS-BP-Domain-Processes.md
+    desc: >
+        The cross-actor, multi-sitting workflows of the domain the solution takes part in, each an
+        ordered set of activities connected by handoffs between the acting parties, making the
+        collaboration across roles and over time explicit, which neither the User Journey (the
+        experience of a single persona) nor the Use Cases (the goal of a single actor in one
+        sitting) capture. The artifact is absent for a tool-like solution without any workflow
+        spanning several actors or sittings.
+    optional: true
+    refs: >
+        -   OMG: Business Process Model and Notation (BPMN) 2.0.2 (2013),
+            https://www.omg.org/spec/BPMN/2.0.2
+        -   Dumas/La Rosa/Mendling/Reijers: Fundamentals of Business Process Management, 2nd ed. (2018),
+            https://link.springer.com/book/10.1007/978-3-662-56509-4
+        -   van der Aalst: Process Mining: Data Science in Action, 2nd ed. (2016),
+            https://link.springer.com/book/10.1007/978-3-662-49851-4
+    diagram:
+        type: grid
+        nodes: "[[REQS:BP.PROCESS:*]]"
+        properties:
+            -   ACTORS
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 4
+    childs:
+        -   kind: PROCESS
+            desc: >
+                A single workflow, named with a short (2-5 word) summary phrased as the outcome
+                pursued (e.g. `Run Broadcast Event`) and described in a concise (1-3 sentence)
+                paragraph at a glance, plus a 1-sentence rationale ("why") stating the value the
+                organization gains. A process is a flat control flow of `ACTIVITY`
+                objects (the work done by one party at a time) connected by `HANDOFF` objects (the
+                passing of control from one activity to the next): exactly one initial activity,
+                at least one final activity, every activity reachable from the initial one, and
+                some final activity reachable from every activity, while a handoff back to an
+                earlier activity (a rework loop) is permitted.
+
+                The process is at summary level, above the user-goal level of the Use Cases: it
+                spans several actors and several sittings, and its activities leave the
+                step-by-step interaction with the solution to the use cases referencing them.
+            automaton:
+                nodes: ACTIVITY
+                edges: HANDOFF
+                source: FROM
+                target: TO
+                initial: INITIAL
+                final: FINAL
+            diagram:
+                type: graph
+                edges: "[[REQS:BP.PROCESS:*.HANDOFF:*]]"
+                edgeSource: FROM
+                edgeTarget: TO
+                onlyConnected: true
+                properties:
+                    -   ACTOR
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects taking part in the
+                        process, in the order of their first appearance, so that every `ACTOR` of
+                        an activity is listed here.
+                    value: list([[REQS:UP.PERSONA:*]])
+                -   name: OWNER
+                    desc: >
+                        Reference to the User Personas object (usually a `Stakeholder`) accountable
+                        for the process as a whole, i.e. for its outcome and its rules, as opposed
+                        to the actors performing its activities.
+                    value: "[[REQS:UP.PERSONA:*]]"
+                    optional: true
+                -   name: TRIGGER
+                    desc: >
+                        The event that starts the process, stated as a 1-sentence
+                        occurrence (e.g. `A manager decides to hold a broadcast event.`).
+                -   name: OUTCOME
+                    desc: >
+                        The result that holds once the process has reached a final
+                        activity (e.g. `The event took place and its results are archived.`).
+                -   name: JOURNEYS
+                    desc: >
+                        Comma-separated references to the User Journey objects the process spans,
+                        i.e. the per-persona experiences of which the process is the cross-persona
+                        counterpart.
+                    value: list([[REQS:UJ.JOURNEY:*]])
+                    optional: true
+                -   name: TERMS
+                    desc: >
+                        Comma-separated references to the GLOSSARY terms of type `Activity` the
+                        process realizes, anchoring it in the ubiquitous language.
+                    value: list([[REQS:GL.TERM:*]])
+                    optional: true
+                -   name: RULES
+                    desc: >
+                        Comma-separated references to the DOMAIN-RULES objects governing the
+                        process as a whole (e.g. a deadline or an approval policy), while a rule
+                        checked at a single handoff is referenced from the handoff instead.
+                    value: list([[REQS:BR.RULE:*]])
+                    optional: true
+            childs:
+                -   kind: ACTIVITY
+                    desc: >
+                        A single unit of work within the process, performed by one party without a
+                        handoff in between, named with a short (2-5 word) verb phrase (e.g. `Invite
+                        Attendees`) and described by a 1-2 sentence description of what is done and
+                        what it yields. Every activity used in a handoff *MUST* be declared, every
+                        activity *MUST* be reachable from the initial one, and every activity with
+                        no outgoing handoff *MUST* be final.
+                    format:
+                        maxTableColumns: 5
+                    props:
+                        -   name: ACTOR
+                            desc: >
+                                Reference to the User Personas object performing the activity, or
+                                `System` for an activity the solution performs on its own (e.g.
+                                sending the invitations) or `Time` for a waiting period ending with
+                                a deadline; several parties are given only for an activity they
+                                perform jointly, as a change of the acting party is a handoff.
+                            value: list([[REQS:UP.PERSONA:*]], enum(System,Time))
+                        -   name: INITIAL
+                            desc: >
+                                Whether the activity is the initial one, i.e. the single activity
+                                the `TRIGGER` of the process starts (exactly one per process).
+                            value: /^(?:true|false)$/
+                            unique: enum(true)
+                            present: enum(true)
+                            optional: true
+                        -   name: FINAL
+                            desc: >
+                                Whether the activity is a final one, i.e. one in which the process
+                                may legally end with its `OUTCOME` (at least one per process).
+                            value: /^(?:true|false)$/
+                            present: enum(true)
+                            optional: true
+                -   kind: HANDOFF
+                    name: "[a-z][a-z-]*"
+                    desc: >
+                        A single passing of control from one activity to the next, named with a
+                        short, lower-cased verb of the completing event (e.g. `approve`, `publish`)
+                        and described by a 1-sentence description of what is passed on
+                        (information, artifact, or notification) and how the receiving party learns
+                        about it. Several handoffs departing from the same activity form a decision
+                        (told apart by their `CONDITION`) or a parallel split, several arriving at
+                        the same activity a merge, and a handoff back to an earlier activity a
+                        rework loop.
+                    format:
+                        maxTableColumns: 6
+                    props:
+                        -   name: FROM
+                            desc: The activity (of the same process) the handoff departs from.
+                            value: "[[REQS:BP.PROCESS:*.ACTIVITY:*]]"
+                            local: true
+                        -   name: TO
+                            desc: The activity (of the same process) the handoff arrives at.
+                            value: "[[REQS:BP.PROCESS:*.ACTIVITY:*]]"
+                            local: true
+                        -   name: CONDITION
+                            desc: >
+                                The condition under which the handoff is taken when several
+                                handoffs depart from the same activity, stated as a 1-sentence
+                                statement of what has to hold (e.g. `The rehearsal revealed
+                                defects.`); omitted for an unconditional handoff.
+                            optional: true
+                        -   name: RULES
+                            desc: >
+                                Comma-separated references to the DOMAIN-RULES objects the
+                                handoff enforces, usually through its `CONDITION`.
+                            value: list([[REQS:BR.RULE:*]])
+                            optional: true
+
+-   kind: REQS
     name: Use Cases
     id: UC
-    file: 08-REQS-UC-Use-Cases.md
+    file: 09-REQS-UC-Use-Cases.md
     desc: >
         The discrete goals users pursue with the solution, each describing an actor's interaction to
         achieve a specific outcome, together with the concrete step-by-step flows for main,
@@ -580,13 +754,15 @@
                 followed by any number of `Alternative` and `Exceptional` scenarios.
 
                 The use case is at user-goal level: a goal the actor completes in one sitting,
-                neither a summary of many sittings (which belongs to the User Journey as a whole)
-                nor a single interaction (which belongs to a scenario as one of its steps).
+                neither a summary of many sittings and actors (which belongs to a Domain Process
+                as a whole, or to a User Journey when seen by a single persona) nor a single
+                interaction (which belongs to a scenario as one of its steps).
             diagram:
                 type: hub
                 center: self
                 nodes: "[[REQS:UC.USE-CASE:*]], [[REQS:UP.PERSONA:*]], [[REQS:UJ.JOURNEY:*.STEP:*]],
-                    [[REQS:FR.REQUIREMENT:*]], [[REQS:BR.RULE:*]], [[DATA:SM.LIFECYCLE:*.TRANSITION:*]]"
+                    [[REQS:BP.PROCESS:*.ACTIVITY:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:BR.RULE:*]],
+                    [[DATA:SM.LIFECYCLE:*.TRANSITION:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -604,6 +780,13 @@
                         covers, tracing the journey into the use cases.
                     value: list([[REQS:UJ.JOURNEY:*.STEP:*]])
                     optional: true
+                -   name: ACTIVITIES
+                    desc: >
+                        Comma-separated references to the Domain Process ACTIVITY objects within
+                        which the actor performs the use case, tracing the process into the use
+                        cases; omitted for a use case outside any process.
+                    value: list([[REQS:BP.PROCESS:*.ACTIVITY:*]])
+                    optional: true
                 -   name: REQUIREMENTS
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects the use
@@ -613,7 +796,7 @@
                     optional: true
                 -   name: RULES
                     desc: >
-                        Comma-separated references to the BUSINESS-RULES objects the scenarios of
+                        Comma-separated references to the DOMAIN-RULES objects the scenarios of
                         the use case apply, i.e. whose condition a scenario step checks or enforces
                         (e.g. an access rule in an authentication step).
                     value: list([[REQS:BR.RULE:*]])
@@ -703,7 +886,7 @@
 -   kind: DATA
     name: Data Model
     id: DM
-    file: 09-DATA-DM-Data-Model.md
+    file: 10-DATA-DM-Data-Model.md
     desc: >
         The structure of named entities, with named attributes and directed relationships, of the
         data the solution manages, defining how information is organized and connected.
@@ -837,7 +1020,7 @@
 -   kind: DATA
     name: State Model
     id: SM
-    file: 10-DATA-SM-State-Model.md
+    file: 11-DATA-SM-State-Model.md
     desc: >
         For each entity with a non-trivial lifecycle, the legal states it can occupy and the
         permitted transitions between them over its lifetime, making the forbidden moves as explicit
@@ -965,7 +1148,7 @@
                             optional: true
                         -   name: RULES
                             desc: >
-                                Comma-separated references to the BUSINESS-RULES objects the
+                                Comma-separated references to the DOMAIN-RULES objects the
                                 transition enforces, usually through its `GUARD`.
                             value: list([[REQS:BR.RULE:*]])
                             optional: true
@@ -973,7 +1156,7 @@
 -   kind: APIS
     name: Interface Model
     id: IM
-    file: 11-APIS-IM-Interface-Model.md
+    file: 12-APIS-IM-Interface-Model.md
     desc: >
         The machine-facing interfaces the solution provides to, or requires from, other programs
         (REST, GraphQL, gRPC, WebSocket, MQTT, AMQP, MCP, CLI, library, or custom ones), each
@@ -1062,7 +1245,7 @@
 -   kind: APIS
     name: Interface Datatypes
     id: ID
-    file: 12-APIS-ID-Interface-Datatypes.md
+    file: 13-APIS-ID-Interface-Datatypes.md
     desc: >
         The named data types exchanged through the machine-facing interfaces of the INTERFACES
         artifact, modeled generically for all kinds of interfaces: a type is either an object
@@ -1219,7 +1402,7 @@
 -   kind: APIS
     name: Interface Endpoints
     id: IE
-    file: 13-APIS-IE-Interface-Endpoints.md
+    file: 14-APIS-IE-Interface-Endpoints.md
     desc: >
         The operations offered by the machine-facing interfaces of the INTERFACE-MODEL artifact,
         modeled generically for all kinds of interfaces: an endpoint references the interface it
@@ -1452,7 +1635,7 @@
 -   kind: UXUI
     name: Interaction Concept
     id: IC
-    file: 14-UXUI-IC-Interaction-Concept.md
+    file: 15-UXUI-IC-Interaction-Concept.md
     desc: >
         The interaction philosophy of the solution, stated as the set of cross-cutting principles
         (e.g. auto-save instead of explicit saving) which govern how users interact with the
@@ -1523,7 +1706,7 @@
 -   kind: UXUI
     name: Language Conventions
     id: LC
-    file: 15-UXUI-LC-Language-Conventions.md
+    file: 16-UXUI-LC-Language-Conventions.md
     desc: >
         The voice, tone, and wording of the user-facing text of the solution (labels, messages,
         notifications, help), governing how the solution speaks to its users, so that the Interaction
@@ -1600,7 +1783,7 @@
 -   kind: UXUI
     name: Dialog Patterns
     id: DP
-    file: 16-UXUI-DP-Dialog-Patterns.md
+    file: 17-UXUI-DP-Dialog-Patterns.md
     desc: >
         The reusable interaction structures governing how the system and user exchange information
         across recurring UI flows (e.g. master-detail dialog).
@@ -1693,7 +1876,7 @@
 -   kind: UXUI
     name: Dialog Storyboard
     id: DS
-    file: 17-UXUI-DS-Dialog-Storyboard.md
+    file: 18-UXUI-DS-Dialog-Storyboard.md
     desc: >
         The sequenced visual or textual depiction of a specific dialog flow, illustrating how an
         interaction unfolds screen by screen or turn by turn.
@@ -1791,7 +1974,7 @@
 -   kind: UXUI
     name: Visual Design
     id: VD
-    file: 18-UXUI-VD-Visual-Design.md
+    file: 19-UXUI-VD-Visual-Design.md
     desc: >
         The visual design decisions of the solution (brand, color, typography, spacing, shape,
         iconography, imagery, and motion), each stated as a rule with its rationale, plus the
@@ -1919,9 +2102,9 @@
 -   kind: TEST
     name: Test Cases
     id: TC
-    file: 19-TEST-TC-Test-Cases.md
+    file: 20-TEST-TC-Test-Cases.md
     desc: >
-        The verifiable conditions and steps used to confirm that requirements, business rules, use
+        The verifiable conditions and steps used to confirm that requirements, domain rules, use
         case scenarios, and state transitions are correctly implemented, with mandatory defined
         inputs, mandatory expected outcomes, and optional pre- and post-conditions.
 
@@ -1968,7 +2151,7 @@
                 type: hub
                 center: self
                 nodes: "[[TEST:TC.TEST-CASE:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:NR.REQUIREMENT:*]],
-                    [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
+                    [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]], [[REQS:BP.PROCESS:*]],
                     [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                     [[APIS:IE.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]]"
                 labeled: true
@@ -1980,7 +2163,7 @@
                 -   name: VERIFIES
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
-                        NON-FUNCTIONAL-REQUIREMENTS objects, the BUSINESS-RULES objects, the
+                        NON-FUNCTIONAL-REQUIREMENTS objects, the DOMAIN-RULES objects, the
                         USE-CASES scenario objects, the STATE-MODEL transition objects, the
                         DATA-MODEL attribute objects, the INTERFACE-ENDPOINTS objects, and/or the
                         DIALOG-STORYBOARD frame objects the test case verifies, so that a scenario
@@ -1996,6 +2179,15 @@
                     value: list([[REQS:*.REQUIREMENT:*]], [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
                         [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                         [[APIS:IE.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]])
+                -   name: PROCESSES
+                    desc: >
+                        Comma-separated references to the DOMAIN-PROCESSES objects the test case
+                        walks through end to end, i.e. whose activities and handoffs its procedure
+                        steps cross in order, so that the collaboration across actors and sittings
+                        (not just the use cases of each single sitting) is proven to work as
+                        modeled; omitted for a test case confined to a single sitting.
+                    value: list([[REQS:BP.PROCESS:*]])
+                    optional: true
                 -   name: PRE-CONDITION
                     desc: >
                         The state or setup that must hold before the test is executed.
@@ -2025,7 +2217,7 @@
 -   kind: ARCH
     name: Context View
     id: CV
-    file: 20-ARCH-CV-Context-View.md
+    file: 21-ARCH-CV-Context-View.md
     desc: >
         The relationships, dependencies, and interactions between the solution and its environment,
         defining the system's scope, external entities, and boundaries.
@@ -2086,7 +2278,7 @@
 -   kind: ARCH
     name: Functionality View
     id: FV
-    file: 21-ARCH-FV-Functionality-View.md
+    file: 22-ARCH-FV-Functionality-View.md
     desc: >
         The functional components of the solution, their responsibilities, interfaces, and primary
         interactions, describing *what* the system does at runtime.
@@ -2154,7 +2346,7 @@
 -   kind: ARCH
     name: Information View
     id: IV
-    file: 22-ARCH-IV-Information-View.md
+    file: 23-ARCH-IV-Information-View.md
     desc: >
         The way the solution stores, manages, manipulates, and distributes information, defining the
         static data structure and dynamic information flow.
@@ -2210,7 +2402,7 @@
 -   kind: ARCH
     name: Concurrency View
     id: CO
-    file: 23-ARCH-CO-Concurrency-View.md
+    file: 24-ARCH-CO-Concurrency-View.md
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
         threads, and defining how they coordinate and communicate.
@@ -2272,7 +2464,7 @@
 -   kind: ARCH
     name: Development View
     id: DV
-    file: 24-ARCH-DV-Development-View.md
+    file: 25-ARCH-DV-Development-View.md
     desc: >
         The architecture supporting the software development process, defining the module
         organization, build approach, and codeline conventions.
@@ -2306,7 +2498,7 @@
 -   kind: ARCH
     name: Deployment View
     id: DP
-    file: 25-ARCH-DP-Deployment-View.md
+    file: 26-ARCH-DP-Deployment-View.md
     desc: >
         The environment into which the solution is deployed, mapping software elements to the
         runtime platform, hardware, and network topology.
@@ -2370,7 +2562,7 @@
 -   kind: ARCH
     name: Operations View
     id: OV
-    file: 26-ARCH-OV-Operations-View.md
+    file: 27-ARCH-OV-Operations-View.md
     desc: >
         The way the solution is operated, administered, and supported in production, defining
         installation, monitoring, and management concerns.
@@ -2410,7 +2602,7 @@
 -   kind: ARCH
     name: Quality Perspectives
     id: QP
-    file: 27-ARCH-QP-Quality-Perspectives.md
+    file: 28-ARCH-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed.
     refs: >
@@ -2478,7 +2670,7 @@
 -   kind: ARCH
     name: Decision Record
     id: DR
-    file: 28-ARCH-DR-Decision-Record.md
+    file: 29-ARCH-DR-Decision-Record.md
     desc: >
         The major decisions related to the architecture, each recording the forces at play, the
         chosen response, and the reasoning that justifies it.
@@ -2658,7 +2850,7 @@
 -   kind: ARCH
     name: Technology Stack
     id: TS
-    file: 29-ARCH-TS-Technology-Stack.md
+    file: 30-ARCH-TS-Technology-Stack.md
     desc: >
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives

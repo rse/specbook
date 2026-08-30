@@ -1,0 +1,19 @@
+17-ARCH-CV-Context-View.md: ENTITY: Attendee Browser {{attendee}}: Web UI over HTTPS and MQTT-over-WebSocket
+17-ARCH-CV-Context-View.md: ENTITY: Operator Browser {{operator}}: Web UI over HTTPS and MQTT-over-WebSocket
+17-ARCH-CV-Context-View.md: ENTITY: Streaming Provider {{provider}}: RTMP/SRT ingest and HLS/WebRTC egress URLs
+17-ARCH-CV-Context-View.md: ENTITY: Content CDN {{cdn}}: HTTPS edge delivery (Cloudflare)
+17-ARCH-CV-Context-View.md: ENTITY: Event Registration System {{registration-system}}: Excel sheet import and export
+17-ARCH-CV-Context-View.md: ENTITY: Email Gateway {{email}}: GraphQL mail-sending API over HTTPS
+17-ARCH-CV-Context-View.md: ENTITY: Translation LLM {{llm}}: AI SDK over HTTPS
+17-ARCH-CV-Context-View.md: ENTITY: Embedded Third-Party App {{app}}: Embedded iframe with user and admin URLs
+18-ARCH-FV-Functionality-View.md: COMPONENT: Web Client {{client}}: Browser application over HTTPS and MQTT-over-WebSocket
+18-ARCH-FV-Functionality-View.md: COMPONENT: Client NLP {{client-nlp}}: In-browser library API
+18-ARCH-FV-Functionality-View.md: COMPONENT: Router {{router}}: TCP/HTTP/WS front door
+18-ARCH-FV-Functionality-View.md: COMPONENT: Proxy {{proxy}}: HTTP/WS reverse proxy
+18-ARCH-FV-Functionality-View.md: COMPONENT: Relay {{relay}}: MQTT broker over WebSocket (Mosquitto, MQTT-Plus)
+18-ARCH-FV-Functionality-View.md: COMPONENT: Service {{service}}: MQTT topics and REST API
+18-ARCH-FV-Functionality-View.md: COMPONENT: Authentication Service {{auth}}: Service-internal API
+18-ARCH-FV-Functionality-View.md: COMPONENT: Translation Service {{translation}}: Service-internal API over the AI SDK
+18-ARCH-FV-Functionality-View.md: COMPONENT: Statistics Service {{statistics}}: Service-internal scheduled API
+18-ARCH-FV-Functionality-View.md: COMPONENT: Junction Orchestrator {{junction}}: CLI and MQTT-Plus backend
+18-ARCH-FV-Functionality-View.md: COMPONENT: Database {{database}}: SQL via Drizzle

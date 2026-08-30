@@ -11,6 +11,7 @@ USE-CASE: Join Event and Watch Stream {{join-event}}
 
 -   ACTOR:          [[PERSONA:attendee]]
 -   JOURNEYS:       [[STEP:arrival]], [[STEP:participate]]
+-   ACTIVITIES:     [[ACTIVITY:attend-event]]
 -   REQUIREMENTS:   [[FR.individual-url]], [[FR.authentication]], [[FR.browser-access]], [[FR.resource-url]], [[FR.mobile]], [[FR.language-switch]], [[FR.theme-toggle]]
 -   INCLUDES:       [[USE-CASE:authenticate]]
 -   PRE-CONDITION:  The attendee holds an event URL and their email is granted access.
@@ -80,6 +81,7 @@ USE-CASE: Authenticate via Email Token {{authenticate}}
 
 -   ACTOR:          [[PERSONA:attendee]]
 -   JOURNEYS:       [[STEP:authenticate]]
+-   ACTIVITIES:     [[ACTIVITY:attend-event]]
 -   REQUIREMENTS:   [[FR.authentication]], [[FR.user-consent]], [[FR.parallel-access]], [[FR.personalized-url]], [[FR.automatic-url]], [[FR.info-messages]], [[FR.gdpr-eu]]
 -   RULES:          [[RULE:access-grant]], [[RULE:single-session]], [[RULE:token-format]]
 -   TRANSITIONS:    [[TRANSITION:send]], [[consume]], [[consume-automatic]]
@@ -139,6 +141,7 @@ USE-CASE: Ask a Question {{ask-question}}
 
 -   ACTOR:          [[PERSONA:attendee]]
 -   JOURNEYS:       [[STEP:participate]]
+-   ACTIVITIES:     [[ACTIVITY:attend-event]]
 -   REQUIREMENTS:   [[FR.questions]], [[FR.question-tags]], [[FR.moderation]], [[FR.server-sentiment]], [[FR.client-sentiment]]
 -   RULES:          [[RULE:moderation-gate]], [[RULE:type-states]], [[RULE:sentiment-threshold]]
 -   TRANSITIONS:    [[TRANSITION:accept]], [[TRANSITION:reject]]
@@ -196,6 +199,7 @@ USE-CASE: Chat During the Event {{chat-during-event}}
 
 -   ACTOR:          [[PERSONA:attendee]]
 -   JOURNEYS:       [[STEP:participate]]
+-   ACTIVITIES:     [[ACTIVITY:attend-event]]
 -   REQUIREMENTS:   [[FR.chat]], [[FR.likes]], [[FR.replies]], [[FR.message-editing]], [[FR.deleted-placeholder]], [[FR.display-options]], [[FR.name-appearance]], [[FR.mc-feedback]]
 -   RULES:          [[RULE:moderation-gate]], [[RULE:type-states]], [[RULE:forward-lock]]
 -   PRE-CONDITION:  The attendee has an active session and chat is enabled for the event.
@@ -296,6 +300,7 @@ USE-CASE: Moderate and Forward Messages {{moderate}}
 
 -   ACTOR:          [[PERSONA:moderator-qa]]
 -   JOURNEYS:       [[STEP:support]]
+-   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:moderate-interaction]]
 -   REQUIREMENTS:   [[FR.moderation]], [[FR.forward-presenter]], [[FR.sort-filter]], [[FR.presenter-hints]]
 -   RULES:          [[RULE:type-states]], [[RULE:forward-lock]]
 -   TRANSITIONS:    [[TRANSITION:accept]], [[TRANSITION:reject]], [[TRANSITION:forward]]
@@ -332,6 +337,7 @@ USE-CASE: Moderate the Chat Conversation {{moderate-chat}}
 
 -   ACTOR:          [[PERSONA:moderator-chat]]
 -   JOURNEYS:       [[STEP:support]]
+-   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:moderate-interaction]]
 -   REQUIREMENTS:   [[FR.answer-inputs]], [[FR.moderator-messages]], [[FR.manage-app]]
 -   RULES:          [[RULE:moderator-accept]], [[RULE:moderation-gate]]
 -   PRE-CONDITION:  The event runs with chat enabled and the moderator has the Moderator role.
@@ -380,6 +386,7 @@ USE-CASE: Switch Streaming Provider {{switch-provider}}
 
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEYS:       [[STEP:configure]]
+-   ACTIVITIES:     [[ACTIVITY:go-live]]
 -   REQUIREMENTS:   [[FR.multi-provider]], [[FR.provider-switch]], [[FR.config-propagation]]
 -   RULES:          [[RULE:single-channel]], [[RULE:single-resource]]
 -   PRE-CONDITION:  The event runs and the channel has multiple configured resources.
@@ -405,6 +412,7 @@ USE-CASE: Create Event from Registration Import {{create-event}}
 
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEYS:       [[STEP:configure]]
+-   ACTIVITIES:     [[ACTIVITY:plan-event]]
 -   REQUIREMENTS:   [[FR.registration-import]], [[FR.registration-export]], [[FR.event-portability]]
 -   RULES:          [[RULE:token-format]], [[RULE:no-accounts]]
 -   PRE-CONDITION:  The manager has an Excel sheet of the Event Registration System and an event to populate.
@@ -430,6 +438,7 @@ USE-CASE: Run the Event {{run-event}}
 
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEYS:       [[STEP:configure]]
+-   ACTIVITIES:     [[ACTIVITY:go-live]], [[ACTIVITY:finish-event]]
 -   RULES:          [[RULE:anonymize]]
 -   TRANSITIONS:    [[TRANSITION:publish]], [[start]], [[start-unpublished]], [[TRANSITION:finish]]
 -   PRE-CONDITION:  The event is configured and its access list is populated.
@@ -466,6 +475,7 @@ USE-CASE: Export Anonymized Event Data {{export-data}}
 
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEYS:       [[STEP:export]]
+-   ACTIVITIES:     [[ACTIVITY:archive-results]]
 -   REQUIREMENTS:   [[FR.export-inputs]], [[FR.event-stats]], [[FR.channel-stats]], [[FR.user-stats]], [[FR.debug-stats]]
 -   RULES:          [[RULE:anonymize]], [[RULE:like-count]], [[RULE:manager-retained]]
 -   PRE-CONDITION:  The event has finished and the manager retains the Manager role.
@@ -501,6 +511,7 @@ USE-CASE: Present Forwarded Questions {{present}}
 -------------------------------------
 
 -   ACTOR:          [[PERSONA:presenter]]
+-   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:present-talk]]
 -   REQUIREMENTS:   [[FR.forward-presenter]], [[FR.presenter-dashboard]], [[FR.presenter-hints]]
 -   TRANSITIONS:    [[TRANSITION:answer]], [[TRANSITION:suspend]]
 -   PRE-CONDITION:  The event is running and questions have been forwarded.

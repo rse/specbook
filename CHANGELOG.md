@@ -5,6 +5,15 @@ ChangeLog
 1.1.0 (2026-08-29)
 ------------------
 
+-   IMPROVEMENT [spec, docs]: Domain Rules
+    The artifact "Business Rules" of the standard schema configuration is renamed to "Domain
+    Rules" (file "07-REQS-BR-Domain-Rules.md", identifier "BR" kept), as not every domain is a
+    business, so that existing specifications have to rename the file and its heading.
+
+-   FEATURE [spec, docs]: Domain Processes
+    The standard schema configuration gains the optional artifact "Domain Processes",
+    placed between the domain rules and the use cases.
+
 -   IMPROVEMENT [code, docs]: Hierarchical Table of Contents
     The "Table of Contents" of the HTML/PDF export now lists all section
     headings (exactly like the side panel and the PDF outline.

@@ -120,7 +120,7 @@ from the event.
 -   ACTORS: [[PERSONA:attendee]]
 -   STORYBOARD: [[STORYBOARD:chat-interaction]]
 -   ELEMENTS: [[ELEMENT:color-palette]], [[ELEMENT:theme]], [[ELEMENT:wordmark]], [[ELEMENT:typography]], [[ELEMENT:iconography]], [[ELEMENT:spacing]], [[ELEMENT:shape]], [[ELEMENT:imagery]]
--   IMAGE: ![](18-UXUI-VD-Visual-Design-1.png)
+-   IMAGE: ![](19-UXUI-VD-Visual-Design-1.png)
 
 The main attendee screen with the Chat tab open, showing the blue own
 message, the amber moderator message, the "under review" divider, and
@@ -131,7 +131,7 @@ the new-messages badge above the letterboxed stream.
 -   ACTORS: [[PERSONA:attendee]]
 -   STORYBOARD: [[STORYBOARD:ask-question]]
 -   ELEMENTS: [[ELEMENT:color-palette]], [[ELEMENT:typography]], [[ELEMENT:iconography]], [[ELEMENT:spacing]], [[ELEMENT:shape]]
--   IMAGE: ![](18-UXUI-VD-Visual-Design-2.png)
+-   IMAGE: ![](19-UXUI-VD-Visual-Design-2.png)
 
 The main attendee screen with the Q&A tab open, showing the filter pills,
 the tag chips below each question, the pending own question under review,
@@ -142,7 +142,7 @@ and the red-tinted rejected question.
 -   ACTORS: [[PERSONA:attendee]]
 -   STORYBOARD: [[STORYBOARD:support-request]]
 -   ELEMENTS: [[ELEMENT:color-palette]], [[ELEMENT:spacing]], [[ELEMENT:shape]], [[ELEMENT:imagery]]
--   IMAGE: ![](18-UXUI-VD-Visual-Design-3.png)
+-   IMAGE: ![](19-UXUI-VD-Visual-Design-3.png)
 
 The main attendee screen with the Support tab open, showing the private
 exchange of a blue own message and an amber moderator reply above the
@@ -153,7 +153,7 @@ composer.
 -   ACTORS: [[PERSONA:manager]]
 -   STORYBOARD: [[STORYBOARD:registration-import]]
 -   ELEMENTS: [[ELEMENT:color-palette]], [[ELEMENT:wordmark]], [[ELEMENT:typography]], [[ELEMENT:spacing]], [[ELEMENT:shape]]
--   IMAGE: ![](18-UXUI-VD-Visual-Design-4.png)
+-   IMAGE: ![](19-UXUI-VD-Visual-Design-4.png)
 
 The event creation form of the manager, showing the type scale of the
 headings, the outlined form fields, the event type selector with the
@@ -164,7 +164,7 @@ filled selected profile, and the blue-tinted profile summary.
 -   ACTORS: [[PERSONA:moderator-chat]]
 -   STORYBOARD: [[STORYBOARD:chat-moderation]]
 -   ELEMENTS: [[ELEMENT:color-palette]], [[ELEMENT:iconography]], [[ELEMENT:spacing]], [[ELEMENT:shape]], [[ELEMENT:imagery]]
--   IMAGE: ![](18-UXUI-VD-Visual-Design-5.png)
+-   IMAGE: ![](19-UXUI-VD-Visual-Design-5.png)
 
 The chat moderation board with the stream preview beside the rejected,
 pending, and accepted columns, showing the elevated pending cards with
@@ -176,7 +176,7 @@ chips.
 -   ACTORS: [[PERSONA:moderator-qa]]
 -   STORYBOARD: [[STORYBOARD:moderate-forward]]
 -   ELEMENTS: [[ELEMENT:color-palette]], [[ELEMENT:iconography]], [[ELEMENT:spacing]], [[ELEMENT:shape]]
--   IMAGE: ![](18-UXUI-VD-Visual-Design-6.png)
+-   IMAGE: ![](19-UXUI-VD-Visual-Design-6.png)
 
 The all-in-one Q&A moderation board with the rejected, pending, accepted,
 suspended, forwarded, and answered columns, showing the amber moderator
@@ -187,7 +187,7 @@ annotations and the presenter alert composer.
 -   ACTORS: [[PERSONA:presenter]]
 -   STORYBOARD: [[STORYBOARD:moderate-forward]]
 -   ELEMENTS: [[ELEMENT:color-palette]], [[ELEMENT:typography]], [[ELEMENT:iconography]], [[ELEMENT:shape]]
--   IMAGE: ![](18-UXUI-VD-Visual-Design-7.png)
+-   IMAGE: ![](19-UXUI-VD-Visual-Design-7.png)
 
 The presenter view for the studio screen with the enlarged type scale,
 the amber presenter alert banner, the forwarded questions with their
