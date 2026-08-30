@@ -44,15 +44,26 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
                     .send("no specification export available yet\n")
             return reply.type("text/html; charset=utf-8").send(html)
         },
-        wsHandler: (socket) => {
+        wsHandler: (socket, request) => {
+            /*  identify the client by its remote address and port  */
+            const addr   = request.socket.remoteAddress ?? "unknown"
+            const client = `${addr.includes(":") ? `[${addr}]` : addr}:${request.socket.remotePort ?? 0}`
+            options.verbose(`client ${literal(client)} connected`, "notice")
             clients.add(socket)
-            socket.on("close", () => { clients.delete(socket) })
+            socket.on("close", () => {
+                clients.delete(socket)
+                options.verbose(`client ${literal(client)} disconnected`, "notice")
+            })
         }
     })
     await fastify.listen({ host: options.addr, port: options.port })
-    options.verbose(`listening on ${literal(`http://${options.addr}:${options.port}/`)}`, "notice")
+    const url = `http://${options.addr}:${options.port}/`
+    options.verbose(`listening on ${literal(url)}`, "notice")
     return {
         update: (buffer: Buffer) => {
+            /*  the first export turns the 503 answers into the document  */
+            if (html === undefined)
+                options.verbose(`serving ${literal(url)}`, "notice")
             html = buffer
             options.verbose(`notifying ${literal(clients.size)} preview client(s)`)
             for (const client of clients)
