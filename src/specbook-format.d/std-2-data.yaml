@@ -1,0 +1,406 @@
+##
+##  Specification Book (SpecBook)
+##  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+##  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+##
+
+-   kind: DATA
+    name: Data Model
+    id: DM
+    file: 11-DATA-DM-Data-Model.md
+    desc: >
+        The structure of named entities, with named attributes and directed relationships, of the
+        data the solution manages, defining how information is organized and connected.
+    refs: >
+        -   Chen: The Entity-Relationship Model -- Toward a Unified View of Data (1976),
+            https://dl.acm.org/doi/10.1145/320434.320440
+        -   OMG UML 2.5.1: Unified Modeling Language (2017),
+            https://www.omg.org/spec/UML/2.5.1
+    diagram:
+        type: graph
+        nodes: "[[DATA:DM.ENTITY:*]]"
+        edges: "[[DATA:DM.ENTITY:*.RELATION:*]]"
+    childs:
+        -   kind: ENTITY
+            name: "[A-Z][a-zA-Z0-9]*"
+            desc: >
+                A named entity of the data model, carrying a Pascal-cased, 1-3 word long,
+                per-artifact unique name, and described by a 1-sentence description ("what") plus a
+                1-sentence rationale ("why").
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[DATA:DM.ENTITY:*]]"
+                edges: "[[DATA:DM.ENTITY:*.RELATION:*]]"
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: REQUIREMENTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects the
+                        entity supports, i.e. whose behavior needs the information it carries,
+                        tracing the requirements into the data model.
+                    value: list([[REQS:FR.*]])
+                    optional: true
+                -   name: TERMS
+                    desc: >
+                        Comma-separated references to the GLOSSARY terms the entity materializes,
+                        i.e. the domain terms whose information it carries, so that every entity
+                        is anchored in the ubiquitous language and every term shows its data.
+                    value: list([[REQS:GL.TERM:*]])
+                    optional: true
+            childs:
+                -   kind: ATTRIBUTE
+                    name: "[a-z][a-zA-Z0-9]*"
+                    desc: >
+                        A named attribute of the entity, carrying a camel-cased, 1-3 word long,
+                        per-entity unique identifier, and described by a 1-sentence description
+                        ("what") plus a 1-sentence rationale ("why").
+                    format:
+                        maxTableColumns: 6
+                    props:
+                        -   name: TYPE
+                            desc: >
+                                The type of the entity attribute, one of `boolean`, `string`
+                                (short single-line text), `text` (long free-form text), `integer`,
+                                `float` (approximate), `decimal` (exact, e.g. for money), `uuid`,
+                                `bytes`, `date`, `time`, `datetime`, `duration` (time span), or
+                                `enum(XXX,YYY[,...])`, optionally prefixed with the qualifier `key`
+                                to indicate inclusion into the primary key of the entity or `unique`
+                                to indicate an alternate uniqueness constraint, or optionally
+                                suffixed with `?` to indicate an optional (nullable) value, where a
+                                `key` or `unique` attribute cannot be optional.
+                            value: /^(?!(?:key|unique)\s.*\?$)(?:(?:key|unique)\s+)?(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|enum\((?:[A-Za-z0-9_]+)(?:,\s*[A-Za-z0-9_]+)*\))(?:\?)?$/
+                        -   name: DEFAULT
+                            desc: The default value of the entity attribute.
+                            value: /.*/
+                            optional: true
+                        -   name: CONSTRAINT
+                            desc: >
+                                The constraint on the value of the entity attribute beyond its type,
+                                as a short phrase stating a range, unit, pattern, or invariant (e.g.
+                                `1..60 seconds`, `RFC 5322 address`, `not before begin`).
+                            value: /.+/
+                            optional: true
+                        -   name: CLASSIFICATION
+                            desc: >
+                                The sensitivity classification of the entity attribute value:
+                                `Public` for a value disclosable to anyone, `Internal` for a value
+                                disclosable within the operating organization only, `Confidential`
+                                for a value disclosable to explicitly authorized persons only (e.g. a
+                                secret or credential), or `Personal` for a value identifying or
+                                relating to a natural person and hence subject to data protection
+                                law (e.g. GDPR); defaults to `Internal`.
+                            value: enum(Public,Internal,Confidential,Personal)
+                            optional: true
+                        -   name: RETENTION
+                            desc: >
+                                The retention of the entity attribute value, as a short phrase
+                                stating the duration or the triggering event beyond which the value
+                                is deleted or anonymized (e.g. `30 days after creation`, `until
+                                event finish`, `until account deletion`); expected on every
+                                `Personal` classified attribute (GDPR Art. 5(1)(e), storage
+                                limitation) and on every `Confidential` classified one, while an
+                                absent retention means the value is kept as long as the entity
+                                exists.
+                            value: /.+/
+                            optional: true
+                -   kind: RELATION
+                    name: "[a-z][a-zA-Z0-9]*"
+                    desc: >
+                        A named directed relation of the entity, carrying a camel-cased, 1-3 word
+                        long, per-entity unique identifier and targeting another entity, and
+                        described by a 1-sentence description ("what") plus a 1-sentence rationale
+                        ("why"). A relation carries no attributes of its own: a relation needing
+                        attributes (an "association class") is reified as an entity of its own,
+                        related from both sides.
+                    optional: true
+                    props:
+                        -   name: TARGET
+                            desc: Reference to the DATA-MODEL entity the directed relation targets.
+                            value: "[[DATA:DM.ENTITY:*]]"
+                        -   name: KIND
+                            desc: >
+                                The kind of the directed relation: `association` for a plain
+                                reference to an independent target entity, `aggregation` for a
+                                shared part-of relation whose target outlives the entity, or
+                                `composition` for an exclusive part-of relation whose target is
+                                owned by and deleted with the entity; defaults to `association`.
+                            value: enum(association,aggregation,composition)
+                            optional: true
+                        -   name: ARITY
+                            desc: >
+                                The arity (cardinality) of the relation at the target entity: `0..1`
+                                or `?` for zero or one ("optional"), `1` for exactly one
+                                ("mandatory"), `0..n` or `*` for zero or more, `1..n` or `+` for one
+                                or more, or `{n}`/`{n,m}` for an exact number or range; defaults to
+                                `1`.
+                            value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
+                            optional: true
+
+-   kind: DATA
+    name: State Model
+    id: SM
+    file: 12-DATA-SM-State-Model.md
+    desc: >
+        For each entity with a non-trivial lifecycle, the legal states it can occupy and the
+        permitted transitions between them over its lifetime, making the forbidden moves as explicit
+        as the allowed ones.
+    refs: >
+        -   Shlaer/Mellor: Object Lifecycles: Modeling the World in States (1992)
+        -   Harel: Statecharts: A Visual Formalism for Complex Systems (1987),
+            https://doi.org/10.1016/0167-6423(87)90035-9
+        -   OMG UML 2.5.1: Unified Modeling Language (2017),
+            https://www.omg.org/spec/UML/2.5.1
+    diagram:
+        type: grid
+        nodes: "[[DATA:SM.LIFECYCLE:*]]"
+        properties:
+            -   ENTITY
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 5
+    childs:
+        -   kind: LIFECYCLE
+            desc: >
+                The lifecycle of a single entity, named with the short (1-3 word) name of the
+                lifecycle, normally the name of the entity it governs. A lifecycle is a flat finite
+                state machine: exactly one initial state, at least one final state, every state
+                reachable from the initial state, and some final state reachable from every state
+                (a state from which no final state can be reached anymore is a livelock).
+            automaton:
+                nodes: STATE
+                edges: TRANSITION
+                source: FROM
+                target: TO
+                initial: INITIAL
+                final: FINAL
+            diagram:
+                type: graph
+                edges: "[[DATA:SM.LIFECYCLE:*.TRANSITION:*]]"
+                edgeSource: FROM
+                edgeTarget: TO
+                onlyConnected: true
+                properties:
+                    -   INITIAL
+                    -   FINAL
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: ENTITY
+                    desc: >
+                        Reference to the DATA-MODEL entity whose lifecycle this models, at most one
+                        lifecycle per entity (an entity without a lifecycle has a trivial one).
+                    value: "[[DATA:DM.ENTITY:*]]"
+                    unique: true
+            childs:
+                -   kind: STATE
+                    name: "[A-Z][a-zA-Z0-9]*"
+                    desc: >
+                        A single state the entity can occupy, carrying a short, Pascal-cased,
+                        per-lifecycle unique name (e.g. `Draft`, `Shipped`) and described by a
+                        1-sentence description of what holds true in it.
+
+                        Every state used in a transition *MUST* be declared, every state *MUST* be
+                        reachable from the initial state, and every state with no outgoing
+                        transition *MUST* be final (a non-final state with no outgoing transition
+                        would be a stuck dead-end). The converse does *not* hold: a final state
+                        *MAY* still have outgoing transitions, modeling a resting state that can
+                        later be left again (e.g. a `Closed` state with a `reopen` transition back
+                        to `Active`). Thus the final states are the "accepting" states of the
+                        automaton, a superset of, but not necessarily equal to, the states without
+                        outgoing transitions.
+                    props:
+                        -   name: INITIAL
+                            desc: >
+                                Whether the state is the initial one, i.e. the single state every
+                                instance of the entity enters upon creation (exactly one per
+                                lifecycle).
+                            value: /^(?:true|false)$/
+                            unique: enum(true)
+                            present: enum(true)
+                            optional: true
+                        -   name: FINAL
+                            desc: >
+                                Whether the state is a final one, i.e. a terminal state in which the
+                                entity may legally come to rest permanently (at least one per
+                                lifecycle).
+                            value: /^(?:true|false)$/
+                            present: enum(true)
+                            optional: true
+                -   kind: TRANSITION
+                    name: "[a-z][a-z-]*"
+                    desc: >
+                        A single permitted transition between two states, named with the short,
+                        lower-cased verb of the triggering event or action (e.g. `submit`, `ship`,
+                        `cancel`) and described by a 1-sentence description of its side effect
+                        ("what happens"). The same verb *MAY* name several transitions departing
+                        from different states (told apart by their anchors), and a transition *MAY*
+                        arrive at the very state it departs from (an internal transition, e.g.
+                        `edit` on `Draft`). Any move not listed as a transition is implicitly
+                        forbidden.
+                    referenced:
+                        -   "[[REQS:UC.USE-CASE:*]]"
+                        -   "[[TEST:TC.TEST-CASE:*]]"
+                    props:
+                        -   name: FROM
+                            desc: The state (of the same lifecycle) the transition departs from.
+                            value: "[[DATA:SM.LIFECYCLE:*.STATE:*]]"
+                            local: true
+                        -   name: TO
+                            desc: The state (of the same lifecycle) the transition arrives at.
+                            value: "[[DATA:SM.LIFECYCLE:*.STATE:*]]"
+                            local: true
+                        -   name: ACTOR
+                            desc: >
+                                Comma-separated references to the PERSONAS objects able to trigger
+                                the transition, and/or `System` for a transition the solution
+                                triggers on its own or `Time` for one triggered by the passing of
+                                time (e.g. an expiry); omitted when the trigger is irrelevant.
+                            value: list([[REQS:UP.PERSONA:*]], enum(System,Time))
+                            optional: true
+                        -   name: GUARD
+                            desc: >
+                                The condition which, beyond being in the `FROM` state, has to be
+                                satisfied for the transition to be permitted, stated as a
+                                1-sentence statement of what has to hold (e.g. `The order has at
+                                least one item.`); omitted when the `FROM` state alone permits it.
+                            optional: true
+                        -   name: RULES
+                            desc: >
+                                Comma-separated references to the DOMAIN-RULES objects the
+                                transition enforces, usually through its `GUARD`.
+                            value: list([[REQS:DR.RULE:*]])
+                            optional: true
+
+-   kind: DATA
+    name: Authorization Model
+    id: AM
+    file: 13-DATA-AM-Authorization-Model.md
+    desc: >
+        The access rights of the solution, bundled into the roles a person acts in and stating for
+        each role the operations it may perform on each entity, confined to the lifecycle states
+        of the entity and to a further condition where necessary, so that "who may do what on
+        which entity in which state" is answered in one place instead of being scattered over the
+        actors of the state transitions, the actors of the use cases, and the prose of the domain
+        rules. The model is closed: an operation not granted to a role is forbidden, exactly like
+        a move not listed as a state transition.
+    refs: >
+        -   Ferraiolo/Kuhn: Role-Based Access Controls, 15th National Computer Security Conference (1992),
+            https://csrc.nist.gov/publications/detail/conference-paper/1992/10/13/role-based-access-controls
+        -   Sandhu/Coyne/Feinstein/Youman: Role-Based Access Control Models, IEEE Computer 29(2) (1996),
+            https://doi.org/10.1109/2.485845
+        -   ANSI INCITS 359-2012: Information Technology -- Role Based Access Control (2012),
+            https://csrc.nist.gov/projects/role-based-access-control
+        -   OASIS: eXtensible Access Control Markup Language (XACML) Version 3.0 (2013),
+            https://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html
+    diagram:
+        type: graph
+        nodes: "[[DATA:AM.ROLE:*]], [[DATA:DM.ENTITY:*]]"
+        edges: "[[DATA:AM.ROLE:*.PERMISSION:*]]"
+        edgeTarget: ENTITY
+        onlyConnected: true
+        qualified: true
+        config:
+            size-node-width-max: 440
+    childs:
+        -   kind: ROLE
+            desc: >
+                A single role, named with the canonical name of the domain role it grants (e.g.
+                `Moderator`, matching its GLOSSARY term of type `Actor`) and described in a concise
+                (1-2 sentence) paragraph by the responsibility the role carries, plus a 1-sentence
+                rationale ("why") stating why the rights are bundled this way. A role is the unit
+                in which rights are granted to a person: the personas embodying it hold exactly
+                its `PERMISSION` objects (plus those of the roles it `INHERITS`), while a persona
+                holding several roles holds the union of their permissions.
+            diagram:
+                type: hub
+                center: self
+                deep: true
+                nodes: "[[DATA:AM.ROLE:*]], [[REQS:UP.PERSONA:*]], [[REQS:GL.TERM:*]], [[DATA:DM.ENTITY:*]],
+                    [[REQS:DR.RULE:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
+            props:
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects embodying the
+                        role, i.e. the personas acting with exactly its rights, so that every
+                        persona holds at least one role and its rights are stated here rather than
+                        implied by its `ROLE` description, and/or to the GLOSSARY terms of type
+                        `Actor` denoting the external systems holding the role (e.g. a registration
+                        system calling the machine-facing interface), as an external system is no
+                        persona.
+                    value: list([[REQS:UP.PERSONA:*]], [[REQS:GL.TERM:*]])
+                -   name: TERM
+                    desc: >
+                        Reference to the GLOSSARY term of type `Actor` the role grants, anchoring
+                        the role in the ubiquitous language.
+                    value: "[[REQS:GL.TERM:*]]"
+                    optional: true
+                -   name: INHERITS
+                    desc: >
+                        Comma-separated references to the other ROLE objects whose permissions
+                        this role holds in addition to its own (a role hierarchy, e.g. a manager
+                        inheriting the rights of a moderator), where an inherited permission is
+                        not restated.
+                    value: list([[DATA:AM.ROLE:*]])
+                    optional: true
+                    acyclic: true
+            childs:
+                -   kind: PERMISSION
+                    desc: >
+                        A single right of the role on a single entity, named with a short (2-5
+                        word) verb phrase of what the role may do (e.g. `Decide Pending Messages`)
+                        and described by a 1-sentence description of the right, in particular of
+                        the reach of its `CONDITION`. One permission covers one entity: the
+                        operations it grants, the states of the entity in which they are granted,
+                        and the condition under which they are granted, so that the permissions
+                        of all roles form the access matrix of roles against entities. Any
+                        operation, state, or condition not covered by a permission of the role (or
+                        of an inherited one) is forbidden.
+                    format:
+                        maxTableColumns: 7
+                    props:
+                        -   name: ENTITY
+                            desc: Reference to the DATA-MODEL entity the permission is granted on.
+                            value: "[[DATA:DM.ENTITY:*]]"
+                        -   name: OPERATIONS
+                            desc: >
+                                Comma-separated operations the role may perform on the entity: the
+                                generic `Create`, `Read`, `Update`, and `Delete`, and/or references
+                                to the STATE-MODEL transitions of the entity the role may trigger
+                                (a state change is not an `Update`: it is granted by its transition
+                                only), where every persona named as `ACTOR` of a transition holds
+                                a role granting it.
+                            value: list(enum(Create,Read,Update,Delete), [[DATA:SM.LIFECYCLE:*.TRANSITION:*]])
+                        -   name: STATES
+                            desc: >
+                                Comma-separated references to the STATE-MODEL states of the entity
+                                in which the operations are granted (`Create` needs none, as a
+                                creation enters the initial state); omitted when granted in every
+                                state or when the entity has no lifecycle.
+                            value: list([[DATA:SM.LIFECYCLE:*.STATE:*]])
+                            optional: true
+                        -   name: CONDITION
+                            desc: >
+                                The condition which, beyond the role and the `STATES`, has to hold
+                                for the operations to be granted, stated as a 1-sentence statement
+                                of what has to hold, typically the ownership of the instance (e.g.
+                                `The attendee is the sender of the message.`), a confinement to
+                                certain attributes (e.g. `The update is confined to the presenter
+                                alert.`), or a configuration of the surrounding entity; omitted
+                                when the role and the states alone grant the operations.
+                            optional: true
+                        -   name: RULES
+                            desc: >
+                                Comma-separated references to the DOMAIN-RULES objects justifying
+                                or bounding the permission, i.e. the rules whose statement grants
+                                or limits the right.
+                            value: list([[REQS:DR.RULE:*]])
+                            optional: true
+

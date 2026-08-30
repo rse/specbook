@@ -1,0 +1,884 @@
+##
+##  Specification Book (SpecBook)
+##  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+##  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+##
+
+-   kind: ARCH
+    name: Context View
+    id: CV
+    file: 23-ARCH-CV-Context-View.md
+    desc: >
+        The relationships, dependencies, and interactions between the solution and its environment,
+        defining the system's scope, external entities, and boundaries.
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Context Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/context/
+        -   Brown: The C4 Model: System Context Diagram (2018),
+            https://c4model.com/diagrams/system-context
+        -   ISO/IEC/IEEE 42010:2022: Software, systems and enterprise -- Architecture description (2022),
+            https://www.iso.org/standard/74393.html
+    diagram:
+        type: grid
+        nodes: "[[ARCH:CV.ENTITY:*]]"
+        properties:
+            -   KIND
+            -   DIRECTION
+    childs:
+        -   kind: ENTITY
+            desc: >
+                A single external entity the solution interacts with, named with a short (2-5 word)
+                summary (e.g. `Payment Gateway`, `Identity Provider`, `End User`) and described in a
+                concise (1-3 sentence) paragraph by the relationship and dependency between the
+                solution and the entity, plus a 1-sentence rationale ("why") for the entity being
+                part of the system context.
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the external entity, one of:
+                        -   `Person`:       A human actor interacting with the solution.
+                        -   `System`:       An external software system the solution integrates
+                                            with.
+                        -   `Service`:      A third-party or managed service the solution consumes.
+                        -   `Datastore`:    An external data repository the solution reads from or
+                                            writes to.
+                        -   `Device`:       A physical device or sensor the solution communicates
+                                            with.
+                        -   `Organization`: An external organizational party.
+                    value: enum(Person,System,Service,Datastore,Device,Organization)
+                -   name: DIRECTION
+                    desc: >
+                        The flow of interaction relative to the solution: `Inbound` (the entity
+                        drives the solution), `Outbound` (the solution drives the entity), or
+                        `Bidirectional` (both directions).
+                    value: enum(Inbound,Outbound,Bidirectional)
+                -   name: INTERFACE
+                    desc: >
+                        Comma-separated references to the INTERFACE-MODEL objects through which
+                        the interaction happens, i.e. the interfaces the entity consumes (for a
+                        `Provided` one) or offers (for a `Required` one); omitted when the
+                        interaction happens through the user interface or outside any modeled
+                        interface (e.g. a file exchange).
+                    value: list([[APIS:IM.INTERFACE:*]])
+                    optional: true
+                -   name: DATA
+                    desc: >
+                        The principal information exchanged across the boundary with this entity.
+
+-   kind: ARCH
+    name: Functionality View
+    id: FV
+    file: 24-ARCH-FV-Functionality-View.md
+    desc: >
+        The functional components of the solution, their responsibilities, interfaces, and primary
+        interactions, describing *what* the system does at runtime.
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Functional Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/functional/
+        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
+            https://ieeexplore.ieee.org/document/469759
+        -   Brown: The C4 Model (2018),
+            https://c4model.com/
+    diagram:
+        type: graph
+        nodes: "[[ARCH:FV.COMPONENT:*]]"
+        properties:
+            -   KIND
+    childs:
+        -   kind: COMPONENT
+            desc: >
+                A single functional component, named with a short (2-5 word) summary (e.g.
+                `Authentication Service`, `Order Processor`, `Notification Dispatcher`) and
+                described in a concise (1-3 sentence) paragraph by *what* it does and how it
+                collaborates with the components it depends on, plus a 1-sentence rationale ("why")
+                for the component's existence and boundary.
+            format:
+                maxTableColumns: 5
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:FV.COMPONENT:*]]"
+                properties:
+                    -   KIND
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the functional component, one of:
+                        -   `Component`: Cohesive unit of functionality with a defined interface.
+                        -   `Service`:   Independently deployable provider of functionality.
+                        -   `Module`:    Logical grouping of related functionality within a
+                                         component.
+                        -   `Connector`: Mediator that conveys interactions between components
+                                         (e.g. bus, gateway).
+                        -   `Subsystem`: Larger composite grouping several components.
+                    value: enum(Component,Service,Module,Connector,Subsystem)
+                -   name: RESPONSIBILITY
+                    desc: >
+                        The 1-sentence statement of the single, primary responsibility the component
+                        owns.
+                -   name: PROVIDES
+                    desc: >
+                        Comma-separated references to the INTERFACE-MODEL objects the component
+                        provides, i.e. through which other components and external entities
+                        interact with it; omitted when the component provides no modeled interface
+                        (e.g. a user interface or an internal module).
+                    value: list([[APIS:IM.INTERFACE:*]])
+                    optional: true
+                -   name: DEPENDS-ON
+                    desc: >
+                        Comma-separated references to the FUNCTIONALITY-VIEW objects this component
+                        depends on at runtime.
+                    value: list([[ARCH:FV.COMPONENT:*]])
+                    optional: true
+
+-   kind: ARCH
+    name: Information View
+    id: IV
+    file: 25-ARCH-IV-Information-View.md
+    desc: >
+        The way the solution stores, manages, manipulates, and distributes information, defining the
+        static data structure and dynamic information flow.
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Information Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/information/
+        -   Kleppmann: Designing Data-Intensive Applications (2017),
+            https://dataintensive.net/
+    diagram:
+        type: grid
+        nodes: "[[ARCH:IV.ASPECT:*]]"
+        properties:
+            -   CONCERN
+    childs:
+        -   kind: ASPECT
+            desc: >
+                A single information aspect, named with a short (2-5 word) summary (e.g. `Order
+                Persistence`, `Event Stream`, `Cache Coherency`) and described in a concise (1-3
+                sentence) paragraph by how the solution stores, manages, or distributes the
+                information and how its consistency is upheld, plus a 1-sentence rationale ("why")
+                for handling the information this way.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:IV.ASPECT:*]], [[DATA:DM.ENTITY:*]], [[ARCH:FV.COMPONENT:*]]"
+                qualified: true
+                properties:
+                    -   CONCERN
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: CONCERN
+                    desc: >
+                        The information-handling concern the aspect addresses: `Persistence`,
+                        `Flow`, `Ownership`, `Consistency`, `Replication`, `Caching`, `Retention`,
+                        or `Migration`.
+                    value: enum(Persistence,Flow,Ownership,Consistency,Replication,Caching,Retention,Migration)
+                -   name: ENTITIES
+                    desc: >
+                        Comma-separated references to the DATA-MODEL entities the aspect governs.
+                    value: list([[DATA:DM.ENTITY:*]])
+                    optional: true
+                -   name: OWNER
+                    desc: >
+                        Reference to the FUNCTIONALITY-VIEW object that owns this information.
+                    value: "[[ARCH:FV.COMPONENT:*]]"
+                    optional: true
+                -   name: LIFECYCLE
+                    desc: >
+                        How the information comes into being, changes, and is disposed of (e.g.
+                        `created on order, retained 7 years, then purged`).
+
+-   kind: ARCH
+    name: Concurrency View
+    id: CO
+    file: 26-ARCH-CO-Concurrency-View.md
+    desc: >
+        The concurrency structure of the solution, mapping functional components to processes and
+        threads, and defining how they coordinate and communicate.
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Concurrency Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/concurrency/
+        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
+            https://ieeexplore.ieee.org/document/469759
+        -   Schmidt et al.: Pattern-Oriented Software Architecture, Volume 2: Patterns for Concurrent and Networked Objects (2000),
+            https://www.wiley.com/en-us/Pattern+Oriented+Software+Architecture,+Volume+2,+Patterns+for+Concurrent+and+Networked+Objects-p-9781118725177
+    diagram:
+        type: grid
+        nodes: "[[ARCH:CO.UNIT:*]]"
+        properties:
+            -   KIND
+    childs:
+        -   kind: UNIT
+            desc: >
+                A single concurrency unit, named with a short (2-5 word) summary (e.g. `Web Worker
+                Pool`, `Background Scheduler`, `Ingest Queue Consumer`) and described in a concise
+                (1-3 sentence) paragraph by how it executes and how it avoids or manages contention,
+                races, and deadlocks, plus a 1-sentence rationale ("why") for the chosen concurrency
+                structure.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]]"
+                qualified: true
+                properties:
+                    -   KIND
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the concurrency unit, one of:
+
+                        -   `Process`:   An independent OS process with its own address space.
+                        -   `Thread`:    A thread of execution within a process.
+                        -   `Pool`:      A managed group of interchangeable workers.
+                        -   `Queue`:     An asynchronous buffer decoupling producers and consumers.
+                        -   `EventLoop`: A single-threaded cooperative scheduler of tasks.
+                    value: enum(Process,Thread,Pool,Queue,EventLoop)
+                -   name: HOSTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONALITY-VIEW objects that run inside
+                        this concurrency unit.
+                    value: list([[ARCH:FV.COMPONENT:*]])
+                    optional: true
+                -   name: MULTIPLICITY
+                    desc: >
+                        How many instances of the unit run (e.g. `1`, `1 per CPU core`, `0..n
+                        auto-scaled`).
+                -   name: COORDINATION
+                    desc: >
+                        The mechanism by which the unit coordinates or communicates with other units
+                        (e.g. `shared queue`, `mutex`, `message passing`, `optimistic locking`).
+
+-   kind: ARCH
+    name: Development View
+    id: DV
+    file: 27-ARCH-DV-Development-View.md
+    desc: >
+        The architecture supporting the software development process, defining the module
+        organization, build approach, and codeline conventions.
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Development Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/development/
+        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
+            https://ieeexplore.ieee.org/document/469759
+        -   Clements et al.: Documenting Software Architectures: Views and Beyond, 2nd ed. (2010),
+            https://www.informit.com/store/documenting-software-architectures-views-and-beyond-9780321552686
+    diagram:
+        type: grid
+        nodes: "[[ARCH:DV.ASPECT:*]]"
+    childs:
+        -   kind: ASPECT
+            desc: >
+                A single development aspect, named with a short (2-5 word) summary (e.g. `Module
+                Layering`, `Build Pipeline`, `Branching Model`) and described in a concise (1-3
+                sentence) paragraph by the development convention or structure and the rule
+                developers must follow, plus a 1-sentence rationale ("why").
+            props:
+                -   name: CATEGORY
+                    desc: >
+                        The development concern the aspect governs: `Structure` (module/package
+                        organization), `Build` (compilation and packaging), `Dependency` (dependency
+                        management and layering rules), `Codeline` (branching, merging, versioning),
+                        `Standardization` (coding standards and conventions), or `Tooling`
+                        (development tools and automation).
+                    value: enum(Structure,Build,Dependency,Codeline,Standardization,Tooling)
+
+-   kind: ARCH
+    name: Deployment View
+    id: DP
+    file: 28-ARCH-DP-Deployment-View.md
+    desc: >
+        The environment into which the solution is deployed, mapping software elements to the
+        runtime platform, hardware, and network topology.
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Deployment Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/deployment/
+        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
+            https://ieeexplore.ieee.org/document/469759
+        -   Brown: The C4 Model: Deployment Diagram (2018),
+            https://c4model.com/diagrams/deployment
+    diagram:
+        type: grid
+        nodes: "[[ARCH:DP.NODE:*]]"
+        properties:
+            -   KIND
+            -   PLATFORM
+    childs:
+        -   kind: NODE
+            desc: >
+                A single deployment node, named with a short (2-5 word) summary (e.g. `Web Tier`,
+                `Database Cluster`, `Edge CDN`) and described in a concise (1-3 sentence) paragraph
+                by the node, its sizing, and its place in the deployment topology, plus a 1-sentence
+                rationale ("why") for the node's placement and platform choice.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DP.NODE:*]], [[ARCH:FV.COMPONENT:*]]"
+                qualified: true
+                properties:
+                    -   KIND
+                    -   PLATFORM
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the deployment node, one of:
+
+                        -   `Server`:    A physical or virtual machine.
+                        -   `Container`: A containerized runtime (e.g. Docker, OCI).
+                        -   `Cluster`:   A managed group of nodes (e.g. Kubernetes cluster).
+                        -   `Function`:  A serverless / function-as-a-service runtime.
+                        -   `Device`:    An edge or client device.
+                        -   `Managed`:   A managed cloud service (e.g. managed database, queue).
+                    value: enum(Server,Container,Cluster,Function,Device,Managed)
+                -   name: PLATFORM
+                    desc: >
+                        The runtime platform of the node (e.g. `Linux x86-64`, `Kubernetes 1.30`,
+                        `AWS Lambda (Node.js)`).
+                -   name: HOSTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONALITY-VIEW objects deployed onto
+                        this node.
+                    value: list([[ARCH:FV.COMPONENT:*]])
+                    optional: true
+                -   name: NETWORK
+                    desc: >
+                        The network placement and connectivity of the node (e.g. `public subnet, TLS
+                        443`, `private VLAN`).
+
+-   kind: ARCH
+    name: Operations View
+    id: OV
+    file: 29-ARCH-OV-Operations-View.md
+    desc: >
+        The way the solution is operated, administered, and supported in production, defining
+        installation, monitoring, and management concerns.
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Operational Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/operational/
+        -   Beyer et al.: Site Reliability Engineering: How Google Runs Production Systems (2016),
+            https://sre.google/sre-book/table-of-contents/
+        -   ISO/IEC 20000-1:2018: Information technology -- Service management -- Part 1: Service management system requirements (2018),
+            https://www.iso.org/standard/70636.html
+    diagram:
+        type: grid
+        nodes: "[[ARCH:OV.CONCERN:*]]"
+        properties:
+            -   CATEGORY
+    childs:
+        -   kind: CONCERN
+            desc: >
+                A single operational concern, named with a short (2-5 word) summary (e.g. `Rolling
+                Deployment`, `Metrics Collection`, `Backup and Restore`) and described in a concise
+                (1-3 sentence) paragraph by how it is handled in production and which procedures or
+                tools support it, plus a 1-sentence rationale ("why") for the operational approach.
+            props:
+                -   name: CATEGORY
+                    desc: >
+                        The category of the concern: `Installation`, `Configuration`,
+                        `Provisioning`, `Monitoring`, `Logging`, `Alerting`, `Backup`, `Recovery`,
+                        `Upgrade`, or `Support`.
+                    value: enum(Installation,Configuration,Provisioning,Monitoring,Logging,Alerting,Backup,Recovery,Upgrade,Support)
+                -   name: ELEMENTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW
+                        objects the concern applies to.
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]])
+                    optional: true
+
+-   kind: ARCH
+    name: Quality Perspectives
+    id: QP
+    file: 30-ARCH-QP-Quality-Perspectives.md
+    desc: >
+        How the Non-Functional Requirements (NR) are addressed.
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Perspectives (2011),
+            https://www.viewpoints-and-perspectives.info/home/perspectives/
+        -   Bass/Clements/Kazman: Software Architecture in Practice, 4th ed. (2021),
+            https://www.informit.com/store/software-architecture-in-practice-9780136886099
+        -   ISO/IEC 25010:2023: Systems and software engineering -- Systems and software Quality Requirements and Evaluation (SQuaRE) -- Product quality model (2023),
+            https://www.iso.org/standard/78176.html
+    diagram:
+        type: grid
+        nodes: "[[ARCH:QP.PERSPECTIVE:*]]"
+        properties:
+            -   QUALITY
+    childs:
+        -   kind: PERSPECTIVE
+            desc: >
+                A single quality perspective, named with a short (2-5 word) summary (e.g.
+                `Horizontal Scaling`, `Defense in Depth`, `Graceful Degradation`) and described in a
+                concise (1-3 sentence) paragraph by how the architecture satisfies the quality
+                attribute across the affected elements, plus a 1-sentence rationale ("why") for the
+                chosen tactic over alternatives.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:QP.PERSPECTIVE:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
+                qualified: true
+                properties:
+                    -   QUALITY
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: QUALITY
+                    desc: >
+                        The quality attribute the perspective addresses, a solution-oriented
+                        refinement of the NON-FUNCTIONAL-REQUIREMENTS categories which intentionally
+                        differs from them.
+
+                        The NR categories follow the ISO/IEC 25010:2023 top-level characteristics
+                        (and include `Safety` and `Flexibility`) plus the non-quality categories
+                        `Compliance` and `Constraint`, whereas the perspective qualities decompose
+                        some of the characteristics into the finer-grained, architecturally
+                        actionable attributes `Scalability`, `Availability`, `Privacy`,
+                        `Accessibility`, and `Portability`, and address a `Constraint` through the
+                        quality it protects. The quality therefore need not match the category of
+                        the requirements it addresses.
+                    value: enum(Performance,Scalability,Reliability,Availability,Security,Privacy,Usability,Accessibility,Maintainability,Portability,Compatibility,Compliance)
+                -   name: ADDRESSES
+                    desc: >
+                        Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
+                        perspective addresses.
+                    value: list([[REQS:NR.*]])
+                -   name: TACTIC
+                    desc: >
+                        The architectural tactic or strategy applied to achieve the quality (e.g.
+                        `stateless replication behind a load balancer`, `read-through cache`,
+                        `circuit breaker`).
+                -   name: AFFECTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW
+                        objects the tactic affects.
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]])
+                    optional: true
+
+-   kind: ARCH
+    name: Decision Record
+    id: DR
+    file: 31-ARCH-DR-Decision-Record.md
+    desc: >
+        The major decisions related to the architecture, each recording the forces at play, the
+        chosen response, and the reasoning that justifies it.
+    refs: >
+        -   Nygard: Documenting Architecture Decisions (2011),
+            https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions
+        -   Tyree/Akerman: Architecture Decisions: Demystifying Architecture (2005),
+            https://ieeexplore.ieee.org/document/1407822
+        -   ADR: Architectural Decision Records (2017),
+            https://adr.github.io/
+    diagram:
+        type: grid
+        nodes: "[[ARCH:DR.DECISION:*]]"
+        properties:
+            -   STATUS
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 5
+    childs:
+        -   kind: DECISION
+            desc: |
+                A single architecture decision, named with a short summary of the decision, not
+                longer than 80 characters, and recorded as its context (`WHEN`), the decision
+                itself (`WHAT`), its rationale (`WHY`), and optional background (`NOTES`).
+
+                A decision *MUST* qualify on all of the following three tenets:
+
+                -   **Hard to Reverse**: the cost of changing it later is meaningful ("Oh my god,
+                    this would result in a dramatic refactoring!"). So, if a decision is easy to
+                    reverse, just skip it.
+
+                -   **Surprising without Context**: a future architect will look at the code and
+                    wonder ("Why on earth did they do it this way?"). So, if a decision is not
+                    surprising, nobody will wonder why.
+
+                -   **Result of a Real Trade-Off**: there were genuine alternatives and one was
+                    picked for specific reasons ("We deliberately chose this, because..."). So, if
+                    there was no real alternative, there's nothing to record beyond "we did the
+                    obvious thing."
+
+                The following typically qualify as a decision:
+
+                -   **Architectural shape.** "We're using a monorepo." "The write model is
+                    event-sourced, the read model is projected into PostgreSQL."
+
+                -   **Integration patterns between contexts.** "Ordering and Billing communicate
+                    via domain events, not synchronous HTTP."
+
+                -   **Technology choices that carry lock-in.** Database, message bus, auth
+                    provider, deployment target. Not every library - just the ones that would take
+                    a quarter to swap out.
+
+                -   **Boundary and scope decisions.** "Customer data is owned by the Customer
+                    context; other contexts reference it by ID only." The explicit no's are as
+                    valuable as the yes's.
+
+                -   **Deliberate deviations from the obvious path.** "We're using manual SQL
+                    instead of an ORM because X." Anything where a reasonable reader would assume
+                    the opposite. These stop the next engineer from "fixing" something that was
+                    deliberate.
+
+                -   **Constraints not visible in the code.** "We can't use AWS because of
+                    compliance requirements." "Response times must be under 200ms because of the
+                    partner API contract."
+
+                -   **Rejected alternatives when the rejection is non-obvious.** If you considered
+                    GraphQL and picked REST for subtle reasons, record it - otherwise someone will
+                    suggest GraphQL again in six months.
+
+                `WHEN`, `WHAT`, and `WHY` are each just a single paragraph of concise and brief
+                prose text, usually comprised of just 1 to 3 sentences. The value of a decision is
+                in recording *that* a decision was made and *why* - not in filling out sections of
+                a document.
+
+                For the relationship between context, decision, and rationale, good checks are:
+                the "litmus test" is that context = forces, decision = response to those forces,
+                rationale = why the decision answers the forces in the context. The decision
+                should feel like the natural, almost inevitable answer to the context - if a reader
+                is surprised by the decision, either the context is missing a force, or the
+                decision is under-justified. The rationale should make the decision feel earned,
+                not asserted - if you delete the rationale and the decision suddenly looks
+                arbitrary, the rationale was doing its job.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DR.DECISION:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
+                qualified: true
+                properties:
+                    -   STATUS
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: STATUS
+                    desc: >
+                        The status of the decision: `proposed`, `accepted`, `deprecated`, or
+                        `superseded`.
+                    value: enum(proposed,accepted,deprecated,superseded)
+                -   name: AFFECTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW
+                        objects the decision affects.
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]])
+                    optional: true
+                -   name: SUPERSEDED-BY
+                    desc: >
+                        Reference to the DECISION-RECORD object that supersedes this decision.
+                        Should be present if and only if `STATUS` is `superseded`.
+                    value: "[[ARCH:DR.DECISION:*]]"
+                    optional: true
+                -   name: WHEN
+                    desc: |
+                        The **Context** of the decision: it captures the situation that forces the
+                        decision - the "why are we even talking about this" part. It describes the
+                        situation as it is, before the decision is made. The following usually
+                        goes into it:
+
+                        -   the problem or need (what's broken, missing, or about to change that
+                            requires a decision);
+                        -   the forces at play (technical constraints, business requirements,
+                            deadlines, team skills, existing systems, regulatory/compliance
+                            pressures - often competing, and that tension is the whole point);
+                        -   relevant facts (current architecture, prior decisions, assumptions,
+                            what's known and what's uncertain); and
+                        -   scope/boundaries (what this decision is and isn't about).
+
+                        It is written neutrally and factually. It should not contain the decision
+                        itself, nor advocate for an option - a reader should be able to read it,
+                        pause, and arrive at the decision themselves because the forces make it
+                        (nearly) inevitable.
+                -   name: WHAT
+                    desc: |
+                        The **Decision** itself: it states what is actually going to be done - the
+                        chosen response to the forces laid out in the context. It is written in
+                        active, assertive voice, in the present or imperative tense, as a committed
+                        position rather than a discussion. The following usually goes into it:
+
+                        -   the choice itself (clearly and unambiguously); and
+                        -   the essence of how (enough of the approach to make the choice concrete
+                            - the mechanism, pattern, or technology - but not a full implementation
+                            specification).
+
+                        It is a declaration, not a deliberation, usually using the wording "We
+                        use..." or "We do...", active, definite, owning the choice. Avoid hedging
+                        ("we might", "we could consider") - the deliberation already happened, the
+                        decision records the verdict.
+                -   name: WHY
+                    desc: |
+                        The **Rationale** of the decision: it is the reasoning that justifies the
+                        decision - the bridge that explains why this choice, given those forces. It
+                        answers "Of all the things we could have done, why was this the right
+                        one?". Where the context states the forces and the decision states the
+                        choice, the rationale is the logical connective tissue between them - it
+                        shows that the decision actually follows from the context. The following
+                        usually goes into it:
+
+                        -   the deciding factors (which forces from the context carried the most
+                            weight, and how the chosen option satisfies them best);
+                        -   the trade-off reasoning (what was optimized for and what was knowingly
+                            sacrificed - naming the trade-off is the heart of rationale);
+                        -   why the alternatives lost (the comparative argument: "option B failed
+                            on X, option C cost too much on Y"); and
+                        -   assumptions and evidence (benchmarks, prior experience, constraints, or
+                            principles the reasoning rests on).
+                -   name: NOTES
+                    desc: |
+                        The **Background** of the decision: it is *OPTIONAL* and can be omitted
+                        when it does not add genuine value - most decisions won't need it. The
+                        following usually goes into it:
+
+                        -   information about the decision *process* (e.g. a weighted decision
+                            matrix of considered alternatives);
+                        -   consequences of the decision (but only when non-obvious downstream
+                            effects need to be called out); and
+                        -   links to strongly related decisions.
+                    optional: true
+
+-   kind: ARCH
+    name: Technology Stack
+    id: TS
+    file: 32-ARCH-TS-Technology-Stack.md
+    desc: >
+        The concrete technology products the solution is built upon, organized by tier and lifecycle
+        phase, recording for each component its chosen product, its purpose, and the alternatives
+        that were considered but not chosen.
+    refs: >
+        -   ThoughtWorks: Technology Radar (2010),
+            https://www.thoughtworks.com/radar
+        -   Ford: Build Your Own Technology Radar (2013),
+            https://nealford.com/memeagora/2013/05/28/build_your_own_technology_radar.html
+        -   Fowler: Patterns of Enterprise Application Architecture (2002),
+            https://martinfowler.com/books/eaa.html
+    diagram:
+        type: grid
+        nodes: "[[ARCH:TS.TIER:*]]"
+    childs:
+        -   kind: TIER
+            name: (?:Client|Server|Middleware|Database)
+            desc: |
+                The architectural tier grouping the technology components belonging to it, one of:
+
+                -   `Client`:     Runs on the client side (e.g. browser, desktop, mobile).
+                -   `Server`:     Runs on the server side (e.g. backend, application, API).
+                -   `Middleware`: Runs between client and server (e.g. message broker, gateway).
+                -   `Database`:   Runs as the data store (e.g. relational or document database).
+            diagram:
+                type: hub
+                center: self
+                hierarchy: true
+                properties:
+                    -   PRODUCT
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
+            childs:
+                -   kind: COMPONENT
+                    desc: >
+                        A single technology component, named with a short (2-5 word) summary (e.g.
+                        `UI Framework`, `Web Server`, `Relational Database`) and described in a
+                        concise (1-3 sentence) paragraph by how the product is used within the
+                        solution and how it fits into the overall technology stack, plus a
+                        1-sentence rationale ("why") for choosing this product over the
+                        alternatives.
+                    props:
+                        -   name: PRODUCT
+                            desc: >
+                                The concrete product, library, or framework chosen for this
+                                component (e.g. `VueJS`, `Node.js`, `PostgreSQL`).
+                        -   name: ALTERNATIVES
+                            desc: >
+                                Comma-separated names of products which would also fit this
+                                component but were not chosen (e.g. `React, Svelte`).
+                            optional: true
+                        -   name: COVERAGE
+                            desc: |
+                                A comma-separated list of either one or more of the *Client
+                                Aspects* or one or more of the *Server Aspects* (or their
+                                sub-aspects) defined below. The general goal is to achieve a
+                                maximum coverage of all aspects per `TIER` with the minimum
+                                total number of `PRODUCT`s.
+
+                                The known *Client Aspects* which usually have to be covered (at
+                                least for clients in a Rich-Client architecture):
+
+                                -   **Interface Theme**:
+                                    Style Reset, Shape, Color, Gradient, Shadow, Font, Icon.
+
+                                -   **Interface Widgets**:
+                                    Icon, Label, Text Paragraph, Image, Form, Text-Field,
+                                    Text-Area, Date Picker, Toggle, Radio Button, Checkbox,
+                                    Select List, Slider, Progress Bar, Hyperlink, Popup Menu,
+                                    Dropdown Menu, Toolbar, Tooltip, Tab, Pill, Breadcrumb,
+                                    Pagination, Badge, Alert, Panel, Modal, Table, Scrollbar,
+                                    Carousel.
+
+                                -   **Interface Layouting**:
+                                    Responsive Design, Media Query, Frame, Grid, Padding, Border,
+                                    Margin, Alignment, Force, Magnetism.
+
+                                -   **Interface Effects**:
+                                    Transition, Transformation, Keyframes, Easing Function, Sound
+                                    Effect, Physics.
+
+                                -   **Interface Interactions**:
+                                    Mouse, Keyboard, Touchscreen, Gesture, Clipboard, Drag & Drop.
+
+                                -   **Interface States**:
+                                    Rendered, Enabled, Visible, Focused, Warning, Error, Floating.
+
+                                -   **Interface Mask**:
+                                    Markup Loading, Markup Generation, Virtual DOM, Text, Bitmaps,
+                                    Vectors, 2D/3D Canvas, Accessibility.
+
+                                -   **Interface Internationalization**:
+                                    Text Internationalization (I18N).
+
+                                -   **Data Conversion**:
+                                    Value Formatting, Value Parsing, Localization (L10N).
+
+                                -   **Data Binding**:
+                                    Reactive, Observer, Unidirectional, Bidirectional, Incremental.
+
+                                -   **Presentation Model**:
+                                    Parameter Value, Command Value, State Value, Data Value, Event
+                                    Value, Value Validation, Presentation Logic.
+
+                                -   **Dialog Navigation**:
+                                    Deep Linking, Routing, Dialog Flow.
+
+                                -   **Dialog Automation**:
+                                    Dialog Macros, Click-Through, Smoke Testing.
+
+                                -   **Dialog Communication**:
+                                    Service, Event, Model, Socket, Hooks.
+
+                                -   **Dialog Life-Cycle**:
+                                    Component States, Component State Transitions.
+
+                                -   **Dialog Structure**:
+                                    Component, Model/View/Controller Roles, Hierarchical
+                                    Composition.
+
+                                -   **State Persistence**:
+                                    Local Storage, Cookies, Caching.
+
+                                -   **Business Model**:
+                                    Entity, Field, Relationship, Universally Unique Identifiers
+                                    (UUID).
+
+                                -   **Use-Case Authorization**:
+                                    User Experience, Dialog Restriction, User, Group, Role,
+                                    Use-Case, Data, Access.
+
+                                -   **Client Networking**:
+                                    Request/Response, Synchronization, Push, Pull, Pulled-Push,
+                                    REST, GraphQL, Authentication, Session.
+
+                                -   **Environment Detection**:
+                                    Runtime Detection, Feature Detection.
+
+                                The known *Server Aspects* which usually have to be covered (at
+                                least for servers, sometimes called Thin-Servers, in a Rich-Client
+                                architecture):
+
+                                -   **Environment Detection**:
+                                    Detect the run-time environment, like underlying operating
+                                    system, execution platform, network topology, feature toggles,
+                                    etc.
+
+                                -   **Argument Parsing**:
+                                    Parse options and arguments of the Command-Line Interface
+                                    (CLI) to bootstrap application parameters.
+
+                                -   **Configuration Parsing**:
+                                    Load and parse directives from a configuration file to
+                                    bootstrap application parameters.
+
+                                -   **Process Daemonizing**:
+                                    Detach from the startup terminal and host process in order to
+                                    run fully independently.
+
+                                -   **Process Management**:
+                                    (Pre-)fork child processes and/or threads of execution and
+                                    monitor and control them during the life-cycle of the
+                                    application.
+
+                                -   **Component Management**:
+                                    Structure the code into components, instantiate them at
+                                    run-time and manage them in a stateful component life-cycle.
+
+                                -   **Component Communication**:
+                                    Provide inter-component communication mechanisms like events,
+                                    hooks, registry, etc.
+
+                                -   **Server Networking**:
+                                    Listen to network sockets, accept connections and manage
+                                    request/response and message communication.
+
+                                -   **Peer Information**:
+                                    Determine unique identification and add-on information about
+                                    the client peer.
+
+                                -   **Session Handling**:
+                                    Manage secured per-connection sessions to keep state between
+                                    communication requests and/or client sessions.
+
+                                -   **User Authentication**:
+                                    Determine and validate the unique identity of the user
+                                    communicating over the current network connection.
+
+                                -   **Request Validation**:
+                                    Validate the syntactical and semantical compliance of the
+                                    requests and sanitize the requests.
+
+                                -   **Request Processing**:
+                                    Process the request by dispatching execution according to the
+                                    provided request and determined context information.
+
+                                -   **Role Authorization**:
+                                    Determine whether the role of the current user is allowed to
+                                    execute the current request.
+
+                                -   **Client Networking**:
+                                    Provide mechanisms to connect to peers over the network and
+                                    perform request/response and/or publish/subscribe
+                                    communication.
+
+                                -   **Task Scheduling**:
+                                    Schedule and execute recurring tasks independent of regular
+                                    I/O operations.
+
+                                -   **Execution Tracing**:
+                                    Provide mechanisms for tracing the execution by logging event
+                                    and measurement information at certain points of interest.
+
+                                -   **Database Access**:
+                                    Map in-memory domain entities onto a data-store-dependent
+                                    persistent data structure.
+
+                                -   **Database Connectivity**:
+                                    Locally or remotely connect the database access layer to the
+                                    underlying data store.
+
+                                -   **Database Schema**:
+                                    Create, update or downgrade the data schema inside the
+                                    underlying data store.
+
+                                -   **Database Bootstrapping**:
+                                    Create, update or downgrade both mandatory bootstrapping and
+                                    optional domain-specific data inside the underlying data
+                                    store.
+                            optional: true
+                        -   name: WHEN
+                            desc: |
+                                The lifecycle phase in which the component is relevant, one of:
+
+                                -   `Build-Time`: Used during development, compilation, or
+                                                  packaging.
+                                -   `Run-Time`:   Used while the solution executes in production.
+                            value: enum(Build-Time,Run-Time)
+                            optional: true
+

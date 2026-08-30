@@ -1,0 +1,473 @@
+##
+##  Specification Book (SpecBook)
+##  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+##  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+##
+
+-   kind: UXUI
+    name: Interaction Concept
+    id: IC
+    file: 17-UXUI-IC-Interaction-Concept.md
+    desc: >
+        The interaction philosophy of the solution, stated as the set of cross-cutting principles
+        (e.g. auto-save instead of explicit saving) which govern how users interact with the
+        solution and which the Dialog Patterns, Dialog Storyboard, and Visual Design have to obey,
+        while the concrete workflows belong to the User Journey, Use Cases, and Dialog Storyboard.
+        The principles are listed in decreasing precedence, so that whenever two principles
+        conflict in a particular design decision, the earlier one wins.
+    refs: >
+        -   ISO 9241-110:2020: Ergonomics of human-system interaction -- Part 110: Interaction principles (2020),
+            https://www.iso.org/standard/75258.html
+        -   Nielsen: 10 Usability Heuristics for User Interface Design (1994),
+            https://www.nngroup.com/articles/ten-usability-heuristics/
+        -   Shneiderman: The Eight Golden Rules of Interface Design (1987),
+            https://www.cs.umd.edu/users/ben/goldenrules.html
+    optional: true
+    diagram:
+        type: grid
+        nodes: "[[UXUI:IC.PRINCIPLE:*]]"
+        properties:
+            -   CATEGORY
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 4
+    childs:
+        -   kind: PRINCIPLE
+            desc: >
+                A single interaction principle, named with a short (2-5 word) summary (e.g.
+                `Auto-Save`, `Optimistic Updates`, `Undo over Confirm`) and described in a concise
+                (1-3 sentence) paragraph by how it governs the user's experience across the
+                solution, plus a 1-sentence rationale ("why"). A principle is solution-wide and
+                independent of any particular screen or flow (a structure recurring within one flow
+                is a Dialog Pattern instead), decides between design alternatives (the alternative
+                it rejects is its `TRADE-OFF`), and is not verifiable by a metric (a measurable
+                quality bound is a Non-Functional Requirement instead).
+            referenced:
+                -   "[[UXUI:DP.PATTERN:*]]"
+            props:
+                -   name: CATEGORY
+                    desc: >
+                        The interaction principle of ISO 9241-110:2020 the principle primarily
+                        promotes: `Task-Suitability` (suitability for the user's tasks),
+                        `Self-Descriptiveness`, `Expectation-Conformity` (conformity with user
+                        expectations), `Learnability`, `Controllability`, `Error-Robustness` (use
+                        error robustness), or `Engagement` (user engagement).
+                    value: enum(Task-Suitability,Self-Descriptiveness,Expectation-Conformity,Learnability,Controllability,Error-Robustness,Engagement)
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects whose experience
+                        the principle governs, omitted for a principle governing the experience of
+                        all users alike.
+                    value: list([[REQS:UP.PERSONA:*]])
+                    optional: true
+                -   name: MOTIVATED-BY
+                    desc: >
+                        Comma-separated references to the User Journey step objects whose
+                        `PAIN-POINT` or `OPPORTUNITY` the principle answers, so that a principle is
+                        grounded in the observed experience rather than in taste alone.
+                    value: list([[REQS:UJ.JOURNEY:*.STEP:*]])
+                    optional: true
+                -   name: TRADE-OFF
+                    desc: >
+                        The competing concern the principle deliberately subordinates, stated so
+                        that the opposite of the principle is a defensible choice, too (e.g.
+                        `explicit confirmation before every destructive action` for `Undo over
+                        Confirm`), as opposed to the rationale which states why this side wins.
+
+-   kind: UXUI
+    name: Language Conventions
+    id: LC
+    file: 18-UXUI-LC-Language-Conventions.md
+    desc: >
+        The voice, tone, and wording of the user-facing text of the solution (labels, messages,
+        notifications, help), governing how the solution speaks to its users, so that the Interaction
+        Concept states how it behaves, the Language Conventions how it talks, and the Visual Design
+        how it looks. Domain terms are *defined* in the Domain Glossary and only *surfaced* here,
+        while the conventions of the specification text itself and of code identifiers are out of
+        scope (they belong to the Development View).
+    refs: >
+        -   Podmajersky: Strategic Writing for UX (2019),
+            https://www.oreilly.com/library/view/strategic-writing-for/9781492049388/
+        -   Metts/Welfle: Writing Is Designing: Words and the User Experience (2020),
+            https://rosenfeldmedia.com/books/writing-is-designing/
+        -   Mailchimp: Content Style Guide -- Voice and Tone (2015),
+            https://styleguide.mailchimp.com/
+        -   Microsoft: Microsoft Writing Style Guide (2018),
+            https://learn.microsoft.com/en-us/style-guide/welcome/
+    optional: true
+    diagram:
+        type: grid
+        nodes: "[[UXUI:LC.CONVENTION:*]]"
+        properties:
+            -   CATEGORY
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 4
+    childs:
+        -   kind: CONVENTION
+            desc: >
+                A single language convention, named with a short (2-5 word) summary (e.g. `Neutral
+                Error Tone`, `Second-Person Address`) and described in a concise (1-3 sentence)
+                paragraph as the rule the user-facing text of the solution has to follow
+                consistently, plus a 1-sentence rationale ("why"). A convention governs how the
+                solution phrases what it says, not what it does (a behavior is an Interaction
+                Concept principle instead) and not what a term means (a definition is a Domain
+                Glossary term instead).
+            props:
+                -   name: CATEGORY
+                    desc: >
+                        The aspect of language the convention governs: `Voice` (the stable persona
+                        the solution speaks with), `Tone` (the register varying with the situation,
+                        e.g. on errors), `Vocabulary` (preferred and forbidden words and phrasings),
+                        `Grammar` (person, tense, mood, sentence structure), `Capitalization`,
+                        `Punctuation`, `Formatting` (numbers, dates, units, quotations), or
+                        `Localization` (languages, translations, locale-dependent wording).
+                    value: enum(Voice,Tone,Vocabulary,Grammar,Capitalization,Punctuation,Formatting,Localization)
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects the convention
+                        addresses, omitted for a convention governing the text shown to all users
+                        alike.
+                    value: list([[REQS:UP.PERSONA:*]])
+                    optional: true
+                -   name: PRINCIPLES
+                    desc: >
+                        Comma-separated references to the INTERACTION-CONCEPT objects the convention
+                        supports in wording, so that a convention is grounded in the interaction
+                        philosophy rather than in taste alone.
+                    value: list([[UXUI:IC.PRINCIPLE:*]])
+                    optional: true
+                -   name: TERMS
+                    desc: >
+                        Comma-separated references to the GLOSSARY terms whose surfacing in the
+                        user-facing text the convention governs, so that the Domain Glossary defines
+                        the term and the convention states how it is written.
+                    value: list([[REQS:GL.TERM:*]])
+                    optional: true
+                -   name: EXAMPLE
+                    desc: >
+                        A short, concrete "do, not don't" pair illustrating the convention in
+                        practice, quoting the text as the user sees it (e.g. `"You are not
+                        authorized for this event.", not "Access forbidden!"`).
+
+-   kind: UXUI
+    name: Dialog Patterns
+    id: DP
+    file: 19-UXUI-DP-Dialog-Patterns.md
+    desc: >
+        The reusable interaction structures governing how the system and user exchange information
+        across recurring UI flows (e.g. master-detail dialog).
+    refs: >
+        -   Alexander et al.: A Pattern Language: Towns, Buildings, Construction (1977),
+            https://global.oup.com/academic/product/a-pattern-language-9780195019193
+        -   Borchers: A Pattern Approach to Interaction Design (2001),
+            https://www.wiley.com/en-us/A+Pattern+Approach+to+Interaction+Design-p-9780471498285
+        -   Tidwell et al.: Designing Interfaces: Patterns for Effective Interaction Design, 3rd ed. (2020),
+            https://www.oreilly.com/library/view/designing-interfaces-3rd/9781492051954/
+    optional: true
+    diagram:
+        type: grid
+        nodes: "[[UXUI:DP.PATTERN:*]]"
+        properties:
+            -   CATEGORY
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 4
+    childs:
+        -   kind: PATTERN
+            desc: >
+                A single reusable dialog pattern, named with a short (2-5 word) summary (e.g.
+                `Master-Detail`, `Wizard`, `Inline Edit`) and described in a concise (1-3 sentence)
+                paragraph by the interaction structure and how the system and user exchange
+                information within it, plus a 1-sentence rationale ("why") stating why this
+                particular structure is worth adopting -- the benefit it secures or the trade-off it
+                wins. A pattern is a structure recurring in at least two flows (a structure
+                occurring in a single flow is a Dialog Storyboard frame instead) and is bound to a
+                particular kind of screen or flow (a solution-wide rule independent of any screen
+                is an Interaction Concept principle instead).
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[UXUI:DP.PATTERN:*]], [[UXUI:IC.PRINCIPLE:*]], [[UXUI:DS.STORYBOARD:*]]"
+                deep: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: CATEGORY
+                    desc: >
+                        The aspect of the interaction the pattern structures: `Navigation` (moving
+                        between the screens and places of the solution), `Layout` (arranging the
+                        regions of a screen), `List` (browsing, filtering, and selecting among many
+                        items), `Data` (presenting complex data and information graphics), `Form`
+                        (entering and editing data), `Action` (issuing commands and handling their
+                        effects), or `Feedback` (conveying status, progress, and notifications).
+                    value: enum(Navigation,Layout,List,Data,Form,Action,Feedback)
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects whose interaction
+                        the pattern structures, omitted for a pattern applied to the interaction of
+                        all users alike.
+                    value: list([[REQS:UP.PERSONA:*]])
+                    optional: true
+                -   name: CONTEXT
+                    desc: >
+                        The recurring situation or flow in which the pattern is applied.
+                -   name: PROBLEM
+                    desc: >
+                        The 1-sentence tension or difficulty the pattern resolves ("why is the
+                        pattern needed"), stated independently of its solution (which belongs to the
+                        description) and of its rationale (which states why this particular solution
+                        is worth adopting).
+                -   name: PRINCIPLES
+                    desc: >
+                        Comma-separated references to the INTERACTION-CONCEPT objects the pattern
+                        embodies, so that every principle is shown to be honored by at least one
+                        pattern rather than merely declared.
+                    value: list([[UXUI:IC.PRINCIPLE:*]])
+                    optional: true
+                -   name: USES
+                    desc: >
+                        Comma-separated references to the smaller DIALOG-PATTERNS objects the
+                        pattern is composed of (e.g. a `Master-Detail` using an `Inline Edit` in
+                        its detail), so that the patterns form a language of related structures
+                        rather than a flat catalogue.
+                    value: list([[UXUI:DP.PATTERN:*]])
+                    optional: true
+                -   name: TRADE-OFF
+                    desc: >
+                        The liability the pattern accepts in exchange for its benefit, stated so
+                        that not applying the pattern is a defensible choice, too (e.g. `the
+                        horizontal space of two panes, cramped on small screens` for
+                        `Master-Detail`), as opposed to the rationale which states why the benefit
+                        wins.
+
+-   kind: UXUI
+    name: Dialog Storyboard
+    id: DS
+    file: 20-UXUI-DS-Dialog-Storyboard.md
+    desc: >
+        The sequenced visual or textual depiction of a specific dialog flow, illustrating how an
+        interaction unfolds screen by screen or turn by turn.
+    refs: >
+        -   Truong et al.: Storyboarding: An Empirical Determination of Best Practices and Effective Guidelines (2006),
+            https://dl.acm.org/doi/10.1145/1142405.1142410
+        -   Buxton: Sketching User Experiences: Getting the Design Right and the Right Design (2007),
+            https://shop.elsevier.com/books/sketching-user-experiences-getting-the-design-right-and-the-right-design/buxton/978-0-12-374037-3
+        -   NN/g: Storyboards Help Visualize UX Ideas (2018),
+            https://www.nngroup.com/articles/storyboards-visualize-ideas/
+    optional: true
+    diagram:
+        type: grid
+        nodes: "[[UXUI:DS.STORYBOARD:*]]"
+        properties:
+            -   ACTORS
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 4
+    childs:
+        -   kind: STORYBOARD
+            desc: >
+                A single depicted dialog flow, named with a short (3-8 word) summary of the flow and
+                comprised of frames in sequence. A storyboard shows the concrete user interface of
+                one flow, as seen by its actors (the intent and the information exchanged is a Use
+                Cases scenario instead, and a structure recurring across flows is a Dialog Pattern
+                instead).
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[UXUI:DS.STORYBOARD:*]], [[REQS:UP.PERSONA:*]],
+                    [[REQS:UC.USE-CASE:*.SCENARIO:*]], [[UXUI:DP.PATTERN:*]]"
+                deep: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
+            props:
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects whose story the
+                        storyboard tells, in the order of their appearance, so that a storyboard
+                        switching its viewpoint between actors (e.g. from a moderator to a
+                        presenter) names all of them.
+                    value: list([[REQS:UP.PERSONA:*]])
+                -   name: SCENARIO
+                    desc: >
+                        Reference to the USE-CASES scenario object the storyboard renders as user
+                        interface, omitted for a storyboard of a flow no scenario covers.
+                    value: "[[REQS:UC.USE-CASE:*.SCENARIO:*]]"
+                    optional: true
+            childs:
+                -   kind: FRAME
+                    desc: >
+                        A single frame of the storyboard, named with a short (2-5 word) label for
+                        the screen, turn, or state depicted, shown by its `SKETCH`, and described in
+                        a concise (1-2 sentence) paragraph by what the actor sees and does at this
+                        frame of the interaction.
+                    format:
+                        type: concise
+                        maxTableColumns: 5
+                    props:
+                        -   name: SCENARIO-STEP
+                            desc: >
+                                The number of the step of the referenced USE-CASES scenario the
+                                frame renders, so that a frame traces back to the intent it gives a
+                                user interface to, omitted for a frame setting the scene before or
+                                between the steps.
+                            value: /^[1-9][0-9]*$/
+                            optional: true
+                        -   name: ACTOR
+                            desc: >
+                                Reference to the User Personas object from whose viewpoint the frame
+                                is depicted, given whenever the storyboard names several `ACTORS`
+                                and omitted for a storyboard of a single actor.
+                            value: "[[REQS:UP.PERSONA:*]]"
+                            optional: true
+                        -   name: PATTERNS
+                            desc: >
+                                Comma-separated references to the DIALOG-PATTERNS objects the frame
+                                instantiates, so that a pattern is shown to recur across the
+                                concrete flows rather than merely being catalogued.
+                            value: list([[UXUI:DP.PATTERN:*]])
+                            optional: true
+                        -   name: SKETCH
+                            desc: >
+                                An image (`![...](...)`) of the frame, preferably a low-fidelity
+                                sketch or wireframe which invites critique, or a screenshot for an
+                                already existing user interface, so that the frame is seen rather
+                                than only read, omitted for a frame whose depiction differs from
+                                the preceding one only in a detail the description names.
+                            optional: true
+
+-   kind: UXUI
+    name: Visual Design
+    id: VD
+    file: 21-UXUI-VD-Visual-Design.md
+    desc: >
+        The visual design decisions of the solution (brand, color, typography, spacing, shape,
+        iconography, imagery, and motion), each stated as a rule with its rationale, plus the
+        high-fidelity mockups showing the decisions applied to concrete screens, so that the
+        Interaction Concept states how the solution behaves, the Language Conventions how it
+        talks, and the Visual Design how it looks. The concrete token values live in the design
+        system (token file, design tool library) and are referenced rather than restated, the
+        arrangement of the regions of a screen is a Dialog Pattern, the screen of a particular
+        flow step is a Dialog Storyboard frame, and a measurable visual bound (e.g. a contrast
+        ratio) is a Non-Functional Requirement.
+    refs: >
+        -   DTCG: Design Tokens Format Module (2025),
+            https://www.designtokens.org/tr/format/
+        -   Google: Material Design 3 -- Styles: Color, Typography, Shape, Motion, Icons, Elevation (2021),
+            https://m3.material.io/styles
+        -   Kholmatova: Design Systems: A practical guide for creating design languages for digital products (2017),
+            https://www.smashingmagazine.com/printed-books/design-systems/
+    optional: true
+    diagram:
+        type: grid
+        nodes: "[[UXUI:VD.ELEMENT:*]]"
+        properties:
+            -   CATEGORY
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 4
+    childs:
+        -   kind: ELEMENT
+            desc: >
+                A single visual design element, named with a short (2-5 word) summary (e.g. `Brand
+                Color Palette`, `Self-Hosted Typography`) and described in a concise (1-3 sentence)
+                paragraph as the rule the appearance of the solution has to follow consistently,
+                naming its stable concrete values (e.g. the primary color, the font family, the
+                type scale) and deferring the remaining ones to its `SOURCE`, plus a 1-sentence
+                rationale ("why"). An element decides how the solution looks (a behavior is an
+                Interaction Concept principle instead, a wording is a Language Conventions
+                convention instead), solution-wide rather than for one screen (a screen is a
+                `MOCKUP` or a Dialog Storyboard frame instead), and is a decision rather than a
+                list of token values (the values are in the design system) or a measurable bound
+                (a bound is a Non-Functional Requirement instead).
+            format:
+                maxTableColumns: 5
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[UXUI:VD.ELEMENT:*]], [[REQS:UP.PERSONA:*]], [[UXUI:IC.PRINCIPLE:*]], [[UXUI:VD.MOCKUP:*]]"
+                qualified: true
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: CATEGORY
+                    desc: >
+                        The aspect of visual design the element governs: `Brand` (logo, wordmark,
+                        and identity marks), `Color` (palettes, themes, and semantic color roles),
+                        `Typography` (font families, type scale, and text styles), `Spacing`
+                        (spacing scale, grid, and breakpoints, i.e. the metrics of the arrangements
+                        the Dialog Patterns structure), `Shape` (corner radii, borders, and
+                        elevation), `Iconography` (icon set and its usage), `Imagery`
+                        (photography, illustration, and video treatment), or `Motion`
+                        (transitions, animations, and their timing).
+                    value: enum(Brand,Color,Typography,Spacing,Shape,Iconography,Imagery,Motion)
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects for whom the
+                        element governs the appearance, omitted for an element governing the
+                        appearance for all users alike.
+                    value: list([[REQS:UP.PERSONA:*]])
+                    optional: true
+                -   name: PRINCIPLES
+                    desc: >
+                        Comma-separated references to the INTERACTION-CONCEPT objects the element
+                        supports in appearance, so that an element is grounded in the interaction
+                        philosophy rather than in taste alone.
+                    value: list([[UXUI:IC.PRINCIPLE:*]])
+                    optional: true
+                -   name: SOURCE
+                    desc: >
+                        The authoritative external artifact holding the concrete values of the
+                        element (e.g. a design token file, a design tool library, a stylesheet),
+                        so that the values are maintained there and only referenced here, omitted
+                        for an element whose values are fully named in its description.
+                    optional: true
+                -   name: TRADE-OFF
+                    desc: >
+                        The liability the element accepts in exchange for its benefit, stated so
+                        that the opposite decision is a defensible choice, too (e.g. `a larger
+                        initial download` for `Self-Hosted Typography`), as opposed to the
+                        rationale which states why the benefit wins.
+        -   kind: MOCKUP
+            desc: >
+                A single high-fidelity mockup, named with a short (2-5 word) label for the screen
+                depicted, shown by its `IMAGE`, and described in a concise (1-2 sentence) paragraph
+                by which visual design elements it shows applied and where on the screen. A mockup
+                is a reference rendering of the final look of one screen (a low-fidelity sketch of
+                a screen within its flow is a Dialog Storyboard frame instead) and shows rules
+                applied rather than stating them (a rule is an `ELEMENT` instead).
+            format:
+                type: complex
+            props:
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects who see the
+                        depicted screen.
+                    value: list([[REQS:UP.PERSONA:*]])
+                -   name: STORYBOARD
+                    desc: >
+                        Reference to the DIALOG-STORYBOARD object whose flow the depicted screen
+                        belongs to, so that the high-fidelity look traces back to the sketched
+                        flow, omitted for a mockup of a screen no storyboard covers.
+                    value: "[[UXUI:DS.STORYBOARD:*]]"
+                    optional: true
+                -   name: ELEMENTS
+                    desc: >
+                        Comma-separated references to the `ELEMENT` objects the mockup shows
+                        applied, so that an element is shown to be realized rather than merely
+                        declared.
+                    value: list([[UXUI:VD.ELEMENT:*]])
+                -   name: IMAGE
+                    desc: >
+                        An image (`![...](...)`) of the mockup, a high-fidelity rendering from
+                        the design tool or a screenshot of an already existing user interface, so
+                        that the look is seen rather than only read.
+

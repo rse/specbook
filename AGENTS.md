@@ -55,7 +55,7 @@ API.
         structure (the AST of the specification)
     -   `src/specbook-format-schema.ts`: types/schema of the YAML schema
         configuration (which domain-specific objects are allowed)
-    -   `src/specbook-format.yaml`: the bundled standard YAML schema
+    -   `src/specbook-format.d/std-N-XXX.yaml`: the bundled standard YAML schema
         configuration, used whenever no particular one is given
 -   `etc/`: the tool configurations (`eslint.mjs`, `tsconfig.json`, `stx.conf`)
 -   `smp/`: the sample specification corpus (`broadcast/`, based on the
@@ -93,7 +93,7 @@ specbook mcp      [-v]
 ```
 
 The YAML schema configuration of `init`, `lint`, `export`, and `preview` falls back
-onto the bundled standard one (`src/specbook-format.yaml`, copied to
+onto the bundled standard one (assembled from `src/specbook-format.d/` into
 `dst/` at build time), while `describe` references the given one only
 and falls back onto the standard one by embedding it.
 Exactly the artifact files referenced by its `file` fields are loaded and parsed,
