@@ -21,7 +21,7 @@ BECAUSE the entire data model is event-centric and every other entity hangs off 
     Unique identifier of the event used in the access URL,
     BECAUSE attendees reach a specific event by an unguessable link.
 
--   ATTRIBUTE: title (*); TYPE: `string`;
+-   ATTRIBUTE: title (*); TYPE: `string`; CLASSIFICATION: Public;
     Display title of the event such as "Townhall 1/23",
     BECAUSE attendees and managers need a human-readable label.
 
@@ -321,7 +321,8 @@ BECAUSE the application is role-based and rights are granted through roles.
     The role granted to the person for the event,
     BECAUSE each role carries a distinct set of rights.
 
--   ATTRIBUTE: email (*); TYPE: `string`;
+-   ATTRIBUTE: email (*); TYPE: `string`; CLASSIFICATION: Personal;
+    RETENTION: until event finish (Moderator), until event deletion (Manager);
     Email address of the authorized person,
     BECAUSE roles are granted by email without permanent accounts.
 
@@ -338,15 +339,15 @@ BECAUSE the system holds no permanent accounts yet must identify attendees per e
     Unique identifier of the user,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: email (*); TYPE: `string`;
+-   ATTRIBUTE: email (*); TYPE: `string`; CLASSIFICATION: Personal; RETENTION: until event finish;
     Concrete email address of the user,
     BECAUSE authorization tokens are sent to this address at login.
 
--   ATTRIBUTE: firstname; TYPE: `string`; DEFAULT: `""`;
+-   ATTRIBUTE: firstname; TYPE: `string`; DEFAULT: `""`; CLASSIFICATION: Personal; RETENTION: until event finish;
     Optional first name of the user,
     BECAUSE it is displayed on the user's chat and question messages.
 
--   ATTRIBUTE: lastname; TYPE: `string`; DEFAULT: `""`;
+-   ATTRIBUTE: lastname; TYPE: `string`; DEFAULT: `""`; CLASSIFICATION: Personal; RETENTION: until event finish;
     Optional last name of the user,
     BECAUSE it is displayed on the user's chat and question messages.
 
@@ -398,7 +399,8 @@ BECAUSE all event interaction is represented uniformly as messages with language
     Language the sender originally wrote the message in,
     BECAUSE the difference between human-written and AI-translated text must always be visible.
 
--   ATTRIBUTE: senderName; TYPE: `string`;
+-   ATTRIBUTE: senderName; TYPE: `string`; CLASSIFICATION: Personal;
+    RETENTION: until event finish, then replaced by "Anonymous";
     Display name shown to others for the sender,
     BECAUSE the visible name depends on event naming and anonymity options.
 
@@ -500,6 +502,7 @@ A one-time second factor proving an attendee controls the email address used as 
 BECAUSE email-verified access is the core mechanism limiting the audience.
 
 -   ATTRIBUTE: token (*); TYPE: `string`; CONSTRAINT: `six digits as NNN-NNN`;
+    CLASSIFICATION: Confidential; RETENTION: until validity expiry, at latest until event finish;
     The generated one-time token for the next login attempt,
     BECAUSE the attendee proves control of the email by returning this token.
 
@@ -527,7 +530,7 @@ BECAUSE email-verified access is the core mechanism limiting the audience.
 The result of a successful login of a user to an event,
 BECAUSE an active session must be tracked to enforce single concurrent access.
 
--   ATTRIBUTE: sessionId; TYPE: `key uuid`; DEFAULT: `uuid()`;
+-   ATTRIBUTE: sessionId; TYPE: `key uuid`; DEFAULT: `uuid()`; CLASSIFICATION: Confidential; RETENTION: until event finish;
     Unique identifier of the session,
     BECAUSE the active session of a user for an event must be addressable.
 
@@ -612,15 +615,18 @@ BECAUSE audience composition informs reporting and default localization.
     Time the snapshot was created,
     BECAUSE user statistics are recorded over time.
 
--   ATTRIBUTE: country (*); TYPE: `string`;
+-   ATTRIBUTE: country (*); TYPE: `string`; CLASSIFICATION: Personal;
+    RETENTION: linked to the user until event finish, retained unlinked afterwards;
     ISO country code from GeoIP tracking,
     BECAUSE country selects the default application language on first use.
 
--   ATTRIBUTE: browserType (*); TYPE: `string`;
+-   ATTRIBUTE: browserType (*); TYPE: `string`; CLASSIFICATION: Personal;
+    RETENTION: linked to the user until event finish, retained unlinked afterwards;
     Type of browser used,
     BECAUSE browser distribution informs compatibility decisions.
 
--   ATTRIBUTE: deviceType (*); TYPE: `string`;
+-   ATTRIBUTE: deviceType (*); TYPE: `string`; CLASSIFICATION: Personal;
+    RETENTION: linked to the user until event finish, retained unlinked afterwards;
     Type of device used,
     BECAUSE device distribution informs responsive design priorities.
 

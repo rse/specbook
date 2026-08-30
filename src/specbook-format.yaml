@@ -752,6 +752,8 @@
                         A named attribute of the entity, carrying a camel-cased, 1-3 word long,
                         per-entity unique identifier, and described by a 1-sentence description
                         ("what") plus a 1-sentence rationale ("why").
+                    format:
+                        maxTableColumns: 6
                     props:
                         -   name: TYPE
                             desc: >
@@ -774,6 +776,29 @@
                                 The constraint on the value of the entity attribute beyond its type,
                                 as a short phrase stating a range, unit, pattern, or invariant (e.g.
                                 `1..60 seconds`, `RFC 5322 address`, `not before begin`).
+                            value: /.+/
+                            optional: true
+                        -   name: CLASSIFICATION
+                            desc: >
+                                The sensitivity classification of the entity attribute value:
+                                `Public` for a value disclosable to anyone, `Internal` for a value
+                                disclosable within the operating organization only, `Confidential`
+                                for a value disclosable to explicitly authorized persons only (e.g. a
+                                secret or credential), or `Personal` for a value identifying or
+                                relating to a natural person and hence subject to data protection
+                                law (e.g. GDPR); defaults to `Internal`.
+                            value: enum(Public,Internal,Confidential,Personal)
+                            optional: true
+                        -   name: RETENTION
+                            desc: >
+                                The retention of the entity attribute value, as a short phrase
+                                stating the duration or the triggering event beyond which the value
+                                is deleted or anonymized (e.g. `30 days after creation`, `until
+                                event finish`, `until account deletion`); expected on every
+                                `Personal` classified attribute (GDPR Art. 5(1)(e), storage
+                                limitation) and on every `Confidential` classified one, while an
+                                absent retention means the value is kept as long as the entity
+                                exists.
                             value: /.+/
                             optional: true
                 -   kind: RELATION
