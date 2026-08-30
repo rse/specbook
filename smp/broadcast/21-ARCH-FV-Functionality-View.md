@@ -54,7 +54,7 @@ horizontally, BECAUSE real-time fan-out to up to 10000 attendees is the central 
 
 -   KIND:           Service
 -   RESPONSIBILITY: Execute all business logic for events, messages, auth, and statistics.
--   PROVIDES:       [[IF.server-cli]]
+-   PROVIDES:       [[IM.server-cli]]
 -   DEPENDS-ON:     [[FV.database]], [[FV.translation]], [[FV.auth]], [[FV.statistics]]
 
 The service layer is the main server holding event, moderation, access, and configuration logic, reacting to MQTT messages

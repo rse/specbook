@@ -934,16 +934,17 @@
                             optional: true
 
 -   kind: APIS
-    name: Interfaces
-    id: IF
-    file: 11-APIS-IF-Interfaces.md
+    name: Interface Model
+    id: IM
+    file: 11-APIS-IM-Interface-Model.md
     desc: >
         The machine-facing interfaces the solution provides to, or requires from, other programs
         (REST, GraphQL, gRPC, WebSocket, MQTT, AMQP, MCP, CLI, library, or custom ones), each
         described by its kind, direction, location, and consumers, while the named types,
-        constants, and endpoints of all interfaces are modeled generically in the DATA-TYPES and
-        ENDPOINTS artifacts, whose objects reference the interfaces they belong to. The artifact
-        is absent when the solution neither provides nor requires any machine-facing interface.
+        constants, and endpoints of all interfaces are modeled generically in the
+        INTERFACE-DATATYPES and INTERFACE-ENDPOINTS artifacts, whose objects reference the
+        interfaces they belong to. The artifact is absent when the solution neither provides nor
+        requires any machine-facing interface.
     optional: true
     refs: >
         -   OpenAPI Initiative: OpenAPI Specification 3.1 (2021),
@@ -958,7 +959,7 @@
             https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap12.html
     diagram:
         type: grid
-        nodes: "[[APIS:IF.INTERFACE:*]]"
+        nodes: "[[APIS:IM.INTERFACE:*]]"
         properties:
             -   KIND
             -   DIRECTION
@@ -969,16 +970,16 @@
                 `Event Topics`, `Command Line`) and described in a concise (1-3 sentence) paragraph
                 by its purpose and its consumers, plus a 1-sentence rationale ("why") for the
                 interface's existence and boundary. All kinds of interfaces share the same model:
-                the DATA-TYPES `TYPE` objects are the data shapes exchanged (carrying the fixed
-                values agreed upon as their `CONSTANT` objects) and the ENDPOINTS `ENDPOINT`
-                objects the operations offered, each referencing the interfaces it belongs to,
-                where the kind-specific parts (HTTP method, GraphQL operation, topic direction,
-                command) are carried by the `OPERATION` and `LOCATOR` properties of the
+                the INTERFACE-DATATYPES `TYPE` objects are the data shapes exchanged (carrying the
+                fixed values agreed upon as their `CONSTANT` objects) and the INTERFACE-ENDPOINTS
+                `ENDPOINT` objects the operations offered, each referencing the interfaces it
+                belongs to, where the kind-specific parts (HTTP method, GraphQL operation, topic
+                direction, command) are carried by the `OPERATION` and `LOCATOR` properties of the
                 endpoints only.
             diagram:
                 type: hub
                 center: self
-                nodes: "[[APIS:IF.INTERFACE:*]], [[APIS:DT.TYPE:*]], [[APIS:EP.ENDPOINT:*]]"
+                nodes: "[[APIS:IM.INTERFACE:*]], [[APIS:ID.TYPE:*]], [[APIS:IE.ENDPOINT:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -1022,9 +1023,9 @@
                     optional: true
 
 -   kind: APIS
-    name: Data Types
-    id: DT
-    file: 12-APIS-DT-Data-Types.md
+    name: Interface Datatypes
+    id: ID
+    file: 12-APIS-ID-Interface-Datatypes.md
     desc: >
         The named data types exchanged through the machine-facing interfaces of the INTERFACES
         artifact, modeled generically for all kinds of interfaces: a type is either an object
@@ -1040,7 +1041,7 @@
             https://spec.graphql.org/October2021/
     diagram:
         type: graph
-        nodes: "[[APIS:DT.TYPE:*]]"
+        nodes: "[[APIS:ID.TYPE:*]]"
         deep: true
         onlyConnected: true
         qualified: true
@@ -1062,7 +1063,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[APIS:DT.TYPE:*]], [[APIS:IF.INTERFACE:*]]"
+                nodes: "[[APIS:ID.TYPE:*]], [[APIS:IM.INTERFACE:*]]"
                 deep: true
                 labeled: true
                 qualified: true
@@ -1072,10 +1073,10 @@
             props:
                 -   name: INTERFACES
                     desc: >
-                        Comma-separated references to the INTERFACES objects the type is exchanged
-                        through, i.e. the interfaces whose endpoints consume or return it, directly
-                        or through the fields of another type.
-                    value: list([[APIS:IF.INTERFACE:*]])
+                        Comma-separated references to the INTERFACE-MODEL objects the type is
+                        exchanged through, i.e. the interfaces whose endpoints consume or return it,
+                        directly or through the fields of another type.
+                    value: list([[APIS:IM.INTERFACE:*]])
                 -   name: BASE
                     desc: >
                         The underlying type of a non-object (value) type: one of the primitives
@@ -1087,7 +1088,7 @@
                         object (an alias), where several
                         comma-separated alternatives form a named union type; omitted for
                         an object type composed of fields.
-                    value: list([[APIS:DT.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                    value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                     optional: true
                 -   name: EXTENDS
                     desc: >
@@ -1097,7 +1098,7 @@
                         envelope type, or a GraphQL type implementing interfaces), where an
                         inherited field is not redeclared; omitted for a type carrying a
                         `BASE`.
-                    value: list([[APIS:DT.TYPE:*]])
+                    value: list([[APIS:ID.TYPE:*]])
                     acyclic: true
                     optional: true
                 -   name: MATERIALIZES
@@ -1129,7 +1130,7 @@
                                 enumeration `enum(XXX,YYY[,...])` (a reusable one is a `TYPE`
                                 object with an `enum(...)` base), where several comma-separated
                                 alternatives form a union type.
-                            value: list([[APIS:DT.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                         -   name: ARITY
                             desc: >
                                 The arity (cardinality) of the field value: `0..1` or `?`
@@ -1172,20 +1173,20 @@
                                 object (a scalar, enumeration, alias, or union
                                 type carrying a `BASE`); an object type composed of fields is no
                                 value type and hence not admitted, as a literal cannot express it.
-                            value: list([[APIS:DT.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                         -   name: VALUE
                             desc: >
                                 The literal value of the constant (e.g. `100`, `event/`), matching
                                 its `TYPE`.
                             value: /.+/
 -   kind: APIS
-    name: Endpoints
-    id: EP
-    file: 13-APIS-EP-Endpoints.md
+    name: Interface Endpoints
+    id: IE
+    file: 13-APIS-IE-Interface-Endpoints.md
     desc: >
-        The operations offered by the machine-facing interfaces of the INTERFACES artifact,
+        The operations offered by the machine-facing interfaces of the INTERFACE-MODEL artifact,
         modeled generically for all kinds of interfaces: an endpoint references the interface it
-        belongs to and consumes the DATA-TYPES types and constants through its positional
+        belongs to and consumes the INTERFACE-DATATYPES types and constants through its positional
         arguments and named options and returns them through its results. The artifact is absent
         when the solution neither provides nor requires any machine-facing interface.
     optional: true
@@ -1202,7 +1203,7 @@
             https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap12.html
     diagram:
         type: graph
-        nodes: "[[APIS:EP.ENDPOINT:*]], [[APIS:DT.TYPE:*]]"
+        nodes: "[[APIS:IE.ENDPOINT:*]], [[APIS:ID.TYPE:*]]"
         deep: true
         onlyConnected: true
         qualified: true
@@ -1231,7 +1232,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[APIS:EP.ENDPOINT:*]], [[APIS:DT.TYPE:*]], [[APIS:DT.TYPE:*.CONSTANT:*]], [[APIS:IF.INTERFACE:*]]"
+                nodes: "[[APIS:IE.ENDPOINT:*]], [[APIS:ID.TYPE:*]], [[APIS:ID.TYPE:*.CONSTANT:*]], [[APIS:IM.INTERFACE:*]]"
                 deep: true
                 labeled: true
                 qualified: true
@@ -1241,7 +1242,7 @@
             props:
                 -   name: INTERFACE
                     desc: The INTERFACES object the endpoint belongs to and is addressed within.
-                    value: "[[APIS:IF.INTERFACE:*]]"
+                    value: "[[APIS:IM.INTERFACE:*]]"
                 -   name: OPERATION
                     desc: |
                         The kind-specific operation the endpoint performs, one of:
@@ -1298,7 +1299,7 @@
                                 enumeration `enum(XXX,YYY[,...])` (a reusable one is a `TYPE`
                                 object with an `enum(...)` base), where several comma-separated
                                 alternatives form a union type.
-                            value: list([[APIS:DT.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                         -   name: ALIAS
                             desc: >
                                 Comma-separated alternative names of the option in the
@@ -1347,7 +1348,7 @@
                                 inline enumeration `enum(XXX,YYY[,...])` (a reusable one is a
                                 `TYPE` object with an `enum(...)` base), where several comma-separated
                                 alternatives form a union type.
-                            value: list([[APIS:DT.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                         -   name: ARITY
                             desc: >
                                 The arity (cardinality) of the argument:
@@ -1391,7 +1392,7 @@
                                 enumeration `enum(XXX,YYY[,...])` (a reusable one is a `TYPE`
                                 object with an `enum(...)` base), where several comma-separated
                                 alternatives form a union type.
-                            value: list([[APIS:DT.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                         -   name: ARITY
                             desc: >
                                 The arity (cardinality) of the result:
@@ -1932,7 +1933,7 @@
                 nodes: "[[TEST:TC.TEST-CASE:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:NR.REQUIREMENT:*]],
                     [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
                     [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
-                    [[APIS:EP.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]]"
+                    [[APIS:IE.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -1944,7 +1945,7 @@
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
                         NON-FUNCTIONAL-REQUIREMENTS objects, the BUSINESS-RULES objects, the
                         USE-CASES scenario objects, the STATE-MODEL transition objects, the
-                        DATA-MODEL attribute objects, the ENDPOINTS objects, and/or the
+                        DATA-MODEL attribute objects, the INTERFACE-ENDPOINTS objects, and/or the
                         DIALOG-STORYBOARD frame objects the test case verifies, so that a scenario
                         (in particular an `Exceptional` one, judged by its `OUTCOME`) is covered by
                         an acceptance test beside the requirements it exercises, a rule (judged by
@@ -1957,7 +1958,7 @@
                         storyboards) is proven to be reachable and to behave as storyboarded.
                     value: list([[REQS:*.REQUIREMENT:*]], [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
                         [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
-                        [[APIS:EP.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]])
+                        [[APIS:IE.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]])
                 -   name: PRE-CONDITION
                     desc: >
                         The state or setup that must hold before the test is executed.
@@ -2034,12 +2035,12 @@
                     value: enum(Inbound,Outbound,Bidirectional)
                 -   name: INTERFACE
                     desc: >
-                        Comma-separated references to the INTERFACES objects through which
+                        Comma-separated references to the INTERFACE-MODEL objects through which
                         the interaction happens, i.e. the interfaces the entity consumes (for a
                         `Provided` one) or offers (for a `Required` one); omitted when the
                         interaction happens through the user interface or outside any modeled
                         interface (e.g. a file exchange).
-                    value: list([[APIS:IF.INTERFACE:*]])
+                    value: list([[APIS:IM.INTERFACE:*]])
                     optional: true
                 -   name: DATA
                     desc: >
@@ -2100,11 +2101,11 @@
                         owns.
                 -   name: PROVIDES
                     desc: >
-                        Comma-separated references to the INTERFACES objects the component
+                        Comma-separated references to the INTERFACE-MODEL objects the component
                         provides, i.e. through which other components and external entities
                         interact with it; omitted when the component provides no modeled interface
                         (e.g. a user interface or an internal module).
-                    value: list([[APIS:IF.INTERFACE:*]])
+                    value: list([[APIS:IM.INTERFACE:*]])
                     optional: true
                 -   name: DEPENDS-ON
                     desc: >

@@ -10,9 +10,9 @@
 + 08-REQS-UC-Use-Cases.md
 + 09-DATA-DM-Data-Model.md
 + 10-DATA-SM-State-Model.md
-+ 11-APIS-IF-Interfaces.md
-+ 12-APIS-DT-Data-Types.md
-+ 13-APIS-EP-Endpoints.md
++ 11-APIS-IM-Interface-Model.md
++ 12-APIS-ID-Interface-Datatypes.md
++ 13-APIS-IE-Interface-Endpoints.md
 + 14-UXUI-IC-Interaction-Concept.md
 + 15-UXUI-LC-Language-Conventions.md
 + 16-UXUI-DP-Dialog-Patterns.md
