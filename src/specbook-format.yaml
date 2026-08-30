@@ -4,6 +4,10 @@
 ##  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 ##
 
+#   Design Decision:
+#   -   strictly only back-references through explicit links
+#   PRD, SRS, etc
+
 -   kind: META
     name: Title
     id:   TI
@@ -214,6 +218,8 @@
                 line. Non-user stakeholders are modeled as personas of type `Stakeholder`.
             format:
                 maxTableColumns: 5
+            referenced:
+                -   "[[DATA:AM.ROLE:*]]"
             props:
                 -   name: TYPE
                     desc: >
@@ -1153,10 +1159,140 @@
                             value: list([[REQS:DR.RULE:*]])
                             optional: true
 
+-   kind: DATA
+    name: Authorization Model
+    id: AM
+    file: 12-DATA-AM-Authorization-Model.md
+    desc: >
+        The access rights of the solution, bundled into the roles a person acts in and stating for
+        each role the operations it may perform on each entity, confined to the lifecycle states
+        of the entity and to a further condition where necessary, so that "who may do what on
+        which entity in which state" is answered in one place instead of being scattered over the
+        actors of the state transitions, the actors of the use cases, and the prose of the domain
+        rules. The model is closed: an operation not granted to a role is forbidden, exactly like
+        a move not listed as a state transition.
+    refs: >
+        -   Ferraiolo/Kuhn: Role-Based Access Controls, 15th National Computer Security Conference (1992),
+            https://csrc.nist.gov/publications/detail/conference-paper/1992/10/13/role-based-access-controls
+        -   Sandhu/Coyne/Feinstein/Youman: Role-Based Access Control Models, IEEE Computer 29(2) (1996),
+            https://doi.org/10.1109/2.485845
+        -   ANSI INCITS 359-2012: Information Technology -- Role Based Access Control (2012),
+            https://csrc.nist.gov/projects/role-based-access-control
+        -   OASIS: eXtensible Access Control Markup Language (XACML) Version 3.0 (2013),
+            https://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html
+    diagram:
+        type: graph
+        nodes: "[[DATA:AM.ROLE:*]], [[DATA:DM.ENTITY:*]]"
+        edges: "[[DATA:AM.ROLE:*.PERMISSION:*]]"
+        edgeTarget: ENTITY
+        onlyConnected: true
+        qualified: true
+        config:
+            size-node-width-max: 440
+    childs:
+        -   kind: ROLE
+            desc: >
+                A single role, named with the canonical name of the domain role it grants (e.g.
+                `Moderator`, matching its GLOSSARY term of type `Actor`) and described in a concise
+                (1-2 sentence) paragraph by the responsibility the role carries, plus a 1-sentence
+                rationale ("why") stating why the rights are bundled this way. A role is the unit
+                in which rights are granted to a person: the personas embodying it hold exactly
+                its `PERMISSION` objects (plus those of the roles it `INHERITS`), while a persona
+                holding several roles holds the union of their permissions.
+            diagram:
+                type: hub
+                center: self
+                deep: true
+                nodes: "[[DATA:AM.ROLE:*]], [[REQS:UP.PERSONA:*]], [[REQS:GL.TERM:*]], [[DATA:DM.ENTITY:*]],
+                    [[REQS:DR.RULE:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
+            props:
+                -   name: ACTORS
+                    desc: >
+                        Comma-separated references to the User Personas objects embodying the
+                        role, i.e. the personas acting with exactly its rights, so that every
+                        persona holds at least one role and its rights are stated here rather than
+                        implied by its `ROLE` description, and/or to the GLOSSARY terms of type
+                        `Actor` denoting the external systems holding the role (e.g. a registration
+                        system calling the machine-facing interface), as an external system is no
+                        persona.
+                    value: list([[REQS:UP.PERSONA:*]], [[REQS:GL.TERM:*]])
+                -   name: TERM
+                    desc: >
+                        Reference to the GLOSSARY term of type `Actor` the role grants, anchoring
+                        the role in the ubiquitous language.
+                    value: "[[REQS:GL.TERM:*]]"
+                    optional: true
+                -   name: INHERITS
+                    desc: >
+                        Comma-separated references to the other ROLE objects whose permissions
+                        this role holds in addition to its own (a role hierarchy, e.g. a manager
+                        inheriting the rights of a moderator), where an inherited permission is
+                        not restated.
+                    value: list([[DATA:AM.ROLE:*]])
+                    optional: true
+                    acyclic: true
+            childs:
+                -   kind: PERMISSION
+                    desc: >
+                        A single right of the role on a single entity, named with a short (2-5
+                        word) verb phrase of what the role may do (e.g. `Decide Pending Messages`)
+                        and described by a 1-sentence description of the right, in particular of
+                        the reach of its `CONDITION`. One permission covers one entity: the
+                        operations it grants, the states of the entity in which they are granted,
+                        and the condition under which they are granted, so that the permissions
+                        of all roles form the access matrix of roles against entities. Any
+                        operation, state, or condition not covered by a permission of the role (or
+                        of an inherited one) is forbidden.
+                    format:
+                        maxTableColumns: 7
+                    props:
+                        -   name: ENTITY
+                            desc: Reference to the DATA-MODEL entity the permission is granted on.
+                            value: "[[DATA:DM.ENTITY:*]]"
+                        -   name: OPERATIONS
+                            desc: >
+                                Comma-separated operations the role may perform on the entity: the
+                                generic `Create`, `Read`, `Update`, and `Delete`, and/or references
+                                to the STATE-MODEL transitions of the entity the role may trigger
+                                (a state change is not an `Update`: it is granted by its transition
+                                only), where every persona named as `ACTOR` of a transition holds
+                                a role granting it.
+                            value: list(enum(Create,Read,Update,Delete), [[DATA:SM.LIFECYCLE:*.TRANSITION:*]])
+                        -   name: STATES
+                            desc: >
+                                Comma-separated references to the STATE-MODEL states of the entity
+                                in which the operations are granted (`Create` needs none, as a
+                                creation enters the initial state); omitted when granted in every
+                                state or when the entity has no lifecycle.
+                            value: list([[DATA:SM.LIFECYCLE:*.STATE:*]])
+                            optional: true
+                        -   name: CONDITION
+                            desc: >
+                                The condition which, beyond the role and the `STATES`, has to hold
+                                for the operations to be granted, stated as a 1-sentence statement
+                                of what has to hold, typically the ownership of the instance (e.g.
+                                `The attendee is the sender of the message.`), a confinement to
+                                certain attributes (e.g. `The update is confined to the presenter
+                                alert.`), or a configuration of the surrounding entity; omitted
+                                when the role and the states alone grant the operations.
+                            optional: true
+                        -   name: RULES
+                            desc: >
+                                Comma-separated references to the DOMAIN-RULES objects justifying
+                                or bounding the permission, i.e. the rules whose statement grants
+                                or limits the right.
+                            value: list([[REQS:DR.RULE:*]])
+                            optional: true
+
 -   kind: APIS
     name: Interface Model
     id: IM
-    file: 12-APIS-IM-Interface-Model.md
+    file: 13-APIS-IM-Interface-Model.md
     desc: >
         The machine-facing interfaces the solution provides to, or requires from, other programs
         (REST, GraphQL, gRPC, WebSocket, MQTT, AMQP, MCP, CLI, library, or custom ones), each
@@ -1245,7 +1381,7 @@
 -   kind: APIS
     name: Interface Datatypes
     id: ID
-    file: 13-APIS-ID-Interface-Datatypes.md
+    file: 14-APIS-ID-Interface-Datatypes.md
     desc: >
         The named data types exchanged through the machine-facing interfaces of the INTERFACES
         artifact, modeled generically for all kinds of interfaces: a type is either an object
@@ -1402,7 +1538,7 @@
 -   kind: APIS
     name: Interface Endpoints
     id: IE
-    file: 14-APIS-IE-Interface-Endpoints.md
+    file: 15-APIS-IE-Interface-Endpoints.md
     desc: >
         The operations offered by the machine-facing interfaces of the INTERFACE-MODEL artifact,
         modeled generically for all kinds of interfaces: an endpoint references the interface it
@@ -1452,7 +1588,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[APIS:IE.ENDPOINT:*]], [[APIS:ID.TYPE:*]], [[APIS:ID.TYPE:*.CONSTANT:*]], [[APIS:IM.INTERFACE:*]]"
+                nodes: "[[APIS:IE.ENDPOINT:*]], [[APIS:ID.TYPE:*]], [[APIS:ID.TYPE:*.CONSTANT:*]], [[APIS:IM.INTERFACE:*]],
+                    [[DATA:AM.ROLE:*.PERMISSION:*]]"
                 deep: true
                 labeled: true
                 qualified: true
@@ -1463,6 +1600,16 @@
                 -   name: INTERFACE
                     desc: The INTERFACES object the endpoint belongs to and is addressed within.
                     value: "[[APIS:IM.INTERFACE:*]]"
+                -   name: PERMISSIONS
+                    desc: >
+                        Comma-separated references to the AUTHORIZATION-MODEL permission objects
+                        the endpoint enforces, i.e. the rights (of a persona or an external system,
+                        through one of their roles) a caller has to hold for the endpoint to serve
+                        the operation, so that the authorization of every endpoint is stated
+                        rather than left to the implementation; omitted for an endpoint open to
+                        every caller.
+                    value: list([[DATA:AM.ROLE:*.PERMISSION:*]])
+                    optional: true
                 -   name: OPERATION
                     desc: |
                         The kind-specific operation the endpoint performs, one of:
@@ -1635,7 +1782,7 @@
 -   kind: UXUI
     name: Interaction Concept
     id: IC
-    file: 15-UXUI-IC-Interaction-Concept.md
+    file: 16-UXUI-IC-Interaction-Concept.md
     desc: >
         The interaction philosophy of the solution, stated as the set of cross-cutting principles
         (e.g. auto-save instead of explicit saving) which govern how users interact with the
@@ -1706,7 +1853,7 @@
 -   kind: UXUI
     name: Language Conventions
     id: LC
-    file: 16-UXUI-LC-Language-Conventions.md
+    file: 17-UXUI-LC-Language-Conventions.md
     desc: >
         The voice, tone, and wording of the user-facing text of the solution (labels, messages,
         notifications, help), governing how the solution speaks to its users, so that the Interaction
@@ -1783,7 +1930,7 @@
 -   kind: UXUI
     name: Dialog Patterns
     id: DP
-    file: 17-UXUI-DP-Dialog-Patterns.md
+    file: 18-UXUI-DP-Dialog-Patterns.md
     desc: >
         The reusable interaction structures governing how the system and user exchange information
         across recurring UI flows (e.g. master-detail dialog).
@@ -1876,7 +2023,7 @@
 -   kind: UXUI
     name: Dialog Storyboard
     id: DS
-    file: 18-UXUI-DS-Dialog-Storyboard.md
+    file: 19-UXUI-DS-Dialog-Storyboard.md
     desc: >
         The sequenced visual or textual depiction of a specific dialog flow, illustrating how an
         interaction unfolds screen by screen or turn by turn.
@@ -1974,7 +2121,7 @@
 -   kind: UXUI
     name: Visual Design
     id: VD
-    file: 19-UXUI-VD-Visual-Design.md
+    file: 20-UXUI-VD-Visual-Design.md
     desc: >
         The visual design decisions of the solution (brand, color, typography, spacing, shape,
         iconography, imagery, and motion), each stated as a rule with its rationale, plus the
@@ -2102,7 +2249,7 @@
 -   kind: TEST
     name: Test Cases
     id: TC
-    file: 20-TEST-TC-Test-Cases.md
+    file: 21-TEST-TC-Test-Cases.md
     desc: >
         The verifiable conditions and steps used to confirm that requirements, domain rules, use
         case scenarios, and state transitions are correctly implemented, with mandatory defined
@@ -2153,7 +2300,8 @@
                 nodes: "[[TEST:TC.TEST-CASE:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:NR.REQUIREMENT:*]],
                     [[REQS:DR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]], [[REQS:DW.WORKFLOW:*]],
                     [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
-                    [[APIS:IE.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]]"
+                    [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
+                    [[UXUI:DS.STORYBOARD:*.FRAME:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -2165,20 +2313,24 @@
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
                         NON-FUNCTIONAL-REQUIREMENTS objects, the DOMAIN-RULES objects, the
                         USE-CASES scenario objects, the STATE-MODEL transition objects, the
-                        DATA-MODEL attribute objects, the INTERFACE-ENDPOINTS objects, and/or the
-                        DIALOG-STORYBOARD frame objects the test case verifies, so that a scenario
-                        (in particular an `Exceptional` one, judged by its `OUTCOME`) is covered by
-                        an acceptance test beside the requirements it exercises, a rule (judged by
-                        the condition it states) is proven to hold, not just to be documented, a
-                        transition (judged by its `GUARD` and the resulting state) is proven to be
-                        permitted exactly as modeled, an attribute (judged by its `TYPE` and
-                        `CONSTRAINT`) is proven to reject the values outside its range, pattern, or
-                        invariant, an endpoint (judged by its arguments, options, and results) is
-                        proven to honor its contract, and a frame (judged by the dialog step it
-                        storyboards) is proven to be reachable and to behave as storyboarded.
+                        DATA-MODEL attribute objects, the AUTHORIZATION-MODEL permission objects,
+                        the INTERFACE-ENDPOINTS objects, and/or the DIALOG-STORYBOARD frame objects
+                        the test case verifies, so that a scenario (in particular an `Exceptional`
+                        one, judged by its `OUTCOME`) is covered by an acceptance test beside the
+                        requirements it exercises, a rule (judged by the condition it states) is
+                        proven to hold, not just to be documented, a transition (judged by its
+                        `GUARD` and the resulting state) is proven to be permitted exactly as
+                        modeled, an attribute (judged by its `TYPE` and `CONSTRAINT`) is proven to
+                        reject the values outside its range, pattern, or invariant, a permission
+                        (judged by the operations it grants and, the model being closed, by the
+                        ones it denies) is proven to be enforced, an endpoint (judged by its
+                        arguments, options, and results) is proven to honor its contract, and a
+                        frame (judged by the dialog step it storyboards) is proven to be reachable
+                        and to behave as storyboarded.
                     value: list([[REQS:*.REQUIREMENT:*]], [[REQS:DR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
                         [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
-                        [[APIS:IE.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]])
+                        [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
+                        [[UXUI:DS.STORYBOARD:*.FRAME:*]])
                 -   name: WORKFLOWS
                     desc: >
                         Comma-separated references to the DOMAIN-WORKFLOWS objects the test case
@@ -2217,7 +2369,7 @@
 -   kind: ARCH
     name: Context View
     id: CV
-    file: 21-ARCH-CV-Context-View.md
+    file: 22-ARCH-CV-Context-View.md
     desc: >
         The relationships, dependencies, and interactions between the solution and its environment,
         defining the system's scope, external entities, and boundaries.
@@ -2278,7 +2430,7 @@
 -   kind: ARCH
     name: Functionality View
     id: FV
-    file: 22-ARCH-FV-Functionality-View.md
+    file: 23-ARCH-FV-Functionality-View.md
     desc: >
         The functional components of the solution, their responsibilities, interfaces, and primary
         interactions, describing *what* the system does at runtime.
@@ -2346,7 +2498,7 @@
 -   kind: ARCH
     name: Information View
     id: IV
-    file: 23-ARCH-IV-Information-View.md
+    file: 24-ARCH-IV-Information-View.md
     desc: >
         The way the solution stores, manages, manipulates, and distributes information, defining the
         static data structure and dynamic information flow.
@@ -2402,7 +2554,7 @@
 -   kind: ARCH
     name: Concurrency View
     id: CO
-    file: 24-ARCH-CO-Concurrency-View.md
+    file: 25-ARCH-CO-Concurrency-View.md
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
         threads, and defining how they coordinate and communicate.
@@ -2464,7 +2616,7 @@
 -   kind: ARCH
     name: Development View
     id: DV
-    file: 25-ARCH-DV-Development-View.md
+    file: 26-ARCH-DV-Development-View.md
     desc: >
         The architecture supporting the software development process, defining the module
         organization, build approach, and codeline conventions.
@@ -2498,7 +2650,7 @@
 -   kind: ARCH
     name: Deployment View
     id: DP
-    file: 26-ARCH-DP-Deployment-View.md
+    file: 27-ARCH-DP-Deployment-View.md
     desc: >
         The environment into which the solution is deployed, mapping software elements to the
         runtime platform, hardware, and network topology.
@@ -2562,7 +2714,7 @@
 -   kind: ARCH
     name: Operations View
     id: OV
-    file: 27-ARCH-OV-Operations-View.md
+    file: 28-ARCH-OV-Operations-View.md
     desc: >
         The way the solution is operated, administered, and supported in production, defining
         installation, monitoring, and management concerns.
@@ -2602,7 +2754,7 @@
 -   kind: ARCH
     name: Quality Perspectives
     id: QP
-    file: 28-ARCH-QP-Quality-Perspectives.md
+    file: 29-ARCH-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed.
     refs: >
@@ -2670,7 +2822,7 @@
 -   kind: ARCH
     name: Decision Record
     id: DR
-    file: 29-ARCH-DR-Decision-Record.md
+    file: 30-ARCH-DR-Decision-Record.md
     desc: >
         The major decisions related to the architecture, each recording the forces at play, the
         chosen response, and the reasoning that justifies it.
@@ -2850,7 +3002,7 @@
 -   kind: ARCH
     name: Technology Stack
     id: TS
-    file: 30-ARCH-TS-Technology-Stack.md
+    file: 31-ARCH-TS-Technology-Stack.md
     desc: >
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives

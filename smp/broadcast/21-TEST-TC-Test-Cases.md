@@ -8,7 +8,7 @@ TEST: Test Cases (TC)
 
 ##  TEST-CASE: Valid Token Grants Access {{valid-token}}
 
--   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-token]], [[RULE:access-grant]], [[consume]]
+-   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-token]], [[RULE:access-grant]], [[consume]], [[PERMISSION:attendee-prove-email]]
 -   PRE-CONDITION:  An invited user with a sent, unexpired authorization token exists for a running event.
 -   INPUT:          The user submits the correct six-digit token for their email.
 -   EXPECTED:       The system issues a session token and grants access to the stream.
@@ -16,7 +16,7 @@ TEST: Test Cases (TC)
 
 ##  TEST-CASE: Unauthorized Email Rejected {{unauthorized}}
 
--   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-denied]], [[RULE:access-grant]]
+-   VERIFIES:       [[FR.authentication]], [[SCENARIO:authenticate-denied]], [[RULE:access-grant]], [[PERMISSION:attendee-enter-event]]
 -   PRE-CONDITION:  An email not on the access list and not matching the access pattern.
 -   INPUT:          The user enters that email in the login dialog.
 -   EXPECTED:       The system denies access and shows a not-authorized notice.
@@ -73,7 +73,7 @@ TEST: Test Cases (TC)
 
 ##  TEST-CASE: Forwarded Message Is Locked {{forward-lock}}
 
--   VERIFIES:      [[FR.message-editing]], [[SCENARIO:chat-locked]], [[RULE:forward-lock]]
+-   VERIFIES:      [[FR.message-editing]], [[SCENARIO:chat-locked]], [[RULE:forward-lock]], [[PERMISSION:attendee-edit-own]]
 -   PRE-CONDITION: An accepted question of an attendee exists in a running event.
 -   INPUT:         The original attendee attempts to edit and then to delete the forwarded message.
 -   EXPECTED:      The system refuses both the edit and the deletion and the message remains unchanged.
@@ -174,7 +174,7 @@ TEST: Test Cases (TC)
 
 ##  TEST-CASE: Manager Role Survives Finish {{manager-retained}}
 
--   VERIFIES:       [[FR.export-inputs]], [[SCENARIO:export-data-after]], [[RULE:manager-retained]]
+-   VERIFIES:       [[FR.export-inputs]], [[SCENARIO:export-data-after]], [[RULE:manager-retained]], [[PERMISSION:manager-export-messages]], [[PERMISSION:moderator-enter-event]]
 -   WORKFLOWS:      [[WORKFLOW:run-broadcast-event]]
 -   PRE-CONDITION:  A running event with a manager role and a moderator role assigned.
 -   INPUT:          The manager exports the event data after having finished the event.
@@ -255,6 +255,22 @@ TEST: Test Cases (TC)
 -   INPUT:          The attendee switches the language to English in the header.
 -   EXPECTED:       The interface and the translated messages appear in English without a page reload.
 -   POST-CONDITION: The stream continues uninterrupted.
+
+##  TEST-CASE: Presenter Sees Forwarded Questions Only {{presenter-view}}
+
+-   VERIFIES:       [[FR.presenter-dashboard]], [[PERMISSION:presenter-read-forwarded]]
+-   PRE-CONDITION:  A running event holds one question in each of the states pending, accepted, rejected, and forwarded.
+-   INPUT:          The presenter opens the presenter view of the event.
+-   EXPECTED:       The view lists the forwarded question only, while a direct request for any of the three other questions is refused.
+-   POST-CONDITION: The four questions remain in their states.
+
+##  TEST-CASE: Administrator Sees No Attendee Data {{administrator-data}}
+
+-   VERIFIES:       [[FR.gdpr-eu]], [[RULE:no-accounts]], [[PERMISSION:administrator-events]]
+-   PRE-CONDITION:  A running event with a populated access list and messages exists, provisioned through the configuration.
+-   INPUT:          The administrator reads the event through the configuration and requests its access list and messages.
+-   EXPECTED:       The event settings are returned, while the requests for the access list and the messages are refused.
+-   POST-CONDITION: No access list entry or message was disclosed to the administrator.
 
 ##  TEST-CASE: Concurrent Attendee Load {{load}}
 

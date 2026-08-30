@@ -5,6 +5,11 @@ ChangeLog
 1.1.0 (2026-08-29)
 ------------------
 
+-   FEATURE [spec, docs]: Authorization Model
+    The standard schema configuration gains the artifact "Authorization Model" (file
+    "12-DATA-AM-Authorization-Model.md", placed between the state model and the interface
+    model).
+
 -   IMPROVEMENT [spec, docs]: Domain Rules
     The artifact "Business Rules" of the standard schema configuration is renamed to "Domain
     Rules" with the identifier "DR" (file "07-REQS-DR-Domain-Rules.md"), as not every domain is

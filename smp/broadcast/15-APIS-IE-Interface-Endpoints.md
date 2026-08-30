@@ -9,9 +9,12 @@ APIS: Interface Endpoints (IE)
 ENDPOINT: broadcast
 -------------------
 
--   INTERFACE: [[INTERFACE:server-cli]]
--   OPERATION: command
--   LOCATOR:   `broadcast [options]`
+-   INTERFACE:   [[INTERFACE:server-cli]]
+-   PERMISSIONS: [[PERMISSION:administrator-events]], [[PERMISSION:administrator-channels]],
+                 [[PERMISSION:administrator-resources]], [[PERMISSION:administrator-params]],
+                 [[PERMISSION:administrator-manager-role]]
+-   OPERATION:   command
+-   LOCATOR:     `broadcast [options]`
 
 The sole command of the program, which loads the layered configuration,
 brings the database schema up-to-date, pre-forks the configured number

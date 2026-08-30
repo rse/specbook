@@ -68,12 +68,12 @@ LIFECYCLE: Message {{message}}
 
 ### TRANSITION
 
--   `accept`; FROM: [[STATE:Pending]]; TO: [[STATE:Accepted]]; ACTOR: [[PERSONA:moderator-qa]], System;
+-   `accept`; FROM: [[STATE:Pending]]; TO: [[STATE:Accepted]]; ACTOR: [[PERSONA:moderator-qa]], [[PERSONA:moderator-chat]], System;
     GUARD: A system-triggered acceptance requires a sentiment score at or above the threshold.;
     RULES: [[RULE:moderation-gate]], [[RULE:sentiment-threshold]];
     The message becomes visible to the audience.
 
--   `reject`; FROM: [[STATE:Pending]]; TO: [[STATE:Rejected]]; ACTOR: [[PERSONA:moderator-qa]], System;
+-   `reject`; FROM: [[STATE:Pending]]; TO: [[STATE:Rejected]]; ACTOR: [[PERSONA:moderator-qa]], [[PERSONA:moderator-chat]], System;
     GUARD: A system-triggered rejection requires a sentiment score below the threshold.;
     RULES: [[RULE:moderation-gate]], [[RULE:sentiment-threshold]];
     The message is hidden and marked for deletion.
