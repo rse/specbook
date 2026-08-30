@@ -1124,14 +1124,15 @@
                         per-interface unique name (e.g. `Event`, `ChatMessage`, `Diagnostic`) and
                         described by a 1-sentence description ("what") plus a 1-sentence rationale
                         ("why"). A type without a `BASE` is an object type composed of its `FIELD`
-                        objects; a type with a `BASE` is a scalar, enumeration, alias, or union
-                        type without fields.
+                        objects (plus the fields of the object types it `EXTENDS`); a type with a
+                        `BASE` is a scalar, enumeration, alias, or union type without fields.
                     optional: true
                     diagram:
                         type: hub
                         center: self
                         nodes: "[[APIS:IM.INTERFACE:*.TYPE:*]]"
                         deep: true
+                        labeled: true
                         config:
                             size-node-width-max: 440
                     props:
@@ -1147,6 +1148,17 @@
                                 comma-separated alternatives form a named union type; omitted for
                                 an object type composed of fields.
                             value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            optional: true
+                        -   name: EXTENDS
+                            desc: >
+                                Comma-separated references to the object types whose fields this
+                                object type inherits in addition to its own, so its instances carry
+                                the fields of all of them (e.g. a message type extending a common
+                                envelope type, or a GraphQL type implementing interfaces), where an
+                                inherited field is not redeclared; omitted for a type carrying a
+                                `BASE`.
+                            value: list([[APIS:IM.INTERFACE:*.TYPE:*]])
+                            acyclic: true
                             optional: true
                         -   name: ENTITY
                             desc: >
