@@ -129,8 +129,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
                 "of just referencing it (default: false; the bundled standard one is always embedded)"),
             compress: z.number().int().min(0).max(3).optional().describe("compression level of the emitted " +
                 "YAML schema configuration (embedded or raw): 0 for verbatim, 1 for re-emitted with 2-space " +
-                "indentation, 2 for additionally without its \"refs\" fields, or 3 for additionally without " +
-                "its \"desc\" fields (default: 1)"),
+                "indentation and without comments, 2 for additionally without its \"refs\" fields, or 3 for " +
+                "additionally without its \"desc\" fields (default: 1)"),
             format:  z.enum(describeFormats).optional().describe("output format: \"md\" for Markdown or " +
                 "\"raw\" for the raw original file content of the part (default: \"md\")"),
             part:    z.enum(describeParts).optional().describe("document part: \"all\" for the entire " +

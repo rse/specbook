@@ -28,9 +28,9 @@ export const parseDescribePart = (value: string): DescribePart =>
     parseChoice(describeParts, "part", value)
 
 /*  the supported compression levels of the emitted YAML schema
-    configuration: verbatim (0), re-emitted with 2-space indentation (1),
-    additionally without its "refs" fields (2), and additionally without
-    its "desc" fields of objects and properties (3)  */
+    configuration: verbatim (0), re-emitted with 2-space indentation and
+    without comments (1), additionally without its "refs" fields (2), and
+    additionally without its "desc" fields of objects and properties (3)  */
 export const compressLevels = [ 0, 1, 2, 3 ] as const
 export type CompressLevel   = typeof compressLevels[number]
 
@@ -50,12 +50,18 @@ const description = (): string =>
     fs.readFileSync(new URL("specbook-format.md", import.meta.url), "utf8")
 
 /*  compress the YAML schema configuration text by re-emitting the parsed
-    document (block scalar styles and comments retained) with 2-space
-    indentation and unwrapped lines, dropping the fields the level demands  */
+    document (block scalar styles retained) with 2-space indentation and
+    unwrapped lines, dropping all comments and the fields the level demands  */
 const compressYaml = (yaml: string, level: CompressLevel): string => {
     const doc  = parseDocument(yaml)
     const drop = [ "refs", "desc" ].slice(0, level - 1)
+    doc.commentBefore = null
+    doc.comment       = null
     visit(doc, {
+        Node: (_, node) => {
+            node.commentBefore = null
+            node.comment       = null
+        },
         Pair: (_, pair) =>
             isScalar(pair.key) && drop.includes(String(pair.key.value)) ? visit.REMOVE : undefined
     })

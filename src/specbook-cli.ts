@@ -197,7 +197,8 @@ withVerboseOption(program.command("describe"))
     .option("-e, --embed", "embed the given YAML schema configuration instead of just referencing it",
         envDefaultFlag("embed", false))
     .option("-z, --compress [level]", "compression level of the emitted YAML schema configuration " +
-        "(0: verbatim, 1: re-emitted with 2-space indentation, 2: also without \"refs\" fields, " +
+        "(0: verbatim, 1: re-emitted with 2-space indentation and without comments, " +
+        "2: also without \"refs\" fields, " +
         "3: also without \"desc\" fields; default and bare flag: 1)", envDefault("compress", "1"))
     .option("-f, --format <format>", `output format (${describeFormats.join(", ")})`,
         envDefault("format", "md"))

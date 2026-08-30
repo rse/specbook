@@ -370,8 +370,8 @@ Options:
     The compression level (default and bare flag: `1`) of the YAML
     schema configuration (embedded into the Markdown or emitted as the
     raw file content), so the configuration costs fewer tokens: `0`
-    emits it verbatim, `1` re-emits it with 2-space indentation and
-    unwrapped lines, `2` additionally leaves out its `refs` fields, and
+    emits it verbatim, `1` re-emits it with 2-space indentation, unwrapped
+    lines, and without comments, `2` additionally leaves out its `refs` fields, and
     `3` additionally leaves out its `desc` fields of objects and properties.
 
 -   `-f|--format <format>` (`describe` only):

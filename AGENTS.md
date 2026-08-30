@@ -137,8 +137,8 @@ one) and the base directory (`-b`) whenever one of them is present, where
 of just referencing it, and `-z`/`--compress [<level>]` (default and
 bare flag `1`) emits the YAML schema configuration (embedded into the
 Markdown or as the `raw` file content) compressed instead of verbatim:
-level `1` re-emits it with 2-space indentation and unwrapped lines,
-level `2` additionally drops its `refs` fields, and level `3`
+level `1` re-emits it with 2-space indentation, unwrapped lines, and
+without comments, level `2` additionally drops its `refs` fields, and level `3`
 additionally drops its `desc` fields of objects and properties.
 The `describe` option `-p`/`--part` (default: `all`) reduces the output
 to the generic description alone (`meta`), the YAML schema configuration
