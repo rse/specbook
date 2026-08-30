@@ -2,150 +2,184 @@
 ChangeLog
 =========
 
-1.1.0 (2026-08-29)
+1.1.0 (2026-08-30)
 ------------------
 
 -   FEATURE [spec, docs]: Solution Premises
-    The standard schema configuration gains the artifact "Solution Premises" (file
-    "02-REQS-SP-Solution-Premises.md", placed directly behind the solution vision), recording
-    the assumptions, dependencies, and risks the specification rests on, each rated by the
-    likelihood and impact of its failure, so that existing specifications have to renumber all
-    subsequent artifact files.
+    The standard schema gains the artifact "Solution Premises" (file "02", behind the solution vision),
+    recording the assumptions, dependencies, and risks the specification rests on, rated by likelihood/impact.
 
 -   FEATURE [spec, docs]: Authorization Model
-    The standard schema configuration gains the artifact "Authorization Model" (file
-    "12-DATA-AM-Authorization-Model.md", placed between the state model and the interface
-    model).
-
--   IMPROVEMENT [spec, docs]: Domain Rules
-    The artifact "Business Rules" of the standard schema configuration is renamed to "Domain
-    Rules" with the identifier "DR" (file "07-REQS-DR-Domain-Rules.md"), as not every domain is
-    a business, so that existing specifications have to rename the file and its heading.
+    The standard schema gains the artifact "Authorization Model" (file "13", placed between the state
+    model and the interface model).
 
 -   FEATURE [spec, docs]: Domain Workflows
-    The standard schema configuration gains the optional artifact "Domain Workflows",
-    placed between the domain rules and the use cases.
+    The standard schema gains the optional artifact "Domain Workflows" (file "09"), placed between the
+    domain rules and the use cases.
 
--   IMPROVEMENT [code, docs]: Hierarchical Table of Contents
-    The "Table of Contents" of the HTML/PDF export now lists all section
-    headings (exactly like the side panel and the PDF outline.
+-   FEATURE [spec, othr]: Interface Specification
+    The standard schema gains the kind "APIS" with the artifacts "Interface Model", "Interface Datatypes"
+    (with an acyclic "EXTENDS" inheritance), and "Interface Endpoints" (files "14"-"16"), before the UXUI.
 
 -   FEATURE [code, docs]: Table of Contents Side Panel
-    The HTML export gains a "Table of Contents" tab at the left viewport edge, which slides a
-    side panel with a hierarchical copy of the table of contents (all section headings, numbered
-    like the document, the active and the anchored section highlighted) out of the edge for
-    quick navigation, closing again on a jump, on "Escape", or on a click outside, where the
-    open state survives page loads and live preview reloads.
+    The HTML export gains a "Table of Contents" tab at the left viewport edge, sliding out a panel with the
+    hierarchical, numbered section headings (active/anchored one highlighted), whose open state persists.
 
--   FEATURE [spec, docs]: Interface Model
-    The standard schema configuration gains the artifact kind "APIS" with its optional artifact
-    "Interface Model" (file "12", placed between the tests and the user interface).
+-   FEATURE [code, infr, othr]: Describe Schema Compression
+    The "describe" command in API/CLI/MCP gained the option "-z"/"--compress [<level>]" (default "1"),
+    re-emitting the YAML schema unwrapped (level 1), without "refs" (level 2), and without "desc" (level 3).
 
--   IMPROVEMENT [spec, docs]: Split Specification Kind
-    The standard schema configuration replaces its catch-all artifact
-    kind "SPEC" (which named just a part of what the whole specification
-    is) by the four kinds "REQS", "DATA", "TEST", "UXUI" and "ARCH".
+-   FEATURE [code]: Schema Method References
+    The new object kind field "refs" carries a Markdown list of the standards, books, articles, or websites
+    describing the methodology the object kind picks up, which the standard schema now uses throughout.
+
+-   FEATURE [code]: Symmetric and Acyclic References
+    The new property flags "symmetric" and "acyclic" demand that a referenced object references back through
+    the same property, or that following the property never returns to an already passed object.
+
+-   FEATURE [code]: Unique Sibling Values
+    The new property flag "unique" demands that every value (or only the values matching a regexp or enum
+    expression) occurs at most once among the sibling objects of the kind.
+
+-   FEATURE [code]: Labeled Diagram Edges
+    The new diagram option "labeled" lets the edges derived from property values carry the lower-cased
+    property key as their label, while the edges derived from descriptions stay unlabeled.
+
+-   FEATURE [code]: Diagrams in Concise Tables
+    The HTML/PDF export now renders the diagram of an object in Concise Format into an additional row of
+    its table, spanning all columns but the name one.
 
 -   FEATURE [code, spec, docs]: Per-Kind Rendering Format
-    The "format" schema field now configures the HTML/PDF rendering of the objects of the kind
-    it is placed on (among their siblings), instead of the rendering of all child objects of
-    the kind, so that the sibling kinds below one parent render differently (e.g. one kind as a
-    compact table, another one as sections), where the standard schema configuration moved its
-    existing "format" fields down onto the affected child kinds accordingly.
-
--   IMPROVEMENT [spec, docs]: Visual Design Schema
-    The standard "Visual Design" now states the visual design decisions with their rationale
-    (new mandatory "TRADE-OFF" and optional "ACTORS", "PRINCIPLES", and "SOURCE" properties,
-    "CATEGORY" as an explained "enum" of "Brand", "Color", "Typography", "Spacing", "Shape",
-    "Iconography", "Imagery", and "Motion", bounded against the Dialog Patterns, Dialog
-    Storyboard, and Non-Functional Requirements), carries its high-fidelity mockups as the new
-    "MOCKUP" objects (linked to personas, storyboards, and elements) rendered as sections,
-    and shows its elements in a category grid diagram.
+    The "format" schema field now configures the HTML/PDF rendering of the objects of the kind it is placed
+    on (instead of all child objects), so sibling kinds below one parent can render differently.
 
 -   FEATURE [code, spec, docs]: State Machine Checks
-    The new object kind field "automaton" declares the child kinds acting as the states and
-    transitions of a finite state machine, whose structural sanity the linter now checks: every
-    state has to be reachable from the initial state, a state without outgoing transition has to
-    be final (dead-end), and a final state has to be reachable from every state (livelock).
+    The new object kind field "automaton" declares the state/transition child kinds of a finite state
+    machine, which the linter checks for unreachable states, dead-ends, and livelocks.
 
 -   FEATURE [code, spec, docs]: Scoped Reference Resolution
-    A reference matching several objects is now narrowed down to the ones nearest to the
-    referencing object (sharing the longest ancestor chain with it), so a short reference like
-    `[[STATE:Draft]]` resolves within its own lifecycle, even if other lifecycles carry a state
-    of the same name, and is an ambiguity only if still more than one match remains.
+    A reference matching several objects is narrowed down to the ones nearest to the referencing object,
+    so `[[STATE:Draft]]` resolves within its own lifecycle and is ambiguous only if still more remain.
 
 -   FEATURE [code, spec, docs]: Local References
-    The new property flag "local" demands that a reference-valued property references objects
-    below the parent object of the referencing object only, ruling out a transition between the
-    states of two different lifecycles.
+    The new property flag "local" demands that a reference-valued property references objects below the
+    parent object of the referencing object only, ruling out transitions between lifecycles.
 
 -   FEATURE [code, spec, docs]: Sibling Presence
-    The new property flag "present", the counterpart of "unique", demands that some value (or a
-    value matching a regexp or enum expression) occurs on at least one sibling object, so that
-    "unique" plus "present" demand exactly one (e.g. exactly one initial state per lifecycle and
-    exactly one "Main" scenario per use case).
-
--   IMPROVEMENT [code]: Badged List Members
-    The HTML/PDF export now badges the items of a "list(...)" constrained property value which
-    are literal members of its "enum(...)"/"tags(...)" alternatives (e.g. the `System` of an
-    "ACTOR" value), exactly like the members of a plain "enum(...)"/"tags(...)" value, while the
-    other items (like references) stay prose.
-
--   IMPROVEMENT [spec, docs]: State Model Schema
-    The standard "State Model" now checks its lifecycles as automata, scopes the transition
-    endpoints to their own lifecycle, demands exactly one initial and at least one final state,
-    carries the guard as a "GUARD" property (instead of a "WHEN" prose clause) beside the new
-    optional "ACTOR" (personas, "System", or "Time") and "RULES" properties, allows dashed
-    transition names, and expects every transition to be referenced from a use case (new
-    "TRANSITIONS" property) or a test case ("VERIFIES" now admits transitions).
+    The new property flag "present", the counterpart of "unique", demands that some (or a matching) value
+    occurs on at least one sibling object, so "unique" plus "present" demand exactly one.
 
 -   FEATURE [code, spec, docs]: Reference Coverage
-    The new object kind flag "referenced" lists the wildcard references (e.g. `[[*]]` for any
-    object) matching the objects -- themselves or through their descendants -- from which every
-    object of the kind has to be referenced at least once.
-
--   IMPROVEMENT [code, docs]: Absent Property Marker
-    The HTML/PDF export now renders an "empty set" marker into the property table lines and table
-    cells of properties absent from an object (including the ones injected by "withUnusedProps"),
-    telling a not given property apart from one given with an empty value.
+    The new object kind flag "referenced" lists the wildcard references (e.g. `[[*]]`) matching the objects
+    from which every object of the kind has to be referenced at least once.
 
 -   FEATURE [code, spec, docs]: Diagram of Contents
-    The HTML/PDF export renders the diagram of the "META: Title" object on its own "Diagram of
-    Contents" page directly after the Table of Contents (while the MD/AST exports suppress this
-    diagram), and the standard schema configures such a "graph" diagram over all "SPEC" and "ARCH"
-    artifacts, connected by the references living in their nested objects.
+    The HTML/PDF export renders the diagram of the "META: Title" object on its own page after the Table of
+    Contents, which the standard schema configures as a "graph" over all specification/architecture artifacts.
 
 -   FEATURE [code, docs]: Deep Diagram Edges
     The new diagram option "deep" derives the edges of a node from the "[[...]]" references of its
-    descendants, too, lifting every referenced object to its nearest node and rendering the number
-    of references as the edge arity.
+    descendants, too, lifting each referenced object to its nearest node with the reference count as arity.
 
 -   FEATURE [code, othr]: Live Preview Status Icon
-    The live preview page now shows a connection status icon left of the theme switcher, which is
-    grey while the WebSocket connection is active, takes the search highlight color while it is
-    disconnected, and blinks for 2s after every in-place content update.
+    The live preview page shows a connection status icon left of the theme switcher: grey while connected,
+    in the search highlight color while disconnected, and blinking for 2s after every content update.
 
 -   FEATURE [code, infr, othr]: Live Preview
-    The new "preview" command in API/CLI serves the HTML export via Fastify on
-    "http://<ip-addr>:<tcp-port>/" (options "-a"/"--addr" and "-p"/"--port", default
-    "127.0.0.1:12345"), re-exports the specification on every source change like "export --watch",
-    and sends "RELOAD" to all connected WebSocket clients, which the client-side script of the new
-    "realtime" option of the API "export"/"watch" methods turns into an in-place document update
-    which keeps the scroll position and the theme choice.
+    The new "preview" command in API/CLI serves the HTML export via Fastify ("-a"/"--addr", "-p"/"--port"),
+    re-exports on every source change, and updates all WebSocket clients in place via "RELOAD".
 
 -   FEATURE [code, infr, othr]: Watched Export
-    The "export" command in API/CLI gained the option "-w"/"--watch", which performs the regular
-    export and afterwards re-exports the specification on every change of a referenced artifact
-    file or an embedded asset, once the sources stayed silent for one second.
+    The "export" command in API/CLI gained the option "-w"/"--watch", re-exporting the specification on
+    every change of a referenced artifact file or embedded asset, once the sources stayed silent for 1s.
 
--   BUGFIX [code]: Untruncated CLI Output
-    Commander no longer terminates the process on its own: its help, version, and usage-error
-    output is collected and flushed through the awaiting stdout/stderr writers, so a piped output
-    is no longer cut off.
+-   IMPROVEMENT [spec, docs]: Domain Rules
+    The artifact "Business Rules" of the standard schema is renamed to "Domain Rules" with the identifier
+    "DR" (file "08-REQS-DR-Domain-Rules.md"), as not every domain is a business.
+
+-   IMPROVEMENT [spec, docs]: Split Specification Kind
+    The standard schema replaces its catch-all artifact kind "SPEC" by the kinds "REQS", "DATA", "APIS",
+    "UXUI", "TEST", and "ARCH".
+
+-   IMPROVEMENT [spec, othr]: Numbered Artifact Files
+    The artifact files of the standard schema are now named "NN-KIND-ID-Name.md", numbered consecutively
+    across all artifact kinds, instead of "KIND-NN-ID-Name.md".
+
+-   IMPROVEMENT [code]: Standard Schema Coverage Matrix
+    The bundled standard schema now opens with its modeling purpose and a coverage matrix, mapping its
+    artifacts onto the classical document types PRD, StRS, SyRS, SRS, UIS, UISG, TCS, and AD.
+
+-   IMPROVEMENT [code, othr]: Data Protection Attributes
+    The entity attributes of the standard "Data Model" gain the optional GDPR-motivated properties
+    "CLASSIFICATION" ("Public", "Internal", "Confidential", "Personal") and "RETENTION".
+
+-   IMPROVEMENT [code]: Stakeholder Personas
+    The standard "User Personas" gain the optional "TYPE" property ("User" or "Stakeholder"), so that
+    non-user stakeholders like sponsors, regulators, or auditors are modeled as personas, too.
+
+-   IMPROVEMENT [code, othr]: Refined Standard Schema
+    The standard schema was refined throughout (Glossary moved second, Use Cases behind the workflows, new
+    "OPPORTUNITY", "GOVERNS", "RULES", "RESULT", "OUTCOME" properties, reworked REQS/DATA/TEST/UXUI parts).
+
+-   IMPROVEMENT [othr]: Refined Sample Corpus
+    The sample broadcast specification follows the refined standard schema, with missing use/test cases
+    added, glossary terms hyperlinked, and "Ventari" replaced by "Event Registration System".
+
+-   IMPROVEMENT [code, docs]: Hierarchical Table of Contents
+    The "Table of Contents" of the HTML/PDF export now lists all section headings (exactly like the side
+    panel and the PDF outline).
+
+-   IMPROVEMENT [code]: Compact Prose References
+    The "[[...]]" references inside descriptions and rationales are rendered in the HTML/PDF export in a
+    compact form (icon and name only, full form as tooltip), while property values keep the full form.
+
+-   IMPROVEMENT [code]: Uniform Hub Diagram Zoom
+    The "hub" diagrams of the HTML/PDF export are capped to their width share of a full three-column
+    canvas, so all hub diagrams share the zoom level of the three-column ones.
+
+-   IMPROVEMENT [code]: HTML Layout Polish
+    The HTML/PDF export keeps the line height on lines carrying a link, top-aligns the property names,
+    lets empty cells cover a line height, and spaces the parts of an object slightly wider apart.
+
+-   IMPROVEMENT [code]: Live Preview Client Logging
+    The "preview" command reports connecting/disconnecting WebSocket clients and the first served export
+    as "notice" messages, while the client-side script logs its connection states to the console.
+
+-   IMPROVEMENT [infr]: Developer Build Targets
+    The new "dev" build target rebuilds and re-exports the sample broadcast specification on every source
+    change through chokidar, with "dev-sample" performing the export alone.
+
+-   IMPROVEMENT [spec, docs]: Visual Design Schema
+    The standard "Visual Design" states its decisions with rationale (new "TRADE-OFF", "ACTORS",
+    "PRINCIPLES", "SOURCE", and enum "CATEGORY" properties) and carries its mockups as "MOCKUP" objects.
+
+-   IMPROVEMENT [code]: Badged List Members
+    The HTML/PDF export now badges the items of a "list(...)" property value which are literal members of
+    its "enum(...)"/"tags(...)" alternatives, while the other items (like references) stay prose.
+
+-   IMPROVEMENT [spec, docs]: State Model Schema
+    The standard "State Model" checks its lifecycles as automata, scopes transitions to their lifecycle,
+    carries "GUARD", "ACTOR", and "RULES" properties, and expects each transition to be referenced.
+
+-   IMPROVEMENT [code, docs]: Absent Property Marker
+    The HTML/PDF export renders an "empty set" marker into the table lines/cells of absent properties and
+    descriptions, telling a not given property apart from one given with an empty value.
 
 -   IMPROVEMENT [code]: Specification File Set
-    The parser now records the resolved paths of the embedded assets and the "LintResult" carries
-    the resulting "files" set of the entire specification.
+    The parser now records the resolved paths of the embedded assets and the "LintResult" carries the
+    resulting "files" set of the entire specification.
+
+-   BUGFIX [code]: Untruncated CLI Output
+    Commander no longer terminates the process on its own: its help, version, and usage-error output is
+    flushed through the awaiting stdout/stderr writers, so a piped output is no longer cut off.
+
+-   UPDATE [infr]: Dependency Upgrades
+    The dependencies marked, subset-font, zod, typescript-eslint, and @types/node were upgraded and
+    chokidar-cli was added for the developer build targets.
+
+-   REFACTOR [code, infr]: Split Standard Schema Files
+    The bundled standard schema was split into the per-kind files "src/specbook-format.d/std-N-XXX.yaml",
+    assembled by "etc/specbook-format-assemble.mjs" into "dst/specbook-format.yaml" at build time.
 
 1.0.3 (2026-08-27)
 ------------------
