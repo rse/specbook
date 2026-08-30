@@ -42,7 +42,6 @@ html.theme-light            { --theme-color-specbook-background:  var(--theme-co
                               --theme-color-specbook-mark-text:   var(--theme-color-search-32);
                               --theme-color-specbook-mark-back:   var(--theme-color-search-16);
                               --theme-color-specbook-field:       var(--theme-color-accent-8);
-                              --theme-color-specbook-handle:      var(--theme-color-accent-24);
                               --theme-color-specbook-error:       #cc0000;
                               --gradia-font-family:               "Source Sans 3";
                               --gradia-color-node-regular-name:   var(--theme-color-accent-12);
@@ -79,7 +78,6 @@ html.theme-dark             { --theme-color-specbook-background:  var(--theme-co
                               --theme-color-specbook-mark-text:   var(--theme-color-search-32);
                               --theme-color-specbook-mark-back:   var(--theme-color-search-4);
                               --theme-color-specbook-field:       var(--theme-color-accent-16);
-                              --theme-color-specbook-handle:      var(--theme-color-accent-8);
                               --theme-color-specbook-error:       #cc0000;
                               --gradia-color-node-regular-name:   var(--theme-color-accent-21);
                               --gradia-color-node-regular-box:    var(--theme-color-accent-3);
@@ -150,24 +148,24 @@ div.realtime-status         { display: none; }
     the brand bar on its right edge, which exactly covers the brand bar
     of the page while the panel is slid in, so the panel appears to sit
     left of the brand bar and to shift it aside when slid out, with its
-    tab (rotated 90 degrees counter-clockwise, which mirrors the offset
-    of its drop shadow) riding right of the bar, its top aligned with
-    the ink top of the status and theme-switching glyphs  */
+    tab (a menu icon drawn like the search icon, as none of the bundled
+    fonts carries the U+2630 glyph, and sized like the search tab)
+    riding right of the bar below the search tab  */
 nav.toc-panel               { position: fixed; top: 0; bottom: 0; left: 0; width: 31rem; z-index: 20;
                               transform: translateX(calc(-100% + 0.6rem)); transition: transform 0.3s ease;
                               background-color: var(--theme-color-specbook-background); }
 nav.toc-panel::after        { content: ""; position: absolute; top: 0; bottom: 0;
                               right: 0; width: 0.6rem; background-color: var(--theme-color-specbook-accent); }
 nav.toc-panel.open          { transform: translateX(0); box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3); }
-nav.toc-panel.open div.toc-tab { box-shadow: -0.2rem 0 0.6rem rgba(0, 0, 0, 0.3); }
-nav.toc-panel div.toc-tab   { position: absolute; top: 0.97rem; left: calc(100% - 1px);
-                              writing-mode: vertical-rl; transform: rotate(180deg);
-                              padding: 0.6rem 0; font-size: 0.9rem; line-height: 1.5rem;
+nav.toc-panel.open div.toc-tab { box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3); }
+nav.toc-panel div.toc-tab   { position: absolute; top: 4.2rem; left: calc(100% - 1px);
+                              padding: 0.9rem 0.35rem; line-height: 0;
                               color: var(--theme-color-specbook-background);
                               background-color: var(--theme-color-specbook-accent);
-                              border-radius: 0.3rem 0 0 0.3rem; cursor: pointer;
+                              border-radius: 0 0.3rem 0.3rem 0; cursor: pointer;
                               -webkit-user-select: none; user-select: none; }
 nav.toc-panel div.toc-tab:hover { background-color: var(--theme-color-specbook-accent-soft); }
+nav.toc-panel svg.toc-icon  { width: 1.1rem; height: 1.1rem; }
 nav.toc-panel div.toc-list  { height: 100%; overflow-y: auto; box-sizing: border-box;
                               padding: 1.0rem 1.6rem 1.0rem 1.0rem; }
 
@@ -361,34 +359,35 @@ div.titlepage table.meta    { margin: 1rem auto 0 auto; color: var(--theme-color
                               font-size: 1.0rem; border-collapse: collapse; }
 div.titlepage table.meta td { padding: 0.0rem 0.5rem; text-align: left; }
 
-/*  the fuzzy search tab (screen-only): fixed at the top center of the
-    viewport in the accent color, carrying the search icon, the input
-    field, and its clear symbol, plus a handle below, which slides the
-    tab up into the viewport border until only the handle itself (its
-    height being the remaining offset) stays visible  */
-div.search                  { position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 10;
-                              padding: 0.6rem 0.75rem 0 0.75rem; border-radius: 0 0 0.5rem 0.5rem;
+/*  the fuzzy search tab (screen-only): the topmost tab riding right
+    of the brand bar above the table of contents tab (as wide as that
+    one, its top aligned with the ink top of the status and
+    theme-switching glyphs, fixed independent of the content
+    scrolling), showing the search icon, which slides the input field
+    and its clear symbol out to the right (and back in), where the tab
+    follows the bar when the table of contents panel shifts it aside  */
+div.search                  { position: fixed; top: 0.97rem; left: calc(0.6rem - 2px); z-index: 30;
+                              display: flex; align-items: center; border-radius: 0 0.3rem 0.3rem 0;
                               color: var(--theme-color-specbook-background);
                               background-color: var(--theme-color-specbook-accent);
-                              box-shadow: 0 0.1rem 0.4rem rgba(0, 0, 0, 0.3);
-                              transition: transform 0.3s ease; }
-div.search.minified         { transform: translate(-50%, calc(-100% + 0.7rem)); }
-div.search div.search-field { position: relative; display: flex; align-items: center; gap: 0.5rem; }
-div.search svg.search-icon  { width: 1.2rem; height: 1.2rem; flex: none; }
+                              transition: left 0.3s ease; }
+body:has(nav.toc-panel.open) div.search { left: calc(31rem - 2px); box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3); }
+div.search div.search-toggle { padding: 0.9rem 0.35rem; line-height: 0; border-radius: 0 0.3rem 0.3rem 0; cursor: pointer; }
+div.search div.search-toggle:hover { background-color: var(--theme-color-specbook-accent-soft); }
+div.search svg.search-icon  { width: 1.1rem; height: 1.1rem; }
+div.search div.search-field { position: relative; display: flex; align-items: center; overflow: hidden;
+                              max-width: 0; padding: 0; transition: max-width 0.3s ease, padding 0.3s ease; }
+div.search.open div.search-field { max-width: 24rem; padding: 0 0.6rem 0 0.4rem; }
 div.search input            { font-family: inherit; font-size: 1.0rem; width: 20rem;
-                              padding: 0.4rem 2.0rem 0.4rem 0.6rem;
+                              padding: 0.3rem 2.0rem 0.3rem 0.6rem;
                               border: 1px solid var(--theme-color-specbook-field); border-radius: 0.25rem;
                               color: #ffffff;
                               background-color: var(--theme-color-specbook-field); }
 div.search input::placeholder { color: #ffffff; opacity: 0.7; }
 div.search input:focus      { outline: none; }
-div.search span.search-clear { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%);
+div.search span.search-clear { position: absolute; right: 1.2rem; top: 50%; transform: translateY(-50%);
                               color: #ffffff; cursor: pointer; -webkit-user-select: none; user-select: none; }
 div.search span.search-clear:hover { color: var(--theme-color-specbook-accent-soft); }
-div.search div.search-handle { height: 0.7rem; margin-top: 0.3rem; cursor: pointer;
-                              background: repeating-linear-gradient(to bottom, var(--theme-color-specbook-handle) 0 0.08rem, transparent 0.08rem 0.16rem)
-                                          center / 1.0rem 0.4rem no-repeat; }
-div.search div.search-handle:hover { background-color: var(--theme-color-specbook-accent-soft); }
 @media print {
 div.search                  { display: none; }
 }

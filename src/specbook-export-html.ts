@@ -68,12 +68,11 @@ const templates = {
                 {% if Document.realtime %}<div class="realtime-status disconnected" title="live preview connection">&#x25CF;</div>{% endif %}
                 <div class="theme-switch" onclick="themeSwitch()" title="switch color theme">&#x25D0;</div>
                 <div class="search" id="search">
+                    <div class="search-toggle" id="search-toggle" title="toggle search field"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><line x1="15" y1="15" x2="21" y2="21"/></svg></div>
                     <div class="search-field">
-                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
                         <input type="text" id="search-input" placeholder="Search&hellip;" autocomplete="off" spellcheck="false"/>
                         <span class="search-clear" id="search-clear" title="clear search">&#x00D7;</span>
                     </div>
-                    <div class="search-handle" id="search-handle" title="toggle search field"></div>
                 </div>
                 {{ Document.tocpanel }}
                 {{ Document.titlepage }}
@@ -119,7 +118,7 @@ const templates = {
     /*  <TocPanel/>  */
     "TocPanel": textframe`
         <nav class="toc-panel">
-            <div class="toc-tab" title="toggle table of contents">Table of Contents</div>
+            <div class="toc-tab" title="toggle table of contents"><svg class="toc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
             <div class="toc-list">
                 <ul class="extra">
                     {% if TocPanel.title %}<li><a href="#titlepage"><span class="entry">Title</span></a></li>{% endif %}
@@ -398,7 +397,8 @@ const tocPanelScript = textframe`
         const outside = (event) => {
             if (!panel.isConnected)
                 document.removeEventListener("click", outside)
-            else if (!panel.contains(event.target))
+            else if (!panel.contains(event.target)
+                && event.target.closest("div.search") === null)
                 toggle(false)
         }
         document.addEventListener("click", outside)

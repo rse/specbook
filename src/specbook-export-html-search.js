@@ -13,21 +13,26 @@
     <tspan> element underlaid with a <rect> inside a diagram)  */
 (function () {
     const tab    = document.getElementById("search")
+    const toggle = document.getElementById("search-toggle")
     const input  = document.getElementById("search-input")
     const clear  = document.getElementById("search-clear")
-    const handle = document.getElementById("search-handle")
-    if (tab === null || input === null || clear === null || handle === null)
+    if (tab === null || toggle === null || input === null || clear === null)
         return
 
-    /*  let the handle slide the tab up into the viewport border (and
-        back again), remembering the choice across page loads  */
-    try { if (localStorage.getItem("specbook-search") === "minified") tab.classList.add("minified") }
-    catch { /*  an inaccessible storage just means no stored state  */ }
-    handle.addEventListener("click", () => {
-        tab.classList.toggle("minified")
-        try { localStorage.setItem("specbook-search", tab.classList.contains("minified") ? "minified" : "expanded") }
+    /*  let the search icon slide the input field out of the tab (and
+        back in again), remembering the choice across page loads  */
+    const slide = (open) => {
+        tab.classList.toggle("open", open)
+        if (tab.classList.contains("open"))
+            input.focus()
+        else
+            input.blur()
+        try { localStorage.setItem("specbook-search", tab.classList.contains("open") ? "open" : "closed") }
         catch { /*  an inaccessible storage just loses the state  */ }
-    })
+    }
+    try { if (localStorage.getItem("specbook-search") === "open") tab.classList.add("open") }
+    catch { /*  an inaccessible storage just means no stored state  */ }
+    toggle.addEventListener("click", () => { slide() })
 
     /*  shortest word still eligible for fuzzy matching: below it the
         edit distance would equate it with almost any short word  */
@@ -306,17 +311,34 @@
     }
 
     /*  run the search debounced on every keystroke (750ms after the
-        last one, as re-filtering the whole document is not cheap) and
-        let the "X" clear the input field and the search results again  */
+        last one, as re-filtering the whole document is not cheap), let
+        the "X" clear the input field and the search results again, let
+        the Escape key additionally slide the input field back in, and
+        let the Enter key slide it back in with the query kept (and
+        applied immediately)  */
     let debounce = 0
+    const reset = () => {
+        window.clearTimeout(debounce)
+        input.value = ""
+        unmark()
+    }
     input.addEventListener("input", () => {
         window.clearTimeout(debounce)
         debounce = window.setTimeout(search, 750)
     })
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Escape")
+            reset()
+        else if (event.key === "Enter") {
+            window.clearTimeout(debounce)
+            search()
+        }
+        else
+            return
+        slide(false)
+    })
     clear.addEventListener("click", () => {
-        window.clearTimeout(debounce)
-        input.value = ""
-        unmark()
+        reset()
         input.focus()
     })
 })()

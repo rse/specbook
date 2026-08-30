@@ -6,9 +6,9 @@ ChangeLog
 ------------------
 
 -   IMPROVEMENT [code]: Search Tab
-    The full-text search field of the HTML export moved from the title page into a fixed tab at the top
-    center of the viewport (accent colored, with a search icon), which a handle below slides up into the
-    viewport border until only the handle stays visible, with this choice persisted across page loads.
+    The full-text search field of the HTML export moved from the title page into a fixed tab riding the
+    brand bar below the table of contents tab (following the bar when the panel shifts it aside), whose
+    search icon slides the input field out to the right and back in, persisting this across page loads.
 
 -   BUGFIX [code]: Diagram Search Filtering
     The full-text search of the HTML export now treats the diagrams as searchable units: a diagram stays
