@@ -30,7 +30,8 @@ API.
     -   `src/specbook-export-ast.ts`: the AST renderer (JSON, JSON5, YAML, TOON)
     -   `src/specbook-export-md.ts`: the normalized Markdown renderer
     -   `src/specbook-export-html.ts`: the HTML renderer
-        (with `src/specbook-export-html.css` as its inlined stylesheet)
+        (with `src/specbook-export-html.styl` as its inlined stylesheet,
+        compiled from Stylus to CSS at build time)
     -   `src/specbook-export-pdf.ts`: the PDF renderer (HTML printed
         via Playwright/Chromium, post-processed with `pdf-lib`)
     -   `src/specbook-config.ts`: YAML schema configuration loading and validation (Valibot)
