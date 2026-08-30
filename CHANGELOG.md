@@ -5,6 +5,10 @@ ChangeLog
 1.1.0 (2026-08-29)
 ------------------
 
+-   FEATURE [spec, docs]: Interface Model
+    The standard schema configuration gains the artifact kind "APIS" with its optional artifact
+    "Interface Model" (file "12", placed between the tests and the user interface).
+
 -   IMPROVEMENT [spec, docs]: Split Specification Kind
     The standard schema configuration replaces its catch-all artifact
     kind "SPEC" (which named just a part of what the whole specification
