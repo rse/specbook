@@ -165,9 +165,10 @@ export const charsetCodepoints = (charset: string): number[] | undefined => {
 
 /*  the symbol glyphs used by the HTML/PDF rendering (kind and property
     bullets, link symbol, primary marker, theme switch icon, anchor
-    symbol plus its text presentation variation selector, and the
-    search field clearing icon)  */
-const symbolGlyphs = [ 0x25CF, 0x25CB, 0x26AD, 0x2318, 0x25D0, 0x2693, 0xFE0E, 0x00D7 ]
+    symbol plus its text presentation variation selector, the search
+    field clearing icon, and the active entry pointer of the table of
+    contents side panel)  */
+const symbolGlyphs = [ 0x25CF, 0x25CB, 0x26AD, 0x2318, 0x25D0, 0x2693, 0xFE0E, 0x00D7, 0x25C0 ]
 
 /*  the typographic glyphs producible by the smart typography rendering
     (language-specific quotes, dashes, ellipsis, bullet, nbsp)  */

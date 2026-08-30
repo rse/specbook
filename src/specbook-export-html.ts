@@ -67,11 +67,13 @@ const templates = {
             <body>
                 {% if Document.realtime %}<div class="realtime-status disconnected" title="live preview connection">&#x25CF;</div>{% endif %}
                 <div class="theme-switch" onclick="themeSwitch()" title="switch color theme">&#x25D0;</div>
+                {{ Document.tocpanel }}
                 {{ Document.titlepage }}
                 {{ Document.toc }}
                 {{ Document.doc }}
                 {{ Document.artifacts }}
                 {% if Document.search %}<script>{{ Document.search }}</script>{% endif %}
+                {% if Document.tocpanel %}<script>{{ Document.tocscript }}</script>{% endif %}
                 {% if Document.realtime %}<script class="realtime">{{ Document.realtime }}</script>{% endif %}
             </body>
         </html>
@@ -79,7 +81,7 @@ const templates = {
 
     /*  <TitlePage/>  */
     "TitlePage": textframe`
-        <div class="titlepage">
+        <div class="titlepage" id="titlepage">
             {% if TitlePage.logo %}<div class="logo">{{ TitlePage.logo }}</div>{% endif %}
             <div class="title">{{ TitlePage.title }}</div>
             {% if TitlePage.subtitle %}<div class="subtitle">{{ TitlePage.subtitle }}</div>{% endif %}
@@ -100,7 +102,7 @@ const templates = {
 
     /*  <Toc/>  */
     "Toc": textframe`
-        <nav class="toc">
+        <nav class="toc" id="toc">
             <h1>Table of Contents</h1>
             <table>
                 {% for entry in Toc.entries %}
@@ -110,9 +112,33 @@ const templates = {
         </nav>
     `,
 
+    /*  <TocPanel/>  */
+    "TocPanel": textframe`
+        <nav class="toc-panel">
+            <div class="toc-tab" title="toggle table of contents">Table of Contents</div>
+            <div class="toc-list">
+                <ul class="extra">
+                    {% if TocPanel.title %}<li><a href="#titlepage"><span class="entry">Title</span></a></li>{% endif %}
+                    <li><a href="#toc"><span class="entry">Table of Contents</span></a></li>
+                    {% if TocPanel.doc %}<li><a href="#doc"><span class="entry">Diagram of Contents</span></a></li>{% endif %}
+                </ul>
+                {{ TocPanel.entries }}
+            </div>
+        </nav>
+    `,
+
+    /*  <TocPanelEntries/>  */
+    "TocPanelEntries": textframe`
+        <ul>
+            {% for entry in Entries %}
+            <li><a href="#{{ entry.id }}"><span class="entry"><span class="object-kind">{{ entry.kind }}:</span> {{ entry.name }}</span></a>{{ entry.childs }}</li>
+            {% endfor %}
+        </ul>
+    `,
+
     /*  <Doc/>  */
     "Doc": textframe`
-        <nav class="doc">
+        <nav class="doc" id="doc">
             <h1>Diagram of Contents</h1>
             <div class="diagram">{{ Doc.diagram }}</div>
         </nav>
@@ -281,6 +307,101 @@ const realtimeScript = textframe`
             }
         }
         connect()
+    })()
+`
+
+/*  the client-side script of the table of contents side panel: it
+    slides the panel out of and back into the viewport edge (closing it
+    also on a jump, on "Escape", and on a click outside), remembers the
+    open state across page loads, and marks the active entry (the first
+    heading visible in the viewport, or, without any, the last heading
+    above the viewport, i.e. the section scrolled into), scrolling it
+    into the middle of the panel whenever it changes and is not visible
+    in the panel already (even while the panel is slid in, so it opens
+    at the right position), plus the anchored entry (the one the URL
+    hash currently addresses, which a jump synchronizes with the active
+    one, while a subsequent scrolling moves the active one only). The
+    script runs at the end of the body, as the headings it targets
+    have to exist already, and a live preview body swap replaces the
+    body-bound listeners along with the panel, while the document- and
+    window-bound ones (the outside click, as the body does not span
+    the viewport margins, plus scroll and hash change) retire
+    themselves  */
+const tocPanelScript = textframe`
+    (function () {
+        const panel   = document.querySelector("nav.toc-panel")
+        const list    = panel.querySelector("div.toc-list")
+        const links   = Array.from(panel.querySelectorAll("a"))
+        const targets = links.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))))
+        let active = null
+        const reveal = () => {
+            const top = active.getBoundingClientRect().top - list.getBoundingClientRect().top
+            if (top < 0 || top + active.offsetHeight > list.clientHeight)
+                list.scrollTop += top - (list.clientHeight - active.offsetHeight) / 2
+        }
+        const spy = () => {
+            if (!panel.isConnected) {
+                window.removeEventListener("scroll", spy)
+                return
+            }
+            let current = null
+            for (let i = 0; i < targets.length; i++) {
+                if (targets[i] === null)
+                    continue
+                const top = targets[i].getBoundingClientRect().top
+                if (top >= -1 && top < window.innerHeight) {
+                    current = links[i]
+                    break
+                }
+                if (top < -1)
+                    current = links[i]
+            }
+            if (current === active)
+                return
+            if (active !== null)
+                active.classList.remove("active")
+            active = current
+            if (active !== null) {
+                active.classList.add("active")
+                reveal()
+            }
+        }
+        let anchored = null
+        const anchor = () => {
+            if (!panel.isConnected) {
+                window.removeEventListener("hashchange", anchor)
+                return
+            }
+            const current = links.find((a) => a.hash === window.location.hash) ?? null
+            if (current === anchored)
+                return
+            if (anchored !== null)
+                anchored.classList.remove("anchored")
+            anchored = current
+            if (anchored !== null)
+                anchored.classList.add("anchored")
+        }
+        const toggle = (open) => {
+            panel.classList.toggle("open", open)
+            try { localStorage.setItem("specbook-toc", panel.classList.contains("open") ? "open" : "closed") }
+            catch { /*  an inaccessible storage just loses the state  */ }
+        }
+        try { if (localStorage.getItem("specbook-toc") === "open") panel.classList.add("open") }
+        catch { /*  an inaccessible storage just means no stored state  */ }
+        panel.querySelector("div.toc-tab").addEventListener("click", () => { toggle() })
+        links.forEach((a) => { a.addEventListener("click", () => { toggle(false) }) })
+        document.body.addEventListener("keydown", (event) => { if (event.key === "Escape") toggle(false) })
+        const outside = (event) => {
+            if (!panel.isConnected)
+                document.removeEventListener("click", outside)
+            else if (!panel.contains(event.target))
+                toggle(false)
+        }
+        document.addEventListener("click", outside)
+        window.addEventListener("scroll", spy, { passive: true })
+        window.addEventListener("hashchange", anchor)
+        spy()
+        anchor()
     })()
 `
 
@@ -769,6 +890,25 @@ const renderArtifact = (artifact: SpecArtifact): string =>
         objects: safe(artifact.objects.map((object) => renderObject(object, 1, false)).join(""))
     } })
 
+/*  render the side panel of the table of contents (its behavior is
+    driven by the client-side script above): the unnumbered entries of
+    the front matter (title page, table and diagram of contents, as far
+    as present) are followed by the hierarchical entries of the rendered
+    object headings, exactly like the PDF outline (skipping the child
+    groups collapsing into compact tables)  */
+const renderTocPanel = (objects: SpecObject[], title: boolean, doc: boolean): string => {
+    const entries = (objects: SpecObject[]): string =>
+        objects.length === 0 ? "" : render("TocPanelEntries", { Entries: objects.map((object) => ({
+            id:     anchorOf(object),
+            kind:   object.kind,
+            name:   inline(object.name),
+            childs: safe(entries(groupChilds(flowChilds(object))
+                .filter((group) => !conciseGroup(group, schemas, false))
+                .flat()))
+        })) })
+    return render("TocPanel", { TocPanel: { title, doc, entries: safe(entries(objects)) } })
+}
+
 /*  ==== Outline ====  */
 
 /*  an entry of the hierarchical document outline  */
@@ -906,7 +1046,11 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             search:    title !== undefined ? safe(searchScript()) : "",
             realtime:  realtime ? safe(realtimeScript) : "",
             toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
-            doc:       doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",
+            tocpanel:  entries.length > 0 ?
+                safe(renderTocPanel(artifacts.flatMap((artifact) => artifact.objects),
+                    title !== undefined, doc !== undefined)) : "",
+            tocscript: entries.length > 0 ? safe(tocPanelScript) : "",
+            doc:      doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",
             artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
         } })
     }

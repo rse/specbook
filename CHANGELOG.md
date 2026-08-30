@@ -5,6 +5,13 @@ ChangeLog
 1.1.0 (2026-08-29)
 ------------------
 
+-   FEATURE [code, docs]: Table of Contents Side Panel
+    The HTML export gains a "Table of Contents" tab at the left viewport edge, which slides a
+    side panel with a hierarchical copy of the table of contents (all section headings, numbered
+    like the document, the active and the anchored section highlighted) out of the edge for
+    quick navigation, closing again on a jump, on "Escape", or on a click outside, where the
+    open state survives page loads and live preview reloads.
+
 -   FEATURE [spec, docs]: Interface Model
     The standard schema configuration gains the artifact kind "APIS" with its optional artifact
     "Interface Model" (file "12", placed between the tests and the user interface).
