@@ -165,7 +165,7 @@ nav.toc-panel div.toc-tab   { position: absolute; top: 4.2rem; left: calc(100% -
                               border-radius: 0 0.3rem 0.3rem 0; cursor: pointer;
                               -webkit-user-select: none; user-select: none; }
 nav.toc-panel div.toc-tab:hover { background-color: var(--theme-color-specbook-accent-soft); }
-nav.toc-panel svg.toc-icon  { width: 1.1rem; height: 1.1rem; }
+nav.toc-panel svg.toc-icon  { width: 1.1rem; height: 1.1rem; margin-right: 0.15rem; }
 nav.toc-panel div.toc-list  { height: 100%; overflow-y: auto; box-sizing: border-box;
                               padding: 1.0rem 1.6rem 1.0rem 1.0rem; }
 
@@ -365,16 +365,21 @@ div.titlepage table.meta td { padding: 0.0rem 0.5rem; text-align: left; }
     theme-switching glyphs, fixed independent of the content
     scrolling), showing the search icon, which slides the input field
     and its clear symbol out to the right (and back in), where the tab
-    follows the bar when the table of contents panel shifts it aside  */
+    follows the bar when the table of contents panel shifts it aside
+    and the icon carries the mark colors in a rounded box while a
+    search filter is active, signalling the filtered content  */
 div.search                  { position: fixed; top: 0.97rem; left: calc(0.6rem - 2px); z-index: 30;
                               display: flex; align-items: center; border-radius: 0 0.3rem 0.3rem 0;
                               color: var(--theme-color-specbook-background);
                               background-color: var(--theme-color-specbook-accent);
                               transition: left 0.3s ease; }
 body:has(nav.toc-panel.open) div.search { left: calc(31rem - 2px); box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3); }
-div.search div.search-toggle { padding: 0.9rem 0.35rem; line-height: 0; border-radius: 0 0.3rem 0.3rem 0; cursor: pointer; }
+div.search div.search-toggle { padding: 0.65rem 0.1rem; line-height: 0; border-radius: 0 0.3rem 0.3rem 0; cursor: pointer; }
 div.search div.search-toggle:hover { background-color: var(--theme-color-specbook-accent-soft); }
-div.search svg.search-icon  { width: 1.1rem; height: 1.1rem; }
+div.search svg.search-icon  { width: 1.1rem; height: 1.1rem; padding: 0.25rem; border-radius: 0.3rem;
+                              margin-right: 0.15rem; }
+body.searching div.search svg.search-icon { color: var(--theme-color-specbook-mark-text);
+                              background-color: var(--theme-color-specbook-mark-back); }
 div.search div.search-field { position: relative; display: flex; align-items: center; overflow: hidden;
                               max-width: 0; padding: 0; transition: max-width 0.3s ease, padding 0.3s ease; }
 div.search.open div.search-field { max-width: 24rem; padding: 0 0.6rem 0 0.4rem; }
