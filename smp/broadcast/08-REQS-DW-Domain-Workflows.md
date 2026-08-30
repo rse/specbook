@@ -3,11 +3,11 @@ Created:  2026-08-30 10:00
 Modified: 2026-08-30 10:00
 ---
 
-REQS: Domain Processes (BP)
+REQS: Domain Workflows (DW)
 ===========================
 
-PROCESS: Run Broadcast Event {{run-broadcast-event}}
-----------------------------
+WORKFLOW: Run Broadcast Event {{run-broadcast-event}}
+-----------------------------
 
 -   ACTORS:   [[PERSONA:manager]], [[PERSONA:presenter]], [[PERSONA:moderator-qa]], [[PERSONA:moderator-chat]], [[PERSONA:attendee]]
 -   TRIGGER:  The Event Registration System delivers the attendee list of an upcoming event.

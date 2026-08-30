@@ -175,7 +175,7 @@ TEST: Test Cases (TC)
 ##  TEST-CASE: Manager Role Survives Finish {{manager-retained}}
 
 -   VERIFIES:       [[FR.export-inputs]], [[SCENARIO:export-data-after]], [[RULE:manager-retained]]
--   PROCESSES:      [[PROCESS:run-broadcast-event]]
+-   WORKFLOWS:      [[WORKFLOW:run-broadcast-event]]
 -   PRE-CONDITION:  A running event with a manager role and a moderator role assigned.
 -   INPUT:          The manager exports the event data after having finished the event.
 -   EXPECTED:       The moderator role is deleted by the anonymization while the manager role remains and can still export the event data.

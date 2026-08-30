@@ -10,8 +10,8 @@ ChangeLog
     Rules" (file "07-REQS-BR-Domain-Rules.md", identifier "BR" kept), as not every domain is a
     business, so that existing specifications have to rename the file and its heading.
 
--   FEATURE [spec, docs]: Domain Processes
-    The standard schema configuration gains the optional artifact "Domain Processes",
+-   FEATURE [spec, docs]: Domain Workflows
+    The standard schema configuration gains the optional artifact "Domain Workflows",
     placed between the domain rules and the use cases.
 
 -   IMPROVEMENT [code, docs]: Hierarchical Table of Contents

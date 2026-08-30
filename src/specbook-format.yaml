@@ -549,16 +549,16 @@
                     optional: true
 
 -   kind: REQS
-    name: Domain Processes
-    id: BP
-    file: 08-REQS-BP-Domain-Processes.md
+    name: Domain Workflows
+    id: DW
+    file: 08-REQS-DW-Domain-Workflows.md
     desc: >
-        The cross-actor, multi-sitting workflows of the domain the solution takes part in, each an
-        ordered set of activities connected by handoffs between the acting parties, making the
-        collaboration across roles and over time explicit, which neither the User Journey (the
-        experience of a single persona) nor the Use Cases (the goal of a single actor in one
-        sitting) capture. The artifact is absent for a tool-like solution without any workflow
-        spanning several actors or sittings.
+        The cross-actor, multi-sitting workflows of the domain (also known as business
+        processes) the solution takes part in, each an ordered set of activities connected by
+        handoffs between the acting parties, making the collaboration across roles and over time
+        explicit, which neither the User Journey (the experience of a single persona) nor the
+        Use Cases (the goal of a single actor in one sitting) capture. The artifact is absent for
+        a tool-like solution without any workflow spanning several actors or sittings.
     optional: true
     refs: >
         -   OMG: Business Process Model and Notation (BPMN) 2.0.2 (2013),
@@ -569,7 +569,7 @@
             https://link.springer.com/book/10.1007/978-3-662-49851-4
     diagram:
         type: grid
-        nodes: "[[REQS:BP.PROCESS:*]]"
+        nodes: "[[REQS:DW.WORKFLOW:*]]"
         properties:
             -   ACTORS
         config:
@@ -577,19 +577,19 @@
             size-node-height-scale: 2
             grid-columns-max: 4
     childs:
-        -   kind: PROCESS
+        -   kind: WORKFLOW
             desc: >
                 A single workflow, named with a short (2-5 word) summary phrased as the outcome
                 pursued (e.g. `Run Broadcast Event`) and described in a concise (1-3 sentence)
                 paragraph at a glance, plus a 1-sentence rationale ("why") stating the value the
-                organization gains. A process is a flat control flow of `ACTIVITY`
+                organization gains. A workflow is a flat control flow of `ACTIVITY`
                 objects (the work done by one party at a time) connected by `HANDOFF` objects (the
                 passing of control from one activity to the next): exactly one initial activity,
                 at least one final activity, every activity reachable from the initial one, and
                 some final activity reachable from every activity, while a handoff back to an
                 earlier activity (a rework loop) is permitted.
 
-                The process is at summary level, above the user-goal level of the Use Cases: it
+                The workflow is at summary level, above the user-goal level of the Use Cases: it
                 spans several actors and several sittings, and its activities leave the
                 step-by-step interaction with the solution to the use cases referencing them.
             automaton:
@@ -601,7 +601,7 @@
                 final: FINAL
             diagram:
                 type: graph
-                edges: "[[REQS:BP.PROCESS:*.HANDOFF:*]]"
+                edges: "[[REQS:DW.WORKFLOW:*.HANDOFF:*]]"
                 edgeSource: FROM
                 edgeTarget: TO
                 onlyConnected: true
@@ -613,48 +613,48 @@
                 -   name: ACTORS
                     desc: >
                         Comma-separated references to the User Personas objects taking part in the
-                        process, in the order of their first appearance, so that every `ACTOR` of
+                        workflow, in the order of their first appearance, so that every `ACTOR` of
                         an activity is listed here.
                     value: list([[REQS:UP.PERSONA:*]])
                 -   name: OWNER
                     desc: >
                         Reference to the User Personas object (usually a `Stakeholder`) accountable
-                        for the process as a whole, i.e. for its outcome and its rules, as opposed
+                        for the workflow as a whole, i.e. for its outcome and its rules, as opposed
                         to the actors performing its activities.
                     value: "[[REQS:UP.PERSONA:*]]"
                     optional: true
                 -   name: TRIGGER
                     desc: >
-                        The event that starts the process, stated as a 1-sentence
+                        The event that starts the workflow, stated as a 1-sentence
                         occurrence (e.g. `A manager decides to hold a broadcast event.`).
                 -   name: OUTCOME
                     desc: >
-                        The result that holds once the process has reached a final
+                        The result that holds once the workflow has reached a final
                         activity (e.g. `The event took place and its results are archived.`).
                 -   name: JOURNEYS
                     desc: >
-                        Comma-separated references to the User Journey objects the process spans,
-                        i.e. the per-persona experiences of which the process is the cross-persona
+                        Comma-separated references to the User Journey objects the workflow spans,
+                        i.e. the per-persona experiences of which the workflow is the cross-persona
                         counterpart.
                     value: list([[REQS:UJ.JOURNEY:*]])
                     optional: true
                 -   name: TERMS
                     desc: >
                         Comma-separated references to the GLOSSARY terms of type `Activity` the
-                        process realizes, anchoring it in the ubiquitous language.
+                        workflow realizes, anchoring it in the ubiquitous language.
                     value: list([[REQS:GL.TERM:*]])
                     optional: true
                 -   name: RULES
                     desc: >
                         Comma-separated references to the DOMAIN-RULES objects governing the
-                        process as a whole (e.g. a deadline or an approval policy), while a rule
+                        workflow as a whole (e.g. a deadline or an approval policy), while a rule
                         checked at a single handoff is referenced from the handoff instead.
                     value: list([[REQS:BR.RULE:*]])
                     optional: true
             childs:
                 -   kind: ACTIVITY
                     desc: >
-                        A single unit of work within the process, performed by one party without a
+                        A single unit of work within the workflow, performed by one party without a
                         handoff in between, named with a short (2-5 word) verb phrase (e.g. `Invite
                         Attendees`) and described by a 1-2 sentence description of what is done and
                         what it yields. Every activity used in a handoff *MUST* be declared, every
@@ -674,15 +674,15 @@
                         -   name: INITIAL
                             desc: >
                                 Whether the activity is the initial one, i.e. the single activity
-                                the `TRIGGER` of the process starts (exactly one per process).
+                                the `TRIGGER` of the workflow starts (exactly one per workflow).
                             value: /^(?:true|false)$/
                             unique: enum(true)
                             present: enum(true)
                             optional: true
                         -   name: FINAL
                             desc: >
-                                Whether the activity is a final one, i.e. one in which the process
-                                may legally end with its `OUTCOME` (at least one per process).
+                                Whether the activity is a final one, i.e. one in which the workflow
+                                may legally end with its `OUTCOME` (at least one per workflow).
                             value: /^(?:true|false)$/
                             present: enum(true)
                             optional: true
@@ -701,12 +701,12 @@
                         maxTableColumns: 6
                     props:
                         -   name: FROM
-                            desc: The activity (of the same process) the handoff departs from.
-                            value: "[[REQS:BP.PROCESS:*.ACTIVITY:*]]"
+                            desc: The activity (of the same workflow) the handoff departs from.
+                            value: "[[REQS:DW.WORKFLOW:*.ACTIVITY:*]]"
                             local: true
                         -   name: TO
-                            desc: The activity (of the same process) the handoff arrives at.
-                            value: "[[REQS:BP.PROCESS:*.ACTIVITY:*]]"
+                            desc: The activity (of the same workflow) the handoff arrives at.
+                            value: "[[REQS:DW.WORKFLOW:*.ACTIVITY:*]]"
                             local: true
                         -   name: CONDITION
                             desc: >
@@ -754,14 +754,14 @@
                 followed by any number of `Alternative` and `Exceptional` scenarios.
 
                 The use case is at user-goal level: a goal the actor completes in one sitting,
-                neither a summary of many sittings and actors (which belongs to a Domain Process
+                neither a summary of many sittings and actors (which belongs to a Domain Workflow
                 as a whole, or to a User Journey when seen by a single persona) nor a single
                 interaction (which belongs to a scenario as one of its steps).
             diagram:
                 type: hub
                 center: self
                 nodes: "[[REQS:UC.USE-CASE:*]], [[REQS:UP.PERSONA:*]], [[REQS:UJ.JOURNEY:*.STEP:*]],
-                    [[REQS:BP.PROCESS:*.ACTIVITY:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:BR.RULE:*]],
+                    [[REQS:DW.WORKFLOW:*.ACTIVITY:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:BR.RULE:*]],
                     [[DATA:SM.LIFECYCLE:*.TRANSITION:*]]"
                 labeled: true
                 qualified: true
@@ -782,10 +782,10 @@
                     optional: true
                 -   name: ACTIVITIES
                     desc: >
-                        Comma-separated references to the Domain Process ACTIVITY objects within
-                        which the actor performs the use case, tracing the process into the use
-                        cases; omitted for a use case outside any process.
-                    value: list([[REQS:BP.PROCESS:*.ACTIVITY:*]])
+                        Comma-separated references to the Domain Workflow ACTIVITY objects within
+                        which the actor performs the use case, tracing the workflow into the use
+                        cases; omitted for a use case outside any workflow.
+                    value: list([[REQS:DW.WORKFLOW:*.ACTIVITY:*]])
                     optional: true
                 -   name: REQUIREMENTS
                     desc: >
@@ -2151,7 +2151,7 @@
                 type: hub
                 center: self
                 nodes: "[[TEST:TC.TEST-CASE:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:NR.REQUIREMENT:*]],
-                    [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]], [[REQS:BP.PROCESS:*]],
+                    [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]], [[REQS:DW.WORKFLOW:*]],
                     [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                     [[APIS:IE.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]]"
                 labeled: true
@@ -2179,14 +2179,14 @@
                     value: list([[REQS:*.REQUIREMENT:*]], [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
                         [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                         [[APIS:IE.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]])
-                -   name: PROCESSES
+                -   name: WORKFLOWS
                     desc: >
-                        Comma-separated references to the DOMAIN-PROCESSES objects the test case
+                        Comma-separated references to the DOMAIN-WORKFLOWS objects the test case
                         walks through end to end, i.e. whose activities and handoffs its procedure
                         steps cross in order, so that the collaboration across actors and sittings
                         (not just the use cases of each single sitting) is proven to work as
                         modeled; omitted for a test case confined to a single sitting.
-                    value: list([[REQS:BP.PROCESS:*]])
+                    value: list([[REQS:DW.WORKFLOW:*]])
                     optional: true
                 -   name: PRE-CONDITION
                     desc: >
