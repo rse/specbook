@@ -124,12 +124,14 @@ export const admitsReferences = (expr: ValueExpr): boolean =>
     || (expr.kind === "list" && expr.alternatives.some((alternative) => alternative.kind === "reference"))
 
 /*  split a property value at top-level commas, honoring double-quoted
-    sections and "[[...]]" reference bracketing (empty items are kept,
-    as only the caller can decide whether to report or skip them)  */
+    sections, "[[...]]" reference bracketing, and "(...)" parenthesized
+    sections like "enum(xxx,yyy)" (empty items are kept, as only the
+    caller can decide whether to report or skip them)  */
 export const splitItems = (text: string): string[] => {
     const parts     = [ "" ]
     let   quoted    = false
     let   bracketed = false
+    let   depth     = 0
     for (let i = 0; i < text.length; i++) {
         const char = text[i]
         if (char === "\"" && text[i - 1] !== "\\")
@@ -144,7 +146,15 @@ export const splitItems = (text: string): string[] => {
             bracketed = false
             i++
         }
-        else if (!quoted && !bracketed && char === ",")
+        else if (!quoted && !bracketed && char === "(") {
+            depth++
+            parts[parts.length - 1] += char
+        }
+        else if (!quoted && !bracketed && char === ")" && depth > 0) {
+            depth--
+            parts[parts.length - 1] += char
+        }
+        else if (!quoted && !bracketed && depth === 0 && char === ",")
             parts.push("")
         else
             parts[parts.length - 1] += char

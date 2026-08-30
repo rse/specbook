@@ -263,7 +263,8 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
 
 /*  resolve a comma-separated "[[...]]" reference pattern string into
     its (deduplicated, order-preserving) object match set, reporting
-    every unresolvable pattern as an error  */
+    every unresolvable non-wildcard pattern as an error (a wildcard
+    pattern legitimately matches nothing when an optional kind is absent)  */
 const resolvePatterns = (index: LinkIndex, errors: DiagramError[],
     value: string, field: string): SpecObject[] => {
     const matches = new Array<SpecObject>()
@@ -273,7 +274,7 @@ const resolvePatterns = (index: LinkIndex, errors: DiagramError[],
         found = true
         const pattern = m[1].trim()
         const set     = resolveSet(index, pattern)
-        if (set.length === 0)
+        if (set.length === 0 && !pattern.includes("*"))
             errors.push({ reason: `unresolvable diagram "${field}" pattern "[[${pattern}]]"` })
         for (const match of set) {
             if (!seen.has(match)) {
