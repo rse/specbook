@@ -195,7 +195,8 @@
     file: 03-REQS-UP-User-Personas.md
     desc: >
         The *archetypal* user profiles representing distinct user groups, capturing their goals,
-        needs, behaviors, and context.
+        needs, behaviors, and context, complemented by the non-user stakeholders whose interests
+        the solution has to serve.
     refs: >
         -   Cooper: The Inmates Are Running the Asylum, 2nd ed. (2004),
             https://www.informit.com/store/inmates-are-running-the-asylum-why-high-tech-products-9780672326141
@@ -210,10 +211,21 @@
                 fictional person and carrying a short, bold first-person quote -- written in the
                 persona's own voice, like a "tagline", "mantra", or "defining statement" -- that
                 captures their core attitude, motivation, frustration, or need in a single memorable
-                line.
+                line. Non-user stakeholders are modeled as personas of type `Stakeholder`.
             format:
                 maxTableColumns: 5
             props:
+                -   name: TYPE
+                    desc: >
+                        Whether the persona is a `User` of the solution, i.e. an archetype of the
+                        people directly interacting with it, or a `Stakeholder`, i.e. a party
+                        with a legitimate interest in the solution but without (or beyond) its
+                        direct use -- like a sponsor, regulator, auditor, or operations team --
+                        whose goals and frustrations shape the requirements and constraints, but
+                        whose "quote" reflects an institutional rather than a personal voice;
+                        defaults to `User`.
+                    value: enum(User,Stakeholder)
+                    optional: true
                 -   name: GENDER
                     desc: >
                         The gender of the persona: `male`, `female`, or `diverse`.
