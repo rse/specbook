@@ -147,7 +147,8 @@ div.realtime-status         { display: none; }
     of the page while the panel is slid in, so the panel appears to sit
     left of the brand bar and to shift it aside when slid out, with its
     tab (rotated 90 degrees counter-clockwise, which mirrors the offset
-    of its drop shadow) riding right of the bar  */
+    of its drop shadow) riding right of the bar, its top aligned with
+    the ink top of the status and theme-switching glyphs  */
 nav.toc-panel               { position: fixed; top: 0; bottom: 0; left: 0; width: 31rem; z-index: 20;
                               transform: translateX(calc(-100% + 0.6rem)); transition: transform 0.3s ease;
                               background-color: var(--theme-color-specbook-background); }
@@ -155,7 +156,7 @@ nav.toc-panel::after        { content: ""; position: absolute; top: 0; bottom: 0
                               right: 0; width: 0.6rem; background-color: var(--theme-color-specbook-accent); }
 nav.toc-panel.open          { transform: translateX(0); box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3); }
 nav.toc-panel.open div.toc-tab { box-shadow: -0.2rem 0 0.6rem rgba(0, 0, 0, 0.3); }
-nav.toc-panel div.toc-tab   { position: absolute; top: 0.75rem; left: calc(100% - 1px);
+nav.toc-panel div.toc-tab   { position: absolute; top: 0.97rem; left: calc(100% - 1px);
                               writing-mode: vertical-rl; transform: rotate(180deg);
                               padding: 0.6rem 0; font-size: 0.9rem; line-height: 1.5rem;
                               color: var(--theme-color-specbook-background);
