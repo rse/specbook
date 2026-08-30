@@ -6,6 +6,7 @@
 
 import * as fs                                           from "node:fs"
 import { fileURLToPath }                                 from "node:url"
+import { glob }                                          from "glob"
 
 import { loadConfig }                                    from "./specbook-config.js"
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
@@ -67,17 +68,33 @@ export class SpecBook {
         return (msg: string, level: VerboseLevel = "debug") => this.verbose(cmd, msg, level)
     }
 
-    /*  determine the file of the YAML schema configuration, falling
-        back onto the bundled standard schema configuration  */
-    private configFile (file?: string): string {
-        return file ?? standardConfig
+    /*  determine the files of the YAML schema configuration out of the
+        glob patterns, in the order of the patterns and alphabetically
+        within a pattern, where the literal "std" names the bundled
+        standard schema configuration, which is also the fallback if no
+        pattern is given at all  */
+    private async configFiles (patterns?: string[]): Promise<string[]> {
+        if (patterns === undefined || patterns.length === 0)
+            return [ standardConfig ]
+        const files = new Array<string>()
+        for (const pattern of patterns) {
+            if (pattern === "std") {
+                files.push(standardConfig)
+                continue
+            }
+            const matches = await glob(pattern, { nodir: true })
+            if (matches.length === 0)
+                throw new Error(`no configuration file matches "${pattern}"`)
+            files.push(...matches.sort())
+        }
+        return files
     }
 
-    /*  load a YAML schema configuration, failing on any problem  */
-    private requireConfig (file: string | undefined, verbose: Verbose): Schema {
-        file = this.configFile(file)
-        verbose(`loading schema configuration "${literal(file)}"`)
-        const { config, diagnostics } = loadConfig(file)
+    /*  load the YAML schema configuration out of its files, failing on any problem  */
+    private requireConfig (files: string[], verbose: Verbose): Schema {
+        verbose("loading schema configuration " +
+            files.map((file) => `"${literal(file)}"`).join(", "))
+        const { config, diagnostics } = loadConfig(files)
         if (config === undefined)
             throw new Error("invalid configuration:\n" +
                 diagnostics.map(renderDiagnostic).join("\n"))
@@ -86,15 +103,15 @@ export class SpecBook {
 
     /*  initialize the configured specification artifact files
         below the base directory  */
-    async init (options: { config?: string, basedir?: string }): Promise<string[]> {
+    async init (options: { config?: string[], basedir?: string }): Promise<string[]> {
         const verbose = this.verboseOf("init")
-        return initSpecification({ config: this.requireConfig(options.config, verbose),
+        return initSpecification({ config: this.requireConfig(await this.configFiles(options.config), verbose),
             basedir: options.basedir ?? ".", verbose })
     }
 
     /*  lint the specification Markdown files below the base directory  */
-    async lint (options: { config?: string, basedir?: string }): Promise<LintResult> {
-        return lint({ config: this.configFile(options.config),
+    async lint (options: { config?: string[], basedir?: string }): Promise<LintResult> {
+        return lint({ config: await this.configFiles(options.config),
             basedir: options.basedir ?? ".", verbose: this.verboseOf("lint") })
     }
 
@@ -123,7 +140,7 @@ export class SpecBook {
         as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown,
         parsing the input just once and returning one buffer per
         requested format  */
-    async export (options: { config?: string, basedir?: string, formats?: ExportFormat[],
+    async export (options: { config?: string[], basedir?: string, formats?: ExportFormat[],
         realtime?: boolean }): Promise<Buffer[]> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
@@ -133,7 +150,7 @@ export class SpecBook {
         if (requested.includes("pdf"))
             await requireBrowser(verbose)
 
-        return this.renderFormats(lint({ config: this.configFile(options.config),
+        return this.renderFormats(lint({ config: await this.configFiles(options.config),
             basedir: options.basedir ?? ".", verbose }), requested, verbose,
         options.realtime === true)
     }
@@ -146,15 +163,15 @@ export class SpecBook {
         transiently invalid specification does not end the watch. The
         returned promise settles once the initial export is done, while
         the active watcher keeps the process alive afterwards  */
-    private async observe (options: { config?: string, basedir?: string, formats: ExportFormat[],
+    private async observe (options: { config?: string[], basedir?: string, formats: ExportFormat[],
         realtime: boolean, onExport: (buffers: Buffer[]) => void | Promise<void> },
     verbose: Verbose): Promise<void> {
+        const config = await this.configFiles(options.config)
         return watchSpecification(async () => {
             /*  the lint result carries the files to observe even for an
                 invalid specification, so a failing export still keeps the
                 observe loop fed with an up-to-date file set  */
-            const result = lint({ config: this.configFile(options.config),
-                basedir: options.basedir ?? ".", verbose })
+            const result = lint({ config, basedir: options.basedir ?? ".", verbose })
             try {
                 await options.onExport(await this.renderFormats(result, options.formats,
                     verbose, options.realtime))
@@ -169,7 +186,7 @@ export class SpecBook {
 
     /*  export the specification like "export" and then keep the export
         in sync with its sources (see "observe")  */
-    async watch (options: { config?: string, basedir?: string, formats?: ExportFormat[],
+    async watch (options: { config?: string[], basedir?: string, formats?: ExportFormat[],
         realtime?: boolean, onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
@@ -184,7 +201,7 @@ export class SpecBook {
         sources (see "observe") and every fresh export is pushed to the
         connected browsers as an in-place document update, through the
         client-side script the "realtime" export injects into the HTML  */
-    async preview (options: { config?: string, basedir?: string, addr?: string,
+    async preview (options: { config?: string[], basedir?: string, addr?: string,
         port?: number }): Promise<void> {
         const verbose = this.verboseOf("preview")
         const server  = await servePreview({ addr: options.addr ?? previewAddr,
@@ -199,7 +216,7 @@ export class SpecBook {
         a single part, optionally pointing to the artifacts of the
         particular project, whose YAML schema configuration is validated
         before use and optionally emitted compressed by level  */
-    async describe (options: { config?: string, basedir?: string, embed?: boolean, compress?: CompressLevel,
+    async describe (options: { config?: string[], basedir?: string, embed?: boolean, compress?: CompressLevel,
         format?: DescribeFormat, part?: DescribePart }): Promise<string> {
         const verbose = this.verboseOf("describe")
         const format  = options.format ?? "md"
@@ -208,15 +225,14 @@ export class SpecBook {
         /*  the schema-bearing parts require a schema configuration, so
             they fall back onto the bundled standard one, which is always
             embedded, as its bundled file is no meaningful reference  */
-        const standard = options.config === undefined
-            && (part === "all" || part === "schema" || options.embed === true)
-        const config   = options.config ?? (standard ? standardConfig : undefined)
+        const given    = options.config !== undefined && options.config.length > 0
+        const standard = !given && (part === "all" || part === "schema" || options.embed === true)
+        const config   = given || standard ? await this.configFiles(options.config) : undefined
         const embed    = options.embed === true || standard
         const basedir  = options.basedir ?? (part === "spec" ? "." : undefined)
-        if (config !== undefined)
-            this.requireConfig(config, verbose)
+        const schema   = config !== undefined ? this.requireConfig(config, verbose) : undefined
         verbose(`describing the "${literal(part)}" part of the SpecBook models and formats ` +
             `in the "${literal(format)}" format`)
-        return describeFormat({ ...options, config, basedir, embed, standard, format, part })
+        return describeFormat({ ...options, config, schema, basedir, embed, standard, format, part })
     }
 }

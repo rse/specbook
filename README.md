@@ -109,13 +109,14 @@ export class SpecBook {
     /*  initialize the configured specification artifact files below the
         base directory and return the list of the generated files  */
     init (options: {
-        config?:  string,          /*  YAML schema configuration (default: bundled standard one)  */
+        config?:  string[],        /*  YAML schema configuration files or glob patterns, merged
+                                       in order (default: bundled standard one, named "std")  */
         basedir?: string           /*  base directory (default: ".")  */
     }): Promise<string[]>
 
     /*  parse and validate the specification Markdown files below the base directory  */
     lint (options: {
-        config?:  string,
+        config?:  string[],
         basedir?: string
     }): Promise<LintResult>
 
@@ -124,7 +125,7 @@ export class SpecBook {
         diagnostic rejects the export with an "Error", while the warnings
         are surfaced as "notice" verbose messages)  */
     export (options: {
-        config?:  string,
+        config?:  string[],
         basedir?: string,
         formats?: ExportFormat[],  /*  requested output formats (default: [ "json" ])  */
         realtime?: boolean         /*  inject the live preview script into the HTML  */
@@ -134,7 +135,7 @@ export class SpecBook {
         re-exporting it on every change of a specification file (a failed
         re-export is reported and leaves the observe loop intact)  */
     watch (options: {
-        config?:  string,
+        config?:  string[],
         basedir?: string,
         formats?: ExportFormat[],
         realtime?: boolean,
@@ -144,7 +145,7 @@ export class SpecBook {
     /*  serve the HTML export as a live preview on "http://<addr>:<port>/",
         kept in sync like "watch" and updated in the browser on every change  */
     preview (options: {
-        config?:  string,
+        config?:  string[],
         basedir?: string,
         addr?:    string,          /*  listening IP address (default: "127.0.0.1")  */
         port?:    number           /*  listening TCP port (default: 12345)  */
@@ -153,7 +154,7 @@ export class SpecBook {
     /*  describe the SpecBook models and formats, optionally pointing to
         the artifacts of the particular project  */
     describe (options: {
-        config?:  string,
+        config?:  string[],
         basedir?: string,
         embed?:   boolean,         /*  embed the schema configuration instead of referencing it  */
         compress?: CompressLevel,  /*  compression level of the schema configuration (default: 1)  */
@@ -322,6 +323,18 @@ Options:
     lapse of the reference coverage a `referenced` object kind demands,
     is reported only), so a partial or invalid specification is never
     exported.
+    The option accepts glob patterns and can be given multiple times: the
+    matching files (in the order of the patterns and alphabetically within
+    a pattern, where the literal `std` names the bundled standard schema
+    configuration, and where a pattern matching no file is an error) are
+    merged in order into one effective schema configuration, the later
+    files into the earlier ones. The objects merge deeply, while the
+    elements of the lists are matched by identity (artifacts by `kind`
+    plus `id`/`name`, nested objects by `kind`, properties by `name`, and
+    scalar entries by value): a matching element is merged into its
+    counterpart, an unmatched one is appended. Every file has to be valid
+    YAML on its own, while the merged result alone is validated against
+    the schema of the configuration.
 
 -   `-b|--basedir <spec-md-file-basedir>`:
     The base directory (default: `.`) is the directory the referenced
@@ -391,7 +404,9 @@ The default value of every CLI option `--xxx` can be overridden
 by a corresponding `SPECBOOK_XXX` environment variable (e.g.
 `SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_OUTPUT`,
 `SPECBOOK_VERBOSE`, `SPECBOOK_ADDR`, `SPECBOOK_PORT`), while an
-explicitly supplied option always wins.
+explicitly supplied option always wins. As `-c|--config` is repeatable,
+`SPECBOOK_CONFIG` carries a list of patterns separated by the path
+delimiter of the platform (`:` on Unix, `;` on Windows).
 
 Example:
 

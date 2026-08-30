@@ -652,9 +652,12 @@ SpecBook SCHEMA Model
 ### Artifacts
 
 A schema consists of a YAML file, which is exactly a serialization of
-the object model defined by the **SpecBook SCHEMA Meta Model**. If no
-particular schema is given, the standard schema configuration bundled
-with **SpecBook** applies.
+the object model defined by the **SpecBook SCHEMA Meta Model**, or of
+several such files, merged in order into one schema (the later files
+into the earlier ones, where the objects merge deeply and the elements
+of the lists are matched by their identity). If no particular schema is
+given, the standard schema configuration bundled with **SpecBook**
+applies.
 
 SpecBook SPEC Model
 -------------------

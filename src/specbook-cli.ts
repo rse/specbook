@@ -6,6 +6,7 @@
 */
 
 import * as fs                     from "node:fs"
+import * as path                   from "node:path"
 import { Command, CommanderError } from "commander"
 import chalk                       from "chalk"
 
@@ -72,12 +73,23 @@ const envDefaultFlag = (name: string, fallback: boolean): boolean => {
 const withVerboseOption = (command: Command): Command => command
     .option("-v, --verbose", "print verbose processing information to stderr", envDefaultFlag("verbose", false))
 
+/*  provide the repeatable schema configuration option, whose files or
+    glob patterns are merged in order (with "std" naming the bundled
+    standard one), and determine its value, where the environment default
+    carries a path-delimiter-separated list of patterns  */
+const withConfigOption = (command: Command, fallback: string): Command => command
+    .option("-c, --config <yaml-file>", "YAML schema configuration file or glob pattern " +
+        "(repeatable, merged in order, \"std\" for the bundled standard schema configuration; " +
+        `default: ${fallback})`,
+    (value: string, previous: string[]) => previous.concat(value), new Array<string>())
+const configOf = (opts: { config: string[] }): string[] | undefined =>
+    opts.config.length > 0 ? opts.config : envDefault("config")?.split(path.delimiter)
+
 /*  provide the common options of the specification processing sub-commands,
     for which the YAML schema configuration falls back onto the standard one  */
-const withCommonOptions = (command: Command): Command => withVerboseOption(command)
-    .option("-c, --config <yaml-file>", "YAML schema configuration file " +
-        "(default: the bundled standard schema configuration)", envDefault("config"))
-    .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
+const withCommonOptions = (command: Command): Command =>
+    withConfigOption(withVerboseOption(command), "the bundled standard schema configuration")
+        .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
 
 /*  the help, version, and usage-error output Commander produces, which
     is collected instead of written directly, as Commander writes it
@@ -112,9 +124,9 @@ withVerboseOption(program.command("mcp"))
 /*  the init command creates the configured artifact files  */
 withCommonOptions(program.command("init"))
     .description("initialize the configured specification artifact files below the base directory")
-    .action(async (opts: { verbose: boolean, config?: string, basedir: string }) => {
+    .action(async (opts: { verbose: boolean, config: string[], basedir: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const created = await specbook.init({ config: opts.config, basedir: opts.basedir })
+        const created = await specbook.init({ config: configOf(opts), basedir: opts.basedir })
         await writeStdout(created.length > 0 ?
             `initialized artifact file(s): ${created.join(", ")}\n` :
             "no artifact files were created\n")
@@ -123,9 +135,9 @@ withCommonOptions(program.command("init"))
 /*  the lint command reports all diagnostics and fails on any error  */
 withCommonOptions(program.command("lint"))
     .description("lint the specification Markdown files below the base directory")
-    .action(async (opts: { verbose: boolean, config?: string, basedir: string }) => {
+    .action(async (opts: { verbose: boolean, config: string[], basedir: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const result = await specbook.lint({ config: opts.config, basedir: opts.basedir })
+        const result = await specbook.lint({ config: configOf(opts), basedir: opts.basedir })
         for (const diagnostic of result.diagnostics)
             await writeStdout(opts.verbose ?
                 renderDiagnosticVerbose(diagnostic, process.stdout.isTTY === true) :
@@ -146,7 +158,7 @@ withCommonOptions(program.command("export"))
         "output file (\"-\" for stdout, repeatable), with the format inferred " +
         "from the filename extension unless explicitly prefixed",
         (value: string, previous: string[]) => previous.concat(value), new Array<string>())
-    .action(async (opts: { verbose: boolean, config?: string, basedir: string,
+    .action(async (opts: { verbose: boolean, config: string[], basedir: string,
         output: string[], watch: boolean }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const outputs = (opts.output.length > 0 ? opts.output : [ envDefault("output") ?? "-" ])
@@ -165,10 +177,10 @@ withCommonOptions(program.command("export"))
                 await writeOutput(output, buffers[distinct.indexOf(format)], "export", verboseOf(opts))
         }
         if (opts.watch)
-            await specbook.watch({ config: opts.config, basedir: opts.basedir,
+            await specbook.watch({ config: configOf(opts), basedir: opts.basedir,
                 formats: distinct, onExport: write })
         else
-            await write(await specbook.export({ config: opts.config, basedir: opts.basedir,
+            await write(await specbook.export({ config: configOf(opts), basedir: opts.basedir,
                 formats: distinct }))
     })
 
@@ -178,21 +190,20 @@ withCommonOptions(program.command("preview"))
         "directory as a live preview, re-exported and reloaded on every source change")
     .option("-a, --addr <ip-addr>",  "IP address to listen on", envDefault("addr", previewAddr))
     .option("-p, --port <tcp-port>", "TCP port to listen on",   envDefault("port", String(previewPort)))
-    .action(async (opts: { verbose: boolean, config?: string, basedir: string,
+    .action(async (opts: { verbose: boolean, config: string[], basedir: string,
         addr: string, port: string }) => {
         const port = Number(opts.port)
         if (!Number.isInteger(port))
             throw new Error(`invalid TCP port "${opts.port}"`)
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        await specbook.preview({ config: opts.config, basedir: opts.basedir, addr: opts.addr, port })
+        await specbook.preview({ config: configOf(opts), basedir: opts.basedir, addr: opts.addr, port })
     })
 
 /*  the describe command also describes the generic SpecBook models and
     formats alone, so its YAML schema configuration stays optional  */
-withVerboseOption(program.command("describe"))
-    .description("describe the SpecBook models and formats as Markdown")
-    .option("-c, --config <yaml-file>", "YAML schema configuration file " +
-        "(default: the bundled standard schema configuration, embedded)", envDefault("config"))
+withConfigOption(withVerboseOption(program.command("describe"))
+    .description("describe the SpecBook models and formats as Markdown"),
+"the bundled standard schema configuration, embedded")
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir"))
     .option("-e, --embed", "embed the given YAML schema configuration instead of just referencing it",
         envDefaultFlag("embed", false))
@@ -205,10 +216,10 @@ withVerboseOption(program.command("describe"))
     .option("-p, --part <part>", `document part (${describeParts.join(", ")})`,
         envDefault("part", "all"))
     .option("-o, --output <markdown-file>", "output file (\"-\" for stdout)", envDefault("output", "-"))
-    .action(async (opts: { verbose: boolean, config?: string, basedir?: string,
+    .action(async (opts: { verbose: boolean, config: string[], basedir?: string,
         embed: boolean, compress: string | boolean, format: string, part: string, output: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const text = await specbook.describe({ config: opts.config, basedir: opts.basedir,
+        const text = await specbook.describe({ config: configOf(opts), basedir: opts.basedir,
             embed: opts.embed, compress: parseCompressLevel(opts.compress),
             format: parseDescribeFormat(opts.format), part: parseDescribePart(opts.part) })
         await writeOutput(opts.output, text, "describe", verboseOf(opts))

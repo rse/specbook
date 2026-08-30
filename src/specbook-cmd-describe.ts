@@ -7,7 +7,9 @@
 import * as fs from "node:fs"
 
 import textframe from "textframe"
-import { parseDocument, visit, isScalar } from "yaml"
+import { parseDocument, stringify, visit, isScalar } from "yaml"
+
+import { type Schema } from "./specbook-format-schema.js"
 
 /*  the supported description output formats and document parts  */
 export const describeFormats = [ "md", "raw" ] as const
@@ -68,15 +70,23 @@ const compressYaml = (yaml: string, level: CompressLevel): string => {
     return doc.toString({ indent: 2, lineWidth: 0 })
 }
 
+/*  provide the YAML text of the schema configuration: the verbatim
+    content of its single file, or the merged configuration re-emitted
+    for several files (as no single file carries their merge)  */
+const schemaYaml = (config: string[], schema?: Schema): string =>
+    config.length > 1 && schema !== undefined ?
+        stringify(schema, { indent: 2, lineWidth: 0 }) :
+        fs.readFileSync(config[0], "utf8")
+
 /*  render the reference to (or the embedding of) the YAML schema configuration,
     where the bundled standard one is embedded without its leading comment block  */
-const schemaSection = (config: string, embed: boolean, standard: boolean, compress: CompressLevel): string => {
+const schemaSection = (config: string[], schema: Schema | undefined,
+    embed: boolean, standard: boolean, compress: CompressLevel): string => {
     if (!embed)
-        return textframe(`
-            The **SpecBook SCHEMA Model** is the YAML schema configuration in file:
-            @${config}
-        `)
-    let yaml = fs.readFileSync(config, "utf8")
+        return "The **SpecBook SCHEMA Model** is the YAML schema configuration " +
+            `${config.length > 1 ? "merged in order out of the files" : "in file"}:\n` +
+            config.map((file) => `@${file}\n`).join("")
+    let yaml = schemaYaml(config, schema)
     if (standard)
         yaml = yaml.replace(/^(?:[ \t]*##.*\n)+\s*/, "")
     if (compress > 0)
@@ -98,9 +108,11 @@ const specSection = (basedir: string): string =>
     artifacts of the particular project instantiation, and optionally
     reduced to a single part or to the raw original file content, where
     "standard" marks the configuration as the bundled standard one,
-    which still belongs to the generic description, and where "compress"
-    emits the configuration compressed by the given level instead of verbatim  */
-export const describeFormat = (options: { config?: string, basedir?: string, embed?: boolean,
+    which still belongs to the generic description, where "schema" is
+    the configuration loaded out of the "config" files (required for
+    embedding several files), and where "compress" emits the
+    configuration compressed by the given level instead of verbatim  */
+export const describeFormat = (options: { config?: string[], schema?: Schema, basedir?: string, embed?: boolean,
     standard?: boolean, compress?: CompressLevel, format?: DescribeFormat, part?: DescribePart }): string => {
     const format   = options.format   ?? "md"
     const part     = options.part     ?? "all"
@@ -121,7 +133,7 @@ export const describeFormat = (options: { config?: string, basedir?: string, emb
         else if (options.config === undefined)
             throw new Error("format \"raw\" for part \"schema\" requires a YAML schema configuration")
         else {
-            const yaml = fs.readFileSync(options.config, "utf8")
+            const yaml = schemaYaml(options.config, options.schema)
             return compress > 0 ? compressYaml(yaml, compress) : yaml
         }
     }
@@ -132,7 +144,8 @@ export const describeFormat = (options: { config?: string, basedir?: string, emb
     else if (part === "schema") {
         if (options.config === undefined)
             throw new Error("part \"schema\" requires a YAML schema configuration")
-        return schemaSection(options.config, options.embed === true, options.standard === true, compress)
+        return schemaSection(options.config, options.schema,
+            options.embed === true, options.standard === true, compress)
     }
     else if (part === "spec") {
         if (options.basedir === undefined)
@@ -146,7 +159,8 @@ export const describeFormat = (options: { config?: string, basedir?: string, emb
         placed under their own section  */
     const sections = [ description() ]
     const schema   = options.config !== undefined ?
-        schemaSection(options.config, options.embed === true, options.standard === true, compress) : undefined
+        schemaSection(options.config, options.schema,
+            options.embed === true, options.standard === true, compress) : undefined
     if (schema !== undefined || options.basedir !== undefined) {
         sections.push(
             "SpecBook Project Instantiation\n" +

@@ -5,6 +5,10 @@ ChangeLog
 1.1.0 (2026-08-30)
 ------------------
 
+-   FEATURE [code, docs]: Merged Schema Configurations
+    The option "-c"/"--config" of all commands in API/CLI/MCP now accepts glob patterns and can be given
+    multiple times ("std" for the bundled standard schema), merging the matching files in order into one schema.
+
 -   FEATURE [spec, docs]: Solution Premises
     The standard schema gains the artifact "Solution Premises" (file "02", behind the solution vision),
     recording the assumptions, dependencies, and risks the specification rests on, rated by likelihood/impact.

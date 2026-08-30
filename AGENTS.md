@@ -96,6 +96,20 @@ The YAML schema configuration of `init`, `lint`, `export`, and `preview` falls b
 onto the bundled standard one (assembled from `src/specbook-format.d/` into
 `dst/` at build time), while `describe` references the given one only
 and falls back onto the standard one by embedding it.
+The option `-c`/`--config` accepts glob patterns (expanded via `glob`)
+and can occur multiple times: the matching files (in pattern order,
+alphabetically within a pattern, with the literal `std` naming the
+bundled standard one, and a pattern matching no file being an error) are
+merged in order into one effective schema configuration (the later files
+into the earlier ones, via `mergeWith` of `es-toolkit`), where the
+objects merge deeply and the list elements are matched by identity
+(artifacts by `kind` plus `id`/`name`, nested objects by `kind`,
+properties by `name`): every file has to be valid YAML on its own, while
+the merged result alone is validated. The API methods and MCP tools take
+the patterns as `string[]`, and `SPECBOOK_CONFIG` carries a
+`path.delimiter`-separated list of patterns. With several files,
+`describe` references each of them, and embeds (or emits raw) the merged
+configuration re-emitted as YAML instead of a verbatim file.
 Exactly the artifact files referenced by its `file` fields are loaded and parsed,
 resolved against the base directory, in which generated specification
 Markdown files are placed, too. All other Markdown files below the base

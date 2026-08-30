@@ -35,8 +35,9 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         description: "Initialize the configured specification artifact files below the base directory " +
             "with their frontmatter and artifact heading, skipping already existing files.",
         inputSchema: {
-            config:  z.string().optional().describe("YAML schema configuration file " +
-                "(default: the bundled standard schema configuration)"),
+            config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
+                "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
+                "default: the bundled standard schema configuration)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")")
         }
     }, async (args) => {
@@ -56,8 +57,9 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         description: "Lint the specification Markdown files the YAML schema configuration references " +
             "below the base directory against this configuration and return all diagnostics.",
         inputSchema: {
-            config:  z.string().optional().describe("YAML schema configuration file " +
-                "(default: the bundled standard schema configuration)"),
+            config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
+                "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
+                "default: the bundled standard schema configuration)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")")
         }
     }, async (args) => {
@@ -80,8 +82,9 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             "YAML, TOON, HTML, PDF, or normalized Markdown. The result is written to the output file " +
             "if an output path is given, else it is returned directly (PDF as a base64-encoded resource).",
         inputSchema: {
-            config:  z.string().optional().describe("YAML schema configuration file " +
-                "(default: the bundled standard schema configuration)"),
+            config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
+                "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
+                "default: the bundled standard schema configuration)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
             format:  z.enum(formats).optional().describe("output format (default: inferred from the " +
                 "output file extension, else json)"),
@@ -122,8 +125,9 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             "points to the artifacts of that particular project. The description can be reduced to a " +
             "single part and emitted as the raw original file content instead of Markdown.",
         inputSchema: {
-            config:  z.string().optional().describe("YAML schema configuration file " +
-                "(default: the bundled standard schema configuration, embedded)"),
+            config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
+                "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
+                "default: the bundled standard schema configuration, embedded)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files"),
             embed:   z.boolean().optional().describe("embed the given YAML schema configuration instead " +
                 "of just referencing it (default: false; the bundled standard one is always embedded)"),

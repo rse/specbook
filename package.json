@@ -37,6 +37,8 @@
         "commander":                       "15.0.0",
         "chalk":                           "6.0.0",
         "chokidar":                        "5.0.0",
+        "glob":                            "13.0.6",
+        "es-toolkit":                      "1.52.0",
         "fastify":                         "5.12.1",
         "@fastify/websocket":              "11.3.0",
         "@modelcontextprotocol/sdk":       "1.30.0",

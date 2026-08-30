@@ -16,7 +16,7 @@ import { type Schema, type SchemaObject }                       from "./specbook
 
 /*  the options of the lint command  */
 export interface LintOptions {
-    config:  string
+    config:  string[]
     basedir: string
     verbose: Verbose
 }
@@ -52,8 +52,9 @@ const schemaFiles = (config: Schema): Map<string, boolean> => {
 export const lint = (options: LintOptions): LintResult => {
     const diagnostics = new Array<Diagnostic>()
 
-    /*  load the mandatory YAML schema configuration  */
-    options.verbose(`loading schema configuration "${literal(options.config)}"`)
+    /*  load the mandatory YAML schema configuration, merged out of its files  */
+    options.verbose("loading schema configuration " +
+        options.config.map((file) => `"${literal(file)}"`).join(", "))
     const loaded = loadConfig(options.config)
     diagnostics.push(...loaded.diagnostics)
     const config = loaded.config
@@ -63,7 +64,7 @@ export const lint = (options: LintOptions): LintResult => {
         its artifacts are optional  */
     const files = config !== undefined ? schemaFiles(config) : new Map<string, boolean>()
     if (config !== undefined && files.size === 0)
-        diagnostics.push({ file: options.config, line: 1, column: 1, severity: "error",
+        diagnostics.push({ file: options.config[0], line: 1, column: 1, severity: "error",
             message: "no artifact files configured" })
     const sources = new Array<SourceFile>()
     const present = new Set<string>()
@@ -109,7 +110,7 @@ export const lint = (options: LintOptions): LintResult => {
             if (schema.optional === true || found.has(schema)
                 || (schema.file !== undefined && !present.has(schema.file)))
                 continue
-            const file  = schema.file !== undefined ? path.join(options.basedir, schema.file) : options.config
+            const file  = schema.file !== undefined ? path.join(options.basedir, schema.file) : options.config[0]
             const paren = schema.id !== undefined ? ` (${schema.id})` : ""
             diagnostics.push({ file, line: 1, column: 1, severity: "error",
                 message: `missing artifact "${schema.kind}: ${schema.name ?? ""}${paren}"` })
