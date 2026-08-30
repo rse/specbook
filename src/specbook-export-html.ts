@@ -106,7 +106,7 @@ const templates = {
             <h1>Table of Contents</h1>
             <table>
                 {% for entry in Toc.entries %}
-                <tr><td><a href="#{{ entry.id }}"><span class="object-kind">{{ entry.kind }}:</span> {{ entry.name }} <span class="link-symbol">&#x26AD;</span></a></td>{% if entry.page %}<td class="page"><a href="#{{ entry.id }}">{{ entry.page }}</a></td>{% endif %}</tr>
+                <tr class="level-{{ entry.level }}"><td><a href="#{{ entry.id }}"><span class="object-kind">{{ entry.kind }}:</span> {{ entry.name }} <span class="link-symbol">&#x26AD;</span></a></td>{% if entry.page %}<td class="page"><a href="#{{ entry.id }}">{{ entry.page }}</a></td>{% endif %}</tr>
                 {% endfor %}
             </table>
         </nav>
@@ -890,21 +890,47 @@ const renderArtifact = (artifact: SpecArtifact): string =>
         objects: safe(artifact.objects.map((object) => renderObject(object, 1, false)).join(""))
     } })
 
+/*  provide the childs of an object rendered with headings of their own
+    (skipping the child groups collapsing into compact tables), which
+    are the ones taking part in the table of contents and its side panel  */
+const headingChilds = (object: SpecObject): SpecObject[] =>
+    groupChilds(flowChilds(object))
+        .filter((group) => !conciseGroup(group, schemas, false))
+        .flat()
+
+/*  an entry of the table of contents  */
+type TocEntry = { id: string, kind: string, name: nunjucks.runtime.SafeString,
+    level: number, page?: number }
+
+/*  flatten the hierarchy of the rendered object headings (exactly like
+    the PDF outline) into the entries of the table of contents, each
+    carrying its nesting level and its optional page number  */
+const tocEntries = (objects: SpecObject[], pages?: Map<string, number>): TocEntry[] => {
+    const entries: TocEntry[] = []
+    const collect = (objects: SpecObject[], level: number) => {
+        for (const object of objects) {
+            const id = anchorOf(object)
+            entries.push({ id, kind: object.kind, name: inline(object.name),
+                level: Math.min(level, 6), page: pages?.get(id) })
+            collect(headingChilds(object), level + 1)
+        }
+    }
+    collect(objects, 1)
+    return entries
+}
+
 /*  render the side panel of the table of contents (its behavior is
     driven by the client-side script above): the unnumbered entries of
     the front matter (title page, table and diagram of contents, as far
     as present) are followed by the hierarchical entries of the rendered
-    object headings, exactly like the PDF outline (skipping the child
-    groups collapsing into compact tables)  */
+    object headings, exactly like the table of contents itself  */
 const renderTocPanel = (objects: SpecObject[], title: boolean, doc: boolean): string => {
     const entries = (objects: SpecObject[]): string =>
         objects.length === 0 ? "" : render("TocPanelEntries", { Entries: objects.map((object) => ({
             id:     anchorOf(object),
             kind:   object.kind,
             name:   inline(object.name),
-            childs: safe(entries(groupChilds(flowChilds(object))
-                .filter((group) => !conciseGroup(group, schemas, false))
-                .flat()))
+            childs: safe(entries(headingChilds(object)))
         })) })
     return render("TocPanel", { TocPanel: { title, doc, entries: safe(entries(objects)) } })
 }
@@ -1032,9 +1058,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     const meta      = titleObject(specification)
     const doc       = meta !== undefined ? rendered?.get(meta) : undefined
     try {
-        const entries = artifacts.flatMap((artifact) => artifact.objects)
-            .map((object) => ({ id: anchorOf(object), kind: object.kind, name: inline(object.name),
-                page: tocPages?.get(anchorOf(object)) }))
+        const entries = tocEntries(artifacts.flatMap((artifact) => artifact.objects), tocPages)
         return render("Document", { Document: {
             title:     documentTitle(specification).title,
             lang,

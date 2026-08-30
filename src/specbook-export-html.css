@@ -380,13 +380,27 @@ mark.search-hit             { color: var(--theme-color-specbook-mark-text);
                               background-color: var(--theme-color-specbook-mark-back);
                               border-radius: 0.2rem; padding: 0 0.1em; }
 
-/*  the table of contents (with page numbers for print only)  */
-nav.toc                     { page-break-after: always; break-after: page; counter-reset: toc; }
+/*  the table of contents (with page numbers for print only): all
+    section headings, numbered like the document (three levels deep,
+    the deeper ones unnumbered) and indented per nesting level, where
+    the (potentially multi-page) table paginates between its rows only  */
+nav.toc                     { page-break-after: always; break-after: page; counter-reset: toc1; }
 nav.toc h1                  { color: var(--theme-color-specbook-accent); }
-nav.toc tr                  { counter-increment: toc; }
-nav.toc td:first-child a::before { content: counter(toc, decimal-leading-zero) " "; color: var(--theme-color-specbook-muted); margin-right: 0.4rem; font-weight: normal; }
+nav.toc tr.level-1          { counter-increment: toc1; counter-reset: toc2; }
+nav.toc tr.level-2          { counter-increment: toc2; counter-reset: toc3; }
+nav.toc tr.level-3          { counter-increment: toc3; }
+nav.toc td:first-child a::before { color: var(--theme-color-specbook-muted); margin-right: 0.4rem; font-weight: normal; }
+nav.toc tr.level-1 td:first-child a::before { content: counter(toc1, decimal-leading-zero) " "; }
+nav.toc tr.level-2 td:first-child a::before { content: counter(toc1, decimal-leading-zero) "." counter(toc2, decimal-leading-zero) " "; }
+nav.toc tr.level-3 td:first-child a::before { content: counter(toc1, decimal-leading-zero) "." counter(toc2, decimal-leading-zero) "." counter(toc3, decimal-leading-zero) " "; }
+nav.toc tr.level-2 td:first-child { padding-left: 2.1rem; }
+nav.toc tr.level-3 td:first-child { padding-left: 3.6rem; }
+nav.toc tr.level-4 td:first-child { padding-left: 5.1rem; }
+nav.toc tr.level-5 td:first-child { padding-left: 6.6rem; }
+nav.toc tr.level-6 td:first-child { padding-left: 8.1rem; }
 nav.toc table               { border-collapse: collapse; margin: 1.0rem 0;
                               width: 100%; }
+nav.toc tr                  { page-break-inside: avoid; break-inside: avoid; }
 nav.toc td                  { padding: 0.3rem 0.6rem; }
 nav.toc td.page             { width: 1px; text-align: right; }
 nav.toc td.page a           { color: var(--theme-color-specbook-muted); }

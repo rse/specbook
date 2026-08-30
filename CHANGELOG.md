@@ -5,6 +5,13 @@ ChangeLog
 1.1.0 (2026-08-29)
 ------------------
 
+-   IMPROVEMENT [code, docs]: Hierarchical Table of Contents
+    The "Table of Contents" of the HTML/PDF export now lists all section headings (exactly like
+    the side panel and the PDF outline, skipping the objects collapsed into compact tables)
+    instead of the top-level ones only, numbered like the document and indented per nesting
+    level, where in the PDF export the potentially multi-page table paginates between its
+    rows only.
+
 -   FEATURE [code, docs]: Table of Contents Side Panel
     The HTML export gains a "Table of Contents" tab at the left viewport edge, which slides a
     side panel with a hierarchical copy of the table of contents (all section headings, numbered
