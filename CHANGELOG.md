@@ -5,6 +5,11 @@ ChangeLog
 1.1.0 (2026-08-30)
 ------------------
 
+-   IMPROVEMENT [code]: Search Tab
+    The full-text search field of the HTML export moved from the title page into a fixed tab at the top
+    center of the viewport (accent colored, with a search icon), which a handle below slides up into the
+    viewport border until only the handle stays visible, with this choice persisted across page loads.
+
 -   BUGFIX [code]: Diagram Search Filtering
     The full-text search of the HTML export now treats the diagrams as searchable units: a diagram stays
     visible only if its text labels match the query, with the matched labels highlighted like the prose.

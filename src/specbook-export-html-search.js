@@ -12,10 +12,22 @@
     every matched word is highlighted with a <mark> element (an SVG
     <tspan> element underlaid with a <rect> inside a diagram)  */
 (function () {
-    const input = document.getElementById("search-input")
-    const clear = document.getElementById("search-clear")
-    if (input === null || clear === null)
+    const tab    = document.getElementById("search")
+    const input  = document.getElementById("search-input")
+    const clear  = document.getElementById("search-clear")
+    const handle = document.getElementById("search-handle")
+    if (tab === null || input === null || clear === null || handle === null)
         return
+
+    /*  let the handle slide the tab up into the viewport border (and
+        back again), remembering the choice across page loads  */
+    try { if (localStorage.getItem("specbook-search") === "minified") tab.classList.add("minified") }
+    catch { /*  an inaccessible storage just means no stored state  */ }
+    handle.addEventListener("click", () => {
+        tab.classList.toggle("minified")
+        try { localStorage.setItem("specbook-search", tab.classList.contains("minified") ? "minified" : "expanded") }
+        catch { /*  an inaccessible storage just loses the state  */ }
+    })
 
     /*  shortest word still eligible for fuzzy matching: below it the
         edit distance would equate it with almost any short word  */

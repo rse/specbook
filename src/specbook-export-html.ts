@@ -67,6 +67,14 @@ const templates = {
             <body>
                 {% if Document.realtime %}<div class="realtime-status disconnected" title="live preview connection">&#x25CF;</div>{% endif %}
                 <div class="theme-switch" onclick="themeSwitch()" title="switch color theme">&#x25D0;</div>
+                <div class="search" id="search">
+                    <div class="search-field">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+                        <input type="text" id="search-input" placeholder="Search&hellip;" autocomplete="off" spellcheck="false"/>
+                        <span class="search-clear" id="search-clear" title="clear search">&#x00D7;</span>
+                    </div>
+                    <div class="search-handle" id="search-handle" title="toggle search field"></div>
+                </div>
                 {{ Document.tocpanel }}
                 {{ Document.titlepage }}
                 {{ Document.toc }}
@@ -93,10 +101,6 @@ const templates = {
             </table>
             {{ TitlePage.description }}
             {{ TitlePage.properties }}
-            <div class="search">
-                <input type="text" id="search-input" placeholder="Search&hellip;" autocomplete="off" spellcheck="false"/>
-                <span class="search-clear" id="search-clear" title="clear search">&#x00D7;</span>
-            </div>
         </div>
     `,
 
@@ -1067,7 +1071,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             titlepage: title !== undefined ?
                 safe(renderTitlePage(title,
                     formatDate(created), formatDate(modified))) : "",
-            search:    title !== undefined ? safe(searchScript()) : "",
+            search:    safe(searchScript()),
             realtime:  realtime ? safe(realtimeScript) : "",
             toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
             tocpanel:  entries.length > 0 ?
