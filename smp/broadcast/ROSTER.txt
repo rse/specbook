@@ -6,7 +6,7 @@
 + 04-REQS-UJ-User-Journey.md
 + 05-REQS-FR-Functional-Requirements.md
 + 06-REQS-NR-Non-Functional-Requirements.md
-+ 07-REQS-BR-Domain-Rules.md
++ 07-REQS-DR-Domain-Rules.md
 + 08-REQS-DW-Domain-Workflows.md
 + 09-REQS-UC-Use-Cases.md
 + 10-DATA-DM-Data-Model.md

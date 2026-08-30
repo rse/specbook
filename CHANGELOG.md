@@ -7,8 +7,8 @@ ChangeLog
 
 -   IMPROVEMENT [spec, docs]: Domain Rules
     The artifact "Business Rules" of the standard schema configuration is renamed to "Domain
-    Rules" (file "07-REQS-BR-Domain-Rules.md", identifier "BR" kept), as not every domain is a
-    business, so that existing specifications have to rename the file and its heading.
+    Rules" with the identifier "DR" (file "07-REQS-DR-Domain-Rules.md"), as not every domain is
+    a business, so that existing specifications have to rename the file and its heading.
 
 -   FEATURE [spec, docs]: Domain Workflows
     The standard schema configuration gains the optional artifact "Domain Workflows",

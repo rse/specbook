@@ -150,7 +150,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[REQS:GL.TERM:*]], [[REQS:BR.RULE:*]], [[DATA:DM.ENTITY:*]], [[REQS:UP.PERSONA:*]]"
+                nodes: "[[REQS:GL.TERM:*]], [[REQS:DR.RULE:*]], [[DATA:DM.ENTITY:*]], [[REQS:UP.PERSONA:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -458,8 +458,8 @@
 
 -   kind: REQS
     name: Domain Rules
-    id: BR
-    file: 07-REQS-BR-Domain-Rules.md
+    id: DR
+    file: 07-REQS-DR-Domain-Rules.md
     desc: >
         The domain invariants, policies, and decision logic that must always hold true in the
         problem domain, independent of any single feature, constraining the Functional and
@@ -473,7 +473,7 @@
             https://www.omg.org/spec/DMN/
     diagram:
         type: grid
-        nodes: "[[REQS:BR.RULE:*]]"
+        nodes: "[[REQS:DR.RULE:*]]"
         properties:
             -   CATEGORY
             -   SOURCE
@@ -649,7 +649,7 @@
                         Comma-separated references to the DOMAIN-RULES objects governing the
                         workflow as a whole (e.g. a deadline or an approval policy), while a rule
                         checked at a single handoff is referenced from the handoff instead.
-                    value: list([[REQS:BR.RULE:*]])
+                    value: list([[REQS:DR.RULE:*]])
                     optional: true
             childs:
                 -   kind: ACTIVITY
@@ -719,7 +719,7 @@
                             desc: >
                                 Comma-separated references to the DOMAIN-RULES objects the
                                 handoff enforces, usually through its `CONDITION`.
-                            value: list([[REQS:BR.RULE:*]])
+                            value: list([[REQS:DR.RULE:*]])
                             optional: true
 
 -   kind: REQS
@@ -761,7 +761,7 @@
                 type: hub
                 center: self
                 nodes: "[[REQS:UC.USE-CASE:*]], [[REQS:UP.PERSONA:*]], [[REQS:UJ.JOURNEY:*.STEP:*]],
-                    [[REQS:DW.WORKFLOW:*.ACTIVITY:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:BR.RULE:*]],
+                    [[REQS:DW.WORKFLOW:*.ACTIVITY:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:DR.RULE:*]],
                     [[DATA:SM.LIFECYCLE:*.TRANSITION:*]]"
                 labeled: true
                 qualified: true
@@ -799,7 +799,7 @@
                         Comma-separated references to the DOMAIN-RULES objects the scenarios of
                         the use case apply, i.e. whose condition a scenario step checks or enforces
                         (e.g. an access rule in an authentication step).
-                    value: list([[REQS:BR.RULE:*]])
+                    value: list([[REQS:DR.RULE:*]])
                     optional: true
                 -   name: TRANSITIONS
                     desc: >
@@ -1150,7 +1150,7 @@
                             desc: >
                                 Comma-separated references to the DOMAIN-RULES objects the
                                 transition enforces, usually through its `GUARD`.
-                            value: list([[REQS:BR.RULE:*]])
+                            value: list([[REQS:DR.RULE:*]])
                             optional: true
 
 -   kind: APIS
@@ -2151,7 +2151,7 @@
                 type: hub
                 center: self
                 nodes: "[[TEST:TC.TEST-CASE:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:NR.REQUIREMENT:*]],
-                    [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]], [[REQS:DW.WORKFLOW:*]],
+                    [[REQS:DR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]], [[REQS:DW.WORKFLOW:*]],
                     [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                     [[APIS:IE.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]]"
                 labeled: true
@@ -2176,7 +2176,7 @@
                         invariant, an endpoint (judged by its arguments, options, and results) is
                         proven to honor its contract, and a frame (judged by the dialog step it
                         storyboards) is proven to be reachable and to behave as storyboarded.
-                    value: list([[REQS:*.REQUIREMENT:*]], [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
+                    value: list([[REQS:*.REQUIREMENT:*]], [[REQS:DR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
                         [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                         [[APIS:IE.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]])
                 -   name: WORKFLOWS
