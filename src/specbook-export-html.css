@@ -401,7 +401,6 @@ div.search                  { display: none; }
     the SVG text labels of the diagrams (having no background) mimic
     the <mark> look with a rounded <rect> placed below the glyphs  */
 .search-hide                { display: none; }
-body.searching nav.toc,
 body.searching nav.doc,
 body.searching div.embedding { display: none; }
 mark.search-hit             { color: var(--theme-color-specbook-mark-text);

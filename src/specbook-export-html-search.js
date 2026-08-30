@@ -11,7 +11,7 @@
     the table header and the headings of all enclosing objects, and
     every matched word is highlighted with a <mark> element (an SVG
     <tspan> element underlaid with a <rect> inside a diagram), while
-    the side panel of the table of contents is filtered along  */
+    the table of contents (page and side panel) is filtered along  */
 (function () {
     const tab    = document.getElementById("search")
     const toggle = document.getElementById("search-toggle")
@@ -310,16 +310,17 @@
                 highlight(unit.el, regex)
         })
 
-        /*  filter the side panel of the table of contents along: an
-            entry stays visible only while its target still is, which
-            covers the front matter entries, too, as their targets are
-            suppressed by the search mode anyway  */
-        document.querySelectorAll("nav.toc-panel div.toc-list li").forEach((li) => {
-            const link   = li.querySelector(":scope > a")
+        /*  filter the table of contents (its page rows and its side
+            panel entries) along: an entry stays visible only while its
+            target still is, which covers the front matter entries of
+            the panel, too, as their targets are suppressed by the
+            search mode anyway  */
+        document.querySelectorAll("nav.toc table tr, nav.toc-panel div.toc-list li").forEach((entry) => {
+            const link   = entry.querySelector(":scope > a, :scope > td > a")
             const target = link !== null ?
                 document.getElementById(decodeURIComponent(link.hash.slice(1))) : null
             if (target === null || target.getClientRects().length === 0)
-                li.classList.add("search-hide")
+                entry.classList.add("search-hide")
         })
     }
 
