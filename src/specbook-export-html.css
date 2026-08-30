@@ -372,7 +372,9 @@ div.search span.search-clear:hover { color: var(--theme-color-specbook-accent); 
 div.search                  { display: none; }
 }
 
-/*  the search result filtering and matched word highlighting  */
+/*  the search result filtering and matched word highlighting, where
+    the SVG text labels of the diagrams (having no background) mimic
+    the <mark> look with a rounded <rect> placed below the glyphs  */
 .search-hide                { display: none; }
 body.searching nav.toc,
 body.searching nav.doc,
@@ -380,6 +382,8 @@ body.searching div.embedding { display: none; }
 mark.search-hit             { color: var(--theme-color-specbook-mark-text);
                               background-color: var(--theme-color-specbook-mark-back);
                               border-radius: 0.2rem; padding: 0 0.1em; }
+tspan.search-hit            { fill: var(--theme-color-specbook-mark-text); stroke: none; }
+rect.search-hit             { fill: var(--theme-color-specbook-mark-back); }
 
 /*  the table of contents (with page numbers for print only): all
     section headings, numbered like the document (three levels deep,

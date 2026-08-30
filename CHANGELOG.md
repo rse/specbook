@@ -5,6 +5,10 @@ ChangeLog
 1.1.0 (2026-08-30)
 ------------------
 
+-   BUGFIX [code]: Diagram Search Filtering
+    The full-text search of the HTML export now treats the diagrams as searchable units: a diagram stays
+    visible only if its text labels match the query, with the matched labels highlighted like the prose.
+
 -   FEATURE [code, docs]: Merged Schema Configurations
     The option "-c"/"--config" of all commands in API/CLI/MCP now accepts glob patterns and can be given
     multiple times ("std" for the bundled standard schema), merging the matching files in order into one schema.

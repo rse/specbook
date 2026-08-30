@@ -7,9 +7,10 @@
 /*  the client-side fuzzy search over the rendered specification: the
     whitespace-separated words of a comma-separated query part are
     (fuzzy) matched and AND-combined, while the parts are OR-combined;
-    a match keeps its complete paragraph or table row, plus the table
-    header and the headings of all enclosing objects, and every
-    matched word is highlighted with a <mark> element  */
+    a match keeps its complete paragraph, table row, or diagram, plus
+    the table header and the headings of all enclosing objects, and
+    every matched word is highlighted with a <mark> element (an SVG
+    <tspan> element underlaid with a <rect> inside a diagram)  */
 (function () {
     const input = document.getElementById("search-input")
     const clear = document.getElementById("search-clear")
@@ -20,9 +21,9 @@
         edit distance would equate it with almost any short word  */
     const fuzzyMin = 4
 
-    /*  the searchable units (paragraphs, list items, table rows, and
-        headings), the corpus vocabulary, and the per-word cache of the
-        fuzzy-equivalent vocabulary words  */
+    /*  the searchable units (paragraphs, list items, table rows,
+        headings, and diagrams), the corpus vocabulary, and the per-word
+        cache of the fuzzy-equivalent vocabulary words  */
     const units = []
     const vocab = new Set()
     const fuzzy = new Map()
@@ -30,14 +31,16 @@
 
     /*  fill the unit and vocabulary indices once on first use: a unit
         is an outermost paragraph-level element within an article, i.e.
-        one not nested inside another unit (like a paragraph in a table
-        cell, which is covered by its table row)  */
+        one not nested inside another unit (like a paragraph or diagram
+        in a table cell, which is covered by its table row), where a
+        diagram is searched by its SVG text labels, joined by spaces,
+        as its raw text content would run them together  */
     const index = () => {
         if (indexed)
             return
         indexed = true
         document.querySelectorAll("article").forEach((article) => {
-            article.querySelectorAll("p, li, tr, pre, blockquote, h1, h2, h3, h4, h5, h6")
+            article.querySelectorAll("p, li, tr, pre, blockquote, h1, h2, h3, h4, h5, h6, div.diagram")
                 .forEach((el) => {
                     let parent = el.parentElement
                     while (parent !== null && parent.tagName !== "ARTICLE") {
@@ -45,7 +48,9 @@
                             return
                         parent = parent.parentElement
                     }
-                    const text  = (el.textContent ?? "").toLowerCase()
+                    const text  = (el.classList.contains("diagram") ?
+                        Array.from(el.querySelectorAll("text")).map((t) => t.textContent ?? "").join(" ") :
+                        (el.textContent ?? "")).toLowerCase()
                     const words = new Set(text.split(/[^\p{L}\p{N}]+/u).filter((w) => w !== ""))
                     words.forEach((w) => { vocab.add(w) })
                     units.push({ el, text, words, keep: false })
@@ -138,16 +143,27 @@
         return new RegExp(alts.map((alt) => alt.src).join("|"), "giu")
     }
 
-    /*  wrap every match in the text nodes of a unit into a <mark>;
-        walking the text nodes (instead of replacing in the raw HTML)
-        keeps the tags and attributes untouched  */
+    /*  wrap every match in the text nodes of a unit into a <mark>, or
+        into a <tspan> inside the SVG text labels of a diagram (as a
+        foreign <mark> renders nothing there), leaving all other SVG
+        text nodes (like an embedded font style) untouched; walking the
+        text nodes (instead of replacing in the raw HTML) keeps the tags
+        and attributes untouched  */
+    const svgNS = "http://www.w3.org/2000/svg"
     const highlight = (el, regex) => {
         const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
         const nodes  = []
         let node
         while ((node = walker.nextNode()) !== null)
             nodes.push(node)
+        const spans = []
         nodes.forEach((text) => {
+            const parent = text.parentNode
+            if (parent === null)
+                return
+            const svg = parent.namespaceURI === svgNS
+            if (svg && !/^(text|tspan)$/.test(parent.localName))
+                return
             const value = text.nodeValue ?? ""
             const frag  = document.createDocumentFragment()
             let last = 0
@@ -156,26 +172,49 @@
             while ((m = regex.exec(value)) !== null) {
                 if (m.index > last)
                     frag.appendChild(document.createTextNode(value.slice(last, m.index)))
-                const mark = document.createElement("mark")
-                mark.className   = "search-hit"
+                const mark = svg ?
+                    document.createElementNS(svgNS, "tspan") :
+                    document.createElement("mark")
+                mark.classList.add("search-hit")
                 mark.textContent = m[0]
                 frag.appendChild(mark)
+                if (svg)
+                    spans.push(mark)
                 last = m.index + m[0].length
             }
             if (last === 0)
                 return
             if (last < value.length)
                 frag.appendChild(document.createTextNode(value.slice(last)))
-            if (text.parentNode !== null)
-                text.parentNode.replaceChild(frag, text)
+            parent.replaceChild(frag, text)
+        })
+
+        /*  underlay every <tspan> with a rounded <rect> (placed below
+            its <text> label, padded and rounded relative to the label
+            height like a <mark>), as SVG text has no background of its
+            own; all extents are measured up-front, as every insertion
+            would invalidate the layout again  */
+        const boxes = spans.map((span) => span.getBBox())
+        spans.forEach((span, i) => {
+            const label = span.closest("text")
+            const box   = boxes[i]
+            const pad   = box.height * 0.1
+            const rect  = document.createElementNS(svgNS, "rect")
+            rect.classList.add("search-hit")
+            rect.setAttribute("x",      String(box.x - pad))
+            rect.setAttribute("y",      String(box.y))
+            rect.setAttribute("width",  String(box.width + 2 * pad))
+            rect.setAttribute("height", String(box.height))
+            rect.setAttribute("rx",     String(box.height * 0.2))
+            label.parentNode.insertBefore(rect, label)
         })
     }
 
-    /*  undo a previous search: unwrap the injected <mark> elements
-        (re-normalizing the fragmented text nodes), drop the filtering
-        classes, and leave the search mode  */
+    /*  undo a previous search: unwrap the injected <mark>, <tspan>,
+        and <rect> elements (re-normalizing the fragmented text nodes),
+        drop the filtering classes, and leave the search mode  */
     const unmark = () => {
-        document.querySelectorAll("mark.search-hit").forEach((mark) => {
+        document.querySelectorAll(".search-hit").forEach((mark) => {
             const parent = mark.parentNode
             while (mark.firstChild !== null)
                 parent.insertBefore(mark.firstChild, mark)
@@ -254,12 +293,13 @@
         })
     }
 
-    /*  run the search debounced on every keystroke and let the "X"
-        clear the input field and the search results again  */
+    /*  run the search debounced on every keystroke (750ms after the
+        last one, as re-filtering the whole document is not cheap) and
+        let the "X" clear the input field and the search results again  */
     let debounce = 0
     input.addEventListener("input", () => {
         window.clearTimeout(debounce)
-        debounce = window.setTimeout(search, 200)
+        debounce = window.setTimeout(search, 750)
     })
     clear.addEventListener("click", () => {
         window.clearTimeout(debounce)
