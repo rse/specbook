@@ -1073,7 +1073,7 @@
                 carried by their `OPERATION` and `LOCATOR` properties only.
             diagram:
                 type: graph
-                nodes: "[[APIS:IM.INTERFACE:*.TYPE:*]], [[APIS:IM.INTERFACE:*.ENDPOINT:*]], [[APIS:IM.INTERFACE:*.ENDPOINT:*.ENDPOINT:*]]"
+                nodes: "[[APIS:IM.INTERFACE:*.TYPE:*]], [[APIS:IM.INTERFACE:*.ENDPOINT:*]]"
                 deep: true
                 onlyConnected: true
                 qualified: true
@@ -1133,12 +1133,14 @@
                         nodes: "[[APIS:IM.INTERFACE:*.TYPE:*]]"
                         deep: true
                         labeled: true
+                        qualified: true
                         config:
-                            size-node-width-max: 440
+                            size-node-width-max: 600
+                            size-node-height-scale: 1.75
                     props:
                         -   name: BASE
                             desc: >
-                                The underlying type of a non-object type: one of the primitives
+                                The underlying type of a non-object (value) type: one of the primitives
                                 `boolean`, `string` (short single-line text), `text` (long
                                 free-form text), `integer`, `float` (approximate), `decimal`
                                 (exact, e.g. for money), `uuid`, `bytes`, `date`, `time`,
@@ -1160,11 +1162,13 @@
                             value: list([[APIS:IM.INTERFACE:*.TYPE:*]])
                             acyclic: true
                             optional: true
-                        -   name: ENTITY
+                        -   name: MATERIALIZES
                             desc: >
-                                Reference to the DATA-MODEL entity the type materializes (e.g. as a
-                                data transfer object), tracing the interface into the data model.
-                            value: "[[DATA:DM.ENTITY:*]]"
+                                Comma-separated references to the DATA-MODEL entities the type
+                                materializes (e.g. as a data transfer object carrying the
+                                attributes of one entity, or as a view flattening several
+                                entities), tracing the interface into the data model.
+                            value: list([[DATA:DM.ENTITY:*]])
                             optional: true
                     childs:
                         -   kind: FIELD
@@ -1175,6 +1179,8 @@
                                 `eventId`, `event_id`, `event-id`) and described by a 1-sentence
                                 description ("what") plus a 1-sentence rationale ("why").
                             optional: true
+                            format:
+                                maxTableColumns: 5
                             props:
                                 -   name: TYPE
                                     desc: >
@@ -1207,27 +1213,31 @@
                                     value: /.+/
                                     optional: true
                 -   kind: CONSTANT
-                    name: "[A-Z][A-Z0-9_]*"
+                    name: "[A-Za-z_][A-Za-z0-9_-]*"
                     desc: >
-                        A named fixed value agreed upon through the interface, carrying an
-                        upper-cased, per-interface unique name (e.g. `MAX_PAGE_SIZE`,
-                        `DEFAULT_PORT`, `TOPIC_PREFIX`) and described by a 1-sentence description
-                        ("what") plus a 1-sentence rationale ("why").
+                        A named fixed value agreed upon through the interface, carrying a
+                        per-interface unique identifier in the naming convention of the interface
+                        (e.g. `MAX_PAGE_SIZE`, `defaultPort`, `topic-prefix`) and described by a
+                        1-sentence description ("what") plus a 1-sentence rationale ("why").
                     optional: true
                     format:
                         type: concise
                     props:
                         -   name: TYPE
                             desc: >
-                                The type of the constant: a reference to a `TYPE` object of the
-                                interface, one of the primitives `boolean`, `string`, `text`,
+                                The value type of the constant, i.e. the type its literal `VALUE`
+                                is of: one of the primitives `boolean`, `string`, `text`,
                                 `integer`, `float`, `decimal`, `uuid`, `bytes`, `date`, `time`,
-                                `datetime`, `duration`, or `any`, or an inline enumeration
-                                `enum(XXX,YYY[,...])` (a reusable one is a `TYPE` object with
-                                an `enum(...)` base).
+                                `datetime`, `duration`, or `any`, an inline enumeration
+                                `enum(XXX,YYY[,...])`, or a reference to a non-object `TYPE`
+                                object of the interface (a scalar, enumeration, alias, or union
+                                type carrying a `BASE`); an object type composed of fields is no
+                                value type and hence not admitted, as a literal cannot express it.
                             value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                         -   name: VALUE
-                            desc: The literal value of the constant (e.g. `100`, `event/`).
+                            desc: >
+                                The literal value of the constant (e.g. `100`, `event/`), matching
+                                its `TYPE`.
                             value: /.+/
                 -   kind: ENDPOINT
                     name: "[A-Za-z_][A-Za-z0-9_-]*"
@@ -1235,16 +1245,29 @@
                         A single operation of the interface, carrying a technical, per-interface
                         unique name in the naming convention of the interface (e.g.
                         `createEvent`, `chat_message`, `lint`) and described by a 1-sentence
-                        description ("what") plus a 1-sentence rationale ("why"). An endpoint
-                        consumes its input through its positional `ARGUMENT` objects (in document
-                        order, e.g. the URL path placeholders, a request body, a message payload,
-                        or the operands of a command) and its named `OPTION` objects (e.g. the
+                        description ("what") plus a 1-sentence rationale ("why").
+
+                        An endpoint consumes its input through its positional `ARGUMENT` objects
+                        (in document order, e.g. the URL path placeholders, a request body, a message
+                        payload, or the operands of a command) and its named `OPTION` objects (e.g. the
                         query parameters, the arguments of a GraphQL field or MCP tool, or the
                         options of a command), and returns its output through its `RESULT`
                         objects (e.g. a response body, a subscription message, or the output and
-                        exit code of a command). An endpoint *MAY* nest further endpoints as its
-                        sub-endpoints (e.g. the sub-commands of a command or the sub-resources of
-                        a resource), whose `LOCATOR` is relative to its own.
+                        exit code of a command).
+
+                        Endpoints form a flat list: a hierarchy of sub-commands or sub-resources
+                        is expressed by a path-style `LOCATOR` (e.g. `remote add`,
+                        `/events/{eventId}/chat`) only.
+                    diagram:
+                        type: hub
+                        center: self
+                        nodes: "[[APIS:IM.INTERFACE:*.ENDPOINT:*]], [[APIS:IM.INTERFACE:*.TYPE:*]], [[APIS:IM.INTERFACE:*.CONSTANT:*]]"
+                        deep: true
+                        labeled: true
+                        qualified: true
+                        config:
+                            size-node-width-max: 600
+                            size-node-height-scale: 1.75
                     props:
                         -   name: OPERATION
                             desc: |
@@ -1268,10 +1291,11 @@
                             desc: >
                                 How the endpoint is addressed within the interface, depending on
                                 its `KIND`: the URL path with `{xxx}` placeholders (e.g.
-                                `/events/{eventId}`), the GraphQL field name, the topic pattern
-                                (e.g. `event/{eventId}/chat`), the tool, resource, or prompt name,
-                                the command word (e.g. `lint`), or the symbol (e.g.
-                                `SpecBook.lint`); defaults to the endpoint name.
+                                `/events/{eventId}/chat`), the GraphQL field name, the topic
+                                pattern (e.g. `event/{eventId}/chat`), the tool, resource, or
+                                prompt name, the command path of words (e.g. `specbook lint`),
+                                or the symbol (e.g. `SpecBook.lint`); defaults to the
+                                endpoint name.
                             value: /.+/
                             optional: true
                         -   name: USE-CASES
@@ -1281,45 +1305,6 @@
                             value: list([[REQS:UC.USE-CASE:*]])
                             optional: true
                     childs:
-                        -   kind: ARGUMENT
-                            name: "[A-Za-z_][A-Za-z0-9_-]*"
-                            desc: >
-                                A positional input of the endpoint, in document order, carrying a
-                                per-endpoint unique identifier (e.g. `eventId`, `body`, `file`)
-                                and described by a 1-sentence description ("what") plus a
-                                1-sentence rationale ("why").
-                            optional: true
-                            props:
-                                -   name: TYPE
-                                    desc: >
-                                        The type of the argument: a reference to a `TYPE` object
-                                        of the interface, one of the primitives `boolean`,
-                                        `string`, `text`, `integer`, `float`, `decimal`, `uuid`,
-                                        `bytes`, `date`, `time`, `datetime`, `duration`, or `any`, or an
-                                        inline enumeration `enum(XXX,YYY[,...])` (a reusable one is a
-                                        `TYPE` object with an `enum(...)` base), where several comma-separated
-                                        alternatives form a union type.
-                                    value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
-                                -   name: ARITY
-                                    desc: >
-                                        The arity (cardinality) of the argument: `0..1` or `?` for
-                                        zero or one ("optional"), `1` for exactly one
-                                        ("mandatory"), `0..n` or `*` for zero or more, `1..n` or
-                                        `+` for one or more, or `{n}`/`{n,m}` for an exact number
-                                        or range; defaults to `1`.
-                                    value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
-                                    optional: true
-                                -   name: DEFAULT
-                                    desc: The default value of the argument.
-                                    value: /.*/
-                                    optional: true
-                                -   name: CONSTRAINT
-                                    desc: >
-                                        The constraint on the value of the argument beyond its
-                                        type, as a short phrase stating a range, unit, pattern, or
-                                        invariant (e.g. `existing file`, `1..100`).
-                                    value: /.+/
-                                    optional: true
                         -   kind: OPTION
                             name: "-{0,2}[A-Za-z_][A-Za-z0-9_-]*"
                             desc: >
@@ -1328,6 +1313,8 @@
                                 `first`, `file_path`) and described by a 1-sentence description
                                 ("what") plus a 1-sentence rationale ("why").
                             optional: true
+                            format:
+                                maxTableColumns: 6
                             props:
                                 -   name: TYPE
                                     desc: >
@@ -1347,15 +1334,17 @@
                                     optional: true
                                 -   name: ARITY
                                     desc: >
-                                        The arity (cardinality) of the option: `0..1` or `?` for
-                                        zero or one ("optional"), `1` for exactly one
-                                        ("mandatory"), `0..n` or `*` for zero or more, `1..n` or
-                                        `+` for one or more, or `{n}`/`{n,m}` for an exact number
-                                        or range; defaults to `?`.
-                                    value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
+                                        The arity (cardinality) of the option:
+                                        -   `0..1` or `?` for zero or one ("optional", the default)
+                                        -   `1` for exactly one ("mandatory")
+                                        -   `0..n` or `*` for zero or more
+                                        -   `1..n` or `+` for one or more
+                                        -   `{X}` or `X` for an exact number X
+                                        -   `{X,Y}` or `X...Y` for a range from X to Y
+                                    value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+|\d+\.\.\d+)$/
                                     optional: true
                                 -   name: DEFAULT
-                                    desc: The default value of the option.
+                                    desc: The default value of the option (matching its type).
                                     value: /.*/
                                     optional: true
                                 -   name: CONSTRAINT
@@ -1363,6 +1352,49 @@
                                         The constraint on the value of the option beyond its type,
                                         as a short phrase stating a range, unit, pattern, or
                                         invariant (e.g. `1..65535`, `readable directory`).
+                                    value: /.+/
+                                    optional: true
+                        -   kind: ARGUMENT
+                            name: "[A-Za-z_][A-Za-z0-9_-]*"
+                            desc: >
+                                A positional input of the endpoint, in document order, carrying a
+                                per-endpoint unique identifier (e.g. `eventId`, `body`, `file`)
+                                and described by a 1-sentence description ("what") plus a
+                                1-sentence rationale ("why").
+                            optional: true
+                            format:
+                                maxTableColumns: 6
+                            props:
+                                -   name: TYPE
+                                    desc: >
+                                        The type of the argument: a reference to a `TYPE` object
+                                        of the interface, one of the primitives `boolean`,
+                                        `string`, `text`, `integer`, `float`, `decimal`, `uuid`,
+                                        `bytes`, `date`, `time`, `datetime`, `duration`, or `any`, or an
+                                        inline enumeration `enum(XXX,YYY[,...])` (a reusable one is a
+                                        `TYPE` object with an `enum(...)` base), where several comma-separated
+                                        alternatives form a union type.
+                                    value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                                -   name: ARITY
+                                    desc: >
+                                        The arity (cardinality) of the argument:
+                                        -   `0..1` or `?` for zero or one ("optional", the default)
+                                        -   `1` for exactly one ("mandatory")
+                                        -   `0..n` or `*` for zero or more
+                                        -   `1..n` or `+` for one or more
+                                        -   `{X}` or `X` for an exact number X
+                                        -   `{X,Y}` or `X...Y` for a range from X to Y
+                                    value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+|\d+\.\.\d+)$/
+                                    optional: true
+                                -   name: DEFAULT
+                                    desc: The default value of the argument (matching its type).
+                                    value: /.*/
+                                    optional: true
+                                -   name: CONSTRAINT
+                                    desc: >
+                                        The constraint on the value of the argument beyond its
+                                        type, as a short phrase stating a range, unit, pattern, or
+                                        invariant (e.g. `existing file`, `1..100`).
                                     value: /.+/
                                     optional: true
                         -   kind: RESULT
@@ -1374,6 +1406,8 @@
                                 rationale ("why"). An error outcome is a result of its own (e.g.
                                 `error` with an HTTP status in its `CONSTRAINT`).
                             optional: true
+                            format:
+                                maxTableColumns: 5
                             props:
                                 -   name: TYPE
                                     desc: >
@@ -1387,12 +1421,14 @@
                                     value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                                 -   name: ARITY
                                     desc: >
-                                        The arity (cardinality) of the result: `0..1` or `?` for
-                                        zero or one ("optional"), `1` for exactly one
-                                        ("mandatory"), `0..n` or `*` for zero or more, `1..n` or
-                                        `+` for one or more, or `{n}`/`{n,m}` for an exact number
-                                        or range; defaults to `1`.
-                                    value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
+                                        The arity (cardinality) of the result:
+                                        -   `0..1` or `?` for zero or one ("optional", the default)
+                                        -   `1` for exactly one ("mandatory")
+                                        -   `0..n` or `*` for zero or more
+                                        -   `1..n` or `+` for one or more
+                                        -   `{X}` or `X` for an exact number X
+                                        -   `{X,Y}` or `X...Y` for a range from X to Y
+                                    value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+|\d+\.\.\d+)$/
                                     optional: true
                                 -   name: CONSTRAINT
                                     desc: >
@@ -1401,103 +1437,6 @@
                                         invariant (e.g. `HTTP 201`, `0 iff no diagnostics`).
                                     value: /.+/
                                     optional: true
-                        -   kind: ENDPOINT
-                            name: "[A-Za-z_][A-Za-z0-9_-]*"
-                            desc: >
-                                A sub-endpoint of the endpoint (e.g. a sub-command of a command
-                                or a sub-resource of a resource), carrying a technical,
-                                per-endpoint unique name and described by a 1-sentence
-                                description ("what") plus a 1-sentence rationale ("why"). It is
-                                modeled exactly like its parent endpoint, with its `LOCATOR`
-                                relative to the parent one, but cannot nest further endpoints.
-                            optional: true
-                            props:
-                                -   name: OPERATION
-                                    desc: >
-                                        The kind-specific operation the sub-endpoint performs, one
-                                        of the operations of its parent endpoint kind.
-                                    value: enum(GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS,query,mutation,subscription,call,stream,publish,subscribe,tool,resource,prompt,command,function,method,constructor,event,custom)
-                                -   name: LOCATOR
-                                    desc: >
-                                        How the sub-endpoint is addressed relative to its parent
-                                        endpoint (e.g. `/{eventId}` below `/events`, `add` below
-                                        `remote`); defaults to the sub-endpoint name.
-                                    value: /.+/
-                                    optional: true
-                                -   name: USE-CASES
-                                    desc: >
-                                        Comma-separated references to the USE-CASES objects the
-                                        sub-endpoint realizes.
-                                    value: list([[REQS:UC.USE-CASE:*]])
-                                    optional: true
-                            childs:
-                                -   kind: ARGUMENT
-                                    name: "[A-Za-z_][A-Za-z0-9_-]*"
-                                    desc: >
-                                        A positional input of the sub-endpoint, in document
-                                        order, modeled exactly like the `ARGUMENT` of an
-                                        endpoint.
-                                    optional: true
-                                    props:
-                                        -   name: TYPE
-                                            desc: The type of the argument, as for an endpoint.
-                                            value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
-                                        -   name: ARITY
-                                            desc: The arity of the argument, as for an endpoint.
-                                            value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
-                                            optional: true
-                                        -   name: DEFAULT
-                                            desc: The default value of the argument.
-                                            value: /.*/
-                                            optional: true
-                                        -   name: CONSTRAINT
-                                            desc: The constraint on the argument, as for an endpoint.
-                                            value: /.+/
-                                            optional: true
-                                -   kind: OPTION
-                                    name: "-{0,2}[A-Za-z_][A-Za-z0-9_-]*"
-                                    desc: >
-                                        A named input of the sub-endpoint, modeled exactly like
-                                        the `OPTION` of an endpoint.
-                                    optional: true
-                                    props:
-                                        -   name: TYPE
-                                            desc: The type of the option, as for an endpoint.
-                                            value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
-                                        -   name: ALIAS
-                                            desc: The alternative names of the option, as for an endpoint.
-                                            value: /^-{0,2}[A-Za-z_][A-Za-z0-9_-]*(?:,\s*-{0,2}[A-Za-z_][A-Za-z0-9_-]*)*$/
-                                            optional: true
-                                        -   name: ARITY
-                                            desc: The arity of the option, as for an endpoint.
-                                            value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
-                                            optional: true
-                                        -   name: DEFAULT
-                                            desc: The default value of the option.
-                                            value: /.*/
-                                            optional: true
-                                        -   name: CONSTRAINT
-                                            desc: The constraint on the option, as for an endpoint.
-                                            value: /.+/
-                                            optional: true
-                                -   kind: RESULT
-                                    name: "[A-Za-z_][A-Za-z0-9_-]*"
-                                    desc: >
-                                        A named output of the sub-endpoint, modeled exactly like
-                                        the `RESULT` of an endpoint.
-                                    optional: true
-                                    props:
-                                        -   name: TYPE
-                                            desc: The type of the result, as for an endpoint.
-                                            value: list([[APIS:IM.INTERFACE:*.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
-                                        -   name: ARITY
-                                            desc: The arity of the result, as for an endpoint.
-                                            value: /^(?:\?|\*|\+|\{\d+(?:,\d+)?\}|1|0\.\.1|0\.\.n|1\.\.n|\d+\.\.\d+)$/
-                                            optional: true
-                                        -   name: CONSTRAINT
-                                            desc: The constraint on the result, as for an endpoint.
-                                            value: /.+/
-                                            optional: true
 
 -   kind: UXUI
     name: Interaction Concept
