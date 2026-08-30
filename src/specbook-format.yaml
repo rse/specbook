@@ -4,9 +4,87 @@
 ##  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 ##
 
-#   Design Decision:
-#   -   strictly only back-references through explicit links
-#   PRD, SRS, etc
+#   This is the "Standard" SpecBook schema.
+#
+#   Modeling Purpose
+#   ----------------
+#
+#   This schema allows to specify a large variety documents for the
+#   precise specification of solutions, systems and software.
+#
+#   Modeling Coverage
+#   -----------------
+#
+#   | "Standard" SpecBook Object        | PRD | StRS | SyRS | SRS | UIS | UISG | TCS | AD  |
+#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | META: Title                       |     |      |      |     |     |      |     |     |
+#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | REQS: Solution Vision             |  X  |  X   |      |     |     |      |     |     |
+#   | REQS: Solution Premises           |  X  |  X   |  X   |  X  |     |      |     |     |
+#   | REQS: Domain Glossary             |  X  |  X   |  X   |  X  |     |      |     |     |
+#   | REQS: User Personas               |  X  |  X   |  X   |  X  |  X  |      |     |     |
+#   | REQS: User Journey                |  X  |  X   |      |     |  X  |      |     |     |
+#   | REQS: Functional Requirements     |  X  |  X   |  X   |  X  |     |      |     |     |
+#   | REQS: Non-Functional Requirements |  X  |  X   |  X   |  X  |  X  |      |     |     |
+#   | REQS: Domain Rules                |     |  X   |  X   |  X  |     |      |     |     |
+#   | REQS: Domain Workflows            |     |  X   |  X   |  X  |     |      |     |     |
+#   | REQS: Use Cases                   |     |      |  X   |  X  |  X  |      |     |     |
+#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | DATA: Data Model                  |     |      |  X   |  X  |     |      |     |     |
+#   | DATA: State Model                 |     |      |  X   |  X  |     |      |     |     |
+#   | DATA: Authorization Model         |     |      |  X   |  X  |     |      |     |     |
+#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | APIS: Interface Model             |     |      |  X   |  X  |     |      |     |     |
+#   | APIS: Interface Datatypes         |     |      |      |  X  |     |      |     |     |
+#   | APIS: Interface Endpoints         |     |      |      |  X  |     |      |     |     |
+#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | UXUI: Interaction Concept         |     |      |      |     |  X  |  X   |     |     |
+#   | UXUI: Language Conventions        |     |      |      |     |  X  |  X   |     |     |
+#   | UXUI: Dialog Patterns             |     |      |      |     |  X  |  X   |     |     |
+#   | UXUI: Dialog Storyboard           |     |      |      |     |  X  |      |     |     |
+#   | UXUI: Visual Design               |     |      |      |     |  X  |  X   |     |     |
+#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | TEST: Test Cases                  |     |      |      |     |     |      |  X  |     |
+#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | ARCH: Context View                |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Functionality View          |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Information View            |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Concurrency View            |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Development View            |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Deployment View             |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Operations View             |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Quality Perspectives        |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Decision Record             |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Technology Stack            |     |      |      |     |     |      |     |  X  |
+#
+#   Legend:
+#   -   PRD:  Product Requirements Document                      (Cagan 2005)
+#   -   StRS: Stakeholder Requirements Specification             (ISO/IEC/IEEE 29148 StRS)
+#   -   SyRS: System Requirements Specification                  (ISO/IEC/IEEE 29148 SyRS)
+#   -   SRS:  Software Requirements Specification                (ISO/IEC/IEEE 29148 SRS)
+#   -   UIS:  Human-Centred Design: User Interface Specification (ISO 9241-210:2019)
+#   -   UISG: User Interface Style Guide                         (ISO 9241-110/-112/-125/-161)
+#   -   TCS:  Test Case Specification                            (ISO/IEC/IEEE 29119-3:2021)
+#   -   AD:   Architecture Description                           (ISO/IEC/IEEE 42010)
+#
+#   Design Decisions
+#   ----------------
+#
+#   -   All object references are strictly back-references, i.e., later
+#       objects reference earlier ones.
+#
+#   -   The depth of the modeling aspects is at maximum at level 3, which
+#       means that all objects stay at level 1 and 2 and level 3 is mainly
+#       for properties. This leads to decent headings and a not too deep
+#       Table of Contents.
+#
+#   -   The traditional hard Software Requirements Specification (SRS)
+#       vs. Architecture Description (AD) document split is
+#       intentionally smoothed, so we can link from AD to SRS objects
+#       and in AI-times (where no longer dedicated teams write
+#       those documents separately) the AI should see one coherent
+#       specification document, too.
+#
 
 -   kind: META
     name: Title
