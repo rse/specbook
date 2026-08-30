@@ -112,9 +112,114 @@
             optional: true
 
 -   kind: REQS
+    name: Solution Premises
+    id: SP
+    file: 02-REQS-SP-Solution-Premises.md
+    desc: >
+        The premises the specification rests on but cannot guarantee itself: the assumptions
+        held true without proof, the dependencies on parties and systems outside the solution,
+        and the risks whose occurrence would endanger it, each rated by the likelihood and
+        the impact of its failure and stating what follows then, so that the requirements
+        resting on a premise are known and revisited once it turns out to be false. The
+        artifact complements the Solution Vision: the vision states what the solution aims
+        for, the premises state what it takes as given on the way there.
+    refs: >
+        -   ISO/IEC/IEEE 29148:2018: Systems and software engineering -- Life cycle processes -- Requirements engineering (2018),
+            https://www.iso.org/standard/72089.html
+        -   Robertson/Robertson: Volere Requirements Specification Template, 18th ed. (2018),
+            https://www.volere.org/templates/volere-requirements-specification-template/
+        -   ISO 31000:2018: Risk management -- Guidelines (2018),
+            https://www.iso.org/standard/65694.html
+        -   Boehm: Software Risk Management: Principles and Practices, IEEE Software 8(1) (1991),
+            https://doi.org/10.1109/52.62930
+    diagram:
+        type: grid
+        nodes: "[[REQS:SP.PREMISE:*]]"
+        properties:
+            -   TYPE
+            -   LIKELIHOOD
+            -   IMPACT
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 1.75
+            grid-columns-max: 5
+    childs:
+        -   kind: PREMISE
+            desc: >
+                A single premise, named with a short (3-8 word) summary phrased as the fact taken
+                as given or the event feared (e.g. `Streaming Providers Deliver the Video`, `Access
+                URLs Forwarded Beyond the Audience`) and described in a concise (1-3 sentence)
+                paragraph as a declarative statement of what is held true (an `Assumption` or
+                `Dependency`) or what may happen (a `Risk`), plus a 1-sentence rationale ("why")
+                stating the evidence or agreement the premise rests on or the cause the risk stems
+                from.
+
+                A premise is outside the control of the solution (a condition the solution
+                enforces itself is a Domain Rule or a Non-Functional Requirement instead) and
+                states a fact or event, not a decision (a deliberate exclusion is the `SCOPE` of
+                the Solution Vision or a `WONT` requirement instead).
+            format:
+                maxTableColumns: 5
+            props:
+                -   name: TYPE
+                    desc: >
+                        The kind of premise: `Assumption` (a fact about the domain, the users,
+                        or the environment held true without proof, whose falsity changes the
+                        requirements), `Dependency` (a reliance on a party, system, or
+                        deliverable outside the solution, which has to be available and to
+                        behave as agreed), or `Risk` (an uncertain event which, if it occurs,
+                        harms the achievement of the vision).
+                    value: enum(Assumption,Dependency,Risk)
+                -   name: TERMS
+                    desc: >
+                        Comma-separated references to the GLOSSARY terms the premise is about
+                        (e.g. the external system a dependency relies on), anchoring it in the
+                        ubiquitous language.
+                    value: list([[REQS:GL.TERM:*]])
+                    optional: true
+                -   name: OWNER
+                    desc: >
+                        Reference to the User Personas object (usually a `Stakeholder`) who
+                        vouches for the premise, i.e. who confirms an assumption, holds the
+                        agreement of a dependency, or owns the mitigation of a risk, omitted when
+                        nobody in particular is accountable.
+                    value: "[[REQS:UP.PERSONA:*]]"
+                    optional: true
+                -   name: LIKELIHOOD
+                    desc: >
+                        The likelihood that the premise fails, i.e. that the assumption turns out
+                        to be false, the dependency is not honored, or the risk occurs: `Low`,
+                        `Medium`, or `High`.
+                    value: enum(Low,Medium,High)
+                -   name: IMPACT
+                    desc: >
+                        The severity of the `CONSEQUENCE` for the solution once the premise fails:
+                        `Low`, `Medium`, or `High`, so that the product of likelihood and impact
+                        ranks the premises by the attention they need.
+                    value: enum(Low,Medium,High)
+                -   name: CONSEQUENCE
+                    desc: >
+                        What concretely follows for the solution if the premise fails, stated
+                        as a 1-2 sentence description of the harm (e.g. `attendees cannot enter
+                        the event`), justifying the `IMPACT` rating.
+                -   name: MITIGATION
+                    desc: >
+                        What is done to lower the likelihood or the impact of the failure or to
+                        detect it early (e.g. a fallback, a contract, a load test), omitted for
+                        a premise whose failure is knowingly accepted.
+                    optional: true
+                -   name: AFFECTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONAL-REQUIREMENTS,
+                        NON-FUNCTIONAL-REQUIREMENTS, or DOMAIN-RULES objects resting on the
+                        premise, i.e. those to be revisited once it fails.
+                    value: list([[REQS:FR.*]], [[REQS:NR.*]], [[REQS:DR.RULE:*]])
+                    optional: true
+
+-   kind: REQS
     name: Domain Glossary
     id: GL
-    file: 02-REQS-GL-Domain-Glossary.md
+    file: 03-REQS-GL-Domain-Glossary.md
     desc: >
         The ubiquitous language of the domain, defining the meaning of each domain term in business
         language, together with its synonyms, its place in the hierarchy of terms, and the terms it
@@ -196,7 +301,7 @@
 -   kind: REQS
     name: User Personas
     id: UP
-    file: 03-REQS-UP-User-Personas.md
+    file: 04-REQS-UP-User-Personas.md
     desc: >
         The *archetypal* user profiles representing distinct user groups, capturing their goals,
         needs, behaviors, and context, complemented by the non-user stakeholders whose interests
@@ -272,7 +377,7 @@
 -   kind: REQS
     name: User Journey
     id: UJ
-    file: 04-REQS-UJ-User-Journey.md
+    file: 05-REQS-UJ-User-Journey.md
     desc: >
         The end-to-end experience a user has while discovering, adopting, and using the solution,
         mapping their steps, touchpoints, and emotions over time. The journey is the *target*
@@ -348,7 +453,7 @@
 -   kind: REQS
     name: Functional Requirements
     id: FR
-    file: 05-REQS-FR-Functional-Requirements.md
+    file: 06-REQS-FR-Functional-Requirements.md
     desc: >
         The concrete behaviors and capabilities the solution must provide, describing *what* the
         system does in terms of functions, features, and operations, while the quality bounds and
@@ -398,7 +503,7 @@
 -   kind: REQS
     name: Non-Functional Requirements
     id: NR
-    file: 06-REQS-NR-Non-Functional-Requirements.md
+    file: 07-REQS-NR-Non-Functional-Requirements.md
     desc: >
         The quality attributes and constraints the solution must satisfy, such as performance,
         security, scalability, reliability, and usability.
@@ -465,7 +570,7 @@
 -   kind: REQS
     name: Domain Rules
     id: DR
-    file: 07-REQS-DR-Domain-Rules.md
+    file: 08-REQS-DR-Domain-Rules.md
     desc: >
         The domain invariants, policies, and decision logic that must always hold true in the
         problem domain, independent of any single feature, constraining the Functional and
@@ -557,7 +662,7 @@
 -   kind: REQS
     name: Domain Workflows
     id: DW
-    file: 08-REQS-DW-Domain-Workflows.md
+    file: 09-REQS-DW-Domain-Workflows.md
     desc: >
         The cross-actor, multi-sitting workflows of the domain (also known as business
         processes) the solution takes part in, each an ordered set of activities connected by
@@ -731,7 +836,7 @@
 -   kind: REQS
     name: Use Cases
     id: UC
-    file: 09-REQS-UC-Use-Cases.md
+    file: 10-REQS-UC-Use-Cases.md
     desc: >
         The discrete goals users pursue with the solution, each describing an actor's interaction to
         achieve a specific outcome, together with the concrete step-by-step flows for main,
@@ -892,7 +997,7 @@
 -   kind: DATA
     name: Data Model
     id: DM
-    file: 10-DATA-DM-Data-Model.md
+    file: 11-DATA-DM-Data-Model.md
     desc: >
         The structure of named entities, with named attributes and directed relationships, of the
         data the solution manages, defining how information is organized and connected.
@@ -1026,7 +1131,7 @@
 -   kind: DATA
     name: State Model
     id: SM
-    file: 11-DATA-SM-State-Model.md
+    file: 12-DATA-SM-State-Model.md
     desc: >
         For each entity with a non-trivial lifecycle, the legal states it can occupy and the
         permitted transitions between them over its lifetime, making the forbidden moves as explicit
@@ -1162,7 +1267,7 @@
 -   kind: DATA
     name: Authorization Model
     id: AM
-    file: 12-DATA-AM-Authorization-Model.md
+    file: 13-DATA-AM-Authorization-Model.md
     desc: >
         The access rights of the solution, bundled into the roles a person acts in and stating for
         each role the operations it may perform on each entity, confined to the lifecycle states
@@ -1292,7 +1397,7 @@
 -   kind: APIS
     name: Interface Model
     id: IM
-    file: 13-APIS-IM-Interface-Model.md
+    file: 14-APIS-IM-Interface-Model.md
     desc: >
         The machine-facing interfaces the solution provides to, or requires from, other programs
         (REST, GraphQL, gRPC, WebSocket, MQTT, AMQP, MCP, CLI, library, or custom ones), each
@@ -1381,7 +1486,7 @@
 -   kind: APIS
     name: Interface Datatypes
     id: ID
-    file: 14-APIS-ID-Interface-Datatypes.md
+    file: 15-APIS-ID-Interface-Datatypes.md
     desc: >
         The named data types exchanged through the machine-facing interfaces of the INTERFACES
         artifact, modeled generically for all kinds of interfaces: a type is either an object
@@ -1538,7 +1643,7 @@
 -   kind: APIS
     name: Interface Endpoints
     id: IE
-    file: 15-APIS-IE-Interface-Endpoints.md
+    file: 16-APIS-IE-Interface-Endpoints.md
     desc: >
         The operations offered by the machine-facing interfaces of the INTERFACE-MODEL artifact,
         modeled generically for all kinds of interfaces: an endpoint references the interface it
@@ -1782,7 +1887,7 @@
 -   kind: UXUI
     name: Interaction Concept
     id: IC
-    file: 16-UXUI-IC-Interaction-Concept.md
+    file: 17-UXUI-IC-Interaction-Concept.md
     desc: >
         The interaction philosophy of the solution, stated as the set of cross-cutting principles
         (e.g. auto-save instead of explicit saving) which govern how users interact with the
@@ -1853,7 +1958,7 @@
 -   kind: UXUI
     name: Language Conventions
     id: LC
-    file: 17-UXUI-LC-Language-Conventions.md
+    file: 18-UXUI-LC-Language-Conventions.md
     desc: >
         The voice, tone, and wording of the user-facing text of the solution (labels, messages,
         notifications, help), governing how the solution speaks to its users, so that the Interaction
@@ -1930,7 +2035,7 @@
 -   kind: UXUI
     name: Dialog Patterns
     id: DP
-    file: 18-UXUI-DP-Dialog-Patterns.md
+    file: 19-UXUI-DP-Dialog-Patterns.md
     desc: >
         The reusable interaction structures governing how the system and user exchange information
         across recurring UI flows (e.g. master-detail dialog).
@@ -2023,7 +2128,7 @@
 -   kind: UXUI
     name: Dialog Storyboard
     id: DS
-    file: 19-UXUI-DS-Dialog-Storyboard.md
+    file: 20-UXUI-DS-Dialog-Storyboard.md
     desc: >
         The sequenced visual or textual depiction of a specific dialog flow, illustrating how an
         interaction unfolds screen by screen or turn by turn.
@@ -2121,7 +2226,7 @@
 -   kind: UXUI
     name: Visual Design
     id: VD
-    file: 20-UXUI-VD-Visual-Design.md
+    file: 21-UXUI-VD-Visual-Design.md
     desc: >
         The visual design decisions of the solution (brand, color, typography, spacing, shape,
         iconography, imagery, and motion), each stated as a rule with its rationale, plus the
@@ -2249,7 +2354,7 @@
 -   kind: TEST
     name: Test Cases
     id: TC
-    file: 21-TEST-TC-Test-Cases.md
+    file: 22-TEST-TC-Test-Cases.md
     desc: >
         The verifiable conditions and steps used to confirm that requirements, domain rules, use
         case scenarios, and state transitions are correctly implemented, with mandatory defined
@@ -2369,7 +2474,7 @@
 -   kind: ARCH
     name: Context View
     id: CV
-    file: 22-ARCH-CV-Context-View.md
+    file: 23-ARCH-CV-Context-View.md
     desc: >
         The relationships, dependencies, and interactions between the solution and its environment,
         defining the system's scope, external entities, and boundaries.
@@ -2430,7 +2535,7 @@
 -   kind: ARCH
     name: Functionality View
     id: FV
-    file: 23-ARCH-FV-Functionality-View.md
+    file: 24-ARCH-FV-Functionality-View.md
     desc: >
         The functional components of the solution, their responsibilities, interfaces, and primary
         interactions, describing *what* the system does at runtime.
@@ -2498,7 +2603,7 @@
 -   kind: ARCH
     name: Information View
     id: IV
-    file: 24-ARCH-IV-Information-View.md
+    file: 25-ARCH-IV-Information-View.md
     desc: >
         The way the solution stores, manages, manipulates, and distributes information, defining the
         static data structure and dynamic information flow.
@@ -2554,7 +2659,7 @@
 -   kind: ARCH
     name: Concurrency View
     id: CO
-    file: 25-ARCH-CO-Concurrency-View.md
+    file: 26-ARCH-CO-Concurrency-View.md
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
         threads, and defining how they coordinate and communicate.
@@ -2616,7 +2721,7 @@
 -   kind: ARCH
     name: Development View
     id: DV
-    file: 26-ARCH-DV-Development-View.md
+    file: 27-ARCH-DV-Development-View.md
     desc: >
         The architecture supporting the software development process, defining the module
         organization, build approach, and codeline conventions.
@@ -2650,7 +2755,7 @@
 -   kind: ARCH
     name: Deployment View
     id: DP
-    file: 27-ARCH-DP-Deployment-View.md
+    file: 28-ARCH-DP-Deployment-View.md
     desc: >
         The environment into which the solution is deployed, mapping software elements to the
         runtime platform, hardware, and network topology.
@@ -2714,7 +2819,7 @@
 -   kind: ARCH
     name: Operations View
     id: OV
-    file: 28-ARCH-OV-Operations-View.md
+    file: 29-ARCH-OV-Operations-View.md
     desc: >
         The way the solution is operated, administered, and supported in production, defining
         installation, monitoring, and management concerns.
@@ -2754,7 +2859,7 @@
 -   kind: ARCH
     name: Quality Perspectives
     id: QP
-    file: 29-ARCH-QP-Quality-Perspectives.md
+    file: 30-ARCH-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed.
     refs: >
@@ -2822,7 +2927,7 @@
 -   kind: ARCH
     name: Decision Record
     id: DR
-    file: 30-ARCH-DR-Decision-Record.md
+    file: 31-ARCH-DR-Decision-Record.md
     desc: >
         The major decisions related to the architecture, each recording the forces at play, the
         chosen response, and the reasoning that justifies it.
@@ -3002,7 +3107,7 @@
 -   kind: ARCH
     name: Technology Stack
     id: TS
-    file: 31-ARCH-TS-Technology-Stack.md
+    file: 32-ARCH-TS-Technology-Stack.md
     desc: >
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives

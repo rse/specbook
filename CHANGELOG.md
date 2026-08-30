@@ -5,6 +5,13 @@ ChangeLog
 1.1.0 (2026-08-29)
 ------------------
 
+-   FEATURE [spec, docs]: Solution Premises
+    The standard schema configuration gains the artifact "Solution Premises" (file
+    "02-REQS-SP-Solution-Premises.md", placed directly behind the solution vision), recording
+    the assumptions, dependencies, and risks the specification rests on, each rated by the
+    likelihood and impact of its failure, so that existing specifications have to renumber all
+    subsequent artifact files.
+
 -   FEATURE [spec, docs]: Authorization Model
     The standard schema configuration gains the artifact "Authorization Model" (file
     "12-DATA-AM-Authorization-Model.md", placed between the state model and the interface
