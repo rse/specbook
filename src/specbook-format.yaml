@@ -13,7 +13,7 @@
         Some of the information is rendered onto the title page.
     diagram:
         type: graph
-        nodes: "[[REQS:*]], [[DATA:*]], [[TEST:*]], [[APIS:*]], [[UXUI:*]], [[ARCH:*]]"
+        nodes: "[[REQS:*]], [[DATA:*]], [[APIS:*]], [[UXUI:*]], [[TEST:*]], [[ARCH:*]]"
         deep: true
         qualified: true
     props:
@@ -933,111 +933,10 @@
                             value: list([[REQS:BR.RULE:*]])
                             optional: true
 
--   kind: TEST
-    name: Test Cases
-    id: TC
-    file: 11-TEST-TC-Test-Cases.md
-    desc: >
-        The verifiable conditions and steps used to confirm that requirements, business rules, use
-        case scenarios, and state transitions are correctly implemented, with mandatory defined
-        inputs, mandatory expected outcomes, and optional pre- and post-conditions.
-
-        Test cases are not derived from use cases alone: a use case scenario describes an intent-level
-        flow, while a test case fixes the concrete data and the observable assertions that decide pass
-        or fail, and many test cases (e.g. of Non-Functional Requirements or of cross-session rules)
-        have no use case counterpart at all.
-    refs: >
-        -   ISO/IEC/IEEE 29119-3:2021: Software and systems engineering -- Software testing -- Part 3: Test documentation (2021),
-            https://www.iso.org/standard/79429.html
-        -   ISO/IEC/IEEE 29119-4:2021: Software and systems engineering -- Software testing -- Part 4: Test techniques (2021),
-            https://www.iso.org/standard/79430.html
-        -   ISTQB CTFL 4.0: Certified Tester Foundation Level Syllabus (2023),
-            https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/
-    diagram:
-        type: grid
-        nodes: "[[TEST:TC.TEST-CASE:*]]"
-        config:
-            size-node-width-max: 440
-            size-node-height-scale: 2
-            grid-columns-max: 4
-    childs:
-        -   kind: TEST-CASE
-            desc: >
-                A single verifiable test case, named with a short (3-8 word) summary and defined by
-                its mandatory input and expected outcome plus its optional pre- and post-conditions.
-
-                The test case is at verification level: it pins down what the objects it verifies
-                leave open, namely concrete data (e.g. `the correct six-digit token`), a boundary
-                or equivalence class (e.g. `one more question within the same minute`), and an
-                observable assertion, including the negative one (e.g. `the rejected question is
-                not stored and the earlier questions remain unchanged`).
-
-                A test case which merely rephrases a scenario in different words, adding none of these,
-                is redundant and should be sharpened or dropped. Conversely, one scenario can require
-                several test cases (one per boundary or equivalence class), and one test case can
-                verify a requirement, a rule, and a scenario at once.
-
-                A test case whose stimulus is a sequence rather than a single action carries the
-                procedure in its body as sequentially numbered, imperative steps, mirroring the
-                steps of a use case scenario (e.g. `1. The user logs in on device A. 2. The same
-                user logs in on device B.`), with `INPUT` naming the decisive stimulus among them.
-            diagram:
-                type: hub
-                center: self
-                nodes: "[[TEST:TC.TEST-CASE:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:NR.REQUIREMENT:*]],
-                    [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
-                    [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]]"
-                labeled: true
-                qualified: true
-                config:
-                    size-node-width-max: 440
-                    size-node-height-scale: 1.75
-            props:
-                -   name: VERIFIES
-                    desc: >
-                        Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
-                        NON-FUNCTIONAL-REQUIREMENTS objects, the BUSINESS-RULES objects, the
-                        USE-CASES scenario objects, the STATE-MODEL transition objects, and/or the
-                        DATA-MODEL attribute objects the test case verifies, so that a scenario (in
-                        particular an `Exceptional` one, judged by its `OUTCOME`) is covered by an
-                        acceptance test beside the requirements it exercises, a rule (judged by
-                        the condition it states) is proven to hold, not just to be documented, a
-                        transition (judged by its `GUARD` and the resulting state) is proven to be
-                        permitted exactly as modeled, and an attribute (judged by its `TYPE` and
-                        `CONSTRAINT`) is proven to reject the values outside its range, pattern, or
-                        invariant.
-                    value: list([[REQS:*.REQUIREMENT:*]], [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
-                        [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]])
-                -   name: PRE-CONDITION
-                    desc: >
-                        The state or setup that must hold before the test is executed.
-                    optional: true
-                -   name: INPUT
-                    desc: >
-                        The mandatory, concrete input data or action applied during the test, i.e.
-                        the stimulus whose response the `EXPECTED` judges.
-                -   name: EXPECTED
-                    desc: >
-                        The mandatory, concrete, observable response of the solution to the `INPUT`
-                        (a message shown, a session issued, a submission rejected) that defines a
-                        passing test, as opposed to the `POST-CONDITION` which is the state left
-                        behind. When the test case verifies a NON-FUNCTIONAL-REQUIREMENTS object,
-                        the expected response restates the `METRIC` threshold of that requirement
-                        as the pass criterion (e.g. `p95 latency < 200 ms`) rather than a
-                        qualitative phrase (e.g. `remains responsive`).
-                -   name: POST-CONDITION
-                    desc: >
-                        The persisted state that must hold after the test completes (e.g. `the
-                        authorization token is in state used`), including the state that must not
-                        have changed (e.g. `no session token exists`), as opposed to the `EXPECTED`
-                        which is the immediate response, and omitted for a test whose input leaves
-                        no state behind.
-                    optional: true
-
 -   kind: APIS
     name: Interfaces
     id: IF
-    file: 12-APIS-IF-Interfaces.md
+    file: 11-APIS-IF-Interfaces.md
     desc: >
         The machine-facing interfaces the solution provides to, or requires from, other programs
         (REST, GraphQL, gRPC, WebSocket, MQTT, AMQP, MCP, CLI, library, or custom ones), each
@@ -1125,7 +1024,7 @@
 -   kind: APIS
     name: Data Types
     id: DT
-    file: 13-APIS-DT-Data-Types.md
+    file: 12-APIS-DT-Data-Types.md
     desc: >
         The named data types exchanged through the machine-facing interfaces of the INTERFACES
         artifact, modeled generically for all kinds of interfaces: a type is either an object
@@ -1282,7 +1181,7 @@
 -   kind: APIS
     name: Endpoints
     id: EP
-    file: 14-APIS-EP-Endpoints.md
+    file: 13-APIS-EP-Endpoints.md
     desc: >
         The operations offered by the machine-facing interfaces of the INTERFACES artifact,
         modeled generically for all kinds of interfaces: an endpoint references the interface it
@@ -1515,7 +1414,7 @@
 -   kind: UXUI
     name: Interaction Concept
     id: IC
-    file: 15-UXUI-IC-Interaction-Concept.md
+    file: 14-UXUI-IC-Interaction-Concept.md
     desc: >
         The interaction philosophy of the solution, stated as the set of cross-cutting principles
         (e.g. auto-save instead of explicit saving) which govern how users interact with the
@@ -1586,7 +1485,7 @@
 -   kind: UXUI
     name: Language Conventions
     id: LC
-    file: 16-UXUI-LC-Language-Conventions.md
+    file: 15-UXUI-LC-Language-Conventions.md
     desc: >
         The voice, tone, and wording of the user-facing text of the solution (labels, messages,
         notifications, help), governing how the solution speaks to its users, so that the Interaction
@@ -1663,7 +1562,7 @@
 -   kind: UXUI
     name: Dialog Patterns
     id: DP
-    file: 17-UXUI-DP-Dialog-Patterns.md
+    file: 16-UXUI-DP-Dialog-Patterns.md
     desc: >
         The reusable interaction structures governing how the system and user exchange information
         across recurring UI flows (e.g. master-detail dialog).
@@ -1756,7 +1655,7 @@
 -   kind: UXUI
     name: Dialog Storyboard
     id: DS
-    file: 18-UXUI-DS-Dialog-Storyboard.md
+    file: 17-UXUI-DS-Dialog-Storyboard.md
     desc: >
         The sequenced visual or textual depiction of a specific dialog flow, illustrating how an
         interaction unfolds screen by screen or turn by turn.
@@ -1854,7 +1753,7 @@
 -   kind: UXUI
     name: Visual Design
     id: VD
-    file: 19-UXUI-VD-Visual-Design.md
+    file: 18-UXUI-VD-Visual-Design.md
     desc: >
         The visual design decisions of the solution (brand, color, typography, spacing, shape,
         iconography, imagery, and motion), each stated as a rule with its rationale, plus the
@@ -1978,6 +1877,112 @@
                         An image (`![...](...)`) of the mockup, a high-fidelity rendering from
                         the design tool or a screenshot of an already existing user interface, so
                         that the look is seen rather than only read.
+
+-   kind: TEST
+    name: Test Cases
+    id: TC
+    file: 19-TEST-TC-Test-Cases.md
+    desc: >
+        The verifiable conditions and steps used to confirm that requirements, business rules, use
+        case scenarios, and state transitions are correctly implemented, with mandatory defined
+        inputs, mandatory expected outcomes, and optional pre- and post-conditions.
+
+        Test cases are not derived from use cases alone: a use case scenario describes an intent-level
+        flow, while a test case fixes the concrete data and the observable assertions that decide pass
+        or fail, and many test cases (e.g. of Non-Functional Requirements or of cross-session rules)
+        have no use case counterpart at all.
+    refs: >
+        -   ISO/IEC/IEEE 29119-3:2021: Software and systems engineering -- Software testing -- Part 3: Test documentation (2021),
+            https://www.iso.org/standard/79429.html
+        -   ISO/IEC/IEEE 29119-4:2021: Software and systems engineering -- Software testing -- Part 4: Test techniques (2021),
+            https://www.iso.org/standard/79430.html
+        -   ISTQB CTFL 4.0: Certified Tester Foundation Level Syllabus (2023),
+            https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/
+    diagram:
+        type: grid
+        nodes: "[[TEST:TC.TEST-CASE:*]]"
+        config:
+            size-node-width-max: 440
+            size-node-height-scale: 2
+            grid-columns-max: 4
+    childs:
+        -   kind: TEST-CASE
+            desc: >
+                A single verifiable test case, named with a short (3-8 word) summary and defined by
+                its mandatory input and expected outcome plus its optional pre- and post-conditions.
+
+                The test case is at verification level: it pins down what the objects it verifies
+                leave open, namely concrete data (e.g. `the correct six-digit token`), a boundary
+                or equivalence class (e.g. `one more question within the same minute`), and an
+                observable assertion, including the negative one (e.g. `the rejected question is
+                not stored and the earlier questions remain unchanged`).
+
+                A test case which merely rephrases a scenario in different words, adding none of these,
+                is redundant and should be sharpened or dropped. Conversely, one scenario can require
+                several test cases (one per boundary or equivalence class), and one test case can
+                verify a requirement, a rule, and a scenario at once.
+
+                A test case whose stimulus is a sequence rather than a single action carries the
+                procedure in its body as sequentially numbered, imperative steps, mirroring the
+                steps of a use case scenario (e.g. `1. The user logs in on device A. 2. The same
+                user logs in on device B.`), with `INPUT` naming the decisive stimulus among them.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[TEST:TC.TEST-CASE:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:NR.REQUIREMENT:*]],
+                    [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
+                    [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
+                    [[APIS:EP.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
+            props:
+                -   name: VERIFIES
+                    desc: >
+                        Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
+                        NON-FUNCTIONAL-REQUIREMENTS objects, the BUSINESS-RULES objects, the
+                        USE-CASES scenario objects, the STATE-MODEL transition objects, the
+                        DATA-MODEL attribute objects, the ENDPOINTS objects, and/or the
+                        DIALOG-STORYBOARD frame objects the test case verifies, so that a scenario
+                        (in particular an `Exceptional` one, judged by its `OUTCOME`) is covered by
+                        an acceptance test beside the requirements it exercises, a rule (judged by
+                        the condition it states) is proven to hold, not just to be documented, a
+                        transition (judged by its `GUARD` and the resulting state) is proven to be
+                        permitted exactly as modeled, an attribute (judged by its `TYPE` and
+                        `CONSTRAINT`) is proven to reject the values outside its range, pattern, or
+                        invariant, an endpoint (judged by its arguments, options, and results) is
+                        proven to honor its contract, and a frame (judged by the dialog step it
+                        storyboards) is proven to be reachable and to behave as storyboarded.
+                    value: list([[REQS:*.REQUIREMENT:*]], [[REQS:BR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
+                        [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
+                        [[APIS:EP.ENDPOINT:*]], [[UXUI:DS.STORYBOARD:*.FRAME:*]])
+                -   name: PRE-CONDITION
+                    desc: >
+                        The state or setup that must hold before the test is executed.
+                    optional: true
+                -   name: INPUT
+                    desc: >
+                        The mandatory, concrete input data or action applied during the test, i.e.
+                        the stimulus whose response the `EXPECTED` judges.
+                -   name: EXPECTED
+                    desc: >
+                        The mandatory, concrete, observable response of the solution to the `INPUT`
+                        (a message shown, a session issued, a submission rejected) that defines a
+                        passing test, as opposed to the `POST-CONDITION` which is the state left
+                        behind. When the test case verifies a NON-FUNCTIONAL-REQUIREMENTS object,
+                        the expected response restates the `METRIC` threshold of that requirement
+                        as the pass criterion (e.g. `p95 latency < 200 ms`) rather than a
+                        qualitative phrase (e.g. `remains responsive`).
+                -   name: POST-CONDITION
+                    desc: >
+                        The persisted state that must hold after the test completes (e.g. `the
+                        authorization token is in state used`), including the state that must not
+                        have changed (e.g. `no session token exists`), as opposed to the `EXPECTED`
+                        which is the immediate response, and omitted for a test whose input leaves
+                        no state behind.
+                    optional: true
 
 -   kind: ARCH
     name: Context View

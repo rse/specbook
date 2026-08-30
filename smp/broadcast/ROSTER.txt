@@ -10,15 +10,15 @@
 + 08-REQS-UC-Use-Cases.md
 + 09-DATA-DM-Data-Model.md
 + 10-DATA-SM-State-Model.md
-+ 11-TEST-TC-Test-Cases.md
-+ 12-APIS-IF-Interfaces.md
-+ 13-APIS-DT-Data-Types.md
-+ 14-APIS-EP-Endpoints.md
-+ 15-UXUI-IC-Interaction-Concept.md
-+ 16-UXUI-LC-Language-Conventions.md
-+ 17-UXUI-DP-Dialog-Patterns.md
-+ 18-UXUI-DS-Dialog-Storyboard.md
-+ 19-UXUI-VD-Visual-Design.md
++ 11-APIS-IF-Interfaces.md
++ 12-APIS-DT-Data-Types.md
++ 13-APIS-EP-Endpoints.md
++ 14-UXUI-IC-Interaction-Concept.md
++ 15-UXUI-LC-Language-Conventions.md
++ 16-UXUI-DP-Dialog-Patterns.md
++ 17-UXUI-DS-Dialog-Storyboard.md
++ 18-UXUI-VD-Visual-Design.md
++ 19-TEST-TC-Test-Cases.md
 
 - 20-ARCH-CV-Context-View.md
 - 21-ARCH-FV-Functionality-View.md

@@ -5,7 +5,7 @@ Modified: 2026-08-30 01:12
 
 #   ARCH: Functionality View (FV)
 
-![](19-ARCH-FV-Functionality-View-1.svg)
+![](21-ARCH-FV-Functionality-View-1.svg)
 
 ##  COMPONENT: Web Client {{client}}
 
@@ -54,7 +54,7 @@ horizontally, BECAUSE real-time fan-out to up to 10000 attendees is the central 
 
 -   KIND:           Service
 -   RESPONSIBILITY: Execute all business logic for events, messages, auth, and statistics.
--   PROVIDES:       [[IM.server-cli]]
+-   PROVIDES:       [[IF.server-cli]]
 -   DEPENDS-ON:     [[FV.database]], [[FV.translation]], [[FV.auth]], [[FV.statistics]]
 
 The service layer is the main server holding event, moderation, access, and configuration logic, reacting to MQTT messages
