@@ -21,11 +21,20 @@
         -   ISO/IEC/IEEE 42010:2022: Software, systems and enterprise -- Architecture description (2022),
             https://www.iso.org/standard/74393.html
     diagram:
-        type: grid
+        type: hub
         nodes: "[[ARCH:CV.ENTITY:*]]"
+        center:
+            source: "[[META:TI]]"
+            property: TITLE
+            kind: Solution
+        centerEdges:
+            property: DIRECTION
+            inbound:  Inbound
+            outbound: Outbound
+            both:     Bidirectional
+        qualified: true
         properties:
             -   KIND
-            -   DIRECTION
     childs:
         -   kind: ENTITY
             desc: >
