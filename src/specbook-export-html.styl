@@ -34,7 +34,8 @@ vendors = official
     font-family: "Noto Sans Symbols"
     font-style: normal
     font-weight: normal
-    src: url("../node_modules/@fontsource/noto-sans-symbols/files/noto-sans-symbols-symbols-400-normal.woff2") format("woff2")
+    src: url("../node_modules/@fontsource/noto-sans-symbols/files/" + \
+        "noto-sans-symbols-symbols-400-normal.woff2") format("woff2")
 
 /*  Adobe Source Code Pro font face (regular only, as the italic
     and bold faces are intentionally not embedded)  */
@@ -42,7 +43,8 @@ vendors = official
     font-family: "Source Code Pro"
     font-style: normal
     font-weight: normal
-    src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-Regular.ttf.woff2") format("woff2")
+    src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-Regular.ttf.woff2") \
+        format("woff2")
 
 /*  the theme-specific (layer 2) mapping of the export-time generated
     (layer 1) color spreads --theme-color-{base,accent,search}-{1..32} onto
@@ -387,7 +389,8 @@ article h2::before
     margin-right: 0.4rem
     font-weight: normal
 article h3::before
-    content: counter(sec1, decimal-leading-zero) "." counter(sec2, decimal-leading-zero) "." counter(sec3, decimal-leading-zero) " "
+    content: counter(sec1, decimal-leading-zero) "." counter(sec2, decimal-leading-zero) "." \
+        counter(sec3, decimal-leading-zero) " "
     color: var(--theme-color-specbook-muted)
     margin-right: 0.4rem
     font-weight: normal
@@ -791,7 +794,8 @@ nav.toc tr.level-1 td:first-child a::before
 nav.toc tr.level-2 td:first-child a::before
     content: counter(toc1, decimal-leading-zero) "." counter(toc2, decimal-leading-zero) " "
 nav.toc tr.level-3 td:first-child a::before
-    content: counter(toc1, decimal-leading-zero) "." counter(toc2, decimal-leading-zero) "." counter(toc3, decimal-leading-zero) " "
+    content: counter(toc1, decimal-leading-zero) "." counter(toc2, decimal-leading-zero) "." \
+        counter(toc3, decimal-leading-zero) " "
 nav.toc tr.level-2 td:first-child
     padding-left: 2.1rem
 nav.toc tr.level-3 td:first-child
