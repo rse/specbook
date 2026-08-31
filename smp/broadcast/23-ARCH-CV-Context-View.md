@@ -10,6 +10,7 @@ ARCH: Context View (CV)
 
 -   KIND:      Person
 -   DIRECTION: Bidirectional
+-   ACTORS:    [[PERSONA:attendee]]
 -   DATA:      Login credentials, video playback, chat, questions, likes
 
 The attendee's web browser is the primary client through which a person
@@ -20,6 +21,7 @@ browser-delivered solution serving thousands of concurrent attendees.
 
 -   KIND:      Person
 -   DIRECTION: Bidirectional
+-   ACTORS:    [[PERSONA:moderator-chat]], [[PERSONA:moderator-qa]], [[PERSONA:presenter]], [[PERSONA:manager]]
 -   DATA:      Event configuration, moderation actions, statistics, exports
 
 Managers, moderators, and presenters use their browsers to configure
