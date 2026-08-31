@@ -167,9 +167,9 @@ export const charsetCodepoints = (charset: string): number[] | undefined => {
     bullets, link symbol, primary marker, theme switch icon, anchor
     symbol plus its text presentation variation selector, the search
     field clearing icon, the active entry pointer of the table of
-    contents side panel, and the origin label pointer of the
+    contents side panel, and the title path segment pointer of the
     description popups)  */
-const symbolGlyphs = [ 0x25CF, 0x25CB, 0x26AD, 0x2318, 0x25D0, 0x2693, 0xFE0E, 0x00D7, 0x25C0, 0x25B6 ]
+const symbolGlyphs = [ 0x25CF, 0x25CB, 0x26AD, 0x2318, 0x25D0, 0x2693, 0xFE0E, 0x00D7, 0x25C0, 0x25B7 ]
 
 /*  the typographic glyphs producible by the smart typography rendering
     (language-specific quotes, dashes, ellipsis, bullet, nbsp)  */

@@ -429,8 +429,9 @@ const tocPanelScript = textframe`
     object path (one filled-circle "KIND: Name" segment per level,
     arbitrarily deep and separated by the icons alone, ending for
     a kind in the bare kind and extended for a property with the
-    not-filled-circle property name, weighted as in the document
-    content: the kinds and the property bold, the names regular)
+    not-filled-circle property name, styled as in the document
+    content: the kinds and the property bold in the path color, the
+    names bold in the description color)
     and fed from the injected INFO
     map of pre-rendered schema description HTML or SPEC map of
     pre-rendered corpus description HTML (a missing entry pops up
@@ -496,30 +497,48 @@ const infoPopupScript = textframe`
             popup.classList.toggle("spec", spec !== null)
             const title = document.createElement("div")
             title.className = "info-title"
+
+            /*  create a pointer, separating the title path segments  */
+            const pointer = () => {
+                const span = document.createElement("span")
+                span.className = "info-pointer"
+                span.textContent = "▷"
+                return span
+            }
             const segments = (source.getAttribute("data-info-path") ?? key ?? spec).split(" . ")
             for (const [ i, segment ] of segments.entries()) {
+                if (i > 0)
+                    title.appendChild(pointer())
                 const path = document.createElement("span")
                 path.className = "info-object"
 
                 /*  a segment renders as in the document content (the kind
-                    bold, the name regular), where a segment without a kind
+                    bold in the path color, the name semi-bold in the
+                    description color), where a segment without a kind
                     prefix is the kind-only ending of a kind popup or the
                     name of a kind-less object  */
                 const m    = /^([^\s:]+): (.*)$/.exec(segment)
                 const bare = i === segments.length - 1 && spec === null && prop === null
+                const name = document.createElement("span")
+                name.className = "info-name"
                 if (m !== null || bare) {
                     const kind = document.createElement("span")
                     kind.className = "info-kind"
                     kind.textContent = m !== null ? m[1] + ":" : segment
                     path.appendChild(kind)
-                    if (m !== null)
-                        path.appendChild(document.createTextNode(" " + m[2]))
+                    if (m !== null) {
+                        name.textContent = m[2]
+                        path.append(" ", name)
+                    }
                 }
-                else
-                    path.textContent = segment
+                else {
+                    name.textContent = segment
+                    path.appendChild(name)
+                }
                 title.appendChild(path)
             }
             if (prop !== null) {
+                title.appendChild(pointer())
                 const name = document.createElement("span")
                 name.className = "info-property"
                 name.textContent = prop
@@ -536,15 +555,14 @@ const infoPopupScript = textframe`
 
                 /*  the origin label leads the description inline, so it is
                     hoisted into the leading paragraph (if there is one),
-                    with its pointer in a span of its own for the optical
-                    alignment with the x-height  */
+                    with its prefix word in a span of its own for the
+                    rounded box styling  */
                 const label = document.createElement("strong")
                 label.className = "info-label"
-                label.textContent = spec !== null ? "Specification " : "Schema "
-                const pointer = document.createElement("span")
-                pointer.className = "info-pointer"
-                pointer.textContent = "▶"
-                label.append(pointer, " ")
+                const origin = document.createElement("span")
+                origin.className = "info-origin"
+                origin.textContent = spec !== null ? "Specification" : "Schema"
+                label.append(origin, " ")
                 const lead = text.firstElementChild
                 if (lead !== null && lead.tagName === "P")
                     lead.insertBefore(label, lead.firstChild)
@@ -1357,15 +1375,15 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             return `<span class="link-broken">[[${escapeHtml(reference)}]]</span>`
 
         /*  the full form carries the popup attributes on its kind and
-            name and is weighted as in the document content (the kind
-            bold, the name regular)  */
+            name, with the kind bold in the accent color and the name
+            bold in the regular text color (via the stylesheet)  */
         const full =
             `<strong class="object-kind"${infoAttr(target)}>${escapeHtml(target.kind)}:</strong>` +
-            ` <span${specAttr(target)}>${target.name}</span>` +
+            ` <span class="object-name"${specAttr(target)}>${target.name}</span>` +
             " <span class=\"link-symbol\">&#x26AD;</span>"
         return compact ?
             `<a href="#${escapeHtml(anchorOf(target))}" class="link-compact"${specAttr(target)}>${target.name}</a>` :
-            `<a href="#${escapeHtml(anchorOf(target))}">${full}</a>`
+            `<a href="#${escapeHtml(anchorOf(target))}" class="link-full">${full}</a>`
     })
     /*  collect the corpus descriptions of the object instances for the
         description popups (after the linker is in place, as the

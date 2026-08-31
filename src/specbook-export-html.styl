@@ -21,6 +21,16 @@ vendors = official
 @font-face
     font-family: "Source Sans 3"
     font-style: normal
+    font-weight: 600
+    src: url("../node_modules/source-sans/WOFF2/TTF/SourceSans3-Semibold.ttf.woff2") format("woff2")
+@font-face
+    font-family: "Source Sans 3"
+    font-style: italic
+    font-weight: 600
+    src: url("../node_modules/source-sans/WOFF2/TTF/SourceSans3-SemiboldIt.ttf.woff2") format("woff2")
+@font-face
+    font-family: "Source Sans 3"
+    font-style: normal
     font-weight: bold
     src: url("../node_modules/source-sans/WOFF2/TTF/SourceSans3-Bold.ttf.woff2") format("woff2")
 @font-face
@@ -53,7 +63,7 @@ vendors = official
 html,
 html.theme-light
     --theme-color-specbook-background:        var(--theme-color-base-32)
-    --theme-color-specbook-text:              var(--theme-color-base-5)
+    --theme-color-specbook-text:              var(--theme-color-base-6)
     --theme-color-specbook-muted:             var(--theme-color-base-22)
     --theme-color-specbook-symbol:            var(--theme-color-base-24)
     --theme-color-specbook-border:            var(--theme-color-base-28)
@@ -241,10 +251,13 @@ body.info-on div.info-switch svg.info-icon
     offering more viewport space), colored like the tabs (accent
     background) and clearly popping up the content by a drop-shadow,
     with the title carrying the object path segments (a filled circle
-    icon leading each, the kinds bold and the names regular, as in the
-    document content), extended for properties with the not-filled
-    circle icon and the bold property name, and the description
-    led by a bold "Schema:" or "Specification:" origin label, where
+    icon leading each, the kinds bold in the path color and the names
+    semi-bold in the description color, as in the document content,
+    and a pointer separating the segments), extended for properties
+    with the not-filled circle icon and the bold property name, and
+    the description led by a "Schema" or "Specification" origin label
+    (its word in normal weight in a rounded box filled with the path
+    color), where
     the corpus-fed instance popups distinguish themselves from the
     accent-colored schema-fed popups (kind and property) by the page
     background colors (with a border setting them off the page), both
@@ -275,6 +288,11 @@ div.info-popup.spec div.info-title
 div.info-popup span.info-kind,
 div.info-popup span.info-property
     font-weight: bold
+div.info-popup span.info-name
+    color: var(--theme-color-specbook-popup-schema-desc)
+    font-weight: 600
+div.info-popup.spec span.info-name
+    color: var(--theme-color-specbook-popup-spec-desc)
 div.info-popup span.info-object::before
     content: "\25CF"
     font-weight: normal
@@ -282,10 +300,6 @@ div.info-popup span.info-object::before
     margin-right: 0.25rem
     vertical-align: -0.075em
     line-height: 0
-div.info-popup span.info-object + span.info-object
-    margin-left: 0.5rem
-div.info-popup span.info-property
-    margin-left: 0.5rem
 div.info-popup span.info-property::before
     content: "\25CB"
     font-weight: normal
@@ -298,9 +312,27 @@ div.info-popup div.info-desc p
 div.info-popup div.info-desc p:last-child
     margin-bottom: 0
 
-/*  the origin label pointer, lowered so the triangle (designed above
-    the baseline) centers optically on the x-height of the text  */
+/*  the origin label of a description: its prefix word in normal
+    weight in a borderless rounded box filled with the title path
+    color (the word itself in the popup background color)  */
+div.info-popup span.info-origin
+    display: inline-block
+    padding: 0.05rem 0.45rem
+    border-radius: 0.25rem
+    margin-right: 0.25rem
+    font-weight: normal
+    color: var(--theme-color-specbook-accent)
+    background-color: var(--theme-color-specbook-popup-schema-path)
+div.info-popup.spec span.info-origin
+    color: var(--theme-color-specbook-background)
+    background-color: var(--theme-color-specbook-popup-spec-path)
+
+/*  the pointer separating the title path segments (objects and the
+    property), lowered so the triangle (designed above the baseline)
+    centers optically on the x-height of the text  */
 div.info-popup span.info-pointer
+    margin: 0 0.35rem
+    font-weight: normal
     vertical-align: -0.1em
     line-height: 0
 
@@ -309,11 +341,15 @@ div.info-popup span.info-pointer
     accent icon of the compact form) would vanish on the accent
     background (the links are inert anyway, as the popup ignores
     pointer events), while inside the page-background instance popups
-    they keep the regular accent link color  */
+    they render as in the content: plain links accent, compact link
+    names in the popup text color with the icon staying accent  */
 div.info-popup a,
 div.info-popup a.link-compact::before
     color: var(--theme-color-specbook-popup-schema-desc)
-div.info-popup.spec a,
+div.info-popup.spec a
+    color: var(--theme-color-specbook-accent)
+div.info-popup.spec a.link-compact
+    color: var(--theme-color-specbook-popup-spec-desc)
 div.info-popup.spec a.link-compact::before
     color: var(--theme-color-specbook-accent)
 @media print
@@ -481,6 +517,12 @@ nav.toc-panel ul.extra li > a::before
     content: none
 nav.toc-panel a
     color: var(--theme-color-specbook-text)
+
+/*  the front matter entries ("Title", "Table of Contents", and
+    "Diagram of Contents") render in the accent color, matching the
+    accent-colored headings of their pages in the content  */
+nav.toc-panel ul.extra a
+    color: var(--theme-color-specbook-accent)
 @media print
     nav.toc-panel
         display: none
@@ -557,8 +599,30 @@ a
 span.link-broken
     color: var(--theme-color-specbook-error)
 
+/*  the object names render in the semi-bold face (weight 600)
+    everywhere -- headings, table of contents entries (page and side
+    panel), and hyperlinks -- while the object kinds stay bold  */
+span.object-name
+    font-weight: 600
+
+/*  the full hyperlinks (object icon, kind, name, and link symbol)
+    render their name semi-bold in the regular text color, as do the
+    table of contents entries and its side panel entries, whose kinds
+    get the bold weight the <strong> markup gives the full hyperlinks  */
+a.link-full span.object-name,
+nav.toc a span.object-name,
+nav.toc-panel a span.object-name
+    color: var(--theme-color-specbook-text)
+nav.toc a span.object-kind,
+nav.toc-panel a span.object-kind
+    font-weight: bold
+
 /*  the compact hyperlinks of the prose (object icon and name only,
-    their full form shown by the description popups)  */
+    their full form shown by the description popups), with the name
+    semi-bold in the regular text color and the icon staying accent  */
+a.link-compact
+    color: var(--theme-color-specbook-text)
+    font-weight: 600
 a.link-compact::before
     content: "\25CF"
     color: var(--theme-color-specbook-accent)
@@ -653,11 +717,19 @@ table.objects th:first-child,
 table.objects td:first-child
     border-left: 0
 table.objects td:first-child
-    font-weight: bold
+    font-weight: 600
 table.objects th
     background-color: var(--theme-color-specbook-tint)
 table.objects tbody tr.even td
     background-color: var(--theme-color-specbook-stripe)
+
+/*  the "Description", "Properties", and "Diagram" headers of the
+    compact tables, rendered in normal weight and accent color (the
+    property name headers stay bold)  */
+table.objects th.description,
+table.objects table.chunks th:not(.property-name)
+    font-weight: normal
+    color: var(--theme-color-specbook-accent)
 
 /*  the diagram leading the chunks of an object, kept in one piece  */
 table.objects table.chunks div.diagram
@@ -893,6 +965,7 @@ nav.toc
     counter-reset: toc1
 nav.toc h1
     color: var(--theme-color-specbook-accent)
+    font-weight: normal
 nav.toc tr.level-1
     counter-increment: toc1
     counter-reset: toc2
@@ -948,3 +1021,4 @@ nav.doc
     break-after: page
 nav.doc h1
     color: var(--theme-color-specbook-accent)
+    font-weight: normal
