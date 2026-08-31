@@ -65,7 +65,7 @@ const templates = {
                 </script>
             </head>
             <body>
-                {% if Document.realtime %}<div class="realtime-status disconnected" title="live preview connection">&#x25CF;</div>{% endif %}
+                {% if Document.realtime %}<div class="realtime-status disconnected" title="live preview connection"><svg class="realtime-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/><path d="M12 22v-5"/></svg></div>{% endif %}
                 <div class="theme-switch" onclick="themeSwitch()" title="switch color theme"><svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5 A 8.5 8.5 0 0 0 12 20.5 Z" fill="currentColor" stroke="none"/></svg></div>
                 <div class="search" id="search">
                     <div class="search-toggle" id="search-toggle" title="toggle search field"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><line x1="15" y1="15" x2="21" y2="21"/></svg></div>
@@ -398,8 +398,9 @@ const tocPanelScript = textframe`
             if (!panel.isConnected)
                 document.removeEventListener("click", outside)
             else if (!panel.contains(event.target)
-                && event.target.closest("div.search")       === null
-                && event.target.closest("div.theme-switch") === null)
+                && event.target.closest("div.search")          === null
+                && event.target.closest("div.theme-switch")    === null
+                && event.target.closest("div.realtime-status") === null)
                 toggle(false)
         }
         document.addEventListener("click", outside)

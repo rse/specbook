@@ -139,10 +139,11 @@ re-connecting every second after a lost connection, and updating the
 page on `RELOAD` and on every re-established connection: the fresh page
 is fetched and the document replaced in place (title, changed
 stylesheet, body, with the body scripts re-executed), so the scroll
-position and the theme choice survive the update. A status icon in the
-top-right viewport corner shows the connection state: grey while connected, in
-the search highlight color while disconnected (also before the first
-connection), and blinking for 2s after every update. There is no
+position and the theme choice survive the update. A status tab at the
+accent bar below the table of contents tab shows the connection state:
+its plug icon carries the search filter mark colors while disconnected
+(also before the first connection) and blinks in a soft accent box for
+2s after every update. There is no
 `preview` MCP tool, as it is a long-running server.
 The `describe` command outputs `src/specbook-format.md` verbatim,
 followed by a "SpecBook Project Instantiation" section pointing to the

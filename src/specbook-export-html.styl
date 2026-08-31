@@ -183,29 +183,47 @@ div.theme-switch svg.theme-icon
     div.theme-switch
         display: none
 
-/*  the connection status icon of the live preview (fixed in the
-    top-right viewport corner): grey while connected, in the search
-    highlight color while disconnected, and blinking for 2s (toggling
-    every 250ms between the accent and the grey color) after a content
-    reload  */
+/*  the connection status tab of the live preview (screen-only): the
+    bottommost tab riding right of the brand bar below the table of
+    contents tab (sized like the search tab, fixed independent of the
+    content scrolling), showing a plug icon (drawn like the search
+    icon), where the tab follows the bar when the
+    table of contents panel shifts it aside and the icon carries the
+    mark colors in a rounded box (like the search icon while a filter
+    is active) while disconnected, plus blinking in a soft accent box
+    for 2s (toggling every 250ms) after a content reload  */
 div.realtime-status
     position: fixed
-    top: 0.85rem
-    right: 1.50rem
-    color: var(--theme-color-specbook-symbol)
-    font-size: 280%
+    top: 10.66rem
+    left: calc(0.6rem - 2px)
+    z-index: 30
+    padding: 0.65rem 0.1rem
+    line-height: 0
+    border-radius: 0 0.3rem 0.3rem 0
+    color: var(--theme-color-specbook-background)
+    background-color: var(--theme-color-specbook-accent)
+    transition: left 0.3s ease
     -webkit-user-select: none
     user-select: none
-    line-height: 1.5rem
-div.realtime-status.disconnected
-    color: var(--theme-color-specbook-mark-back)
-div.realtime-status.reloaded
+body:has(nav.toc-panel.open) div.realtime-status
+    left: calc(31rem - 2px)
+    box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
+div.realtime-status svg.realtime-icon
+    width: 1.1rem
+    height: 1.1rem
+    padding: 0.25rem
+    border-radius: 0.3rem
+    margin-right: 0.15rem
+div.realtime-status.disconnected svg.realtime-icon
+    color: var(--theme-color-specbook-mark-text)
+    background-color: var(--theme-color-specbook-mark-back)
+div.realtime-status.reloaded svg.realtime-icon
     animation: realtime-blink 0.5s step-end 4
 @keyframes realtime-blink
     from
-        color: var(--theme-color-specbook-accent)
+        background-color: var(--theme-color-specbook-accent-soft)
     50%
-        color: var(--theme-color-specbook-symbol)
+        background-color: transparent
 @media print
     div.realtime-status
         display: none
