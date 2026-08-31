@@ -84,8 +84,8 @@ interface DiagramEdge {
     unique anchor path as the node id, the object name as the displayed
     label) and one edge statement per derived edge  */
 const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
-    nodes: SpecObject[], edges: DiagramEdge[], index: LinkIndex,
-    anchors: Map<SpecObject, string>): string => {
+    centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[],
+    index: LinkIndex, anchors: Map<SpecObject, string>): string => {
     const lines  = [ `#type ${type}` ]
     const config = diagram.config ?? {}
     for (const [ key, value ] of Object.entries(config))
@@ -93,8 +93,14 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
             lines.push(`#config ${key} ${configValue(value)}`)
     lines.push("")
     for (const node of nodes) {
-        const anchor = anchors.get(node) ?? node.id
-        const attrs  = [ `url: ${atom(`#${anchor}`)}` ]
+        const anchor = anchors.get(node)
+        const attrs  = new Array<string>()
+
+        /*  a synthetic center node (the only node without an anchor
+            path) links to its source object, or nowhere at all  */
+        const url = anchor !== undefined ? `#${anchor}` : centerUrl
+        if (url !== undefined)
+            attrs.push(`url: ${atom(url)}`)
         if (diagram.qualified === true && node.kind !== "")
             attrs.push(`type: ${atom(node.kind)}`)
         if (type === "hub" ? node === center : node.primary === true)
@@ -112,7 +118,8 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
                 attrs.push(`${atom(key)}: ${atom(plainText(text))}`)
             }
         }
-        lines.push(`${atom(anchor)}: ${atom(plainText(node.name))} [ ${attrs.join(", ")} ]`)
+        lines.push(`${atom(anchor ?? node.id)}: ${atom(plainText(node.name))}` +
+            (attrs.length > 0 ? ` [ ${attrs.join(", ")} ]` : ""))
     }
     if (edges.length > 0) {
         lines.push("")
@@ -321,11 +328,21 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
 
     /*  determine the center object of a "hub" diagram: the current
         object for the default "self" configuration, the uniquely
-        resolved object of an explicit "[[...]]" reference otherwise  */
-    let center = object
-    if (type !== "hub" && diagram.center !== undefined)
-        errors.push({ reason: `"${type}" diagram cannot carry a "center" configuration` })
-    if (type === "hub" && diagram.center !== undefined && diagram.center !== "self") {
+        resolved object of an explicit "[[...]]" reference, or a fresh
+        synthetic node for the object configuration, labeled from a
+        referenced source object (or one of its properties) or a
+        literal text and linked to the source object (the solution
+        itself, e.g., is no specification object, yet a context
+        diagram places it in the middle)  */
+    let center    = object
+    let centerUrl: string | undefined
+    if (type !== "hub") {
+        if (diagram.center !== undefined)
+            errors.push({ reason: `"${type}" diagram cannot carry a "center" configuration` })
+        if (diagram.centerEdges !== undefined)
+            errors.push({ reason: `"${type}" diagram cannot carry a "centerEdges" configuration` })
+    }
+    else if (typeof diagram.center === "string" && diagram.center !== "self") {
         const reference = diagram.center.match(referenceOnce)?.[1].trim()
         const resolved  = reference !== undefined ? resolveUnique(index, reference, object) : undefined
         if (resolved?.target === undefined) {
@@ -334,6 +351,81 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
             return { errors }
         }
         center = resolved.target
+    }
+    else if (typeof diagram.center === "object") {
+        const centerCfg = diagram.center
+        let   label     = centerCfg.label
+        if (centerCfg.property !== undefined && centerCfg.source === undefined) {
+            errors.push({ reason: "diagram \"center\" property requires a \"source\" reference" })
+            return { errors }
+        }
+        if (centerCfg.source !== undefined) {
+            const reference = centerCfg.source.match(referenceOnce)?.[1].trim()
+            const resolved  = reference !== undefined ? resolveUnique(index, reference, object) : undefined
+            const source    = resolved?.target
+            if (source === undefined) {
+                errors.push({ reason: (resolved?.ambiguous === true ? "ambiguous" : "unresolvable") +
+                    ` diagram "center" source reference "${centerCfg.source}"` })
+                return { errors }
+            }
+            centerUrl = `#${anchors.get(source) ?? source.id}`
+            if (centerCfg.property !== undefined) {
+                const value = source.properties.find((property) =>
+                    property.key === centerCfg.property)?.value
+                if (value === undefined) {
+                    errors.push({ reason:
+                        `diagram "center" source lacks the property "${centerCfg.property}"` })
+                    return { errors }
+                }
+                label = plainText(expandReferences(value, (ref) =>
+                    resolveUnique(index, ref, source).target?.name ?? ref))
+            }
+            else if (label === undefined)
+                label = plainText(source.name)
+        }
+        if (label === undefined) {
+            errors.push({ reason: "diagram \"center\" configuration yields no label" })
+            return { errors }
+        }
+
+        /*  inject the synthetic center node into the node set, with a
+            collision-free id ("@" never occurs in an anchor path)  */
+        center = { kind: centerCfg.kind ?? "", id: `${anchors.get(object) ?? object.id}-@center`,
+            name: label, properties: [], childs: [] }
+        nodes.unshift(center)
+        nodeSet.add(center)
+    }
+
+    /*  synthesize the center edges of a "hub" diagram from the
+        direction property of the node objects: the "inbound" value
+        maps onto a node-to-center edge, the "outbound" value onto a
+        center-to-node edge, and the "both" value onto both (which
+        Gradia renders as an input node plus an output "ghost" node),
+        as the nodes carry no "[[...]]" reference to a synthetic center  */
+    if (type === "hub" && diagram.centerEdges !== undefined) {
+        const cfg = diagram.centerEdges
+        for (const node of nodes) {
+            if (node === center)
+                continue
+            const value    = node.properties.find((property) => property.key === cfg.property)?.value
+            const inbound  = cfg.inbound  !== undefined && value === cfg.inbound
+            const outbound = cfg.outbound !== undefined && value === cfg.outbound
+            const both     = cfg.both     !== undefined && value === cfg.both
+            if (!inbound && !outbound && !both) {
+                errors.push({ object: node, reason: value === undefined ?
+                    `lacks the diagram "centerEdges" property "${cfg.property}"` :
+                    `carries the unmapped diagram "centerEdges" value "${value}"` })
+                continue
+            }
+            const label = cfg.labeled !== undefined ?
+                node.properties.find((property) => property.key === cfg.labeled)?.value : undefined
+            const name  = label !== undefined ? plainText(expandReferences(label, (reference) =>
+                resolveUnique(index, reference, node).target?.name ?? reference)) : undefined
+            if (inbound || both)
+                edges.push({ source: node, target: center, name })
+            if (outbound || both)
+                edges.push({ source: center, target: node, name })
+        }
     }
 
     /*  a "hub" diagram is the hub-projection onto its center object:
@@ -383,7 +475,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     if (diagram.collapse !== false && nodes.length === 1 && edges.length === 0)
         return { errors }
 
-    return { spec: renderSpec(diagram, type, center, nodes, edges, index, anchors),
+    return { spec: renderSpec(diagram, type, center, centerUrl, nodes, edges, index, anchors),
         config: diagram.config, columns, errors }
 }
 

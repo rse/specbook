@@ -88,11 +88,25 @@ type SchemaAutomaton = {
     initial:           string
     final:             string
 }
+type SchemaDiagramCenter = {
+    source?:           string
+    property?:         string
+    label?:            string
+    kind?:             string
+}
+type SchemaDiagramCenterEdges = {
+    property:          string
+    inbound?:          string
+    outbound?:         string
+    both?:             string
+    labeled?:          string
+}
 type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid"
     nodes?:            string
     edges?:            string
-    center?:           string
+    center?:           string | SchemaDiagramCenter
+    centerEdges?:      SchemaDiagramCenterEdges
     links?:            "props" | "all"
     labeled?:          boolean
     edgeSource?:       string
@@ -287,9 +301,23 @@ type SchemaGradiaConfig = Partial<{
     comma-separated `[[xxx]]` patterns of the objects acting as edges, not nodes,
     BECAUSE some relations are objects, yet still connect two nodes
 
--   `SchemaDiagram.center?: string`:
-    object a `hub` diagram is projected onto (default: `self`),
-    BECAUSE a hub needs one focus, not always the owning object
+-   `SchemaDiagram.center?: string | SchemaDiagramCenter`:
+    object a `hub` diagram is projected onto (default: `self`), or a
+    synthetic center node, labeled from a referenced `source` object (or
+    one of its properties, via `property`) or a literal `label`, typed
+    (under `qualified`) by `kind`, and linked to the `source` object,
+    BECAUSE the focus of a hub is not always a specification object --
+    the solution itself, e.g., sits in the middle of a context diagram
+    without being modeled anywhere
+
+-   `SchemaDiagram.centerEdges?: SchemaDiagramCenterEdges`:
+    synthesized center edges of a `hub`: the `property` of the node
+    objects whose `inbound` value maps onto a node-to-center edge, whose
+    `outbound` value onto a center-to-node edge, and whose `both` value
+    onto both edges (the second placement rendered as a "ghost" node),
+    each optionally named by the value of the `labeled` property,
+    BECAUSE the nodes carry no `[[xxx]]` reference to a synthetic center,
+    so their relation to it lives in a direction property instead
 
 -   `SchemaDiagram.links?: "props" | "all"`:
     edge source: property values (`props`) or also texts (`all`),
@@ -473,6 +501,18 @@ that kind. Its `type` selects the diagram shape (`graph`, `hub`, or
 comma-separated `[[xxx]]` reference patterns (`nodes` defaults to the
 object itself plus all objects below it), and `center` names the object
 a `hub` is projected onto (default: `self`).
+
+Instead of naming an existing object, `center` can also declare a
+*synthetic* center node, which represents something no specification
+object models -- like the solution itself in the middle of a context
+diagram. Such a center is labeled from a referenced `source` object (or
+one of its properties, via `property`) or a literal `label`, and links
+to the `source` object. As the nodes carry no `[[xxx]]` reference to a
+synthetic center, `centerEdges` synthesizes the edges from a direction
+`property` of the node objects: its `inbound` value maps onto a
+node-to-center edge, its `outbound` value onto a center-to-node edge,
+and its `both` value onto both edges, each optionally named by the value
+of the `labeled` property.
 
 `onlyConnected` drops the edge-less nodes of a `graph`, `collapse`
 (default: `true`) omits a degenerated diagram consisting of a single
