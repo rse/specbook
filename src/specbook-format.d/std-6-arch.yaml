@@ -10,7 +10,9 @@
     file: 23-ARCH-CV-Context-View.md
     desc: >
         The relationships, dependencies, and interactions between the solution and its environment,
-        defining the system's scope, external entities, and boundaries.
+        defining the system's boundary by enumerating the external entities sitting at it. The
+        artifact complements the Solution Vision: its `SCOPE` states what is deliberately *out* of
+        the solution, the Context View enumerates what the solution touches *at* the boundary.
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Context Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/context/
@@ -32,25 +34,34 @@
                 concise (1-3 sentence) paragraph by the relationship and dependency between the
                 solution and the entity, plus a 1-sentence rationale ("why") for the entity being
                 part of the system context.
+
+                An entity is outside the solution and exchanges information with it across the
+                boundary: a party with a mere interest in the solution but no such exchange is a
+                `Stakeholder` persona of the User Personas instead, and a platform element the
+                solution deploys and operates itself (e.g. a managed database of its own) is a
+                Deployment View node instead -- only a party or system the solution merely
+                consumes or serves belongs to the system context.
+            format:
+                maxTableColumns: 6
             props:
                 -   name: KIND
                     desc: |
                         The kind of the external entity, one of:
                         -   `Person`:       A human actor interacting with the solution.
-                        -   `System`:       An external software system the solution integrates
-                                            with.
+                        -   `System`:       An external software system the solution integrates with.
                         -   `Service`:      A third-party or managed service the solution consumes.
-                        -   `Datastore`:    An external data repository the solution reads from or
-                                            writes to.
-                        -   `Device`:       A physical device or sensor the solution communicates
-                                            with.
+                        -   `Datastore`:    An external data repository the solution reads from or writes to.
+                        -   `Device`:       A physical device or sensor the solution communicates with.
                         -   `Organization`: An external organizational party.
                     value: enum(Person,System,Service,Datastore,Device,Organization)
                 -   name: DIRECTION
                     desc: >
-                        The flow of interaction relative to the solution: `Inbound` (the entity
-                        drives the solution), `Outbound` (the solution drives the entity), or
-                        `Bidirectional` (both directions).
+                        Who initiates the interaction: `Inbound` (the entity drives the solution),
+                        `Outbound` (the solution drives the entity), or `Bidirectional` (both
+                        sides initiate), independent of the direction the exchanged information
+                        flows in, which the `DATA` property describes (e.g. a datastore the
+                        solution reads from is `Outbound`, as the solution initiates, while the
+                        data flows in).
                     value: enum(Inbound,Outbound,Bidirectional)
                 -   name: INTERFACE
                     desc: >
