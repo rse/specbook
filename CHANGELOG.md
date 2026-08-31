@@ -11,6 +11,13 @@ ChangeLog
     text, titled with the qualified object path, attached above or below the hovered element by the
     larger viewport space, and absent from the PDF print.
 
+-   IMPROVEMENT [code]: Instance Description Popups
+    The description popups of the HTML export now distinguish three types: an object kind pops up the
+    schema "desc" of the kind (the path ending in the kind), a property name the schema "desc" of the
+    property, and -- newly -- an object name (in headings, tables, compact hyperlinks, and diagram
+    nodes) the corpus description of the instance (the path ending in "KIND: Name"), with a bold
+    "Schema:" or "Specification:" label leading the description to name its origin.
+
 -   IMPROVEMENT [code]: Search Tab
     The full-text search field of the HTML export moved from the title page into a fixed tab riding the
     brand bar below the table of contents tab (following the bar when the panel shifts it aside), whose

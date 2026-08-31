@@ -52,74 +52,82 @@ vendors = official
     (layer 3), with the dark theme using roughly mirrored indices  */
 html,
 html.theme-light
-    --theme-color-specbook-background:  var(--theme-color-base-32)
-    --theme-color-specbook-text:        var(--theme-color-base-5)
-    --theme-color-specbook-muted:       var(--theme-color-base-22)
-    --theme-color-specbook-symbol:      var(--theme-color-base-24)
-    --theme-color-specbook-border:      var(--theme-color-base-28)
-    --theme-color-specbook-stripe:      var(--theme-color-base-31)
-    --theme-color-specbook-tint:        var(--theme-color-accent-32)
-    --theme-color-specbook-tint-stripe: var(--theme-color-accent-30)
-    --theme-color-specbook-tint-deep:   var(--theme-color-accent-28)
-    --theme-color-specbook-accent:      var(--theme-color-accent-12)
-    --theme-color-specbook-accent-soft: var(--theme-color-accent-18)
-    --theme-color-specbook-mark-text:   var(--theme-color-search-32)
-    --theme-color-specbook-mark-back:   var(--theme-color-search-16)
-    --theme-color-specbook-field:       var(--theme-color-accent-8)
-    --theme-color-specbook-error:       #cc0000
-    --gradia-font-family:               "Source Sans 3"
-    --gradia-color-node-regular-name:   var(--theme-color-accent-12)
-    --gradia-color-node-regular-box:    var(--theme-color-accent-30)
-    --gradia-color-node-regular-border: var(--theme-color-accent-26)
-    --gradia-color-node-primary-name:   var(--theme-color-base-32)
-    --gradia-color-node-primary-box:    var(--theme-color-accent-12)
-    --gradia-color-node-primary-border: var(--theme-color-accent-8)
-    --gradia-color-node-ghost-name:     var(--theme-color-base-22)
-    --gradia-color-node-ghost-box:      var(--theme-color-base-31)
-    --gradia-color-node-ghost-border:   var(--theme-color-base-24)
-    --gradia-color-group-name:          var(--theme-color-accent-18)
-    --gradia-color-group-box:           var(--theme-color-accent-32)
-    --gradia-color-group-border:        var(--theme-color-accent-26)
-    --gradia-color-edge-line:           var(--theme-color-base-22)
-    --gradia-color-edge-name:           var(--theme-color-base-5)
-    --gradia-color-edge-arity:          var(--theme-color-base-5)
-    --gradia-color-edge-halo:           var(--theme-color-specbook-background)
+    --theme-color-specbook-background:        var(--theme-color-base-32)
+    --theme-color-specbook-text:              var(--theme-color-base-5)
+    --theme-color-specbook-muted:             var(--theme-color-base-22)
+    --theme-color-specbook-symbol:            var(--theme-color-base-24)
+    --theme-color-specbook-border:            var(--theme-color-base-28)
+    --theme-color-specbook-stripe:            var(--theme-color-base-31)
+    --theme-color-specbook-tint:              var(--theme-color-accent-32)
+    --theme-color-specbook-tint-stripe:       var(--theme-color-accent-30)
+    --theme-color-specbook-tint-deep:         var(--theme-color-accent-28)
+    --theme-color-specbook-accent:            var(--theme-color-accent-12)
+    --theme-color-specbook-accent-soft:       var(--theme-color-accent-18)
+    --theme-color-specbook-mark-text:         var(--theme-color-search-32)
+    --theme-color-specbook-mark-back:         var(--theme-color-search-16)
+    --theme-color-specbook-field:             var(--theme-color-accent-8)
+    --theme-color-specbook-error:             #cc0000
+    --theme-color-specbook-popup-schema-path: var(--theme-color-accent-30)
+    --theme-color-specbook-popup-schema-desc: var(--theme-color-base-32)
+    --theme-color-specbook-popup-spec-path:   var(--theme-color-accent-12)
+    --theme-color-specbook-popup-spec-desc:   var(--theme-color-base-5)
+    --gradia-font-family:                     "Source Sans 3"
+    --gradia-color-node-regular-name:         var(--theme-color-accent-12)
+    --gradia-color-node-regular-box:          var(--theme-color-accent-30)
+    --gradia-color-node-regular-border:       var(--theme-color-accent-26)
+    --gradia-color-node-primary-name:         var(--theme-color-base-32)
+    --gradia-color-node-primary-box:          var(--theme-color-accent-12)
+    --gradia-color-node-primary-border:       var(--theme-color-accent-8)
+    --gradia-color-node-ghost-name:           var(--theme-color-base-22)
+    --gradia-color-node-ghost-box:            var(--theme-color-base-31)
+    --gradia-color-node-ghost-border:         var(--theme-color-base-24)
+    --gradia-color-group-name:                var(--theme-color-accent-18)
+    --gradia-color-group-box:                 var(--theme-color-accent-32)
+    --gradia-color-group-border:              var(--theme-color-accent-26)
+    --gradia-color-edge-line:                 var(--theme-color-base-22)
+    --gradia-color-edge-name:                 var(--theme-color-base-5)
+    --gradia-color-edge-arity:                var(--theme-color-base-5)
+    --gradia-color-edge-halo:                 var(--theme-color-specbook-background)
 
 /*  the dark theme applies on screen only, so print (and hence the
     PDF export) always falls back onto the light mapping above  */
 @media screen
     html.theme-dark
-        --theme-color-specbook-background:  var(--theme-color-base-7)
-        --theme-color-specbook-text:        var(--theme-color-base-29)
-        --theme-color-specbook-muted:       var(--theme-color-base-22)
-        --theme-color-specbook-symbol:      var(--theme-color-base-20)
-        --theme-color-specbook-border:      var(--theme-color-base-16)
-        --theme-color-specbook-stripe:      var(--theme-color-base-9)
-        --theme-color-specbook-tint:        var(--theme-color-accent-1)
-        --theme-color-specbook-tint-stripe: var(--theme-color-accent-3)
-        --theme-color-specbook-tint-deep:   var(--theme-color-accent-5)
-        --theme-color-specbook-accent:      var(--theme-color-accent-24)
-        --theme-color-specbook-accent-soft: var(--theme-color-accent-16)
-        --theme-color-specbook-mark-text:   var(--theme-color-search-32)
-        --theme-color-specbook-mark-back:   var(--theme-color-search-4)
-        --theme-color-specbook-field:       var(--theme-color-accent-16)
-        --theme-color-specbook-error:       #cc0000
-        --gradia-color-node-regular-name:   var(--theme-color-accent-21)
-        --gradia-color-node-regular-box:    var(--theme-color-accent-3)
-        --gradia-color-node-regular-border: var(--theme-color-accent-7)
-        --gradia-color-node-primary-name:   var(--theme-color-base-1)
-        --gradia-color-node-primary-box:    var(--theme-color-accent-21)
-        --gradia-color-node-primary-border: var(--theme-color-accent-25)
-        --gradia-color-node-ghost-name:     var(--theme-color-base-24)
-        --gradia-color-node-ghost-box:      var(--theme-color-base-12)
-        --gradia-color-node-ghost-border:   var(--theme-color-base-16)
-        --gradia-color-group-name:          var(--theme-color-accent-15)
-        --gradia-color-group-box:           var(--theme-color-accent-1)
-        --gradia-color-group-border:        var(--theme-color-accent-7)
-        --gradia-color-edge-line:           var(--theme-color-base-20)
-        --gradia-color-edge-name:           var(--theme-color-base-29)
-        --gradia-color-edge-arity:          var(--theme-color-base-29)
-        --gradia-color-edge-halo:           var(--theme-color-specbook-background)
+        --theme-color-specbook-background:        var(--theme-color-base-7)
+        --theme-color-specbook-text:              var(--theme-color-base-29)
+        --theme-color-specbook-muted:             var(--theme-color-base-22)
+        --theme-color-specbook-symbol:            var(--theme-color-base-20)
+        --theme-color-specbook-border:            var(--theme-color-base-16)
+        --theme-color-specbook-stripe:            var(--theme-color-base-9)
+        --theme-color-specbook-tint:              var(--theme-color-accent-1)
+        --theme-color-specbook-tint-stripe:       var(--theme-color-accent-3)
+        --theme-color-specbook-tint-deep:         var(--theme-color-accent-5)
+        --theme-color-specbook-accent:            var(--theme-color-accent-24)
+        --theme-color-specbook-accent-soft:       var(--theme-color-accent-16)
+        --theme-color-specbook-mark-text:         var(--theme-color-search-32)
+        --theme-color-specbook-mark-back:         var(--theme-color-search-4)
+        --theme-color-specbook-field:             var(--theme-color-accent-16)
+        --theme-color-specbook-error:             #cc0000
+        --theme-color-specbook-popup-schema-path: var(--theme-color-accent-4)
+        --theme-color-specbook-popup-schema-desc: var(--theme-color-base-7)
+        --theme-color-specbook-popup-spec-path:   var(--theme-color-accent-24)
+        --theme-color-specbook-popup-spec-desc:   var(--theme-color-base-29)
+        --gradia-color-node-regular-name:         var(--theme-color-accent-21)
+        --gradia-color-node-regular-box:          var(--theme-color-accent-3)
+        --gradia-color-node-regular-border:       var(--theme-color-accent-7)
+        --gradia-color-node-primary-name:         var(--theme-color-base-1)
+        --gradia-color-node-primary-box:          var(--theme-color-accent-21)
+        --gradia-color-node-primary-border:       var(--theme-color-accent-25)
+        --gradia-color-node-ghost-name:           var(--theme-color-base-24)
+        --gradia-color-node-ghost-box:            var(--theme-color-base-12)
+        --gradia-color-node-ghost-border:         var(--theme-color-base-16)
+        --gradia-color-group-name:                var(--theme-color-accent-15)
+        --gradia-color-group-box:                 var(--theme-color-accent-1)
+        --gradia-color-group-border:              var(--theme-color-accent-7)
+        --gradia-color-edge-line:                 var(--theme-color-base-20)
+        --gradia-color-edge-name:                 var(--theme-color-base-29)
+        --gradia-color-edge-arity:                var(--theme-color-base-29)
+        --gradia-color-edge-halo:                 var(--theme-color-specbook-background)
 
 html, body
     font-size: 12pt
@@ -227,13 +235,21 @@ body.info-on div.info-switch svg.info-icon
 
 /*  the description popup (screen-only): a single shared, script-
     positioned element showing the schema description of the hovered
-    object kind or property name, capped at 40% viewport width with
-    auto height, attached above or below the hovered element (the side
+    object kind or property name, or the corpus description of the
+    hovered object name, capped at 40% viewport width with auto
+    height, attached above or below the hovered element (the side
     offering more viewport space), colored like the tabs (accent
     background) and clearly popping up the content by a drop-shadow,
-    with the bold title carrying the object path segments (a filled
-    circle icon leading each), extended for properties with the
-    not-filled circle icon and the property name  */
+    with the title carrying the object path segments (a filled circle
+    icon leading each, the kinds bold and the names regular, as in the
+    document content), extended for properties with the not-filled
+    circle icon and the bold property name, and the description
+    led by a bold "Schema:" or "Specification:" origin label, where
+    the corpus-fed instance popups distinguish themselves from the
+    accent-colored schema-fed popups (kind and property) by the page
+    background colors (with a border setting them off the page), both
+    colored through the dedicated title path and description tokens
+    --theme-color-specbook-popup-{schema,spec}-{path,desc}  */
 div.info-popup
     display: none
     position: fixed
@@ -242,13 +258,22 @@ div.info-popup
     max-width: 40vw
     padding: 0.65rem 1.0rem
     border-radius: 0.25rem
-    color: var(--theme-color-specbook-background)
+    color: var(--theme-color-specbook-popup-schema-desc)
     background-color: var(--theme-color-specbook-accent)
     box-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.4)
     pointer-events: none
 div.info-popup.open
     display: block
+div.info-popup.spec
+    color: var(--theme-color-specbook-popup-spec-desc)
+    background-color: var(--theme-color-specbook-background)
+    border: 1px solid var(--theme-color-specbook-border)
 div.info-popup div.info-title
+    color: var(--theme-color-specbook-popup-schema-path)
+div.info-popup.spec div.info-title
+    color: var(--theme-color-specbook-popup-spec-path)
+div.info-popup span.info-kind,
+div.info-popup span.info-property
     font-weight: bold
 div.info-popup span.info-object::before
     content: "\25CF"
@@ -272,6 +297,25 @@ div.info-popup div.info-desc p
     margin: 0.25rem 0
 div.info-popup div.info-desc p:last-child
     margin-bottom: 0
+
+/*  the origin label pointer, lowered so the triangle (designed above
+    the baseline) centers optically on the x-height of the text  */
+div.info-popup span.info-pointer
+    vertical-align: -0.1em
+    line-height: 0
+
+/*  the hyperlinks of a description inside an accent-colored popup
+    inherit the popup foreground, as their accent link color (and the
+    accent icon of the compact form) would vanish on the accent
+    background (the links are inert anyway, as the popup ignores
+    pointer events), while inside the page-background instance popups
+    they keep the regular accent link color  */
+div.info-popup a,
+div.info-popup a.link-compact::before
+    color: var(--theme-color-specbook-popup-schema-desc)
+div.info-popup.spec a,
+div.info-popup.spec a.link-compact::before
+    color: var(--theme-color-specbook-accent)
 @media print
     div.info-popup
         display: none
@@ -513,11 +557,8 @@ a
 span.link-broken
     color: var(--theme-color-specbook-error)
 
-/*  the compact hyperlinks of the prose (object icon and name only),
-    revealing their full form (kind, name, and link symbol) as a
-    tooltip on hovering  */
-a.link-compact
-    position: relative
+/*  the compact hyperlinks of the prose (object icon and name only,
+    their full form shown by the description popups)  */
 a.link-compact::before
     content: "\25CF"
     color: var(--theme-color-specbook-accent)
@@ -526,22 +567,6 @@ a.link-compact::before
     margin-right: 0.25rem
     vertical-align: -0.075em
     line-height: 0
-a.link-compact span.link-tooltip
-    display: none
-    position: absolute
-    left: 0
-    bottom: 1.4em
-    z-index: 10
-    white-space: nowrap
-    font-weight: normal
-    padding: 0.15rem 0.5rem
-    color: var(--theme-color-specbook-text)
-    background-color: var(--theme-color-specbook-background)
-    border: 1px solid var(--theme-color-specbook-border)
-    border-radius: 0.25rem
-    box-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 0.3)
-a.link-compact:hover span.link-tooltip
-    display: inline-block
 span.anchor-paren
     color: var(--theme-color-specbook-muted)
     font-weight: normal
