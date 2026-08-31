@@ -67,6 +67,7 @@ const templates = {
             <body>
                 {% if Document.realtime %}<div class="realtime-status disconnected" title="live preview connection"><svg class="realtime-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/><path d="M12 22v-5"/></svg></div>{% endif %}
                 <div class="theme-switch" onclick="themeSwitch()" title="switch color theme"><svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5 A 8.5 8.5 0 0 0 12 20.5 Z" fill="currentColor" stroke="none"/></svg></div>
+                {% if Document.info %}<div class="info-switch" title="toggle description popups"><svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="7.75" x2="12.01" y2="7.75"/></svg></div>{% endif %}
                 <div class="search" id="search">
                     <div class="search-toggle" id="search-toggle" title="toggle search field"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><line x1="15" y1="15" x2="21" y2="21"/></svg></div>
                     <div class="search-field">
@@ -81,6 +82,7 @@ const templates = {
                 {{ Document.artifacts }}
                 {% if Document.search %}<script>{{ Document.search }}</script>{% endif %}
                 {% if Document.tocpanel %}<script>{{ Document.tocscript }}</script>{% endif %}
+                {% if Document.info %}<script>{{ Document.info }}</script>{% endif %}
                 {% if Document.realtime %}<script class="realtime">{{ Document.realtime }}</script>{% endif %}
             </body>
         </html>
@@ -109,7 +111,7 @@ const templates = {
             <h1>Table of Contents</h1>
             <table>
                 {% for entry in Toc.entries %}
-                <tr class="level-{{ entry.level }}"><td><a href="#{{ entry.id }}"><span class="object-kind">{{ entry.kind }}:</span> {{ entry.name }} <span class="link-symbol">&#x26AD;</span></a></td>{% if entry.page %}<td class="page"><a href="#{{ entry.id }}">{{ entry.page }}</a></td>{% endif %}</tr>
+                <tr class="level-{{ entry.level }}"><td><a href="#{{ entry.id }}"{% if entry.info %} data-info="{{ entry.info }}" data-info-path="{{ entry.infopath }}"{% endif %}><span class="object-kind">{{ entry.kind }}:</span> {{ entry.name }} <span class="link-symbol">&#x26AD;</span></a></td>{% if entry.page %}<td class="page"><a href="#{{ entry.id }}">{{ entry.page }}</a></td>{% endif %}</tr>
                 {% endfor %}
             </table>
         </nav>
@@ -134,7 +136,7 @@ const templates = {
     "TocPanelEntries": textframe`
         <ul>
             {% for entry in Entries %}
-            <li><a href="#{{ entry.id }}"><span class="entry"><span class="object-kind">{{ entry.kind }}:</span> {{ entry.name }}</span></a>{{ entry.childs }}</li>
+            <li><a href="#{{ entry.id }}"{% if entry.info %} data-info="{{ entry.info }}" data-info-path="{{ entry.infopath }}"{% endif %}><span class="entry"><span class="object-kind">{{ entry.kind }}:</span> {{ entry.name }}</span></a>{{ entry.childs }}</li>
             {% endfor %}
         </ul>
     `,
@@ -157,7 +159,7 @@ const templates = {
     /*  <Object/>  */
     "Object": textframe`
         <section>
-            <h{{ Object.level }} id="{{ Object.id }}"><span class="object-kind">{{ Object.kind }}:</span> {{ Object.name }}{% if Object.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if Object.paren %} <span class="anchor-paren">({{ Object.paren }})</span>{% endif %} <a href="#{{ Object.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></h{{ Object.level }}>
+            <h{{ Object.level }} id="{{ Object.id }}"{% if Object.info %} data-info="{{ Object.info }}" data-info-path="{{ Object.infopath }}"{% endif %}><span class="object-kind">{{ Object.kind }}:</span> {{ Object.name }}{% if Object.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if Object.paren %} <span class="anchor-paren">({{ Object.paren }})</span>{% endif %} <a href="#{{ Object.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></h{{ Object.level }}>
             {{ Object.diagram }}
             {{ Object.properties }}
             {{ Object.description }}
@@ -169,7 +171,7 @@ const templates = {
     "Properties": textframe`
         <table class="props">
             {% for property in Properties %}
-            <tr><td class="key property-name">{{ property.key }}</td><td>{{ property.value }}</td></tr>
+            <tr><td class="key property-name"><span{% if property.info %} data-info="{{ property.info }}" data-info-path="{{ property.infopath }}" data-info-prop="{{ property.key }}"{% endif %}>{{ property.key }}</span></td><td>{{ property.value }}</td></tr>
             {% endfor %}
         </table>
     `,
@@ -193,15 +195,15 @@ const templates = {
         <table class="objects">
             <thead>
                 <tr>
-                    <th class="object-kind">{{ Table.head }}</th>
-                    {%- for key in Table.keys %}<th class="property-name">{{ key }}</th>{% endfor %}
+                    <th class="object-kind"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}"{% endif %}>{{ Table.head }}</span></th>
+                    {%- for key in Table.keys %}<th class="property-name"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}" data-info-prop="{{ key }}"{% endif %}>{{ key }}</span></th>{% endfor %}
                     {%- if Table.desc %}<th class="description" style="width: {{ Table.width }}%">Description</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for row in Table.rows %}
                 <tr id="{{ row.id }}"{% if row.even %} class="even"{% endif %}>
-                    <td>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
+                    <td><span{% if row.info %} data-info="{{ row.info }}" data-info-path="{{ row.infopath }}"{% endif %}>{{ row.name }}</span>{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     {%- for value in row.values %}<td>{{ value }}</td>{% endfor %}
                     {%- if Table.desc %}<td>{{ row.description }}</td>{% endif %}
                 </tr>
@@ -215,18 +217,18 @@ const templates = {
         <table class="objects">
             <thead>
                 <tr>
-                    <th class="object-kind" style="width: {{ Table.width }}%">{{ Table.head }}</th>
+                    <th class="object-kind" style="width: {{ Table.width }}%"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}"{% endif %}>{{ Table.head }}</span></th>
                     <th class="description">Properties</th>
                 </tr>
             </thead>
             <tbody>
                 {% for row in Table.rows %}
                 <tr id="{{ row.id }}"{% if row.even %} class="even"{% endif %}>
-                    <td>{{ row.name }}{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
+                    <td><span{% if row.info %} data-info="{{ row.info }}" data-info-path="{{ row.infopath }}"{% endif %}>{{ row.name }}</span>{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     <td class="chunks">
                         <table class="chunks">
                             {% for chunk in row.chunks %}
-                            <tr>{% for cell in chunk %}<th{% if not cell.desc %} class="property-name"{% endif %}{% if cell.span > 1 %} colspan="{{ cell.span }}"{% endif %}>{{ cell.key }}</th>{% endfor %}</tr>
+                            <tr>{% for cell in chunk %}<th{% if not cell.desc %} class="property-name"{% endif %}{% if cell.span > 1 %} colspan="{{ cell.span }}"{% endif %}><span{% if not cell.desc and Table.info %} data-info="{{ Table.info }}" data-info-path="{{ row.infopath }}" data-info-prop="{{ cell.key }}"{% endif %}>{{ cell.key }}</span></th>{% endfor %}</tr>
                             <tr>{% for cell in chunk %}<td{% if cell.span > 1 %} colspan="{{ cell.span }}"{% endif %}>{{ cell.value }}</td>{% endfor %}</tr>
                             {% endfor %}
                         </table>
@@ -400,6 +402,7 @@ const tocPanelScript = textframe`
             else if (!panel.contains(event.target)
                 && event.target.closest("div.search")          === null
                 && event.target.closest("div.theme-switch")    === null
+                && event.target.closest("div.info-switch")     === null
                 && event.target.closest("div.realtime-status") === null)
                 toggle(false)
         }
@@ -409,6 +412,132 @@ const tocPanelScript = textframe`
         spy()
         anchor()
     })()
+`
+
+/*  the client-side script of the description popups: the info tab
+    toggles the popups on and off (default), persisting the choice
+    across page loads, and while they are on, hovering an element
+    carrying a "data-info" key shows the schema description of its
+    object kind (or, with "data-info-prop", of its property) in a
+    single shared popup -- a hovered diagram node box resolves through
+    its hyperlinked object anchor to the popup attributes of the
+    object's heading or table row -- opened only after the mouse
+    rested 400ms on the element (so mere mouse movements across the
+    page pop nothing up), titled with the "data-info-path" object
+    path (one filled-circle "KIND: Name" segment per level,
+    arbitrarily deep and separated by the icons alone, plus the
+    not-filled-circle property name) and fed from the
+    injected INFO map of pre-rendered description HTML (a missing
+    entry pops up the title path alone), where the popup is capped
+    at 40% viewport width and attached above or below the hovered
+    element, whichever side offers more viewport space; the script
+    runs at the end of the body, so a live preview body swap
+    replaces the popup element and the body-bound listeners along
+    with the re-executed script  */
+const infoPopupScript = textframe`
+    (function (INFO) {
+        const popup = document.createElement("div")
+        popup.className = "info-popup"
+        document.body.appendChild(popup)
+        let enabled = false
+        try { enabled = localStorage.getItem("specbook-info") === "on" }
+        catch { /*  an inaccessible storage just means no stored choice  */ }
+        let current   = null
+        let pending   = null
+        let pendingId = 0
+        const cancel = () => {
+            clearTimeout(pendingId)
+            pending = null
+        }
+        const hide = () => {
+            popup.classList.remove("open")
+            current = null
+        }
+        const apply = () => {
+            document.body.classList.toggle("info-on", enabled)
+            if (!enabled) {
+                cancel()
+                hide()
+            }
+        }
+        apply()
+        document.querySelector("div.info-switch").addEventListener("click", () => {
+            enabled = !enabled
+            try { localStorage.setItem("specbook-info", enabled ? "on" : "off") }
+            catch { /*  an inaccessible storage just loses the choice  */ }
+            apply()
+        })
+        const show = (el) => {
+            /*  a diagram node box carries no popup attributes itself, but
+                hyperlinks its object, whose heading or table row does  */
+            let source = el
+            if (!el.hasAttribute("data-info")) {
+                const target = document.getElementById(
+                    decodeURIComponent((el.getAttribute("href") ?? "").replace(/^#/, "")))
+                source = target === null ? null :
+                    (target.hasAttribute("data-info") ? target : target.querySelector("[data-info]"))
+                if (source === null)
+                    return
+            }
+            current = el
+            const key   = source.getAttribute("data-info")
+            const prop  = source.getAttribute("data-info-prop")
+            const title = document.createElement("div")
+            title.className = "info-title"
+            for (const segment of (source.getAttribute("data-info-path") ?? key).split(" . ")) {
+                const path = document.createElement("span")
+                path.className = "info-object"
+                path.textContent = segment
+                title.appendChild(path)
+            }
+            if (prop !== null) {
+                const name = document.createElement("span")
+                name.className = "info-property"
+                name.textContent = prop
+                title.appendChild(name)
+            }
+            popup.replaceChildren(title)
+            const entry = INFO[key]
+            const desc  = prop !== null ? entry?.p?.[prop] : entry?.d
+            if (desc !== undefined) {
+                const text = document.createElement("div")
+                text.className = "info-desc"
+                text.innerHTML = desc
+                popup.appendChild(text)
+            }
+
+            /*  measure the popup at the viewport origin first, as a
+                position near the right or bottom edge would clamp it  */
+            popup.style.left = "0px"
+            popup.style.top  = "0px"
+            popup.classList.add("open")
+            const rect  = el.getBoundingClientRect()
+            const left  = Math.max(8, Math.min(rect.left, window.innerWidth - popup.offsetWidth - 8))
+            const above = rect.top > window.innerHeight - rect.bottom
+            popup.style.left = left + "px"
+            popup.style.top  = (above ? rect.top - popup.offsetHeight - 6 : rect.bottom + 6) + "px"
+        }
+        const targets = "[data-info], div.diagram a"
+        document.body.addEventListener("mouseover", (event) => {
+            if (!enabled)
+                return
+            const el = event.target.closest(targets)
+            if (el === null || el === current || el === pending)
+                return
+            cancel()
+            pending   = el
+            pendingId = setTimeout(() => { pending = null; show(el) }, 400)
+        })
+        document.body.addEventListener("mouseout", (event) => {
+            const el = event.target.closest(targets)
+            if (el === null || (event.relatedTarget instanceof Node && el.contains(event.relatedTarget)))
+                return
+            if (el === pending)
+                cancel()
+            if (el === current)
+                hide()
+        })
+    })(@INFO@)
 `
 
 /*  ==== Rendering ====  */
@@ -480,13 +609,16 @@ const render = (name: keyof typeof templates, context: object): string =>
 
 /*  the active per-document reference expander, fully-qualified
     anchor paths, member-carrying property value constraints, object
-    schema nodes, and pre-rendered diagram SVGs (all set during HTML
-    rendering)  */
-let linker:   ((text: string, compact: boolean) => string) | null = null
-let anchors:  Map<SpecObject, string> | null       = null
-let members:  Map<string, ValueExpr> | null        = null
-let schemas:  Map<SpecObject, SchemaObject> | null = null
-let diagrams: Map<SpecObject, string> | null       = null
+    schema nodes, pre-rendered diagram SVGs, description popup keys
+    of the schema nodes, and object parents of the description popup
+    title paths (all set during HTML rendering)  */
+let linker:      ((text: string, compact: boolean) => string) | null = null
+let anchors:     Map<SpecObject, string> | null       = null
+let members:     Map<string, ValueExpr> | null        = null
+let schemas:     Map<SpecObject, SchemaObject> | null = null
+let diagrams:    Map<SpecObject, string> | null       = null
+let infoKeys:    Map<SchemaObject, string> | null     = null
+let infoParents: Map<SpecObject, SpecObject> | null   = null
 
 /*  the object whose texts are currently rendered, scoping the
     resolution of the references inside them (nearest object wins),
@@ -511,6 +643,72 @@ const diagramCache = new WeakMap<Spec,
 /*  determine the fully-qualified anchor path of an object  */
 const anchorOf = (object: SpecObject): string =>
     anchors?.get(object) ?? object.id
+
+/*  determine the description popup key of an object (the qualified
+    title path of its schema node)  */
+const infoKeyOf = (object: SpecObject): string | undefined => {
+    const schema = schemas?.get(object)
+    return schema !== undefined ? infoKeys?.get(schema) : undefined
+}
+
+/*  determine the description popup title path of an object: the chain
+    of "KIND: Name" segments from the artifact down to the object
+    (arbitrarily deep), where "named = false" keeps the last segment
+    kind-only, as the group headers of the compact tables stand for
+    all objects of the group instead of a single one  */
+const infoPathOf = (object: SpecObject, named = true): string => {
+    const parent  = infoParents?.get(object)
+    const prefix  = parent !== undefined ? `${infoPathOf(parent)} . ` : ""
+    const name    = named ? plainText(object.name).trim() : ""
+    const segment = name !== "" && object.kind !== "" ? `${object.kind}: ${name}` :
+        (name !== "" ? name : object.kind)
+    return prefix + segment
+}
+
+/*  render the description popup key and title path of an object as
+    "data-info" attributes for the manually assembled hyperlink markup  */
+const infoAttr = (object: SpecObject): string => {
+    const key = infoKeyOf(object)
+    return key !== undefined ?
+        ` data-info="${escapeHtml(key)}" data-info-path="${escapeHtml(infoPathOf(object))}"` : ""
+}
+
+/*  an entry of the description popup map embedded into the document:
+    the pre-rendered description HTML of an object kind ("d") and of
+    its properties ("p", keyed by property name)  */
+type InfoEntry = { d?: string, p?: Record<string, string> }
+
+/*  collect the description popup map and the qualified title paths of
+    the schema nodes (the artifact kind leading its name, the nested
+    kinds appended), with the description Markdown of the objects and
+    properties pre-rendered to HTML  */
+const collectInfo = (nodes: SchemaObject[], prefix: string,
+    keys: Map<SchemaObject, string>, info: Record<string, InfoEntry>) => {
+    for (const schema of nodes) {
+        const path = prefix !== "" ? `${prefix} . ${schema.kind}` :
+            (schema.name !== undefined ? `${schema.kind}: ${schema.name}` : schema.kind)
+        keys.set(schema, path)
+        const entry: InfoEntry = {}
+        if (schema.desc !== undefined)
+            entry.d = marked.parse(schema.desc, { async: false }).trim()
+        for (const property of schema.props ?? []) {
+            if (property.desc === undefined)
+                continue
+            entry.p ??= {}
+            entry.p[property.name] = marked.parse(property.desc, { async: false }).trim()
+        }
+        if (entry.d !== undefined || entry.p !== undefined)
+            info[path] = entry
+        collectInfo(schema.childs ?? [], path, keys, info)
+    }
+}
+
+/*  inject the description popup map into its client-side script ("<"
+    escaped, so no embedded HTML can close the surrounding <script>
+    element)  */
+const infoScript = (info: Record<string, InfoEntry>): string =>
+    infoPopupScript.replace("@INFO@", () =>
+        JSON.stringify(info).replace(/</g, "\\u003c"))
 
 /*  expand the inline Markdown of a text (code spans, emphasis, etc.),
     with Wiki-style references expanded upfront (in their compact form
@@ -658,6 +856,7 @@ const inlineValue = (kind: string, property: SpecProperty | undefined) => {
     rendered as absent  */
 const inlineProperties = (object: SpecObject, properties: SpecProperty[]) =>
     properties.map((property) => ({ key: property.key,
+        info: infoKeyOf(object), infopath: infoPathOf(object),
         value: inlineValue(object.kind, object.properties.includes(property) ? property : undefined) }))
 
 /*  resolve the format configuration of the kind of an object  */
@@ -765,7 +964,9 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
     const diagrams = childs.some((child) => diagramOf(child) !== "")
     if (!diagrams && 1 + keys.length + (desc ? 1 : 0) <= maxColumns)
         return render("Table", { Table: {
-            head: childs[0].kind !== "" ? childs[0].kind : "Name",
+            head:     childs[0].kind !== "" ? childs[0].kind : "Name",
+            info:     infoKeyOf(childs[0]),
+            infopath: infoPathOf(childs[0], false),
             keys,
             desc,
 
@@ -776,6 +977,8 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
                 id:          anchorOf(child),
                 paren:       child.paren,
                 primary:     child.primary,
+                info:        infoKeyOf(child),
+                infopath:    infoPathOf(child),
                 name:        inline(child.name),
                 even:        i % 2 === 1,
                 values:      keys.map((key) =>
@@ -789,8 +992,10 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
         with the last cell spanning the leftover columns of the final row  */
     const size = Math.max(1, maxColumns - 1)
     return render("TableChunked", { Table: {
-        head:  childs[0].kind !== "" ? childs[0].kind : "Name",
-        width: Math.round(100 / maxColumns),
+        head:     childs[0].kind !== "" ? childs[0].kind : "Name",
+        info:     infoKeyOf(childs[0]),
+        infopath: infoPathOf(childs[0], false),
+        width:    Math.round(100 / maxColumns),
         rows:  childs.map((child, i) => scoped(child, () => {
             const cells = keys.map((key) => ({ key, desc: false, span: 1,
                 value: inlineValue(child.kind, child.properties.find((property) => property.key === key)) }))
@@ -811,11 +1016,13 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
             if (diagram !== "")
                 chunks.unshift([ { key: "Diagram", desc: true, span: size, value: diagram } ])
             return {
-                id:      anchorOf(child),
-                paren:   child.paren,
-                primary: child.primary,
-                name:    inline(child.name),
-                even:    i % 2 === 1,
+                id:       anchorOf(child),
+                paren:    child.paren,
+                primary:  child.primary,
+                info:     infoKeyOf(child),
+                infopath: infoPathOf(child),
+                name:     inline(child.name),
+                even:     i % 2 === 1,
                 chunks
             }
         }))
@@ -835,6 +1042,8 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
     return scoped(object, () => render("Object", { Object: {
         level:       Math.min(level, 6),
         kind:        object.kind,
+        info:        infoKeyOf(object),
+        infopath:    infoPathOf(object),
         id:          anchorOf(object),
         paren:       object.paren,
         primary:     object.primary,
@@ -906,7 +1115,7 @@ const headingChilds = (object: SpecObject): SpecObject[] =>
 
 /*  an entry of the table of contents  */
 type TocEntry = { id: string, kind: string, name: nunjucks.runtime.SafeString,
-    level: number, page?: number }
+    level: number, page?: number, info?: string, infopath?: string }
 
 /*  flatten the hierarchy of the rendered object headings (exactly like
     the PDF outline) into the entries of the table of contents, each
@@ -916,8 +1125,9 @@ const tocEntries = (objects: SpecObject[], pages?: Map<string, number>): TocEntr
     const collect = (objects: SpecObject[], level: number) => {
         for (const object of objects) {
             const id = anchorOf(object)
-            entries.push({ id, kind: object.kind, name: inline(object.name),
-                level: Math.min(level, 6), page: pages?.get(id) })
+            entries.push({ id, kind: object.kind,
+                info: infoKeyOf(object), infopath: infoPathOf(object),
+                name: inline(object.name), level: Math.min(level, 6), page: pages?.get(id) })
             collect(headingChilds(object), level + 1)
         }
     }
@@ -933,9 +1143,11 @@ const tocEntries = (objects: SpecObject[], pages?: Map<string, number>): TocEntr
 const renderTocPanel = (objects: SpecObject[], title: boolean, doc: boolean): string => {
     const entries = (objects: SpecObject[]): string =>
         objects.length === 0 ? "" : render("TocPanelEntries", { Entries: objects.map((object) => ({
-            id:     anchorOf(object),
-            kind:   object.kind,
-            name:   inline(object.name),
+            id:       anchorOf(object),
+            kind:     object.kind,
+            info:     infoKeyOf(object),
+            infopath: infoPathOf(object),
+            name:     inline(object.name),
             childs: safe(entries(headingChilds(object)))
         })) })
     return render("TocPanel", { TocPanel: { title, doc, entries: safe(entries(objects)) } })
@@ -1040,6 +1252,25 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     members  = config !== undefined ? collectMembers(config, new Map()) : null
     schemas  = config !== undefined ? collectSchemas(specification, config) : null
     diagrams = rendered
+
+    /*  collect the schema descriptions for the description popups,
+        plus the object parents composing their title paths  */
+    let info: Record<string, InfoEntry> | null = null
+    if (config !== undefined) {
+        infoKeys = new Map<SchemaObject, string>()
+        info     = {}
+        collectInfo(config, "", infoKeys, info)
+        const parents = new Map<SpecObject, SpecObject>()
+        const link = (object: SpecObject) => {
+            for (const child of object.childs) {
+                parents.set(child, object)
+                link(child)
+            }
+        }
+        for (const artifact of specification.artifacts)
+            artifact.objects.forEach(link)
+        infoParents = parents
+    }
     linker   = (text, compact) => expandReferences(text, (reference) => {
         const target = resolveUnique(index, reference, scope ?? undefined).target
         if (target === undefined)
@@ -1047,9 +1278,9 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         const full = `<span class="object-kind">${escapeHtml(target.kind)}:</span> <strong>${target.name}</strong>` +
             " <span class=\"link-symbol\">&#x26AD;</span>"
         return compact ?
-            `<a href="#${escapeHtml(anchorOf(target))}" class="link-compact"><strong>${target.name}</strong>` +
+            `<a href="#${escapeHtml(anchorOf(target))}" class="link-compact"${infoAttr(target)}><strong>${target.name}</strong>` +
                 `<span class="link-tooltip">${full}</span></a>` :
-            `<a href="#${escapeHtml(anchorOf(target))}">${full}</a>`
+            `<a href="#${escapeHtml(anchorOf(target))}"${infoAttr(target)}>${full}</a>`
     })
     const created  = new Date(Math.min(
         ...specification.artifacts.map((artifact) => artifact.created.getTime())))
@@ -1074,6 +1305,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
                 safe(renderTitlePage(title,
                     formatDate(created), formatDate(modified))) : "",
             search:    safe(searchScript()),
+            info:      info !== null ? safe(infoScript(info)) : "",
             realtime:  realtime ? safe(realtimeScript) : "",
             toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
             tocpanel:  entries.length > 0 ?
@@ -1088,10 +1320,12 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         /*  release the per-document state (also on a rendering failure),
             as it would otherwise retain the specification (and its
             embedded images) until the next rendering  */
-        linker   = null
-        anchors  = null
-        members  = null
-        schemas  = null
-        diagrams = null
+        linker      = null
+        anchors     = null
+        members     = null
+        schemas     = null
+        diagrams    = null
+        infoKeys    = null
+        infoParents = null
     }
 }

@@ -5,6 +5,12 @@ ChangeLog
 1.1.0 (2026-08-31)
 ------------------
 
+-   FEATURE [code]: Description Popups
+    The HTML export gains an "info" tab below the theme tab, toggling description popups on and off
+    (default off, persisted): hovering an object kind or property name label pops up the schema "desc"
+    text, titled with the qualified object path, attached above or below the hovered element by the
+    larger viewport space, and absent from the PDF print.
+
 -   IMPROVEMENT [code]: Search Tab
     The full-text search field of the HTML export moved from the title page into a fixed tab riding the
     brand bar below the table of contents tab (following the bar when the panel shifts it aside), whose

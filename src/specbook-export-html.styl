@@ -153,7 +153,7 @@ body::before
         padding: 0
 
 /*  the theme-switching tab (screen-only): the topmost tab riding right
-    of the brand bar above the search tab (sized like the table of
+    of the brand bar above the info tab (sized like the table of
     contents tab, fixed independent of the content scrolling), showing
     a half-filled circle icon (drawn like the search icon, mimicking
     the U+25D0 glyph), which switches the color theme, where the tab
@@ -185,6 +185,97 @@ div.theme-switch svg.theme-icon
     div.theme-switch
         display: none
 
+/*  the description popup tab (screen-only): the tab riding right of
+    the brand bar between the theme-switching tab and the search tab
+    (sized like the search tab, fixed independent of the content
+    scrolling), showing an "info" icon (drawn like the search icon),
+    which toggles the description popups on and off (default), where
+    the tab follows the bar when the table of contents panel shifts it
+    aside and the icon carries the mark colors in a rounded box while
+    the popups are enabled, signalling the active toggle  */
+div.info-switch
+    position: fixed
+    top: 4.20rem
+    left: calc(0.6rem - 1px)
+    z-index: 30
+    padding: 0.65rem 0.1rem
+    line-height: 0
+    border-radius: 0 0.3rem 0.3rem 0
+    color: var(--theme-color-specbook-background)
+    background-color: var(--theme-color-specbook-accent)
+    transition: left 0.3s ease
+    cursor: pointer
+    -webkit-user-select: none
+    user-select: none
+body:has(nav.toc-panel.open) div.info-switch
+    left: calc(31rem - 1px)
+    box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
+div.info-switch:hover
+    background-color: var(--theme-color-specbook-accent-soft)
+div.info-switch svg.info-icon
+    width: 1.1rem
+    height: 1.1rem
+    padding: 0.25rem
+    border-radius: 0.3rem
+    margin-right: 0.15rem
+body.info-on div.info-switch svg.info-icon
+    color: var(--theme-color-specbook-mark-text)
+    background-color: var(--theme-color-specbook-mark-back)
+@media print
+    div.info-switch
+        display: none
+
+/*  the description popup (screen-only): a single shared, script-
+    positioned element showing the schema description of the hovered
+    object kind or property name, capped at 40% viewport width with
+    auto height, attached above or below the hovered element (the side
+    offering more viewport space), colored like the tabs (accent
+    background) and clearly popping up the content by a drop-shadow,
+    with the bold title carrying the object path segments (a filled
+    circle icon leading each), extended for properties with the
+    not-filled circle icon and the property name  */
+div.info-popup
+    display: none
+    position: fixed
+    z-index: 40
+    box-sizing: border-box
+    max-width: 40vw
+    padding: 0.65rem 1.0rem
+    border-radius: 0.25rem
+    color: var(--theme-color-specbook-background)
+    background-color: var(--theme-color-specbook-accent)
+    box-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.4)
+    pointer-events: none
+div.info-popup.open
+    display: block
+div.info-popup div.info-title
+    font-weight: bold
+div.info-popup span.info-object::before
+    content: "\25CF"
+    font-weight: normal
+    font-size: 120%
+    margin-right: 0.25rem
+    vertical-align: -0.075em
+    line-height: 0
+div.info-popup span.info-object + span.info-object
+    margin-left: 0.5rem
+div.info-popup span.info-property
+    margin-left: 0.5rem
+div.info-popup span.info-property::before
+    content: "\25CB"
+    font-weight: normal
+    font-size: 120%
+    margin-right: 0.25rem
+    vertical-align: -0.075em
+    line-height: 0
+div.info-popup div.info-desc p
+    margin: 0.25rem 0
+div.info-popup div.info-desc p:last-child
+    margin-bottom: 0
+@media print
+    div.info-popup
+        display: none
+
 /*  the connection status tab of the live preview (screen-only): the
     bottommost tab riding right of the brand bar below the table of
     contents tab (sized like the search tab, fixed independent of the
@@ -196,7 +287,7 @@ div.theme-switch svg.theme-icon
     for 2s (toggling every 250ms) after a content reload  */
 div.realtime-status
     position: fixed
-    top: 10.66rem
+    top: 13.89rem
     left: calc(0.6rem - 2px)
     z-index: 30
     padding: 0.65rem 0.1rem
@@ -263,7 +354,7 @@ nav.toc-panel.open div.toc-tab
     box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 nav.toc-panel div.toc-tab
     position: absolute
-    top: 7.43rem
+    top: 10.66rem
     left: calc(100% - 1px)
     padding: 0.9rem 0.35rem
     line-height: 0
@@ -671,7 +762,7 @@ div.titlepage table.meta td
     text-align: left
 
 /*  the fuzzy search tab (screen-only): the middle tab riding right of
-    the brand bar between the theme-switching tab and the table of
+    the brand bar between the info tab and the table of
     contents tab (as wide as those, fixed independent of the content
     scrolling), showing the search icon, which slides the input field
     and its clear symbol out to the right (and back in), where the tab
@@ -680,7 +771,7 @@ div.titlepage table.meta td
     search filter is active, signalling the filtered content  */
 div.search
     position: fixed
-    top: 4.20rem
+    top: 7.43rem
     left: calc(0.6rem - 1px)
     z-index: 30
     display: flex
