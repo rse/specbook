@@ -150,34 +150,48 @@ body::before
     body
         padding: 0
 
-/*  the theme-switching icon (fixed in the top-right viewport corner)  */
+/*  the theme-switching tab (screen-only): the topmost tab riding right
+    of the brand bar above the search tab (sized like the table of
+    contents tab, fixed independent of the content scrolling), showing
+    a half-filled circle icon (drawn like the search icon, mimicking
+    the U+25D0 glyph), which switches the color theme, where the tab
+    follows the bar when the table of contents panel shifts it aside  */
 div.theme-switch
     position: fixed
-    top: 0.75rem
-    right: 1.50rem
-    color: var(--theme-color-specbook-symbol)
-    font-size: 150%
-    font-family: "Noto Sans Symbols", sans-serif
+    top: 0.97rem
+    left: calc(0.6rem - 1px)
+    z-index: 30
+    padding: 0.9rem 0.35rem
+    line-height: 0
+    border-radius: 0 0.3rem 0.3rem 0
+    color: var(--theme-color-specbook-background)
+    background-color: var(--theme-color-specbook-accent)
+    transition: left 0.3s ease
     cursor: pointer
     -webkit-user-select: none
     user-select: none
-    line-height: 1
+body:has(nav.toc-panel.open) div.theme-switch
+    left: calc(31rem - 1px)
+    box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 div.theme-switch:hover
-    color: var(--theme-color-specbook-accent)
+    background-color: var(--theme-color-specbook-accent-soft)
+div.theme-switch svg.theme-icon
+    width: 1.1rem
+    height: 1.1rem
+    margin-right: 0.15rem
 @media print
     div.theme-switch
         display: none
 
-/*  the connection status icon of the live preview (fixed left of the
-    theme-switching icon, its glyph scaled and shifted to match the
-    theme-switching glyph in size and vertical center): grey while
-    connected, in the search highlight color while disconnected, and
-    blinking for 2s (toggling every 250ms between the accent and the
-    grey color) after a content reload  */
+/*  the connection status icon of the live preview (fixed in the
+    top-right viewport corner): grey while connected, in the search
+    highlight color while disconnected, and blinking for 2s (toggling
+    every 250ms between the accent and the grey color) after a content
+    reload  */
 div.realtime-status
     position: fixed
     top: 0.85rem
-    right: 3.50rem
+    right: 1.50rem
     color: var(--theme-color-specbook-symbol)
     font-size: 280%
     -webkit-user-select: none
@@ -229,7 +243,7 @@ nav.toc-panel.open div.toc-tab
     box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 nav.toc-panel div.toc-tab
     position: absolute
-    top: 4.2rem
+    top: 7.43rem
     left: calc(100% - 1px)
     padding: 0.9rem 0.35rem
     line-height: 0
@@ -635,10 +649,9 @@ div.titlepage table.meta td
     padding: 0.0rem 0.5rem
     text-align: left
 
-/*  the fuzzy search tab (screen-only): the topmost tab riding right
-    of the brand bar above the table of contents tab (as wide as that
-    one, its top aligned with the ink top of the status and
-    theme-switching glyphs, fixed independent of the content
+/*  the fuzzy search tab (screen-only): the middle tab riding right of
+    the brand bar between the theme-switching tab and the table of
+    contents tab (as wide as those, fixed independent of the content
     scrolling), showing the search icon, which slides the input field
     and its clear symbol out to the right (and back in), where the tab
     follows the bar when the table of contents panel shifts it aside
@@ -646,8 +659,8 @@ div.titlepage table.meta td
     search filter is active, signalling the filtered content  */
 div.search
     position: fixed
-    top: 0.97rem
-    left: calc(0.6rem - 2px)
+    top: 4.20rem
+    left: calc(0.6rem - 1px)
     z-index: 30
     display: flex
     align-items: center
@@ -656,7 +669,7 @@ div.search
     background-color: var(--theme-color-specbook-accent)
     transition: left 0.3s ease
 body:has(nav.toc-panel.open) div.search
-    left: calc(31rem - 2px)
+    left: calc(31rem - 1px)
     box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 div.search div.search-toggle
     padding: 0.65rem 0.1rem
