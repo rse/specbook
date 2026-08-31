@@ -51,7 +51,7 @@
                 Deployment View node instead -- only a party or system the solution merely
                 consumes or serves belongs to the system context.
             format:
-                maxTableColumns: 6
+                maxTableColumns: 5
             props:
                 -   name: KIND
                     desc: |
@@ -72,6 +72,14 @@
                         solution reads from is `Outbound`, as the solution initiates, while the
                         data flows in).
                     value: enum(Inbound,Outbound,Bidirectional)
+                -   name: TERMS
+                    desc: >
+                        Comma-separated references to the GLOSSARY terms the entity appears as in
+                        the domain (usually a term of type `Actor`, which covers an external system
+                        as a party acting in the domain), anchoring every boundary entity in the
+                        ubiquitous language.
+                    value: list([[REQS:GL.TERM:*]])
+                    optional: true
                 -   name: INTERFACE
                     desc: >
                         Comma-separated references to the INTERFACE-MODEL objects through which
@@ -90,6 +98,15 @@
                         personas instead of re-stating them; omitted when no persona stands behind
                         the entity.
                     value: list([[REQS:UP.PERSONA:*]])
+                    optional: true
+                -   name: PREMISES
+                    desc: >
+                        Comma-separated references to the SOLUTION-PREMISES objects (usually of
+                        type `Dependency`) resting on this entity: the entity describes the
+                        structural interaction with the external party, the premise the reliance
+                        on it and the consequence of its failure, so the risky context entities
+                        are found by traversal.
+                    value: list([[REQS:SP.PREMISE:*]])
                     optional: true
                 -   name: DATA
                     desc: >

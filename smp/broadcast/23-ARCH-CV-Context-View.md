@@ -10,7 +10,9 @@ ARCH: Context View (CV)
 
 -   KIND:      Person
 -   DIRECTION: Bidirectional
+-   TERMS:     [[TERM:attendee]]
 -   ACTORS:    [[PERSONA:attendee]]
+-   PREMISES:  [[PREMISE:websocket-passage]]
 -   DATA:      Login credentials, video playback, chat, questions, likes
 
 The attendee's web browser is the primary client through which a person
@@ -21,6 +23,7 @@ browser-delivered solution serving thousands of concurrent attendees.
 
 -   KIND:      Person
 -   DIRECTION: Bidirectional
+-   TERMS:     [[TERM:manager]], [[TERM:moderator]], [[TERM:presenter]]
 -   ACTORS:    [[PERSONA:moderator-chat]], [[PERSONA:moderator-qa]], [[PERSONA:presenter]], [[PERSONA:manager]]
 -   DATA:      Event configuration, moderation actions, statistics, exports
 
@@ -32,6 +35,8 @@ event operation happens through the same web application as attendance.
 
 -   KIND:      System
 -   DIRECTION: Outbound
+-   TERMS:     [[TERM:provider]]
+-   PREMISES:  [[PREMISE:provider-delivery]]
 -   DATA:      Live video ingest and playback streams
 
 External streaming providers such as msg Filmstudio, msg Broadcast,
@@ -53,6 +58,8 @@ reliably for a global, large-scale audience.
 
 -   KIND:      System
 -   DIRECTION: Bidirectional
+-   TERMS:     [[TERM:registration-system]]
+-   PREMISES:  [[PREMISE:audience-known]], [[PREMISE:registration-exchange]]
 -   DATA:      Attendee registration data and generated access URLs
 
 The Event Registration System supplies attendee registration data and
@@ -63,6 +70,7 @@ provisioned from the organization's existing registration system.
 
 -   KIND:      Service
 -   DIRECTION: Outbound
+-   PREMISES:  [[PREMISE:email-delivery]]
 -   DATA:      Authorization token emails
 
 An external mail-sending service delivers one-time authorization tokens
@@ -73,6 +81,7 @@ access is verified.
 
 -   KIND:      Service
 -   DIRECTION: Outbound
+-   PREMISES:  [[PREMISE:translation-service]], [[PREMISE:message-personal-data]]
 -   DATA:      Source and translated message texts
 
 An external AI/LLM service translates message texts between the
