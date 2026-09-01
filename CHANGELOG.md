@@ -2,7 +2,7 @@
 ChangeLog
 =========
 
-1.1.0 (2026-08-31)
+1.1.0 (2026-09-01)
 ------------------
 
 -   FEATURE [code]: Description Popups
