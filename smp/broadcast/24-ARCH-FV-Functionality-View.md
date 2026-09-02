@@ -55,6 +55,7 @@ performance challenge.
 
 -   KIND:           Service
 -   REALIZES:       [[FR.questions]], [[FR.chat]], [[FR.moderation]], [[FR.forward-presenter]], [[FR.config-propagation]]
+-   OWNS:           [[ENTITY:Event]], [[ENTITY:AgendaPoint]], [[ENTITY:Channel]], [[ENTITY:Resource]], [[ENTITY:ResourceProviderParam]], [[ENTITY:Role]], [[ENTITY:Message]], [[ENTITY:MessageText]], [[ENTITY:QuestionTag]]
 -   PROVIDES:       [[IM.server-cli]]
 -   DEPENDS-ON:     [[FV.database]]
 
@@ -67,6 +68,7 @@ authoritative business rules must live in a single server tier.
 -   KIND:           Module
 -   PART-OF:        [[FV.service]]
 -   REALIZES:       [[FR.authentication]], [[FR.parallel-access]], [[FR.automatic-url]]
+-   OWNS:           [[ENTITY:User]], [[ENTITY:AuthorizationToken]], [[ENTITY:SessionToken]]
 -   DEPENDS-ON:     [[FV.database]]
 
 The authentication module issues and validates the authorization and session tokens: it generates one-time tokens, sends
@@ -87,6 +89,7 @@ languages on the fly while preserving the original, BECAUSE chat and questions m
 -   KIND:           Module
 -   PART-OF:        [[FV.service]]
 -   REALIZES:       [[FR.event-stats]], [[FR.debug-stats]], [[FR.channel-stats]], [[FR.user-stats]]
+-   OWNS:           [[ENTITY:EventStatistic]], [[ENTITY:ChannelStatistic]], [[ENTITY:UserStatistic]]
 -   DEPENDS-ON:     [[FV.database]]
 
 The statistics module generates periodic event, channel, and user statistics snapshots, capturing cumulative counts of

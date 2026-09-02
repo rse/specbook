@@ -24,11 +24,10 @@
 
 - 23-ARCH-CV-Context-View.md
 - 24-ARCH-FV-Functionality-View.md
-- 25-ARCH-IV-Information-View.md
-- 26-ARCH-CO-Concurrency-View.md
-- 27-ARCH-DV-Development-View.md
-- 28-ARCH-DP-Deployment-View.md
-- 29-ARCH-OV-Operations-View.md
-- 30-ARCH-QP-Quality-Perspectives.md
-- 31-ARCH-DR-Decision-Record.md
-- 32-ARCH-TS-Technology-Stack.md
+- 25-ARCH-CO-Concurrency-View.md
+- 26-ARCH-DV-Development-View.md
+- 27-ARCH-DP-Deployment-View.md
+- 28-ARCH-OV-Operations-View.md
+- 29-ARCH-QP-Quality-Perspectives.md
+- 30-ARCH-DR-Decision-Record.md
+- 31-ARCH-TS-Technology-Stack.md

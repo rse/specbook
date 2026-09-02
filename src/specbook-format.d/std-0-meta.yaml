@@ -48,7 +48,6 @@
 #   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
 #   | ARCH: Context View                |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Functionality View          |     |      |      |     |     |      |     |  X  |
-#   | ARCH: Information View            |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Concurrency View            |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Development View            |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Deployment View             |     |      |      |     |     |      |     |  X  |

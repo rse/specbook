@@ -148,7 +148,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:FV.COMPONENT:*]], [[REQS:FR.REQUIREMENT:*]], [[APIS:IM.INTERFACE:*]]"
+                nodes: "[[ARCH:FV.COMPONENT:*]], [[REQS:FR.REQUIREMENT:*]], [[APIS:IM.INTERFACE:*]],
+                    [[DATA:DM.ENTITY:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -184,6 +185,15 @@
                         that every Functional Requirement is owned by at least one component.
                     value: list([[REQS:FR.*]])
                     optional: true
+                -   name: OWNS
+                    desc: >
+                        Comma-separated references to the DATA-MODEL entities the component owns,
+                        i.e. for which it is the single authoritative source of truth (other
+                        components access an owned entity through the owner's interfaces or hold
+                        derived copies only), so that every entity is owned by at most one
+                        component; omitted when the component owns no entity.
+                    value: list([[DATA:DM.ENTITY:*]])
+                    optional: true
                 -   name: PROVIDES
                     desc: >
                         Comma-separated references to the INTERFACE-MODEL objects the component
@@ -211,66 +221,9 @@
                     optional: true
 
 -   kind: ARCH
-    name: Information View
-    id: IV
-    file: 25-ARCH-IV-Information-View.md
-    desc: >
-        The way the solution stores, manages, manipulates, and distributes information, defining the
-        static data structure and dynamic information flow.
-    refs: >
-        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Information Viewpoint (2011),
-            https://www.viewpoints-and-perspectives.info/home/viewpoints/information/
-        -   Kleppmann: Designing Data-Intensive Applications (2017),
-            https://dataintensive.net/
-    diagram:
-        type: grid
-        nodes: "[[ARCH:IV.ASPECT:*]]"
-        properties:
-            -   CONCERN
-    childs:
-        -   kind: ASPECT
-            desc: >
-                A single information aspect, named with a short (2-5 word) summary (e.g. `Order
-                Persistence`, `Event Stream`, `Cache Coherency`) and described in a concise (1-3
-                sentence) paragraph by how the solution stores, manages, or distributes the
-                information and how its consistency is upheld, plus a 1-sentence rationale ("why")
-                for handling the information this way.
-            diagram:
-                type: hub
-                center: self
-                nodes: "[[ARCH:IV.ASPECT:*]], [[DATA:DM.ENTITY:*]], [[ARCH:FV.COMPONENT:*]]"
-                labeled: true
-                qualified: true
-                properties:
-                    -   CONCERN
-                config:
-                    size-node-width-max: 440
-            props:
-                -   name: CONCERN
-                    desc: >
-                        The information-handling concern the aspect addresses: `Persistence`,
-                        `Flow`, `Ownership`, `Consistency`, `Replication`, `Caching`, `Retention`,
-                        or `Migration`.
-                    value: enum(Persistence,Flow,Ownership,Consistency,Replication,Caching,Retention,Migration)
-                -   name: ENTITIES
-                    desc: >
-                        Comma-separated references to the DATA-MODEL entities the aspect governs.
-                    value: list([[DATA:DM.ENTITY:*]])
-                    optional: true
-                -   name: OWNER
-                    desc: >
-                        Reference to the FUNCTIONALITY-VIEW object that owns this information.
-                    value: "[[ARCH:FV.COMPONENT:*]]"
-                    optional: true
-                -   name: LIFECYCLE
-                    desc: >
-                        How the information comes into being, changes, and is disposed of (e.g.
-                        `created on order, retained 7 years, then purged`).
-
--   kind: ARCH
     name: Concurrency View
     id: CO
-    file: 26-ARCH-CO-Concurrency-View.md
+    file: 25-ARCH-CO-Concurrency-View.md
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
         threads, and defining how they coordinate and communicate.
@@ -332,7 +285,7 @@
 -   kind: ARCH
     name: Development View
     id: DV
-    file: 27-ARCH-DV-Development-View.md
+    file: 26-ARCH-DV-Development-View.md
     desc: >
         The architecture supporting the software development process, defining the module
         organization, build approach, and codeline conventions.
@@ -366,7 +319,7 @@
 -   kind: ARCH
     name: Deployment View
     id: DP
-    file: 28-ARCH-DP-Deployment-View.md
+    file: 27-ARCH-DP-Deployment-View.md
     desc: >
         The environment into which the solution is deployed, mapping software elements to the
         runtime platform, hardware, and network topology.
@@ -430,7 +383,7 @@
 -   kind: ARCH
     name: Operations View
     id: OV
-    file: 29-ARCH-OV-Operations-View.md
+    file: 28-ARCH-OV-Operations-View.md
     desc: >
         The way the solution is operated, administered, and supported in production, defining
         installation, monitoring, and management concerns.
@@ -470,7 +423,7 @@
 -   kind: ARCH
     name: Quality Perspectives
     id: QP
-    file: 30-ARCH-QP-Quality-Perspectives.md
+    file: 29-ARCH-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed.
     refs: >
@@ -539,7 +492,7 @@
 -   kind: ARCH
     name: Decision Record
     id: DR
-    file: 31-ARCH-DR-Decision-Record.md
+    file: 30-ARCH-DR-Decision-Record.md
     desc: >
         The major decisions related to the architecture, each recording the forces at play, the
         chosen response, and the reasoning that justifies it.
@@ -720,7 +673,7 @@
 -   kind: ARCH
     name: Technology Stack
     id: TS
-    file: 32-ARCH-TS-Technology-Stack.md
+    file: 31-ARCH-TS-Technology-Stack.md
     desc: >
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives
