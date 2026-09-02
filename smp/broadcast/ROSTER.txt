@@ -1,5 +1,4 @@
 + 00-META-TI-Title.md
-
 + 01-REQS-SV-Solution-Vision.md
 + 02-REQS-SP-Solution-Premises.md
 + 03-REQS-GL-Domain-Glossary.md
@@ -21,9 +20,8 @@
 + 20-UXUI-DS-Dialog-Storyboard.md
 + 21-UXUI-VD-Visual-Design.md
 + 22-TEST-TC-Test-Cases.md
-
-- 23-ARCH-CV-Context-View.md
-- 24-ARCH-FV-Functionality-View.md
++ 23-ARCH-CV-Context-View.md
++ 24-ARCH-FV-Functionality-View.md
 - 25-ARCH-CO-Concurrency-View.md
 - 26-ARCH-DV-Development-View.md
 - 27-ARCH-DP-Deployment-View.md
