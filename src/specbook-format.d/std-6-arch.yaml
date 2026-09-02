@@ -118,7 +118,8 @@
     file: 24-ARCH-FV-Functionality-View.md
     desc: >
         The functional components of the solution, their responsibilities, interfaces, and primary
-        interactions, describing *what* the system does at runtime.
+        interactions, describing *how* the solution's runtime elements are structured and which
+        responsibility each owns, delivering the behaviors the Functional Requirements state.
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Functional Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/functional/
@@ -129,6 +130,7 @@
     diagram:
         type: graph
         nodes: "[[ARCH:FV.COMPONENT:*]]"
+        labeled: true
         properties:
             -   KIND
     childs:
@@ -136,15 +138,19 @@
             desc: >
                 A single functional component, named with a short (2-5 word) summary (e.g.
                 `Authentication Service`, `Order Processor`, `Notification Dispatcher`) and
-                described in a concise (1-3 sentence) paragraph by *what* it does and how it
-                collaborates with the components it depends on, plus a 1-sentence rationale ("why")
-                for the component's existence and boundary.
+                described in a concise (1-3 sentence) paragraph whose first sentence names the
+                single, primary responsibility the component owns (split into several components
+                otherwise) and which elaborates how the component fulfills it and collaborates
+                with the components it depends on, plus a 1-sentence rationale ("why") for the
+                component's existence and boundary.
             format:
                 maxTableColumns: 5
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:FV.COMPONENT:*]]"
+                nodes: "[[ARCH:FV.COMPONENT:*]], [[REQS:FR.REQUIREMENT:*]], [[APIS:IM.INTERFACE:*]]"
+                labeled: true
+                qualified: true
                 properties:
                     -   KIND
                 config:
@@ -154,17 +160,30 @@
                     desc: |
                         The kind of the functional component, one of:
                         -   `Component`: Cohesive unit of functionality with a defined interface.
-                        -   `Service`:   Independently deployable provider of functionality.
+                        -   `Service`:   Provider of functionality with an independent lifecycle.
                         -   `Module`:    Logical grouping of related functionality within a
                                          component.
                         -   `Connector`: Mediator that conveys interactions between components
                                          (e.g. bus, gateway).
                         -   `Subsystem`: Larger composite grouping several components.
                     value: enum(Component,Service,Module,Connector,Subsystem)
-                -   name: RESPONSIBILITY
+                -   name: PART-OF
                     desc: >
-                        The 1-sentence statement of the single, primary responsibility the component
-                        owns.
+                        Reference to the FUNCTIONALITY-VIEW object this component is contained
+                        in, expressing the composition hierarchy the kinds imply: a `Module`
+                        references the component it groups functionality within, and a component
+                        references the `Subsystem` it belongs to; omitted for a top-level
+                        component.
+                    value: "[[ARCH:FV.COMPONENT:*]]"
+                    optional: true
+                    acyclic: true
+                -   name: REALIZES
+                    desc: >
+                        Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects the
+                        component realizes, i.e. whose capability its functionality delivers, so
+                        that every Functional Requirement is owned by at least one component.
+                    value: list([[REQS:FR.*]])
+                    optional: true
                 -   name: PROVIDES
                     desc: >
                         Comma-separated references to the INTERFACE-MODEL objects the component
@@ -173,10 +192,21 @@
                         (e.g. a user interface or an internal module).
                     value: list([[APIS:IM.INTERFACE:*]])
                     optional: true
+                -   name: CONSUMES
+                    desc: >
+                        Comma-separated references to the INTERFACE-MODEL objects the component
+                        consumes, i.e. the `Provided` interfaces of other components and the
+                        `Required` interfaces offered by external entities, through which its
+                        dependencies are exercised; omitted when the component consumes no
+                        modeled interface.
+                    value: list([[APIS:IM.INTERFACE:*]])
+                    optional: true
                 -   name: DEPENDS-ON
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW objects this component
-                        depends on at runtime.
+                        depends on at runtime, naming the target component only, while the
+                        interface through which a dependency is exercised is stated by `CONSUMES`
+                        where modeled.
                     value: list([[ARCH:FV.COMPONENT:*]])
                     optional: true
 
@@ -209,6 +239,7 @@
                 type: hub
                 center: self
                 nodes: "[[ARCH:IV.ASPECT:*]], [[DATA:DM.ENTITY:*]], [[ARCH:FV.COMPONENT:*]]"
+                labeled: true
                 qualified: true
                 properties:
                     -   CONCERN
@@ -466,6 +497,7 @@
                 type: hub
                 center: self
                 nodes: "[[ARCH:QP.PERSPECTIVE:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
+                labeled: true
                 qualified: true
                 properties:
                     -   QUALITY
@@ -594,6 +626,7 @@
                 type: hub
                 center: self
                 nodes: "[[ARCH:DR.DECISION:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
+                labeled: true
                 qualified: true
                 properties:
                     -   STATUS

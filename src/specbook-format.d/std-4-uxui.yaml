@@ -45,6 +45,15 @@
                 quality bound is a Non-Functional Requirement instead).
             referenced:
                 -   "[[UXUI:DP.PATTERN:*]]"
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[UXUI:IC.PRINCIPLE:*]], [[REQS:UP.PERSONA:*]], [[REQS:UJ.JOURNEY:*.STEP:*]],
+                    [[UXUI:DP.PATTERN:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
             props:
                 -   name: CATEGORY
                     desc: >
@@ -193,6 +202,7 @@
                 center: self
                 nodes: "[[UXUI:DP.PATTERN:*]], [[UXUI:IC.PRINCIPLE:*]], [[UXUI:DS.STORYBOARD:*]]"
                 deep: true
+                labeled: true
                 qualified: true
                 config:
                     size-node-width-max: 440
@@ -283,6 +293,7 @@
                 nodes: "[[UXUI:DS.STORYBOARD:*]], [[REQS:UP.PERSONA:*]],
                     [[REQS:UC.USE-CASE:*.SCENARIO:*]], [[UXUI:DP.PATTERN:*]]"
                 deep: true
+                labeled: true
                 qualified: true
                 config:
                     size-node-width-max: 440
@@ -394,6 +405,7 @@
                 type: hub
                 center: self
                 nodes: "[[UXUI:VD.ELEMENT:*]], [[REQS:UP.PERSONA:*]], [[UXUI:IC.PRINCIPLE:*]], [[UXUI:VD.MOCKUP:*]]"
+                labeled: true
                 qualified: true
                 config:
                     size-node-width-max: 440

@@ -115,6 +115,7 @@
         nodes: "[[APIS:ID.TYPE:*]]"
         deep: true
         onlyConnected: true
+        labeled: true
         qualified: true
         config:
             size-node-width-max: 440
@@ -277,6 +278,7 @@
         nodes: "[[APIS:IE.ENDPOINT:*]], [[APIS:ID.TYPE:*]]"
         deep: true
         onlyConnected: true
+        labeled: true
         qualified: true
         config:
             size-node-width-max: 440

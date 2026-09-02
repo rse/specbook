@@ -261,6 +261,15 @@
             https://www.wiley.com/en-gb/About+Face:+The+Essentials+of+Interaction+Design,+4th+Edition-p-9781118766576
         -   Pruitt/Adlin: The Persona Lifecycle: Keeping People in Mind Throughout Product Design (2006),
             https://www.sciencedirect.com/book/9780125662512/the-persona-lifecycle
+    diagram:
+        type: grid
+        nodes: "[[REQS:UP.PERSONA:*]]"
+        properties:
+            -   TYPE
+            -   ROLE
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 4
     childs:
         -   kind: PERSONA
             desc: >

@@ -10,86 +10,93 @@ Modified: 2026-08-30 01:12
 ##  COMPONENT: Web Client {{client}}
 
 -   KIND:           Subsystem
--   RESPONSIBILITY: Render the attendee and operator UI and drive all user interaction.
--   DEPENDS-ON:     [[FV.relay]], [[FV.client-nlp]]
+-   REALIZES:       [[FR.name-appearance]], [[FR.browser-access]], [[FR.individual-url]], [[FR.user-consent]], [[FR.provider-switch]]
+-   DEPENDS-ON:     [[FV.relay]]
 
-The Vue.js single-page application renders the panel, attendee, studio, moderator, and manager screens, plays the video
-stream, and exchanges live data over MQTT, BECAUSE msg.Broadcast delivers its entire experience in the browser.
+The Vue.js single-page application renders the attendee and operator UI and drives all user interaction: it presents the
+panel, attendee, studio, moderator, and manager screens, plays the video stream, and exchanges live data over MQTT,
+BECAUSE msg.Broadcast delivers its entire experience in the browser.
 
 ##  COMPONENT: Client NLP {{client-nlp}}
 
 -   KIND:           Module
--   RESPONSIBILITY: Perform lightweight client-side sentiment and language detection on input.
+-   PART-OF:        [[FV.client]]
+-   REALIZES:       [[FR.client-sentiment]]
 
-The client NLP module runs local sentiment analysis and language identification on attendee input before it is sent,
-BECAUSE filtering at the source reduces server load and can prevent improper submissions.
+The client NLP module performs lightweight client-side sentiment analysis and language identification on attendee input
+before it is sent, BECAUSE filtering at the source reduces server load and can prevent improper submissions.
 
 ##  COMPONENT: Router {{router}}
 
 -   KIND:           Connector
--   RESPONSIBILITY: Route incoming requests across proxy instances of an environment.
 
-The router (HAProxy with NFTables) directs incoming HTTP and WebSocket traffic to proxy instances using round-robin and
-separates the dev, QA, and production environments, BECAUSE traffic must be balanced and environments isolated at the edge.
+The router (HAProxy with NFTables) routes incoming HTTP and WebSocket traffic across the proxy instances of an environment
+using round-robin and separates the dev, QA, and production environments, BECAUSE traffic must be balanced and environments
+isolated at the edge.
 
 ##  COMPONENT: Proxy {{proxy}}
 
 -   KIND:           Connector
--   RESPONSIBILITY: Proxy environment HTTP and WebSocket requests to the relay layer.
 -   DEPENDS-ON:     [[FV.relay]]
 
-The proxy layer (HAProxy) forwards requests of a specific environment to the relay layer and scales horizontally per
-environment, BECAUSE request handling must scale independently of the messaging layer.
+The proxy layer (HAProxy) forwards the HTTP and WebSocket requests of a specific environment to the relay layer and scales
+horizontally per environment, BECAUSE request handling must scale independently of the messaging layer.
 
 ##  COMPONENT: Relay {{relay}}
 
 -   KIND:           Connector
--   RESPONSIBILITY: Maintain thousands of bidirectional WebSocket/MQTT connections.
 -   DEPENDS-ON:     [[FV.service]]
 
-The relay layer brokers MQTT messages between clients and the service layer over many concurrent WebSockets and scales
-horizontally, BECAUSE real-time fan-out to up to 10000 attendees is the central performance challenge.
+The relay layer maintains thousands of bidirectional WebSocket/MQTT connections, brokering MQTT messages between clients
+and the service layer and scaling horizontally, BECAUSE real-time fan-out to up to 10000 attendees is the central
+performance challenge.
 
 ##  COMPONENT: Service {{service}}
 
 -   KIND:           Service
--   RESPONSIBILITY: Execute all business logic for events, messages, auth, and statistics.
+-   REALIZES:       [[FR.questions]], [[FR.chat]], [[FR.moderation]], [[FR.forward-presenter]], [[FR.config-propagation]]
 -   PROVIDES:       [[IM.server-cli]]
--   DEPENDS-ON:     [[FV.database]], [[FV.translation]], [[FV.auth]], [[FV.statistics]]
+-   DEPENDS-ON:     [[FV.database]]
 
-The service layer is the main server holding event, moderation, access, and configuration logic, reacting to MQTT messages
-and persisting state, BECAUSE the authoritative business rules must live in a single server tier.
+The service layer executes all business logic for events, messages, authentication, and statistics: as the main server it
+holds the event, moderation, access, and configuration logic, reacts to MQTT messages, and persists state, BECAUSE the
+authoritative business rules must live in a single server tier.
 
 ##  COMPONENT: Authentication Service {{auth}}
 
 -   KIND:           Module
--   RESPONSIBILITY: Issue and validate authorization and session tokens.
+-   PART-OF:        [[FV.service]]
+-   REALIZES:       [[FR.authentication]], [[FR.parallel-access]], [[FR.automatic-url]]
 -   DEPENDS-ON:     [[FV.database]]
 
-The authentication module generates one-time tokens, sends them via the email gateway, validates logins, and enforces a
-single active session per user per event, BECAUSE email-verified, single-session access is the core security mechanism.
+The authentication module issues and validates the authorization and session tokens: it generates one-time tokens, sends
+them via the email gateway, validates logins, and enforces a single active session per user per event, BECAUSE
+email-verified, single-session access is the core security mechanism.
 
 ##  COMPONENT: Translation Service {{translation}}
 
 -   KIND:           Module
--   RESPONSIBILITY: Produce language-specific message texts via an external LLM.
+-   PART-OF:        [[FV.service]]
+-   REALIZES:       [[FR.language-switch]]
 
-The translation module translates message texts into the supported languages on the fly while preserving the original,
-BECAUSE chat and questions must be available in both German and English.
+The translation module produces language-specific message texts via an external LLM, translating them into the supported
+languages on the fly while preserving the original, BECAUSE chat and questions must be available in both German and English.
 
 ##  COMPONENT: Statistics Service {{statistics}}
 
 -   KIND:           Module
--   RESPONSIBILITY: Generate periodic event, channel, and user statistics snapshots.
+-   PART-OF:        [[FV.service]]
+-   REALIZES:       [[FR.event-stats]], [[FR.debug-stats]], [[FR.channel-stats]], [[FR.user-stats]]
 -   DEPENDS-ON:     [[FV.database]]
 
-The statistics module periodically captures cumulative counts of tokens, sessions, connections, and viewers during a running
-event, BECAUSE trend dashboards require regular snapshots over the event's lifetime.
+The statistics module generates periodic event, channel, and user statistics snapshots, capturing cumulative counts of
+tokens, sessions, connections, and viewers during a running event, BECAUSE trend dashboards require regular snapshots over
+the event's lifetime.
 
 ##  COMPONENT: Junction Orchestrator {{junction}}
 
 -   KIND:           Component
--   RESPONSIBILITY: Serve the static client content and orchestrate backend delivery over MQTT+.
+-   REALIZES:       [[FR.browser-access]]
 
 The Junction component serves the static client bundle and orchestrates its delivery to the relay over MQTT+, BECAUSE the
 client must be distributed alongside the same messaging infrastructure used for live data.
@@ -97,7 +104,7 @@ client must be distributed alongside the same messaging infrastructure used for 
 ##  COMPONENT: Database {{database}}
 
 -   KIND:           Component
--   RESPONSIBILITY: Persist all business objects and static assets.
 
-The PostgreSQL database with the filesystem stores all events, messages, tokens, statistics, and static assets accessed
-through the Drizzle persistence layer, BECAUSE the authoritative, durable state of every event must be persisted in one tier.
+The PostgreSQL database with the filesystem persists all business objects and static assets, storing all events, messages,
+tokens, and statistics accessed through the Drizzle persistence layer, BECAUSE the authoritative, durable state of every
+event must be persisted in one tier.
