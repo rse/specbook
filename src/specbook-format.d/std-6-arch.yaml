@@ -366,8 +366,8 @@
     id: DP
     file: 27-ARCH-DP-Deployment-View.md
     desc: >
-        The environment into which the solution is deployed, mapping software elements to the
-        runtime platform, hardware, and network topology.
+        The environment into which the solution is deployed, partitioning it into tiers and mapping
+        software elements to the runtime platform, hardware, and network topology.
     optional: true
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Deployment Viewpoint (2011),
@@ -377,56 +377,231 @@
         -   Brown: The C4 Model: Deployment Diagram (2018),
             https://c4model.com/diagrams/deployment
     diagram:
-        type: grid
+        type: graph
         nodes: "[[ARCH:DP.NODE:*]]"
+        labeled: true
         properties:
+            -   TIER
+            -   AREA
             -   KIND
             -   PLATFORM
+        config:
+            size-node-width-max: 350
     childs:
-        -   kind: NODE
+        -   kind: TIER
             desc: >
-                A single deployment node, named with a short (2-5 word) summary (e.g. `Web Tier`,
-                `Database Cluster`, `Edge CDN`) and described in a concise (1-3 sentence) paragraph
-                by the node, its sizing, and its place in the deployment topology, plus a 1-sentence
-                rationale ("why") for the node's placement and platform choice.
+                A single deployment tier, named with a short (1-3 word) summary (e.g. `Client`,
+                `Server`, `Database`, `Data Center`) and described in a concise (1-3 sentence)
+                paragraph by the code or data it hosts and its spatial and network separation from
+                the other tiers, plus a 1-sentence rationale ("why") for the partitioning.
+
+                A tier is a logically and spatially distinct, network-connected, technology-induced
+                partition of the solution, the *horizontal* split when drawn (an `AREA` is the
+                *vertical*, domain-induced one): every node belongs to exactly one tier via its
+                `TIER`, a location-level tier (e.g. a data center) groups the tiers referencing it
+                via `PART-OF`, and a single deployment unit within a tier is a `NODE` -- only the
+                partition itself belongs here.
+            format:
+                type: concise
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DP.NODE:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]]"
+                nodes: "[[ARCH:DP.TIER:*]], [[ARCH:DP.NODE:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   LOCATION
+                    -   KIND
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: PART-OF
+                    desc: >
+                        Reference to the DEPLOYMENT-VIEW tier this tier is contained in (e.g. the
+                        `Server` and `Database` tiers reference the `Data Center` tier hosting
+                        them); omitted for a top-level tier.
+                    value: "[[ARCH:DP.TIER:*]]"
+                    optional: true
+                    acyclic: true
+                -   name: LOCATION
+                    desc: >
+                        Where the tier physically runs (e.g. `Hetzner data center Nürnberg, dev/QA/prod
+                        environments`, `attendee and operator devices`, `Cloudflare edge`); omitted
+                        when inherited from the `PART-OF` tier.
+                    optional: true
+                -   name: STACK
+                    desc: >
+                        Reference to the TECHNOLOGY-STACK tier whose products run in this tier;
+                        omitted when the Technology Stack is absent, has no matching tier, or the
+                        tier (e.g. a data center) groups other tiers only.
+                    value: "[[ARCH:TS.TIER:*]]"
+                    optional: true
+        -   kind: AREA
+            desc: >
+                A single deployment area, named with a short (1-3 word) summary (e.g. `Ordering`,
+                `Billing`, `Identity`) and described in a concise (1-3 sentence) paragraph by the
+                domain it covers and its separation from the other areas, plus a 1-sentence rationale
+                ("why") for the partitioning.
+
+                An area is a logically distinct, domain-induced partition of the solution deployed
+                as physical units of its own, the *vertical* split when drawn (a `TIER` is the
+                *horizontal*, technology-induced one): a node dedicated to the area references it via
+                its `AREA`, a node shared by several areas references none, and a domain grouping
+                without deployment units of its own is a Functionality View `Subsystem` instead. The
+                kind is absent when the solution is not split vertically.
+            optional: true
+            format:
+                type: concise
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]]"
+                labeled: true
                 qualified: true
                 properties:
                     -   KIND
+                config:
+                    size-node-width-max: 440
+        -   kind: NODE
+            desc: >
+                A single deployment node, named with a short (2-5 word) summary (e.g. `Web Servers`,
+                `Database Cluster`, `Edge CDN`) and described in a concise (1-3 sentence) paragraph
+                by the node, its sizing, and its place in the deployment topology, plus a 1-sentence
+                rationale ("why") for the node's placement and platform choice.
+
+                A node is a platform element the solution deploys onto and operates itself: a
+                managed third-party service the solution merely consumes is a Context View
+                `Service` entity, the software products running on the node are Technology Stack
+                components (reached through the hosted units and components), and the procedures
+                operating the node are Operations View concerns -- only the runtime environment
+                itself belongs to the Deployment View, with the tier and area the node belongs to
+                and the network segments it is attached to as its `TIER`, `AREA`, and `NETWORK`
+                siblings.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]],
+                    [[ARCH:DP.NETWORK:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   LOCATION
+                    -   KIND
                     -   PLATFORM
+                    -   SCOPE
                 config:
                     size-node-width-max: 440
             props:
                 -   name: KIND
                     desc: |
                         The kind of the deployment node, one of:
-
                         -   `Server`:    A physical or virtual machine.
                         -   `Container`: A containerized runtime (e.g. Docker, OCI).
-                        -   `Cluster`:   A managed group of nodes (e.g. Kubernetes cluster).
+                        -   `Cluster`:   A group of nodes managed as one (e.g. Kubernetes cluster),
+                                         containing the nodes referencing it via `PART-OF`.
                         -   `Function`:  A serverless / function-as-a-service runtime.
                         -   `Device`:    An edge or client device.
                         -   `Managed`:   A managed cloud service (e.g. managed database, queue).
                     value: enum(Server,Container,Cluster,Function,Device,Managed)
+                -   name: TIER
+                    desc: >
+                        Reference to the DEPLOYMENT-VIEW tier the node belongs to, exactly one, as a
+                        single deployment unit never spans tiers.
+                    value: "[[ARCH:DP.TIER:*]]"
+                -   name: AREA
+                    desc: >
+                        Reference to the DEPLOYMENT-VIEW area the node is dedicated to, at most one,
+                        as a single deployment unit never spans areas; omitted for a node shared by
+                        several areas or when the solution is not split vertically.
+                    value: "[[ARCH:DP.AREA:*]]"
+                    optional: true
                 -   name: PLATFORM
                     desc: >
-                        The runtime platform of the node (e.g. `Linux x86-64`, `Kubernetes 1.30`,
-                        `AWS Lambda (Node.js)`).
+                        The execution platform of the node, i.e. its operating system, runtime, or
+                        cloud service (e.g. `Linux x86-64`, `Kubernetes 1.30`, `AWS Lambda
+                        (Node.js)`), not the software products running on it, which are Technology
+                        Stack components.
+                -   name: PART-OF
+                    desc: >
+                        Reference to the DEPLOYMENT-VIEW object this node is contained in,
+                        expressing the nesting the kinds imply: a `Container` references the
+                        `Server` or `Cluster` running it, and a `Server` the `Cluster` it belongs
+                        to; omitted for a top-level node.
+                    value: "[[ARCH:DP.NODE:*]]"
+                    optional: true
+                    acyclic: true
                 -   name: HOSTS
                     desc: >
                         Comma-separated references to the CONCURRENCY-VIEW or FUNCTIONALITY-VIEW
                         objects deployed onto this node: the concurrency units executing on the
                         node (which themselves state the components they host), and the functional
-                        components not mapped by any concurrency unit directly.
+                        components not mapped by any concurrency unit directly. A containing node
+                        does not repeat what its `PART-OF` nodes host.
                     value: list([[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]])
                     optional: true
-                -   name: NETWORK
+                -   name: INSTANCES
                     desc: >
-                        The network placement and connectivity of the node (e.g. `public subnet, TLS
-                        443`, `private VLAN`).
+                        How many instances of the node run (e.g. `1`, `3 per environment`, `0..n
+                        auto-scaled`).
+                    optional: true
+                -   name: CONNECTS-TO
+                    desc: >
+                        Comma-separated references to the DEPLOYMENT-VIEW objects this node opens
+                        network connections to at runtime, naming the target node only, while the
+                        carried protocols are stated by the `PROTOCOLS` of the shared `NETWORK`.
+                    value: list([[ARCH:DP.NODE:*]])
+                    optional: true
+                -   name: NETWORKS
+                    desc: >
+                        Comma-separated references to the DEPLOYMENT-VIEW network segments the node
+                        is attached to (e.g. a public ingress and a private backend network); omitted
+                        when the topology models no network segments.
+                    value: list([[ARCH:DP.NETWORK:*]])
+                    optional: true
+        -   kind: NETWORK
+            desc: >
+                A single network segment the deployment nodes are attached to, named with a short
+                (2-5 word) summary (e.g. `Public Internet`, `Backend VLAN`, `Database Subnet`) and
+                described in a concise (1-3 sentence) paragraph by its reach, its isolation from the
+                other segments, and the traffic it carries, plus a 1-sentence rationale ("why") for
+                the segmentation.
+
+                A segment is the medium the nodes communicate over: the attached nodes reference it
+                via `NETWORKS`, the directed links between them are their `CONNECTS-TO` references,
+                and the contract of the carried traffic is an Interface Model interface -- only the
+                network itself belongs here. The kind is absent when the topology has no
+                segmentation worth describing.
+            optional: true
+            format:
+                type: concise
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DP.NETWORK:*]], [[ARCH:DP.NODE:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   KIND
+                    -   SCOPE
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: SCOPE
+                    desc: |
+                        The reach of the segment, one of:
+                        -   `Public`:   Reachable from the Internet.
+                        -   `Private`:  Reachable from the solution's own nodes only.
+                        -   `Isolated`: Reachable from selected nodes only (e.g. a database subnet).
+                    value: enum(Public,Private,Isolated)
+                -   name: PROTOCOLS
+                    desc: >
+                        The protocols and ports carried by the segment (e.g. `HTTPS 443, WSS 443`,
+                        `HTTP, WS, TCP 5432`).
+                -   name: ADDRESSING
+                    desc: >
+                        The address range or naming of the segment (e.g. `10.0.0.0/8`, `public IPv4
+                        and IPv6`, `*.example.com`).
+                    optional: true
 
 -   kind: ARCH
     name: Operations View
@@ -466,7 +641,8 @@
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW
                         objects the concern applies to.
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]])
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]],
+                        [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]])
                     optional: true
 
 -   kind: ARCH
@@ -537,7 +713,8 @@
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW, or
                         DEPLOYMENT-VIEW objects the tactic affects.
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DP.NODE:*]])
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DP.TIER:*]],
+                        [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]])
                     optional: true
 
 -   kind: ARCH
@@ -648,7 +825,8 @@
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW, DEVELOPMENT-VIEW, or
                         DEPLOYMENT-VIEW objects the decision affects.
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DV.ASPECT:*]], [[ARCH:DP.NODE:*]])
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DV.ASPECT:*]], [[ARCH:DP.TIER:*]],
+                        [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]])
                     optional: true
                 -   name: SUPERSEDED-BY
                     desc: >

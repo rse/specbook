@@ -236,7 +236,8 @@ type SchemaGradiaConfig = Partial<{
 
 -   `SchemaObject.automaton?: SchemaAutomaton`:
     finite state machine the child objects of every object of this kind form,
-    BECAUSE a lifecycle is only trustworthy when its dead-ends and livelocks are ruled out
+    BECAUSE a lifecycle is only trustworthy when its dead-ends and
+    livelocks are ruled out
 
 -   `SchemaObject.diagram?: SchemaDiagram`:
     diagram generated for every object of this kind,
@@ -279,11 +280,13 @@ type SchemaGradiaConfig = Partial<{
 
 -   `SchemaAutomaton.initial: string`:
     property of a node object flagging (with the value `true`) an initial node,
-    BECAUSE reachability needs a start (the check is skipped without any initial node)
+    BECAUSE reachability needs a start (the check is skipped without any
+    initial node)
 
 -   `SchemaAutomaton.final: string`:
     property of a node object flagging (with the value `true`) a final node,
-    BECAUSE resting is legal in a final node only (the livelock check is skipped without any final node)
+    BECAUSE resting is legal in a final node only (the livelock check is
+    skipped without any final node)
 
 -   `SchemaDiagram`:
     diagram derived for every object of an object kind,
@@ -431,7 +434,8 @@ type SchemaGradiaConfig = Partial<{
 -   `SchemaProperty.acyclic?: boolean`:
     whether following the reference-valued property from object to object
     must never return to an object already passed (default: `false`),
-    BECAUSE a hierarchy with a loop has no root and an inclusion with a loop never ends
+    BECAUSE a hierarchy with a loop has no root and an inclusion with a
+    loop never ends
 
 -   `SchemaGradiaConfig`:
     the Gradia rendering options, mirrored from `@rse/gradia`,
@@ -823,8 +827,8 @@ ordered list, a blockquote, or multiple paragraphs) or one carrying a
 `;` (which a re-parse would split into a spurious property plus a
 truncated description). All child objects of such an object then stay in
 the Complex Format (as sibling objects have to share the format), with
-headings reaching down to level 6. When **SpecBook** edits existing files, it mirrors the format each
-existing object already uses.
+headings reaching down to level 6. When **SpecBook** edits existing
+files, it mirrors the format each existing object already uses.
 
 ### Names, Anchors, and Ids
 
@@ -865,9 +869,9 @@ whole.
 
 The description of a Complex Format object is all block content below
 its heading (up to the next heading) except the property list:
-paragraphs, blockquotes, ordered lists (e.g. scenario steps or test case procedures), and
-fenced code blocks. A fenced code block
-of language `gradia` is skipped, as it is the derived diagram which
+paragraphs, blockquotes, ordered lists (e.g. scenario steps or test
+case procedures), and fenced code blocks. A fenced code block of
+language `gradia` is skipped, as it is the derived diagram which
 **SpecBook** itself emits into exported Markdown and which must not
 become authored content on a re-parse. In the Concise Format, the
 description is formed by the non-property segments of the item, so a

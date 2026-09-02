@@ -5,6 +5,11 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Deployment View Topology
+    The standard "Deployment View" gains "TIER" (horizontal) and optional "AREA" (vertical) partitions,
+    optional "NETWORK" segments replacing the node "NETWORK" property, and node "PART-OF", "CONNECTS-TO",
+    and "INSTANCES".
+
 -   IMPROVEMENT [code, othr]: All Standard Artifacts Optional
     All artifacts of the standard schema are now optional, so that the various specification types
     of the modeling coverage matrix (PRD, StRS, SyRS, SRS, UIS, TCS, AD) can be written alone.
