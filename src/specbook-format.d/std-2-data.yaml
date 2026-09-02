@@ -304,6 +304,7 @@
         qualified: true
         config:
             size-node-width-max: 440
+            graph-channel-width-max: 340
     childs:
         -   kind: ROLE
             desc: >
