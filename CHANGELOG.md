@@ -29,6 +29,10 @@ ChangeLog
     The components of the standard "Functionality View" gain the optional "OWNS" property, naming the Data
     Model entities the component is the single authoritative source of truth for.
 
+-   IMPROVEMENT [infr]: Markdown Linting
+    The build now lints the Markdown format documents below src/ with markdownlint-cli2, configured
+    in etc/markdownlint.yaml to reflect the house style (Setext/ATX headings, 3-space list markers).
+
 -   UPDATE [infr]: Dependency Upgrades
     The dependencies subset-font, zod, typescript-eslint, globals, @types/node, and tsx were upgraded.
 

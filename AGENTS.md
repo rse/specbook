@@ -58,7 +58,8 @@ API.
         configuration (which domain-specific objects are allowed)
     -   `src/specbook-format.d/std-N-XXX.yaml`: the bundled standard YAML schema
         configuration, used whenever no particular one is given
--   `etc/`: the tool configurations (`eslint.mjs`, `tsconfig.json`, `stx.conf`)
+-   `etc/`: the tool configurations (`eslint.mjs`, `markdownlint.yaml`,
+    `tsconfig.json`, `stx.conf`)
 -   `smp/`: the sample specification corpus (`broadcast/`, based on the
     standard schema configuration) and a small standalone sample (`sample/`)
 -   `dst/`: the compiled output (`main` is `dst/specbook-api.js`,
@@ -72,9 +73,9 @@ script is `npm start`, which invokes stx with `etc/stx.conf`:
 ```
 npm start build         # lint + build-cmd
 npm start build-cmd     # tsc --project etc/tsconfig.json (emits into dst/)
-npm start lint          # eslint --config etc/eslint.mjs src/*.ts
-npm start build-watch   # nodemon rebuild on src/**/*.ts
-npm start lint-watch    # nodemon relint on src/**/*.ts
+npm start lint          # eslint on src/*.ts, markdownlint-cli2 on src/specbook-format{.md,.d/*.md}
+npm start build-watch   # nodemon rebuild on src/**/*.{ts,md}
+npm start lint-watch    # nodemon relint on src/**/*.{ts,md}
 npm start sample        # lint smp/broadcast/ and export it into smp/broadcast.html
 npm start clean         # remove regularly built files
 npm start distclean     # also remove node_modules and package-lock.json

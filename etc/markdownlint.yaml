@@ -1,0 +1,30 @@
+##
+##  Specification Book (SpecBook)
+##  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+##  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+##
+
+#   markdownlint-cli2 configuration for linting the Markdown documents
+config:
+    default: true
+
+    #   Setext headings on the two top levels, ATX headings below
+    MD003:
+        style: setext_with_atx
+
+    #   4-space list indentation with 3 spaces after the list marker
+    MD007:
+        indent: 4
+    MD030:
+        ul_single: 3
+        ul_multi:  3
+
+    #   same heading text is allowed below different parent headings
+    MD024:
+        siblings_only: true
+
+    #   code spans like `, BECAUSE ` intentionally carry the separator spaces
+    MD038: false
+
+    #   fenced code blocks of diagrams and examples carry no language
+    MD040: false
