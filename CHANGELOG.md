@@ -5,6 +5,21 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Functionality View Traceability
+    The standard "Functionality View" replaces the prose "RESPONSIBILITY" property by "PART-OF" (acyclic
+    composition), "REALIZES" (Functional Requirements traceability), and "CONSUMES" (consumed interfaces).
+
+-   IMPROVEMENT [code, othr]: Component Entity Ownership
+    The components of the standard "Functionality View" gain the optional "OWNS" property, naming the Data
+    Model entities the component is the single authoritative source of truth for.
+
+-   UPDATE [infr]: Dependency Upgrades
+    The dependencies subset-font, zod, typescript-eslint, globals, @types/node, and tsx were upgraded.
+
+-   CLEANUP [code, othr]: Information View Removed
+    The artifact "Information View" was removed from the standard schema, as the Data Model, the other
+    views, and the Quality Perspectives already cover its concerns, and the files renumbered "25"-"31".
+
 1.1.0 (2026-09-01)
 ------------------
 
