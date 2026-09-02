@@ -5,6 +5,10 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Development View Delineation
+    The standard "Development View" becomes optional, gains a "Testing" category and a delineation
+    of its scope, and the Decision Record "AFFECTS" now also accepts development aspects.
+
 -   IMPROVEMENT [code, othr]: Concurrency View Traceability
     The Deployment View "HOSTS" and the Quality Perspectives "AFFECTS" now also accept concurrency
     units, closing the deployment mapping and quality traceability chains with backward references.

@@ -318,7 +318,10 @@
     file: 26-ARCH-DV-Development-View.md
     desc: >
         The architecture supporting the software development process, defining the module
-        organization, build approach, and codeline conventions.
+        organization, build approach, and codeline conventions. The artifact is absent when the
+        development conventions are governed outside the specification (e.g. by repository-level
+        contributor instructions).
+    optional: true
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Development Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/development/
@@ -329,6 +332,8 @@
     diagram:
         type: grid
         nodes: "[[ARCH:DV.ASPECT:*]]"
+        properties:
+            -   CATEGORY
     childs:
         -   kind: ASPECT
             desc: >
@@ -336,15 +341,23 @@
                 Layering`, `Build Pipeline`, `Branching Model`) and described in a concise (1-3
                 sentence) paragraph by the development convention or structure and the rule
                 developers must follow, plus a 1-sentence rationale ("why").
+
+                An aspect states a standing developer-facing rule about the source structure and
+                process: it names no concrete products (a Technology Stack `Build-Time` component
+                states the product choice), does not restate the runtime structure (a Functionality
+                View `Module` or `Subsystem` groups the logic), does not cover production
+                procedures (an Operations View concern does), and the trade-off that produced a
+                rule is a Decision Record referencing the aspect through `AFFECTS`.
             props:
                 -   name: CATEGORY
                     desc: >
-                        The development concern the aspect governs: `Structure` (module/package
-                        organization), `Build` (compilation and packaging), `Dependency` (dependency
-                        management and layering rules), `Codeline` (branching, merging, versioning),
-                        `Standardization` (coding standards and conventions), or `Tooling`
-                        (development tools and automation).
-                    value: enum(Structure,Build,Dependency,Codeline,Standardization,Tooling)
+                        The development concern the aspect governs: `Structure` (the physical
+                        source module/package layout), `Build` (compilation and packaging),
+                        `Dependency` (the allowed dependency edges between the structures),
+                        `Codeline` (branching, merging, versioning), `Standardization` (coding
+                        standards and conventions), `Testing` (test conventions, layout, and
+                        coverage rules), or `Tooling` (development tools and automation).
+                    value: enum(Structure,Build,Dependency,Codeline,Standardization,Testing,Tooling)
 
 -   kind: ARCH
     name: Deployment View
@@ -611,7 +624,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DR.DECISION:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
+                nodes: "[[ARCH:DR.DECISION:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DV.ASPECT:*]],
+                    [[ARCH:DP.NODE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -626,9 +640,9 @@
                     value: enum(proposed,accepted,deprecated,superseded)
                 -   name: AFFECTS
                     desc: >
-                        Comma-separated references to the FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW
-                        objects the decision affects.
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]])
+                        Comma-separated references to the FUNCTIONALITY-VIEW, DEVELOPMENT-VIEW, or
+                        DEPLOYMENT-VIEW objects the decision affects.
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DV.ASPECT:*]], [[ARCH:DP.NODE:*]])
                     optional: true
                 -   name: SUPERSEDED-BY
                     desc: >
