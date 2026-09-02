@@ -5,6 +5,14 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Concurrency View Traceability
+    The Deployment View "HOSTS" and the Quality Perspectives "AFFECTS" now also accept concurrency
+    units, closing the deployment mapping and quality traceability chains with backward references.
+
+-   IMPROVEMENT [code, othr]: Concurrency View Structure
+    The standard "Concurrency View" gains "PART-OF" containment, "COORDINATES-WITH" peer references,
+    and the "Task" kind, drops "Queue", becomes optional, delineates scope, gets a graph overview.
+
 -   IMPROVEMENT [code, othr]: Functionality View Traceability
     The standard "Functionality View" replaces the prose "RESPONSIBILITY" property by "PART-OF" (acyclic
     composition), "REALIZES" (Functional Requirements traceability), and "CONSUMES" (consumed interfaces).

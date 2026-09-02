@@ -226,7 +226,10 @@
     file: 25-ARCH-CO-Concurrency-View.md
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
-        threads, and defining how they coordinate and communicate.
+        threads, and defining how they coordinate and communicate. The artifact is absent when the
+        solution runs as a single sequential unit of execution and has no concurrency structure
+        worth describing.
+    optional: true
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Concurrency Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/concurrency/
@@ -235,8 +238,9 @@
         -   Schmidt et al.: Pattern-Oriented Software Architecture, Volume 2: Patterns for Concurrent and Networked Objects (2000),
             https://www.wiley.com/en-us/Pattern+Oriented+Software+Architecture,+Volume+2,+Patterns+for+Concurrent+and+Networked+Objects-p-9781118725177
     diagram:
-        type: grid
+        type: graph
         nodes: "[[ARCH:CO.UNIT:*]]"
+        labeled: true
         properties:
             -   KIND
     childs:
@@ -245,12 +249,20 @@
                 A single concurrency unit, named with a short (2-5 word) summary (e.g. `Web Worker
                 Pool`, `Background Scheduler`, `Ingest Queue Consumer`) and described in a concise
                 (1-3 sentence) paragraph by how it executes and how it avoids or manages contention,
-                races, and deadlocks, plus a 1-sentence rationale ("why") for the chosen concurrency
+                races, and deadlocks (including its start order and failure/restart behavior where
+                non-obvious), plus a 1-sentence rationale ("why") for the chosen concurrency
                 structure.
+
+                A unit executes work at runtime: a queue or channel between units is not a unit
+                but the coordination mechanism stated in `COORDINATION`, its contract an Interface
+                Model interface (e.g. of kind `MQTT` or `WebSocket`), and the platform element
+                hosting a managed broker a Deployment View `Managed` node -- only the executing
+                structure itself belongs to the Concurrency View.
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]]"
+                nodes: "[[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
+                labeled: true
                 qualified: true
                 properties:
                     -   KIND
@@ -263,24 +275,42 @@
 
                         -   `Process`:   An independent OS process with its own address space.
                         -   `Thread`:    A thread of execution within a process.
+                        -   `Task`:      A lightweight cooperative task (e.g. coroutine, fiber).
                         -   `Pool`:      A managed group of interchangeable workers.
-                        -   `Queue`:     An asynchronous buffer decoupling producers and consumers.
                         -   `EventLoop`: A single-threaded cooperative scheduler of tasks.
-                    value: enum(Process,Thread,Pool,Queue,EventLoop)
+                    value: enum(Process,Thread,Task,Pool,EventLoop)
+                -   name: PART-OF
+                    desc: >
+                        Reference to the CONCURRENCY-VIEW object this unit is contained in,
+                        expressing the containment the kinds imply: a `Thread`, `Task`, `Pool`, or
+                        `EventLoop` references the `Process` it executes within, and a `Task` the
+                        `EventLoop` or `Pool` scheduling it; omitted for a top-level unit.
+                    value: "[[ARCH:CO.UNIT:*]]"
+                    optional: true
+                    acyclic: true
                 -   name: HOSTS
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW objects that run inside
-                        this concurrency unit.
+                        this concurrency unit; omitted when no modeled component runs inside it.
                     value: list([[ARCH:FV.COMPONENT:*]])
                     optional: true
                 -   name: MULTIPLICITY
                     desc: >
                         How many instances of the unit run (e.g. `1`, `1 per CPU core`, `0..n
                         auto-scaled`).
+                -   name: COORDINATES-WITH
+                    desc: >
+                        Comma-separated references to the CONCURRENCY-VIEW objects this unit
+                        coordinates or communicates with at runtime, naming the peer unit only
+                        (e.g. a producer names the consumer it feeds through a shared queue),
+                        while the mechanism is stated by `COORDINATION`.
+                    value: list([[ARCH:CO.UNIT:*]])
+                    optional: true
                 -   name: COORDINATION
                     desc: >
-                        The mechanism by which the unit coordinates or communicates with other units
-                        (e.g. `shared queue`, `mutex`, `message passing`, `optimistic locking`).
+                        The mechanism by which the unit coordinates or communicates with other
+                        units, usually those referenced in `COORDINATES-WITH` (e.g. `shared
+                        queue`, `mutex`, `message passing`, `optimistic locking`).
 
 -   kind: ARCH
     name: Development View
@@ -346,7 +376,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DP.NODE:*]], [[ARCH:FV.COMPONENT:*]]"
+                nodes: "[[ARCH:DP.NODE:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]]"
                 qualified: true
                 properties:
                     -   KIND
@@ -371,9 +401,11 @@
                         `AWS Lambda (Node.js)`).
                 -   name: HOSTS
                     desc: >
-                        Comma-separated references to the FUNCTIONALITY-VIEW objects deployed onto
-                        this node.
-                    value: list([[ARCH:FV.COMPONENT:*]])
+                        Comma-separated references to the CONCURRENCY-VIEW or FUNCTIONALITY-VIEW
+                        objects deployed onto this node: the concurrency units executing on the
+                        node (which themselves state the components they host), and the functional
+                        components not mapped by any concurrency unit directly.
+                    value: list([[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]])
                     optional: true
                 -   name: NETWORK
                     desc: >
@@ -449,7 +481,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:QP.PERSPECTIVE:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
+                nodes: "[[ARCH:QP.PERSPECTIVE:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]],
+                    [[ARCH:CO.UNIT:*]], [[ARCH:DP.NODE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -484,9 +517,9 @@
                         `circuit breaker`).
                 -   name: AFFECTS
                     desc: >
-                        Comma-separated references to the FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW
-                        objects the tactic affects.
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]])
+                        Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW, or
+                        DEPLOYMENT-VIEW objects the tactic affects.
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DP.NODE:*]])
                     optional: true
 
 -   kind: ARCH

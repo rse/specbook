@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-06-18 10:18
+Modified: 2026-09-02 12:28
 ---
 
 ARCH: Quality Perspectives (QP)
@@ -11,7 +11,7 @@ ARCH: Quality Perspectives (QP)
 -   QUALITY:   Scalability
 -   ADDRESSES: [[NR.attendee-scale]], [[NR.scalability]]
 -   TACTIC:    stateless proxy and relay pools behind a round-robin router
--   AFFECTS:   [[FV.relay]], [[DP.relay]]
+-   AFFECTS:   [[FV.relay]], [[CO.relay-pool]], [[DP.relay]]
 
 The proxy and relay tiers scale horizontally as stateless pools so connection load distributes across instances per
 environment, BECAUSE a single broker cannot hold 10000 concurrent WebSockets while a sharded pool can.
