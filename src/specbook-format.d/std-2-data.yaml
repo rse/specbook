@@ -11,6 +11,7 @@
     desc: >
         The structure of named entities, with named attributes and directed relationships, of the
         data the solution manages, defining how information is organized and connected.
+    optional: true
     refs: >
         -   Chen: The Entity-Relationship Model -- Toward a Unified View of Data (1976),
             https://dl.acm.org/doi/10.1145/320434.320440
@@ -146,6 +147,7 @@
         For each entity with a non-trivial lifecycle, the legal states it can occupy and the
         permitted transitions between them over its lifetime, making the forbidden moves as explicit
         as the allowed ones.
+    optional: true
     refs: >
         -   Shlaer/Mellor: Object Lifecycles: Modeling the World in States (1992)
         -   Harel: Statecharts: A Visual Formalism for Complex Systems (1987),
@@ -286,6 +288,7 @@
         actors of the state transitions, the actors of the use cases, and the prose of the domain
         rules. The model is closed: an operation not granted to a role is forbidden, exactly like
         a move not listed as a state transition.
+    optional: true
     refs: >
         -   Ferraiolo/Kuhn: Role-Based Access Controls, 15th National Computer Security Conference (1992),
             https://csrc.nist.gov/publications/detail/conference-paper/1992/10/13/role-based-access-controls

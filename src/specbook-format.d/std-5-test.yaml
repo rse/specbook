@@ -17,6 +17,7 @@
         flow, while a test case fixes the concrete data and the observable assertions that decide pass
         or fail, and many test cases (e.g. of Non-Functional Requirements or of cross-session rules)
         have no use case counterpart at all.
+    optional: true
     refs: >
         -   ISO/IEC/IEEE 29119-3:2021: Software and systems engineering -- Software testing -- Part 3: Test documentation (2021),
             https://www.iso.org/standard/79429.html

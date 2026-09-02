@@ -5,6 +5,10 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code, othr]: All Standard Artifacts Optional
+    All artifacts of the standard schema are now optional, so that the various specification types
+    of the modeling coverage matrix (PRD, StRS, SyRS, SRS, UIS, TCS, AD) can be written alone.
+
 -   IMPROVEMENT [code, othr]: Development View Delineation
     The standard "Development View" becomes optional, gains a "Testing" category and a delineation
     of its scope, and the Decision Record "AFFECTS" now also accepts development aspects.

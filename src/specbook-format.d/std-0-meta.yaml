@@ -77,6 +77,10 @@
 #       for properties. This leads to decent headings and a not too deep
 #       Table of Contents.
 #
+#   -   All artifacts are optional, so that the schema can back not only
+#       a full specification but also the individual document types of
+#       the modeling coverage matrix above on their own.
+#
 #   -   The traditional hard Software Requirements Specification (SRS)
 #       vs. Architecture Description (AD) document split is
 #       intentionally smoothed, so we can link from AD to SRS objects
@@ -92,6 +96,7 @@
     desc: >
         The top-level specification meta information.
         Some of the information is rendered onto the title page.
+    optional: true
     diagram:
         type: graph
         nodes: "[[REQS:*]], [[DATA:*]], [[APIS:*]], [[UXUI:*]], [[TEST:*]], [[ARCH:*]]"

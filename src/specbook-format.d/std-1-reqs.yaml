@@ -16,6 +16,7 @@
         desired future state it aims to achieve. Every vision aspect is
         stated in a concise (1-3 sentence) paragraph in an aspirational
         but unambiguous tone.
+    optional: true
     refs: >
         -   ISO/IEC/IEEE 29148:2018: Systems and software engineering -- Life cycle processes -- Requirements engineering (2018),
             https://www.iso.org/standard/72089.html
@@ -71,6 +72,7 @@
         resting on a premise are known and revisited once it turns out to be false. The
         artifact complements the Solution Vision: the vision states what the solution aims
         for, the premises state what it takes as given on the way there.
+    optional: true
     refs: >
         -   ISO/IEC/IEEE 29148:2018: Systems and software engineering -- Life cycle processes -- Requirements engineering (2018),
             https://www.iso.org/standard/72089.html
@@ -172,6 +174,7 @@
         The ubiquitous language of the domain, defining the meaning of each domain term in business
         language, together with its synonyms, its place in the hierarchy of terms, and the terms it
         has to be kept apart from, shared consistently across all Artifacts.
+    optional: true
     refs: >
         -   ISO 704:2022: Terminology work -- Principles and methods (2022),
             https://www.iso.org/standard/79077.html
@@ -254,6 +257,7 @@
         The *archetypal* user profiles representing distinct user groups, capturing their goals,
         needs, behaviors, and context, complemented by the non-user stakeholders whose interests
         the solution has to serve.
+    optional: true
     refs: >
         -   Cooper: The Inmates Are Running the Asylum, 2nd ed. (2004),
             https://www.informit.com/store/inmates-are-running-the-asylum-why-high-tech-products-9780672326141
@@ -340,6 +344,7 @@
         mapping their steps, touchpoints, and emotions over time. The journey is the *target*
         journey with the solution in place, so the friction it records is what the solution has
         to mitigate, not the status quo it replaces.
+    optional: true
     refs: >
         -   NN/g: Journey Mapping 101 (2018),
             https://www.nngroup.com/articles/journey-mapping-101/
@@ -415,6 +420,7 @@
         The concrete behaviors and capabilities the solution must provide, describing *what* the
         system does in terms of functions, features, and operations, while the quality bounds and
         constraints on them belong to the Non-Functional Requirements.
+    optional: true
     refs: >
         -   Mavin et al.: Easy Approach to Requirements Syntax (EARS) (2009),
             https://ieeexplore.ieee.org/document/5328509
@@ -464,6 +470,7 @@
     desc: >
         The quality attributes and constraints the solution must satisfy, such as performance,
         security, scalability, reliability, and usability.
+    optional: true
     refs: >
         -   ISO/IEC 25010:2023: Systems and software engineering -- Systems and software Quality Requirements and Evaluation (SQuaRE) -- Product quality model (2023),
             https://www.iso.org/standard/78176.html
@@ -532,6 +539,7 @@
         The domain invariants, policies, and decision logic that must always hold true in the
         problem domain, independent of any single feature, constraining the Functional and
         Non-Functional Requirements.
+    optional: true
     refs: >
         -   Hay/Healy: Defining Business Rules ~ What Are They Really? (2000),
             https://www.businessrulesgroup.org/first_paper/br01c0.htm
@@ -798,6 +806,7 @@
         The discrete goals users pursue with the solution, each describing an actor's interaction to
         achieve a specific outcome, together with the concrete step-by-step flows for main,
         alternative, and exceptional paths.
+    optional: true
     refs: >
         -   Cockburn: Writing Effective Use Cases (2001),
             https://www.informit.com/store/writing-effective-use-cases-9780201702255

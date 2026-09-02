@@ -13,6 +13,7 @@
         defining the system's boundary by enumerating the external entities sitting at it. The
         artifact complements the Solution Vision: its `SCOPE` states what is deliberately *out* of
         the solution, the Context View enumerates what the solution touches *at* the boundary.
+    optional: true
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Context Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/context/
@@ -120,6 +121,7 @@
         The functional components of the solution, their responsibilities, interfaces, and primary
         interactions, describing *how* the solution's runtime elements are structured and which
         responsibility each owns, delivering the behaviors the Functional Requirements state.
+    optional: true
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Functional Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/functional/
@@ -366,6 +368,7 @@
     desc: >
         The environment into which the solution is deployed, mapping software elements to the
         runtime platform, hardware, and network topology.
+    optional: true
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Deployment Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/deployment/
@@ -432,6 +435,7 @@
     desc: >
         The way the solution is operated, administered, and supported in production, defining
         installation, monitoring, and management concerns.
+    optional: true
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Operational Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/operational/
@@ -471,6 +475,7 @@
     file: 29-ARCH-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed.
+    optional: true
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Perspectives (2011),
             https://www.viewpoints-and-perspectives.info/home/perspectives/
@@ -542,6 +547,7 @@
     desc: >
         The major decisions related to the architecture, each recording the forces at play, the
         chosen response, and the reasoning that justifies it.
+    optional: true
     refs: >
         -   Nygard: Documenting Architecture Decisions (2011),
             https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions
@@ -725,6 +731,7 @@
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives
         that were considered but not chosen.
+    optional: true
     refs: >
         -   ThoughtWorks: Technology Radar (2010),
             https://www.thoughtworks.com/radar
