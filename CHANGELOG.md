@@ -5,6 +5,10 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Operations View Delineation
+    The standard "Operations View" delineates its scope, realigns its categories, gains "TRIGGER",
+    "OPERATOR", "ADDRESSES", and "TOOLS", and the Technology Stack "WHEN" gains "Operate-Time".
+
 -   IMPROVEMENT [code, othr]: Deployment View Topology
     The standard "Deployment View" gains "TIER" (horizontal) and optional "AREA" (vertical) partitions,
     optional "NETWORK" segments replacing the node "NETWORK" property, and node "PART-OF", "CONNECTS-TO",

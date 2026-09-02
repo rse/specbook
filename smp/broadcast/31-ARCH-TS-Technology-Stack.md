@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-19 00:15
-Modified: 2026-06-22 18:56
+Modified: 2026-09-03 10:00
 ---
 
 #   ARCH: Technology Stack (TS)
@@ -274,3 +274,23 @@ BECAUSE chat and questions must be made available in both German and English.
 
 OFetch provides the server's HTTP/REST client used to call the external GraphQL mail-sending API, BECAUSE authorization
 token emails are dispatched through an external mail gateway over REST.
+
+### COMPONENT: Container Orchestration {{container-orchestration}}
+
+-   PRODUCT:      Docker Compose
+-   ALTERNATIVES: Kubernetes, Nomad
+-   WHEN:         Operate-Time
+
+Docker Compose runs and recreates the service containers of an environment from a per-environment compose file, with
+the proxy and relay instances added by the same file, BECAUSE a single-host orchestration is sufficient for the
+per-environment container count and avoids operating a cluster.
+
+### COMPONENT: Database Backup {{database-backup}}
+
+-   PRODUCT:      pg_dump
+-   ALTERNATIVES: pgBackRest, Barman
+-   WHEN:         Operate-Time
+
+The pg_dump utility of PostgreSQL produces the logical database dumps stored together with the filesystem assets on the
+backup storage and restored with pg_restore, BECAUSE a logical dump is portable across PostgreSQL versions and needs
+no additional backup server.

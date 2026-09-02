@@ -157,7 +157,8 @@
                 properties:
                     -   KIND
                 config:
-                    size-node-width-max: 440
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
             props:
                 -   name: KIND
                     desc: |
@@ -269,7 +270,8 @@
                 properties:
                     -   KIND
                 config:
-                    size-node-width-max: 440
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
             props:
                 -   name: KIND
                     desc: |
@@ -413,7 +415,8 @@
                     -   LOCATION
                     -   KIND
                 config:
-                    size-node-width-max: 440
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
             props:
                 -   name: PART-OF
                     desc: >
@@ -461,7 +464,8 @@
                 properties:
                     -   KIND
                 config:
-                    size-node-width-max: 440
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
         -   kind: NODE
             desc: >
                 A single deployment node, named with a short (2-5 word) summary (e.g. `Web Servers`,
@@ -490,7 +494,8 @@
                     -   PLATFORM
                     -   SCOPE
                 config:
-                    size-node-width-max: 440
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
             props:
                 -   name: KIND
                     desc: |
@@ -584,7 +589,8 @@
                     -   KIND
                     -   SCOPE
                 config:
-                    size-node-width-max: 440
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
             props:
                 -   name: SCOPE
                     desc: |
@@ -608,8 +614,9 @@
     id: OV
     file: 28-ARCH-OV-Operations-View.md
     desc: >
-        The way the solution is operated, administered, and supported in production, defining
-        installation, monitoring, and management concerns.
+        The way the solution is operated, administered, and supported in production, defining the
+        standing procedures by which the operating organization installs, configures, migrates,
+        observes, protects, upgrades, scales, and supports the running solution.
     optional: true
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Operational Viewpoint (2011),
@@ -628,21 +635,94 @@
             desc: >
                 A single operational concern, named with a short (2-5 word) summary (e.g. `Rolling
                 Deployment`, `Metrics Collection`, `Backup and Restore`) and described in a concise
-                (1-3 sentence) paragraph by how it is handled in production and which procedures or
-                tools support it, plus a 1-sentence rationale ("why") for the operational approach.
+                (1-3 sentence) paragraph by the procedure through which it is handled in production
+                and the steps and tools supporting it, plus a 1-sentence rationale ("why") for the
+                operational approach.
+
+                A concern states a standing production procedure the operating organization
+                performs on the running solution: a capability the solution offers its users (even
+                an administrating one) is a Functional Requirement or Use Case, an automatic
+                behavior of the solution is a Domain Rule, the design tactic making the solution
+                operable (e.g. replication, statelessness) is a Quality Perspective addressing the
+                same requirement, the deployment shape acted upon (instances, environments) is the
+                Deployment View, the pipeline producing the deployable artifact is a Development
+                View `Build` aspect, and the products used are Technology Stack `Operate-Time`
+                components referenced through `TOOLS` -- only the procedure itself, its trigger,
+                and its responsible operator belong here.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:OV.CONCERN:*]], [[REQS:NR.REQUIREMENT:*]], [[REQS:UP.PERSONA:*]],
+                    [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DP.NODE:*]],
+                    [[DATA:DM.ENTITY:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   CATEGORY
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
             props:
                 -   name: CATEGORY
+                    desc: |
+                        The category of the concern, one of:
+                        -   `Installation`:   Provisioning the environments and installing the
+                                              solution into them.
+                        -   `Configuration`:  Managing the configuration of the installed solution.
+                        -   `Migration`:      Moving data or functionality between versions or
+                                              environments.
+                        -   `Monitoring`:     Observing the health and performance of the running
+                                              solution.
+                        -   `Logging`:        Collecting, retaining, and inspecting the logs.
+                        -   `Alerting`:       Notifying the operators of conditions requiring
+                                              attention.
+                        -   `Backup`:         Preserving the data and state of the solution.
+                        -   `Recovery`:       Restoring the solution after a failure or data loss.
+                        -   `Upgrade`:        Rolling out new versions of the solution.
+                        -   `Capacity`:       Scaling the solution and planning its capacity.
+                        -   `Administration`: Routine housekeeping (e.g. user administration, data
+                                              retention, certificate rotation).
+                        -   `Incident`:       Troubleshooting and responding to incidents.
+                        -   `Support`:        Handling the requests of the users through the support
+                                              tiers and their escalation.
+                    value: enum(Installation,Configuration,Migration,Monitoring,Logging,Alerting,Backup,Recovery,Upgrade,Capacity,Administration,Incident,Support)
+                -   name: TRIGGER
                     desc: >
-                        The category of the concern: `Installation`, `Configuration`,
-                        `Provisioning`, `Monitoring`, `Logging`, `Alerting`, `Backup`, `Recovery`,
-                        `Upgrade`, or `Support`.
-                    value: enum(Installation,Configuration,Provisioning,Monitoring,Logging,Alerting,Backup,Recovery,Upgrade,Support)
+                        When the procedure is performed (e.g. `nightly`, `on release`, `on alert`,
+                        `before each event`, `on demand`), separating the routine (scheduled)
+                        concerns from the reactive (event-driven) ones.
+                -   name: OPERATOR
+                    desc: >
+                        Comma-separated references to the User Personas objects performing the
+                        procedure, usually a `Stakeholder` persona like the operations team (a
+                        procedure performed by a `User` persona through the solution is a Use Case
+                        instead); omitted when no persona of the operating organization is modeled.
+                    value: list([[REQS:UP.PERSONA:*]])
+                    optional: true
+                -   name: ADDRESSES
+                    desc: >
+                        Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
+                        procedure fulfills (e.g. a recovery objective, a retention obligation),
+                        complemented by the Quality Perspective addressing the same requirement
+                        through its design tactic; omitted when the concern fulfills no stated
+                        requirement.
+                    value: list([[REQS:NR.*]])
+                    optional: true
                 -   name: ELEMENTS
                     desc: >
-                        Comma-separated references to the FUNCTIONALITY-VIEW or DEPLOYMENT-VIEW
-                        objects the concern applies to.
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]],
-                        [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]])
+                        Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW,
+                        DEPLOYMENT-VIEW, or DATA-MODEL objects the procedure acts upon (e.g. the
+                        nodes scaled, the units restarted, the entities backed up or migrated).
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DP.TIER:*]],
+                        [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                        [[DATA:DM.ENTITY:*]])
+                    optional: true
+                -   name: TOOLS
+                    desc: >
+                        Comma-separated references to the TECHNOLOGY-STACK components (usually of
+                        `WHEN` `Operate-Time`) supporting the procedure; omitted when the procedure
+                        uses no modeled product.
+                    value: list([[ARCH:TS.TIER:*.COMPONENT:*]])
                     optional: true
 
 -   kind: ARCH
@@ -1141,9 +1221,14 @@
                             desc: |
                                 The lifecycle phase in which the component is relevant, one of:
 
-                                -   `Build-Time`: Used during development, compilation, or
-                                                  packaging.
-                                -   `Run-Time`:   Used while the solution executes in production.
-                            value: enum(Build-Time,Run-Time)
+                                -   `Build-Time`:   Used during development, compilation, or
+                                                    packaging.
+                                -   `Run-Time`:     Used while the solution executes in
+                                                    production.
+                                -   `Operate-Time`: Used to operate the solution in production
+                                                    (e.g. for rollout, monitoring, or backup),
+                                                    referenced by the Operations View concerns
+                                                    through `TOOLS`.
+                            value: enum(Build-Time,Run-Time,Operate-Time)
                             optional: true
 
