@@ -177,3 +177,10 @@ leading/trailing spaces, parens around all arrow parameters, and line
 breaks before `else`/`catch`/`finally`. Match existing formatting
 exactly when editing.
 
+## CHANGELOG.md entries
+
+Entries to CHANGELOG.md are minimally 2 and maximally 3 lines long.
+The first line is always just the classification and the summary. The
+description then is just 1 or 2 lines. All lines have to be line-wrapped
+at column 100.
+
