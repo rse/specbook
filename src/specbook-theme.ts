@@ -41,7 +41,6 @@ export const themeStylesheet = (colors: ThemeColors): string =>
 
 /*  the semantic theme colors needed outside of CSS (PDF decoration)  */
 export type ThemeMapping = {
-    text:   string
     muted:  string
     symbol: string
     border: string
@@ -52,10 +51,9 @@ export type ThemeMapping = {
     aligned with the layer-2 CSS mapping of the HTML rendering  */
 export const themeMapping = (colors: ThemeColors, style: ThemeStyle): ThemeMapping => {
     const idx = style === "dark" ?
-        { text: 29, muted: 22, symbol: 20, border: 16, accent: 24 } :
-        { text: 5,  muted: 22, symbol: 24, border: 28, accent: 12 }
+        { muted: 22, symbol: 20, border: 16, accent: 24 } :
+        { muted: 22, symbol: 24, border: 28, accent: 12 }
     return {
-        text:   colors.base[idx.text     - 1],
         muted:  colors.base[idx.muted    - 1],
         symbol: colors.base[idx.symbol   - 1],
         border: colors.base[idx.border   - 1],

@@ -164,12 +164,12 @@ export const charsetCodepoints = (charset: string): number[] | undefined => {
 }
 
 /*  the symbol glyphs used by the HTML/PDF rendering (kind and property
-    bullets, link symbol, primary marker, theme switch icon, anchor
-    symbol plus its text presentation variation selector, the search
-    field clearing icon, the active entry pointer of the table of
-    contents side panel, and the title path segment pointer of the
+    bullets, link symbol, primary marker, anchor symbol plus its text
+    presentation variation selector, the search field clearing icon,
+    the absent property marker, the active entry pointer of the table
+    of contents side panel, and the title path segment pointer of the
     description popups)  */
-const symbolGlyphs = [ 0x25CF, 0x25CB, 0x26AD, 0x2318, 0x25D0, 0x2693, 0xFE0E, 0x00D7, 0x25C0, 0x25B7 ]
+const symbolGlyphs = [ 0x25CF, 0x25CB, 0x26AD, 0x2318, 0x2693, 0xFE0E, 0x00D7, 0x2205, 0x25C0, 0x25B7 ]
 
 /*  the typographic glyphs producible by the smart typography rendering
     (language-specific quotes, dashes, ellipsis, bullet, nbsp)  */
@@ -198,12 +198,16 @@ export const subsetStylesheet = async (charset?: string): Promise<string> => {
     return result + css.slice(last)
 }
 
-/*  determine the document title and subtitle from the title object  */
-export const documentTitle = (specification: Spec): { title: string, subtitle?: string } => ({
-    title:    titleProperty(specification, "TITLE") ??
-        titleObject(specification)?.name ?? "Specification",
-    subtitle: titleProperty(specification, "SUBTITLE")
-})
+/*  determine the document title and subtitle from the title object (an
+    empty TITLE counts as absent, exactly like for the title page)  */
+export const documentTitle = (specification: Spec): { title: string, subtitle?: string } => {
+    const title = titleProperty(specification, "TITLE")?.trim()
+    return {
+        title:    title !== undefined && title !== "" ? title :
+            titleObject(specification)?.name ?? "Specification",
+        subtitle: titleProperty(specification, "SUBTITLE")?.trim()
+    }
+}
 
 /*  determine the document logo as a self-contained data: URL, taken from the
     first embedded image of the LOGO property of the title object -- the light

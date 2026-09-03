@@ -35,6 +35,8 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
     const clients = new Set<WebSocket>()
     const fastify = Fastify()
     await fastify.register(fastifyWebsocket)
+
+    /*  answer a plain GET with the document and subscribe a WebSocket upgrade  */
     fastify.route({
         method: "GET",
         url:    "/",
@@ -56,8 +58,11 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
             })
         }
     })
+
+    /*  start listening and hand out the export feed  */
     await fastify.listen({ host: options.addr, port: options.port })
-    const url = `http://${options.addr}:${options.port}/`
+    const host = options.addr.includes(":") ? `[${options.addr}]` : options.addr
+    const url  = `http://${host}:${options.port}/`
     options.verbose(`listening on ${literal(url)}`, "notice")
     return {
         update: (buffer: Buffer) => {

@@ -14,7 +14,7 @@ import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, renderVerbose, lit
     parseOutputSpec, previewAddr, previewPort, describeFormats, describeParts,
     parseDescribeFormat, parseDescribePart, parseCompressLevel,
     version, type VerboseSink, type VerboseLevel } from "./specbook-api.js"
-import { serveMcp }        from "./specbook-mcp.js"
+import { serveMcp }                from "./specbook-mcp.js"
 
 /*  route verbose messages to stderr, keeping stdout reserved for the
     command outputs and the MCP protocol, and qualify every message with
@@ -59,8 +59,10 @@ const writeOutput = async (output: string, data: Buffer | string,
 
 /*  determine an option default value, overridable via a
     corresponding SPECBOOK_<OPTION> environment variable  */
-const envDefault = (name: string, fallback?: string): string | undefined =>
-    process.env[`SPECBOOK_${name.toUpperCase().replace(/-/g, "_")}`] ?? fallback
+const envDefault = (name: string, fallback?: string): string | undefined => {
+    const value = process.env[`SPECBOOK_${name.toUpperCase().replace(/-/g, "_")}`]
+    return value !== undefined && value !== "" ? value : fallback
+}
 
 /*  determine a flag option default value, overridable via a
     corresponding SPECBOOK_<OPTION> environment variable  */
@@ -193,7 +195,7 @@ withCommonOptions(program.command("preview"))
     .action(async (opts: { verbose: boolean, config: string[], basedir: string,
         addr: string, port: string }) => {
         const port = Number(opts.port)
-        if (!Number.isInteger(port))
+        if (!Number.isInteger(port) || port < 1 || port > 65535)
             throw new Error(`invalid TCP port "${opts.port}"`)
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         await specbook.preview({ config: configOf(opts), basedir: opts.basedir, addr: opts.addr, port })

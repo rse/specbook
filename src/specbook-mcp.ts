@@ -10,7 +10,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z }                    from "zod"
 
 import { SpecBook, renderDiagnostic, renderVerbose, formats, parseOutputSpec, describeFormats,
-    describeParts, parseCompressLevel, version, type VerboseSink } from "./specbook-api.js"
+    describeParts, compressLevels, version, type VerboseSink } from "./specbook-api.js"
 
 /*  render an error with its cause chain into a tool error result  */
 const errorResult = (err: unknown) => {
@@ -125,28 +125,27 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             "points to the artifacts of that particular project. The description can be reduced to a " +
             "single part and emitted as the raw original file content instead of Markdown.",
         inputSchema: {
-            config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
+            config:   z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
                 "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
                 "default: the bundled standard schema configuration, embedded)"),
-            basedir: z.string().optional().describe("base directory of the specification Markdown files"),
-            embed:   z.boolean().optional().describe("embed the given YAML schema configuration instead " +
+            basedir:  z.string().optional().describe("base directory of the specification Markdown files"),
+            embed:    z.boolean().optional().describe("embed the given YAML schema configuration instead " +
                 "of just referencing it (default: false; the bundled standard one is always embedded)"),
-            compress: z.number().int().min(0).max(3).optional().describe("compression level of the emitted " +
+            compress: z.literal(compressLevels).optional().describe("compression level of the emitted " +
                 "YAML schema configuration (embedded or raw): 0 for verbatim, 1 for re-emitted with 2-space " +
                 "indentation and without comments, 2 for additionally without its \"refs\" fields, or 3 for " +
                 "additionally without its \"desc\" fields (default: 1)"),
-            format:  z.enum(describeFormats).optional().describe("output format: \"md\" for Markdown or " +
+            format:   z.enum(describeFormats).optional().describe("output format: \"md\" for Markdown or " +
                 "\"raw\" for the raw original file content of the part (default: \"md\")"),
-            part:    z.enum(describeParts).optional().describe("document part: \"all\" for the entire " +
+            part:     z.enum(describeParts).optional().describe("document part: \"all\" for the entire " +
                 "description, \"meta\" for the generic models and formats, \"schema\" for the YAML schema " +
                 "configuration, or \"spec\" for the specification files (default: \"all\"; \"raw\" is " +
                 "available for \"meta\" and \"schema\" only)"),
-            output:  z.string().optional().describe("output file path (\"-\" or omitted returns the description directly)")
+            output:   z.string().optional().describe("output file path (\"-\" or omitted returns the description directly)")
         }
     }, async (args) => {
         try {
-            const text = await specbook.describe({ ...args,
-                compress: args.compress !== undefined ? parseCompressLevel(args.compress) : undefined })
+            const text = await specbook.describe(args)
             if (args.output !== undefined && args.output !== "-") {
                 await fs.promises.writeFile(args.output, text, "utf8")
                 return { content: [ { type: "text", text: `described specification format into "${args.output}"` } ] }

@@ -211,10 +211,11 @@ export const htmlToPdf = async (
     renderHtmlPass: (tocPages?: Map<string, number>) => Promise<string>,
     heading:        Heading,
     outline:        OutlineEntry[],
+    titlePage:      boolean,
     verbose:        Verbose,
     css:            string,
     theme:          ThemeMapping,
-    paper:          string = paperSizeDefault
+    paper           = paperSizeDefault
 ): Promise<Buffer> => {
     const { chromium } = await import("playwright")
 
@@ -275,11 +276,11 @@ export const htmlToPdf = async (
             destinations (and hence the internal hyperlinks) intact  */
         const { PDFDocument } = await import("pdf-lib")
         const merged = await PDFDocument.load(decorated)
-        if (html.includes("class=\"titlepage\"")) {
+        if (titlePage) {
             const source = await PDFDocument.load(plain)
-            const [ titlePage ] = await merged.copyPages(source, [ 0 ])
+            const [ first ] = await merged.copyPages(source, [ 0 ])
             merged.removePage(0)
-            merged.insertPage(0, titlePage)
+            merged.insertPage(0, first)
         }
 
         /*  attach the document outline for the viewer side-bar  */

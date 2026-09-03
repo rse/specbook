@@ -9,9 +9,9 @@ import { parseDocument, isNode, LineCounter, type Document } from "yaml"
 import * as v                                                from "valibot"
 import { mergeWith, isPlainObject }                          from "es-toolkit"
 
-import { Schema, type SchemaObject, type SchemaProperty }             from "./specbook-format-schema.js"
+import { Schema, type SchemaObject, type SchemaProperty }               from "./specbook-format-schema.js"
 import { compileValueExpr, anchored, admitsReferences, type ValueExpr } from "./specbook-parse-value.js"
-import { type Diagnostic }                                            from "./specbook-diagnostic.js"
+import { type Diagnostic }                                              from "./specbook-diagnostic.js"
 
 /*  a path into the YAML document (object keys and sequence indexes)  */
 type YamlPath = (string | number)[]
@@ -91,7 +91,7 @@ const posOfMergedPath = (docs: ConfigDoc[], merged: unknown, path: YamlPath) => 
         let list: string | undefined
         for (const segment of path) {
             const key = typeof segment === "number" && Array.isArray(own) ?
-                own.findIndex((item) => identityOf(item, list) === identityOf(at(node, segment), list)) : segment
+                own.findIndex((item: unknown) => identityOf(item, list) === identityOf(at(node, segment), list)) : segment
             if (typeof key === "number" ? !Array.isArray(own) || key < 0 : !isPlainObject(own) || !(key in own))
                 break
             translated.push(key)
@@ -273,6 +273,8 @@ const checkConstraints = (
     has to be readable and syntactically valid on its own, while the
     merged result alone is validated  */
 export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Diagnostic[] } => {
+    if (files.length === 0)
+        throw new Error("no configuration files given")
     const diagnostics = new Array<Diagnostic>()
 
     /*  read and syntactically parse every configuration file into its

@@ -16,7 +16,8 @@ import { themeColors, themeStylesheet, themeMapping }
     from "./specbook-theme.js"
 import { renderAst, type AstFormat } from "./specbook-export-ast.js"
 import { renderMarkdown }            from "./specbook-export-md.js"
-import { renderHtml, htmlOutline }   from "./specbook-export-html.js"
+import { renderHtml, htmlOutline, titlePageObject }
+    from "./specbook-export-html.js"
 import { htmlToPdf }                 from "./specbook-export-pdf.js"
 import { literal }                   from "./specbook-verbose.js"
 import type { Verbose }              from "./specbook-verbose.js"
@@ -161,8 +162,8 @@ const renderFormat = async (
             theme, so its decoration colors are the light mapping, too  */
         return htmlToPdf((tocPages) => renderHtml(specification, config, tocPages, css, false, verbose),
             { ...documentTitle(specification), logo: documentLogo(specification) },
-            htmlOutline(specification, config), verbose, css,
-            themeMapping(colors, "light"), paper)
+            htmlOutline(specification, config), titlePageObject(specification) !== undefined,
+            verbose, css, themeMapping(colors, "light"), paper)
 }
 
 /*  export a specification into the requested format (see "renderFormat"),

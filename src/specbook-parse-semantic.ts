@@ -150,6 +150,51 @@ const parenProp = (object: SpecObject, props: SchemaProperty[]): SchemaProperty 
         && directMatches(compileValueExpr(prop.value), paren))
 }
 
+/*  check the property values flagged unique for distinctness among
+    the sibling objects of the same kind and the ones flagged present
+    for occurring on at least one of the (existing) siblings (all
+    values, or only the values matching the regexp or enum expression
+    of the flag)  */
+const checkSiblingFlags = (ctx: ParseContext, object: SpecObject, childs: SchemaObject[], meta: ObjectMeta) => {
+    const marker = (flag: boolean | string | undefined) =>
+        flag === undefined || flag === false ? undefined :
+            { filter: typeof flag === "string" ? compileValueExpr(flag) : undefined }
+    for (const child of childs) {
+        const siblings = object.childs.filter((c) => c.kind === child.kind)
+        for (const prop of child.props ?? []) {
+            const unique  = marker(prop.unique)
+            const present = marker(prop.present)
+            if (unique === undefined && present === undefined)
+                continue
+            const seen  = new Map<string, SpecObject>()
+            let   found = false
+            for (const sibling of siblings) {
+                const property = findProp(sibling, prop.name)
+                if (property === undefined)
+                    continue
+                const value = plainText(property.value).trim()
+                if (present !== undefined && (present.filter === undefined || directMatches(present.filter, value)))
+                    found = true
+                if (unique === undefined || (unique.filter !== undefined && !directMatches(unique.filter, value)))
+                    continue
+                const first = seen.get(value)
+                if (first === undefined)
+                    seen.set(value, sibling)
+                else {
+                    const siblingMeta = ctx.objectMeta.get(sibling) ?? { file: "", line: 1 }
+                    ctx.diagnose(siblingMeta.file, ctx.propMeta.get(property)?.line ?? siblingMeta.line,
+                        `value "${value}" of unique property "${prop.name}" on ${sibling.kind} "${sibling.name}" ` +
+                        `already used by preceding ${sibling.kind} "${first.name}"`)
+                }
+            }
+            if (present !== undefined && siblings.length > 0 && !found)
+                ctx.diagnose(meta.file, meta.line,
+                    `no ${child.kind} below ${object.kind} "${object.name}" carries property "${prop.name}"` +
+                    (typeof prop.present === "string" ? ` with a value matching "${prop.present}"` : ""))
+        }
+    }
+}
+
 /*  validate a single object (and recursively its childs) against its schema  */
 const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObject, level: number) => {
     const meta  = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
@@ -206,48 +251,8 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
         validateObject(ctx, child, childSchema, level + 1)
     }
 
-    /*  check the property values flagged unique for distinctness among
-        the sibling objects of the same kind and the ones flagged present
-        for occurring on at least one of the (existing) siblings (all
-        values, or only the values matching the regexp or enum expression
-        of the flag)  */
-    for (const child of childs) {
-        const siblings = object.childs.filter((c) => c.kind === child.kind)
-        for (const prop of child.props ?? []) {
-            const marker = (flag: boolean | string | undefined) =>
-                flag === undefined || flag === false ? undefined :
-                    { filter: typeof flag === "string" ? compileValueExpr(flag) : undefined }
-            const unique  = marker(prop.unique)
-            const present = marker(prop.present)
-            if (unique === undefined && present === undefined)
-                continue
-            const seen  = new Map<string, SpecObject>()
-            let   found = false
-            for (const sibling of siblings) {
-                const property = findProp(sibling, prop.name)
-                if (property === undefined)
-                    continue
-                const value = plainText(property.value).trim()
-                if (present !== undefined && (present.filter === undefined || directMatches(present.filter, value)))
-                    found = true
-                if (unique === undefined || (unique.filter !== undefined && !directMatches(unique.filter, value)))
-                    continue
-                const first = seen.get(value)
-                if (first === undefined)
-                    seen.set(value, sibling)
-                else {
-                    const siblingMeta = ctx.objectMeta.get(sibling) ?? { file: "", line: 1 }
-                    ctx.diagnose(siblingMeta.file, ctx.propMeta.get(property)?.line ?? siblingMeta.line,
-                        `value "${value}" of unique property "${prop.name}" on ${sibling.kind} "${sibling.name}" ` +
-                        `already used by preceding ${sibling.kind} "${first.name}"`)
-                }
-            }
-            if (present !== undefined && siblings.length > 0 && !found)
-                ctx.diagnose(meta.file, meta.line,
-                    `no ${child.kind} below ${object.kind} "${object.name}" carries property "${prop.name}"` +
-                    (typeof prop.present === "string" ? ` with a value matching "${prop.present}"` : ""))
-        }
-    }
+    /*  check the sibling-scoped property flags of the child kinds  */
+    checkSiblingFlags(ctx, object, childs, meta)
 
     /*  report the configured child object kinds which are missing  */
     for (const child of childs)
@@ -276,7 +281,7 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
     so deviations of the heading can still be precisely reported  */
 export const resolveArtifact = (config: Schema, object: SpecObject): SchemaObject | undefined =>
     config.find((s) =>
-        (s.kind === object.kind && s.id === object.id) || `${s.kind}-${s.id}` === object.id) ??
+        (s.kind === object.kind && s.id === object.id) || (s.id !== undefined && `${s.kind}-${s.id}` === object.id)) ??
     config.find((s) => s.name !== undefined
         && s.name.toUpperCase() === plainText(object.name).toUpperCase())
 
@@ -415,8 +420,13 @@ const checkRelations = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject
     const groups = new Map<SchemaProperty, SpecObject[]>()
     for (const [ object, schema ] of schemas)
         for (const prop of schema.props ?? [])
-            if (prop.symmetric === true || prop.acyclic === true)
-                groups.set(prop, [ ...(groups.get(prop) ?? []), object ])
+            if (prop.symmetric === true || prop.acyclic === true) {
+                const group = groups.get(prop)
+                if (group === undefined)
+                    groups.set(prop, [ object ])
+                else
+                    group.push(object)
+            }
     for (const [ prop, objects ] of groups) {
         const members = new Set<SpecObject>(objects)
         const locate  = (object: SpecObject) => {
@@ -596,7 +606,7 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
     its carrying object), independent of any configuration  */
 export const validateReferences = (ctx: ParseContext, specification: Spec) => {
     const check = (object: SpecObject, text: string, file: string, line: number) => {
-        for (const m of text.matchAll(referenceRegex)) {
+        for (const m of plainText(text).matchAll(referenceRegex)) {
             const ref        = m[1].trim()
             const resolution = resolveUnique(ctx.linkIndex, ref, object)
             if (resolution.ambiguous)

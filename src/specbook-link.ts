@@ -42,6 +42,8 @@ interface LinkLookup {
     sets:    Map<string, SpecObject[]>
     uniques: Map<string, SpecObject[]>
 }
+
+/*  provide the lookup structures of an index, built once on first use  */
 const lookups = new WeakMap<LinkIndex, LinkLookup>()
 const lookup = (index: LinkIndex): LinkLookup => {
     let result = lookups.get(index)

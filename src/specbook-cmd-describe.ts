@@ -6,7 +6,7 @@
 
 import * as fs from "node:fs"
 
-import textframe from "textframe"
+import textframe                                     from "textframe"
 import { parseDocument, stringify, visit, isScalar } from "yaml"
 
 import { type Schema } from "./specbook-format-schema.js"
@@ -55,6 +55,8 @@ const description = (): string =>
     document (block scalar styles retained) with 2-space indentation and
     unwrapped lines, dropping all comments and the fields the level demands  */
 const compressYaml = (yaml: string, level: CompressLevel): string => {
+    if (level === 0)
+        return yaml
     const doc  = parseDocument(yaml)
     const drop = [ "refs", "desc" ].slice(0, level - 1)
     doc.commentBefore = null
@@ -89,8 +91,7 @@ const schemaSection = (config: string[], schema: Schema | undefined,
     let yaml = schemaYaml(config, schema)
     if (standard)
         yaml = yaml.replace(/^(?:[ \t]*##.*\n)+\s*/, "")
-    if (compress > 0)
-        yaml = compressYaml(yaml, compress)
+    yaml = compressYaml(yaml, compress)
     return textframe(`
         The **SpecBook SCHEMA Model** is the following YAML schema configuration:
     `) + "\n```yaml\n" + yaml.replace(/\n*$/, "\n") + "```\n\n"
@@ -114,13 +115,9 @@ const specSection = (basedir: string): string =>
     configuration compressed by the given level instead of verbatim  */
 export const describeFormat = (options: { config?: string[], schema?: Schema, basedir?: string, embed?: boolean,
     standard?: boolean, compress?: CompressLevel, format?: DescribeFormat, part?: DescribePart }): string => {
-    const format   = options.format   ?? "md"
-    const part     = options.part     ?? "all"
-    const compress = options.compress ?? 1
-    if (!describeFormats.includes(format))
-        throw new Error(`unknown describe format "${format}"`)
-    if (!describeParts.includes(part))
-        throw new Error(`unknown describe part "${part}"`)
+    const format   = parseDescribeFormat(options.format ?? "md")
+    const part     = parseDescribePart(options.part ?? "all")
+    const compress = parseCompressLevel(options.compress ?? 1)
 
     /*  the raw format emits the original file content of a single part,
         so it is available for the file-backed parts only  */
@@ -134,7 +131,7 @@ export const describeFormat = (options: { config?: string[], schema?: Schema, ba
             throw new Error("format \"raw\" for part \"schema\" requires a YAML schema configuration")
         else {
             const yaml = schemaYaml(options.config, options.schema)
-            return compress > 0 ? compressYaml(yaml, compress) : yaml
+            return compressYaml(yaml, compress)
         }
     }
 
@@ -157,16 +154,16 @@ export const describeFormat = (options: { config?: string[], schema?: Schema, ba
         where the schema configuration and the base directory are the
         artifacts of the project instantiation and hence are always
         placed under their own section  */
-    const sections = [ description() ]
-    const schema   = options.config !== undefined ?
+    const sections   = [ description() ]
+    const schemaText = options.config !== undefined ?
         schemaSection(options.config, options.schema,
             options.embed === true, options.standard === true, compress) : undefined
-    if (schema !== undefined || options.basedir !== undefined) {
+    if (schemaText !== undefined || options.basedir !== undefined) {
         sections.push(
             "SpecBook Project Instantiation\n" +
             "==============================\n")
-        if (schema !== undefined)
-            sections.push(schema)
+        if (schemaText !== undefined)
+            sections.push(schemaText)
         if (options.basedir !== undefined)
             sections.push(specSection(options.basedir))
     }

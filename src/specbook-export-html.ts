@@ -15,7 +15,7 @@ import type { Spec, SpecArtifact, SpecObject, SpecProperty, SpecDescription }
     from "./specbook-format-spec.js"
 import type { Schema, SchemaObject, SchemaFormat }
     from "./specbook-format-schema.js"
-import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths, plainText }
+import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths, plainText, type LinkIndex }
     from "./specbook-link.js"
 import { compileValueExpr, splitItems, type ValueExpr }
     from "./specbook-parse-value.js"
@@ -429,19 +429,17 @@ const tocPanelScript = textframe`
     the mouse rested 400ms on the element (so mere mouse movements
     across the page pop nothing up), titled with the "data-info-path"
     object path (one filled-circle "KIND: Name" segment per level,
-    arbitrarily deep and separated by the icons alone, ending for
-    a kind in the bare kind and extended for a property with the
-    not-filled-circle property name, styled as in the document
-    content: the kinds and the property bold in the path color, the
-    names bold in the description color)
-    and fed from the injected INFO
-    map of pre-rendered schema description HTML or SPEC map of
-    pre-rendered corpus description HTML (a missing entry pops up
-    the title path alone), the description led by a bold "Schema:"
-    or "Specification:" label naming its origin (a corpus-fed
-    instance popup additionally carrying the page background colors
-    instead of the accent), where the popup is
-    capped at 40% viewport width and attached above or below the
+    arbitrarily deep and separated by pointer icons, ending for a kind
+    in the bare kind and extended for a property with the not-filled-
+    circle property name, styled as in the document content: the kinds
+    and the property bold in the path color, the names bold in the
+    description color) and fed from the injected INFO map of
+    pre-rendered schema description HTML or SPEC map of pre-rendered
+    corpus description HTML (a missing entry pops up the title path
+    alone), the description led by a bold "Schema:" or "Specification:"
+    label naming its origin (a corpus-fed instance popup additionally
+    carrying the page background colors instead of the accent), where
+    the popup is capped at 40% viewport width and attached above or below the
     hovered element, whichever side offers more viewport space; the
     script runs at the end of the body, so a live preview body swap
     replaces the popup element and the body-bound listeners along
@@ -1085,15 +1083,15 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
         info:     infoKeyOf(childs[0]),
         infopath: infoPathOf(childs[0], false),
         width:    Math.round(100 / maxColumns),
-        rows:  childs.map((child, i) => scoped(child, () => {
+        rows:     childs.map((child, i) => scoped(child, () => {
             const cells = keys.map((key) => ({ key, desc: false, span: 1,
                 value: inlineValue(child.kind, child.properties.find((property) => property.key === key)) }))
             if (desc)
                 cells.push({ key: "Description", desc: true, span: 1,
                     value: safe(renderCell(child)) })
             const chunks = new Array<typeof cells>()
-            for (let i = 0; i < cells.length; i += size)
-                chunks.push(cells.slice(i, i + size))
+            for (let pos = 0; pos < cells.length; pos += size)
+                chunks.push(cells.slice(pos, pos + size))
             if (chunks.length > 0) {
                 const last = chunks[chunks.length - 1]
                 last[last.length - 1].span = size - last.length + 1
@@ -1276,11 +1274,63 @@ export const htmlOutline = (specification: Spec,
     has to carry a non-empty "TITLE" property, as without it there is
     nothing to render a title page from (the object stays suppressed in
     the regular flow nevertheless)  */
-const titlePageObject = (specification: Spec): SpecObject | undefined => {
+export const titlePageObject = (specification: Spec): SpecObject | undefined => {
     const object = titleObject(specification)
     const title  = object?.properties.find((property) => property.key === "TITLE")
     return title !== undefined && title.value.trim() !== "" ? object : undefined
 }
+
+/*  pre-render the configured diagrams as embeddable SVGs, displayed
+    at a reduced coordinate scale, as the Gradia geometry (node
+    boxes, font sizes) is dimensioned for a stand-alone canvas and
+    would dwarf the document text at 1:1  */
+const scaledDiagrams = async (specification: Spec, config: Schema,
+    verbose?: Verbose): Promise<Map<SpecObject, string>> => {
+    const scale    = 0.75
+    const rendered = new Map<SpecObject, string>()
+    for (const [ object, result ] of await renderDiagrams(specification, config, verbose)) {
+        /*  a "hub" diagram is capped to the width share it would
+            occupy on its full three-column canvas (padded by the
+            minimum widths of the absent columns and their channels),
+            so all hub diagrams share the zoom level of the
+            three-column ones and are centered in the leftover space  */
+        const absent = result.columns !== undefined ? 3 - result.columns : 0
+        const pad    = absent * (
+            (result.config?.["size-node-width-min"]  ?? Gradia.config["size-node-width-min"]) +
+            (result.config?.["hub-channel-width-min"] ?? Gradia.config["hub-channel-width-min"]))
+        rendered.set(object, result.svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
+            (_, head: string, w: string, h: string) =>
+                `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"` +
+                (result.columns !== undefined ? " class=\"hub\"" : "") +
+                (absent > 0 ? ` style="max-width: ${(Number(w) / (Number(w) + pad) * 100).toFixed(2)}%"` : "")))
+    }
+    return rendered
+}
+
+/*  create the reference expander of a document: "[[xxx]]" references
+    expand into hyperlinks (an unresolvable or ambiguous reference stays
+    literal, marked as broken), resolved from the object currently
+    rendered and targeting the fully-qualified anchor paths of the
+    objects: in the full form (kind, name, and link symbol), or in the
+    compact form for prose (the object icon and the name only, via CSS
+    and markup, with the full form shown by the description popups)  */
+const makeLinker = (index: LinkIndex) => (text: string, compact: boolean): string =>
+    expandReferences(text, (reference) => {
+        const target = resolveUnique(index, reference, scope ?? undefined).target
+        if (target === undefined)
+            return `<span class="link-broken">[[${escapeHtml(reference)}]]</span>`
+
+        /*  the full form carries the popup attributes on its kind and
+            name, with the kind bold in the accent color and the name
+            bold in the regular text color (via the stylesheet)  */
+        const full =
+            `<strong class="object-kind"${infoAttr(target)}>${escapeHtml(target.kind)}:</strong>` +
+            ` <span class="object-name"${specAttr(target)}>${target.name}</span>` +
+            " <span class=\"link-symbol\">&#x26AD;</span>"
+        return compact ?
+            `<a href="#${escapeHtml(anchorOf(target))}" class="link-compact"${specAttr(target)}>${target.name}</a>` :
+            `<a href="#${escapeHtml(anchorOf(target))}" class="link-full">${full}</a>`
+    })
 
 /*  render the entire specification into a self-contained HTML document,
     with the build-time pre-assembled stylesheet embedded inline, the
@@ -1290,43 +1340,15 @@ const titlePageObject = (specification: Spec): SpecObject | undefined => {
 export const renderHtml = async (specification: Spec, config?: Schema,
     tocPages?: Map<string, number>, css?: string, realtime = false,
     verbose?: Verbose): Promise<string> => {
-    /*  pre-render the configured diagrams as embeddable SVGs, displayed
-        at a reduced coordinate scale, as the Gradia geometry (node
-        boxes, font sizes) is dimensioned for a stand-alone canvas and
-        would dwarf the document text at 1:1  */
-    const scale  = 0.75
-    let rendered: Map<SpecObject, string> | null = null
-    if (config !== undefined) {
-        rendered = new Map<SpecObject, string>()
-        for (const [ object, result ] of await renderDiagrams(specification, config, verbose)) {
-            /*  a "hub" diagram is capped to the width share it would
-                occupy on its full three-column canvas (padded by the
-                minimum widths of the absent columns and their channels),
-                so all hub diagrams share the zoom level of the
-                three-column ones and are centered in the leftover space  */
-            const absent = result.columns !== undefined ? 3 - result.columns : 0
-            const pad    = absent * (
-                (result.config?.["size-node-width-min"]  ?? Gradia.config["size-node-width-min"]) +
-                (result.config?.["hub-channel-width-min"] ?? Gradia.config["hub-channel-width-min"]))
-            rendered.set(object, result.svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
-                (_, head: string, w: string, h: string) =>
-                    `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"` +
-                    (result.columns !== undefined ? " class=\"hub\"" : "") +
-                    (absent > 0 ? ` style="max-width: ${(Number(w) / (Number(w) + pad) * 100).toFixed(2)}%"` : "")))
-        }
-    }
+    /*  pre-render the configured diagrams as scaled embeddable SVGs  */
+    const rendered = config !== undefined ?
+        await scaledDiagrams(specification, config, verbose) : null
 
     /*  the document language selects the smart typography quote style  */
     const lang = documentLang(specification)
     quotes = quoteStyles[lang?.toLowerCase().split(/[-_]/)[0] ?? "en"] ?? quoteStyles.en
 
-    /*  expand "[[xxx]]" references into hyperlinks (an unresolvable or
-        ambiguous reference stays literal, marked as broken), resolved
-        from the object currently rendered and targeting the
-        fully-qualified anchor paths of the objects: in the full form
-        (kind, name, and link symbol), or in the compact form for prose
-        (the object icon and the name only, via CSS and markup, with
-        the full form shown by the description popups)  */
+    /*  establish the per-document rendering state  */
     const index = buildLinkIndex(specification)
     anchors  = anchorPaths(index)
     members  = config !== undefined ? collectMembers(config, new Map()) : null
@@ -1351,22 +1373,8 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             artifact.objects.forEach(link)
         infoParents = parents
     }
-    linker   = (text, compact) => expandReferences(text, (reference) => {
-        const target = resolveUnique(index, reference, scope ?? undefined).target
-        if (target === undefined)
-            return `<span class="link-broken">[[${escapeHtml(reference)}]]</span>`
+    linker   = makeLinker(index)
 
-        /*  the full form carries the popup attributes on its kind and
-            name, with the kind bold in the accent color and the name
-            bold in the regular text color (via the stylesheet)  */
-        const full =
-            `<strong class="object-kind"${infoAttr(target)}>${escapeHtml(target.kind)}:</strong>` +
-            ` <span class="object-name"${specAttr(target)}>${target.name}</span>` +
-            " <span class=\"link-symbol\">&#x26AD;</span>"
-        return compact ?
-            `<a href="#${escapeHtml(anchorOf(target))}" class="link-compact"${specAttr(target)}>${target.name}</a>` :
-            `<a href="#${escapeHtml(anchorOf(target))}" class="link-full">${full}</a>`
-    })
     /*  collect the corpus descriptions of the object instances for the
         description popups (after the linker is in place, as the
         pre-rendered descriptions expand their references, too)  */
@@ -1406,7 +1414,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
                 safe(renderTocPanel(artifacts.flatMap((artifact) => artifact.objects),
                     title !== undefined, doc !== undefined)) : "",
             tocscript: entries.length > 0 ? safe(tocPanelScript) : "",
-            doc:      doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",
+            doc:       doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",
             artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
         } })
     }

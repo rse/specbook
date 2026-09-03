@@ -139,103 +139,124 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
     return lines.join("\n") + "\n"
 }
 
-/*  derive the edges of a diagram: from the "[[...]]" references of the
-    node objects (per the "links" selection, named with the property key
-    when "labeled", and for a "deep" diagram also of their descendants,
-    with every target lifted to its nearest node and the reference count
-    as the arity) and from the edge objects
-    by convention (source: parent object, target: first reference in the
+/*  derive the reference edges of a diagram from the "[[...]]" references
+    of the node objects (per the "links" selection, named with the
+    property key when "labeled", and for a "deep" diagram also of their
+    descendants, with every target lifted to its nearest node and the
+    reference count as the arity)  */
+const deriveReferenceEdges = (diagram: SchemaDiagram, nodes: SpecObject[], nodeSet: Set<SpecObject>,
+    index: LinkIndex, anchors: Map<SpecObject, string>,
+    parents: Map<SpecObject, SpecObject | undefined>): DiagramEdge[] => {
+    const edges = new Array<DiagramEdge>()
+
+    /*  lift an object to its nearest ancestor-or-self within the
+        node set, as a "deep" diagram attributes the references of
+        the descendants to their nearest node object  */
+    const lift = (object: SpecObject | undefined): SpecObject | undefined => {
+        while (object !== undefined && !nodeSet.has(object))
+            object = parents.get(object)
+        return object
+    }
+    for (const node of nodes) {
+        /*  the reference-carrying objects of the node: the node itself
+            and, for a "deep" diagram, its descendants (halting at
+            the descendants which are nodes on their own)  */
+        const objects = new Array<SpecObject>()
+        const walk = (object: SpecObject) => {
+            objects.push(object)
+            if (diagram.deep === true)
+                for (const child of object.childs)
+                    if (!nodeSet.has(child))
+                        walk(child)
+        }
+        walk(node)
+        const counts = new Map<string, { target: SpecObject, name?: string, count: number }>()
+        for (const object of objects) {
+            const texts: { text: string, name?: string }[] = object.properties.map((property) => ({
+                text: property.value,
+                name: diagram.labeled === true ? property.key.toLowerCase() : undefined
+            }))
+            if (diagram.links === "all" && object.description !== undefined) {
+                texts.push({ text: object.description.description })
+                if (object.description.rationale !== undefined)
+                    texts.push({ text: object.description.rationale })
+            }
+            for (const { text, name } of texts)
+                for (const m of text.matchAll(referenceRegex)) {
+                    let target = resolveUnique(index, m[1].trim(), object).target
+                    if (diagram.deep === true)
+                        target = lift(target)
+                    if (target !== undefined && target !== node && nodeSet.has(target)) {
+                        const key   = `${anchors.get(target) ?? target.id} ${name ?? ""}`
+                        const entry = counts.get(key) ?? { target, name, count: 0 }
+                        entry.count++
+                        counts.set(key, entry)
+                    }
+                }
+        }
+        for (const { target, name, count } of counts.values())
+            edges.push({ source: node, target, name,
+                arity: diagram.deep === true ? String(count) : undefined })
+    }
+    return edges
+}
+
+/*  derive the object edges of a diagram from the edge objects by
+    convention (source: parent object, target: first reference in the
     property values, name: object name, arity: "ARITY" property),
-    overridable via "edgeSource"/"edgeTarget"/"edgeArity" (a "grid"
-    diagram is edge-less by definition, so no edges are derived at all)  */
+    overridable via "edgeSource"/"edgeTarget"/"edgeArity"  */
+const deriveObjectEdges = (diagram: SchemaDiagram, nodeSet: Set<SpecObject>, edgeObjects: SpecObject[],
+    index: LinkIndex, parents: Map<SpecObject, SpecObject | undefined>,
+    errors: DiagramError[]): DiagramEdge[] => {
+    const edges = new Array<DiagramEdge>()
+
+    /*  resolve the node an edge object references through a named
+        property, or through its first single-reference property when
+        no name is configured (skipping the source property)  */
+    const edgeNode = (edgeObject: SpecObject, key: string | undefined) => {
+        const value = key !== undefined ?
+            edgeObject.properties.find((property) => property.key === key)?.value :
+            edgeObject.properties.filter((property) => property.key !== diagram.edgeSource)
+                .map((property) => property.value).find((v) => referenceOnce.test(v))
+        const reference = value?.match(referenceOnce)?.[1].trim()
+        return reference !== undefined ? resolveUnique(index, reference, edgeObject).target : undefined
+    }
+    for (const edgeObject of edgeObjects) {
+        const source = diagram.edgeSource !== undefined ?
+            edgeNode(edgeObject, diagram.edgeSource) : parents.get(edgeObject)
+        const target = edgeNode(edgeObject, diagram.edgeTarget)
+        if (source === undefined) {
+            errors.push({ object: edgeObject, reason: diagram.edgeSource !== undefined ?
+                "carries no resolvable source reference" :
+                "has no parent object as source" })
+            continue
+        }
+        if (target === undefined) {
+            errors.push({ object: edgeObject, reason: "carries no resolvable target reference" })
+            continue
+        }
+        if (!nodeSet.has(source) || !nodeSet.has(target))
+            continue
+        const arity = edgeObject.properties.find((property) =>
+            property.key === (diagram.edgeArity ?? "ARITY"))?.value
+        edges.push({ source, target, name: plainText(edgeObject.name),
+            arity: arity !== undefined ? plainText(arity) : undefined })
+    }
+    return edges
+}
+
+/*  derive the edges of a diagram: the reference edges of the node
+    objects, the object edges of the edge objects, and the containment
+    edges of the object hierarchy (a "grid" diagram is edge-less by
+    definition, so no edges are derived at all)  */
 const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
     nodes: SpecObject[], nodeSet: Set<SpecObject>, edgeObjects: SpecObject[],
     index: LinkIndex, anchors: Map<SpecObject, string>,
     parents: Map<SpecObject, SpecObject | undefined>, errors: DiagramError[]): DiagramEdge[] => {
     const edges = new Array<DiagramEdge>()
     if (type !== "grid") {
-        /*  lift an object to its nearest ancestor-or-self within the
-            node set, as a "deep" diagram attributes the references of
-            the descendants to their nearest node object  */
-        const lift = (object: SpecObject | undefined): SpecObject | undefined => {
-            while (object !== undefined && !nodeSet.has(object))
-                object = parents.get(object)
-            return object
-        }
-        for (const node of nodes) {
-            /*  the reference-carrying objects of the node: the node itself
-                and, for a "deep" diagram, its descendants (halting at
-                the descendants which are nodes on their own)  */
-            const objects = new Array<SpecObject>()
-            const walk = (object: SpecObject) => {
-                objects.push(object)
-                if (diagram.deep === true)
-                    for (const child of object.childs)
-                        if (!nodeSet.has(child))
-                            walk(child)
-            }
-            walk(node)
-            const counts = new Map<string, { target: SpecObject, name?: string, count: number }>()
-            for (const object of objects) {
-                const texts: { text: string, name?: string }[] = object.properties.map((property) => ({
-                    text: property.value,
-                    name: diagram.labeled === true ? property.key.toLowerCase() : undefined
-                }))
-                if (diagram.links === "all" && object.description !== undefined) {
-                    texts.push({ text: object.description.description })
-                    if (object.description.rationale !== undefined)
-                        texts.push({ text: object.description.rationale })
-                }
-                for (const { text, name } of texts)
-                    for (const m of text.matchAll(referenceRegex)) {
-                        let target = resolveUnique(index, m[1].trim(), object).target
-                        if (diagram.deep === true)
-                            target = lift(target)
-                        if (target !== undefined && target !== node && nodeSet.has(target)) {
-                            const key   = `${anchors.get(target) ?? target.id} ${name ?? ""}`
-                            const entry = counts.get(key) ?? { target, name, count: 0 }
-                            entry.count++
-                            counts.set(key, entry)
-                        }
-                    }
-            }
-            for (const { target, name, count } of counts.values())
-                edges.push({ source: node, target, name,
-                    arity: diagram.deep === true ? String(count) : undefined })
-        }
-
-        /*  resolve the node an edge object references through a named
-            property, or through its first single-reference property when
-            no name is configured (skipping the source property)  */
-        const edgeNode = (edgeObject: SpecObject, key: string | undefined) => {
-            const value = key !== undefined ?
-                edgeObject.properties.find((property) => property.key === key)?.value :
-                edgeObject.properties.filter((property) => property.key !== diagram.edgeSource)
-                    .map((property) => property.value).find((v) => referenceOnce.test(v))
-            const reference = value?.match(referenceOnce)?.[1].trim()
-            return reference !== undefined ? resolveUnique(index, reference, edgeObject).target : undefined
-        }
-        for (const edgeObject of edgeObjects) {
-            const source = diagram.edgeSource !== undefined ?
-                edgeNode(edgeObject, diagram.edgeSource) : parents.get(edgeObject)
-            const target = edgeNode(edgeObject, diagram.edgeTarget)
-            if (source === undefined) {
-                errors.push({ object: edgeObject, reason: diagram.edgeSource !== undefined ?
-                    "carries no resolvable source reference" :
-                    "has no parent object as source" })
-                continue
-            }
-            if (target === undefined) {
-                errors.push({ object: edgeObject, reason: "carries no resolvable target reference" })
-                continue
-            }
-            if (!nodeSet.has(source) || !nodeSet.has(target))
-                continue
-            const arity = edgeObject.properties.find((property) =>
-                property.key === (diagram.edgeArity ?? "ARITY"))?.value
-            edges.push({ source, target, name: plainText(edgeObject.name),
-                arity: arity !== undefined ? plainText(arity) : undefined })
-        }
+        edges.push(...deriveReferenceEdges(diagram, nodes, nodeSet, index, anchors, parents))
+        edges.push(...deriveObjectEdges(diagram, nodeSet, edgeObjects, index, parents, errors))
 
         /*  derive the containment edges from the object hierarchy, as
             the nesting of the objects carries no "[[...]]" reference  */
@@ -288,12 +309,11 @@ const resolvePatterns = (index: LinkIndex, errors: DiagramError[],
         const set     = resolveSet(index, pattern)
         if (set.length === 0 && !pattern.includes("*"))
             errors.push({ reason: `unresolvable diagram "${field}" pattern "[[${pattern}]]"` })
-        for (const match of set) {
+        for (const match of set)
             if (!seen.has(match)) {
                 seen.add(match)
                 matches.push(match)
             }
-        }
     }
     if (!found)
         errors.push({ reason: `diagram "${field}" carries no "[[...]]" reference pattern` })

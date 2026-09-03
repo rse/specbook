@@ -20,7 +20,8 @@ import { describeFormat, describeFormats, describeParts, parseDescribeFormat, pa
     compressLevels, parseCompressLevel, type DescribeFormat, type DescribePart, type CompressLevel }
     from "./specbook-cmd-describe.js"
 import { requireBrowser }                                from "./specbook-export-pdf.js"
-import { literal, renderVerbose, type Verbose, type VerboseLevel } from "./specbook-verbose.js"
+import { literal, renderVerbose, type Verbose, type VerboseLevel }
+    from "./specbook-verbose.js"
 import { type Schema }                                   from "./specbook-format-schema.js"
 
 /*  re-export the central types for API consumers  */
@@ -120,7 +121,7 @@ export class SpecBook {
         invalid specification must never be emitted, while the warnings
         are just surfaced as notices), where "realtime" injects the
         client-side script of the live preview into the HTML  */
-    private async renderFormats (result: LintResult, formats: ExportFormat[],
+    private async renderFormats (result: LintResult, requested: ExportFormat[],
         verbose: Verbose, realtime: boolean): Promise<Buffer[]> {
         if (result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
             throw new Error("invalid specification:\n" +
@@ -130,7 +131,7 @@ export class SpecBook {
         if (result.specification.artifacts.length === 0)
             throw new Error("unexportable specification: no artifacts found")
         const buffers = new Array<Buffer>()
-        for (const format of formats)
+        for (const format of requested)
             buffers.push(await exportSpecification(result.specification, format,
                 verbose, result.config, realtime))
         return buffers
