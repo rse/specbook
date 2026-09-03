@@ -7,7 +7,7 @@
 -   kind: ARCH
     name: Context View
     id: CV
-    file: 23-ARCH-CV-Context-View.md
+    file: 22-ARCH-CV-Context-View.md
     desc: >
         The relationships, dependencies, and interactions between the solution and its environment,
         defining the system's boundary by enumerating the external entities sitting at it. The
@@ -116,7 +116,7 @@
 -   kind: ARCH
     name: Functionality View
     id: FV
-    file: 24-ARCH-FV-Functionality-View.md
+    file: 23-ARCH-FV-Functionality-View.md
     desc: >
         The functional components of the solution, their responsibilities, interfaces, and primary
         interactions, describing *how* the solution's runtime elements are structured and which
@@ -226,7 +226,7 @@
 -   kind: ARCH
     name: Concurrency View
     id: CO
-    file: 25-ARCH-CO-Concurrency-View.md
+    file: 24-ARCH-CO-Concurrency-View.md
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
         threads, and defining how they coordinate and communicate. The artifact is absent when the
@@ -319,7 +319,7 @@
 -   kind: ARCH
     name: Development View
     id: DV
-    file: 26-ARCH-DV-Development-View.md
+    file: 25-ARCH-DV-Development-View.md
     desc: >
         The architecture supporting the software development process, defining the module
         organization, build approach, and codeline conventions. The artifact is absent when the
@@ -366,7 +366,7 @@
 -   kind: ARCH
     name: Deployment View
     id: DP
-    file: 27-ARCH-DP-Deployment-View.md
+    file: 26-ARCH-DP-Deployment-View.md
     desc: >
         The environment into which the solution is deployed, partitioning it into tiers and mapping
         software elements to the runtime platform, hardware, and network topology.
@@ -612,7 +612,7 @@
 -   kind: ARCH
     name: Operations View
     id: OV
-    file: 28-ARCH-OV-Operations-View.md
+    file: 27-ARCH-OV-Operations-View.md
     desc: >
         The way the solution is operated, administered, and supported in production, defining the
         standing procedures by which the operating organization installs, configures, migrates,
@@ -734,7 +734,7 @@
 -   kind: ARCH
     name: Quality Perspectives
     id: QP
-    file: 29-ARCH-QP-Quality-Perspectives.md
+    file: 28-ARCH-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed by the architecture, through the
         tactics built into the solution across the views.
@@ -845,7 +845,7 @@
 -   kind: ARCH
     name: Technology Stack
     id: TS
-    file: 30-ARCH-TS-Technology-Stack.md
+    file: 29-ARCH-TS-Technology-Stack.md
     desc: >
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives

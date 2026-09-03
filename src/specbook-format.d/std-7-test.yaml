@@ -7,11 +7,13 @@
 -   kind: TEST
     name: Test Cases
     id: TC
-    file: 22-TEST-TC-Test-Cases.md
+    file: 31-TEST-TC-Test-Cases.md
     desc: >
         The verifiable conditions and steps used to confirm that requirements, domain rules, use
-        case scenarios, and state transitions are correctly implemented, with mandatory defined
-        inputs, mandatory expected outcomes, and optional pre- and post-conditions.
+        case scenarios, state transitions, and the mechanisms, procedures, and decisions of the
+        architecture are correctly implemented, with mandatory defined inputs, mandatory expected
+        outcomes, and optional pre- and post-conditions. The artifact is the last one, as a test
+        case verifies objects of every preceding kind.
 
         Test cases are not derived from use cases alone: a use case scenario describes an intent-level
         flow, while a test case fixes the concrete data and the observable assertions that decide pass
@@ -53,6 +55,17 @@
                 procedure in its body as sequentially numbered, imperative steps, mirroring the
                 steps of a use case scenario (e.g. `1. The user logs in on device A. 2. The same
                 user logs in on device B.`), with `INPUT` naming the decisive stimulus among them.
+
+                A test case verifying an architecture element asserts the element itself, not the
+                threshold behind it: a threshold is the `METRIC` of a Non-Functional Requirement and
+                verified by referencing the requirement, while a Quality Perspectives tactic is
+                referenced only when its mechanism is the assertion (e.g. that the failover switch
+                happens, not how fast), an Operations View concern when its procedure is rehearsed
+                (e.g. a restore drill), a Deployment View node or network when its topology is
+                inspected (e.g. a port scan proving an `Isolated` segment), a component or
+                concurrency unit when its collaboration or contention is exercised, a Development
+                View aspect or a Decision Record decision when its rule is checked by an
+                architectural fitness function (e.g. no dependency edge against the layering).
             diagram:
                 type: hub
                 center: self
@@ -60,7 +73,9 @@
                     [[REQS:DR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]], [[REQS:DW.WORKFLOW:*]],
                     [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                     [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
-                    [[UXUI:DS.STORYBOARD:*.FRAME:*]]"
+                    [[UXUI:DS.STORYBOARD:*.FRAME:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
+                    [[ARCH:DV.ASPECT:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                    [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[DECS:DR.DECISION:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -73,23 +88,35 @@
                         NON-FUNCTIONAL-REQUIREMENTS objects, the DOMAIN-RULES objects, the
                         USE-CASES scenario objects, the STATE-MODEL transition objects, the
                         DATA-MODEL attribute objects, the AUTHORIZATION-MODEL permission objects,
-                        the INTERFACE-ENDPOINTS objects, and/or the DIALOG-STORYBOARD frame objects
-                        the test case verifies, so that a scenario (in particular an `Exceptional`
-                        one, judged by its `OUTCOME`) is covered by an acceptance test beside the
-                        requirements it exercises, a rule (judged by the condition it states) is
-                        proven to hold, not just to be documented, a transition (judged by its
-                        `GUARD` and the resulting state) is proven to be permitted exactly as
-                        modeled, an attribute (judged by its `TYPE` and `CONSTRAINT`) is proven to
-                        reject the values outside its range, pattern, or invariant, a permission
-                        (judged by the operations it grants and, the model being closed, by the
-                        ones it denies) is proven to be enforced, an endpoint (judged by its
-                        arguments, options, and results) is proven to honor its contract, and a
-                        frame (judged by the dialog step it storyboards) is proven to be reachable
-                        and to behave as storyboarded.
+                        the INTERFACE-ENDPOINTS objects, the DIALOG-STORYBOARD frame objects, the
+                        FUNCTIONALITY-VIEW, CONCURRENCY-VIEW, DEVELOPMENT-VIEW, DEPLOYMENT-VIEW
+                        (node and network), OPERATIONS-VIEW, and QUALITY-PERSPECTIVES objects,
+                        and/or the DECISION-RECORD objects the test case verifies, so that a
+                        scenario (in particular an `Exceptional` one, judged by its `OUTCOME`) is
+                        covered by an acceptance test beside the requirements it exercises, a rule
+                        (judged by the condition it states) is proven to hold, not just to be
+                        documented, a transition (judged by its `GUARD` and the resulting state) is
+                        proven to be permitted exactly as modeled, an attribute (judged by its
+                        `TYPE` and `CONSTRAINT`) is proven to reject the values outside its range,
+                        pattern, or invariant, a permission (judged by the operations it grants
+                        and, the model being closed, by the ones it denies) is proven to be
+                        enforced, an endpoint (judged by its arguments, options, and results) is
+                        proven to honor its contract, a frame (judged by the dialog step it
+                        storyboards) is proven to be reachable and to behave as storyboarded, a
+                        component or unit (judged by its responsibility and dependencies) is proven
+                        to collaborate and to withstand contention as modeled, an aspect (judged by
+                        the rule it states) is proven to be obeyed by the source structure, a node
+                        or network (judged by its `INSTANCES`, `PART-OF`, and `SCOPE`) is proven to
+                        be deployed and isolated as modeled, a concern (judged by its procedure) is
+                        proven to be performable, a tactic (judged by its `MECHANISM`) is proven to
+                        take effect, and a decision (judged by its `WHAT`) is proven to be complied
+                        with.
                     value: list([[REQS:*.REQUIREMENT:*]], [[REQS:DR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
                         [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                         [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
-                        [[UXUI:DS.STORYBOARD:*.FRAME:*]])
+                        [[UXUI:DS.STORYBOARD:*.FRAME:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
+                        [[ARCH:DV.ASPECT:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                        [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[DECS:DR.DECISION:*]])
                 -   name: WORKFLOWS
                     desc: >
                         Comma-separated references to the DOMAIN-WORKFLOWS objects the test case

@@ -7,7 +7,7 @@
 -   kind: DECS
     name: Decision Record
     id: DR
-    file: 31-DECS-DR-Decision-Record.md
+    file: 30-DECS-DR-Decision-Record.md
     desc: >
         The major decisions related to the solution design, each recording the forces at play, the
         chosen response, and the reasoning that justifies it. The artifact is the last one, as a

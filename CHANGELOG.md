@@ -5,6 +5,10 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Test Cases Verify Architecture
+    The standard "Test Cases" move last, behind "ARCH" and "DECS", and "VERIFIES" widens onto the
+    components, units, aspects, nodes, networks, concerns, tactics, and decisions.
+
 -   IMPROVEMENT [code, othr]: Decision Record Delineation
     The standard "Decision Record" becomes the last kind "DECS", gains "DRIVEN-BY", "DECIDES",
     "ALTERNATIVES", and "CONSEQUENCES", widens "AFFECTS", and capitalizes "STATUS" with "Rejected".

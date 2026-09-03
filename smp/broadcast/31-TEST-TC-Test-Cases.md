@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 17:28
+Modified: 2026-09-03 18:45
 ---
 
 TEST: Test Cases (TC)
@@ -98,7 +98,7 @@ TEST: Test Cases (TC)
 
 ##  TEST-CASE: Throttled Submission Not Stored {{throttled}}
 
--   VERIFIES:       [[NR.throttling]], [[SCENARIO:ask-question-throttled]]
+-   VERIFIES:       [[NR.throttling]], [[SCENARIO:ask-question-throttled]], [[QP.abuse-resistance]]
 -   PRE-CONDITION:  A running event with the default submission limit of 10 per user per minute.
 -   INPUT:          The attendee submits an eleventh question within the same minute.
 -   EXPECTED:       The system rejects the eleventh submission and informs the attendee to wait, but accepts the twelfth one after the minute has passed.
