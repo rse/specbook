@@ -2,7 +2,7 @@
 ChangeLog
 =========
 
-1.1.1 (2026-09-02)
+1.2.0 (2026-09-03)
 ------------------
 
 -   IMPROVEMENT [code]: Reference Resolution Performance
