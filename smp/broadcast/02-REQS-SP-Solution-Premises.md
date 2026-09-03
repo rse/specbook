@@ -47,13 +47,13 @@ arrives by email and attendees join from the same workplace or home context.
 -   TERMS:       [[TERM:event]], [[TERM:attendee]]
 -   LIKELIHOOD:  Low
 -   IMPACT:      High
--   CONSEQUENCE: An event exceeding 10.000 simultaneous attendees exhausts the dimensioned relay
+-   CONSEQUENCE: An event exceeding 10,000 simultaneous attendees exhausts the dimensioned relay
                  and proxy capacity, degrading or refusing the connections of the excess audience.
 -   MITIGATION:  The horizontal scaling of proxy, relay, and server instances leaves headroom,
                  which is confirmed by a load test before each larger event.
 -   AFFECTS:     [[NR.attendee-scale]], [[NR.scalability]]
 
-No single event gathers more than 10.000 simultaneous attendees, the size of the largest digital
+No single event gathers more than 10,000 simultaneous attendees, the size of the largest digital
 town hall of the organization, BECAUSE the invited audience is bounded by the workforce of the
 organization and its registration figures.
 

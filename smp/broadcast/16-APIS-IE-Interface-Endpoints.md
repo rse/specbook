@@ -17,7 +17,7 @@ ENDPOINT: broadcast
 -   LOCATOR:     `broadcast [options]`
 
 The sole command of the program, which loads the layered configuration,
-brings the database schema up-to-date, pre-forks the configured number
+brings the database schema up to date, pre-forks the configured number
 of worker processes, supervises them (respawning a dead one after the
 [[RESPAWN_DELAY]]), and runs until it receives a `SIGINT` or `SIGTERM`
 signal, which it forwards to all workers before terminating gracefully,

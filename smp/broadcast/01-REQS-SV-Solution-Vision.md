@@ -16,7 +16,7 @@ REQS: Solution Vision (SV)
     The solution serves event organizers (managers), live-event
     moderators and presenters, and large invited audiences of attendees,
     ranging from small internal lectures of 75 people up to digital town
-    halls of 10.000 simultaneous attendees.
+    halls of 10,000 simultaneous attendees.
 
 -   SOLUTION:
     **Broadcast** is a live-event platform that joins an embedded video
@@ -53,7 +53,7 @@ REQS: Solution Vision (SV)
 
 -   SUCCESS-CRITERIA:
     **Broadcast** is achieved once an organization can run its
-    large-scale events on it end-to-end: events of up to 10.000
+    large-scale events on it end-to-end: events of up to 10,000
     simultaneous attendees are carried without a stream interruption
     visible to the audience.
 

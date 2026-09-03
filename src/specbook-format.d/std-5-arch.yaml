@@ -224,628 +224,9 @@
                     optional: true
 
 -   kind: ARCH
-    name: Concurrency View
-    id: CO
-    file: 24-ARCH-CO-Concurrency-View.md
-    desc: >
-        The concurrency structure of the solution, mapping functional components to processes and
-        threads, and defining how they coordinate and communicate. The artifact is absent when the
-        solution runs as a single sequential unit of execution and has no concurrency structure
-        worth describing.
-    optional: true
-    refs: >
-        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Concurrency Viewpoint (2011),
-            https://www.viewpoints-and-perspectives.info/home/viewpoints/concurrency/
-        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
-            https://ieeexplore.ieee.org/document/469759
-        -   Schmidt et al.: Pattern-Oriented Software Architecture, Volume 2: Patterns for Concurrent and Networked Objects (2000),
-            https://www.wiley.com/en-us/Pattern+Oriented+Software+Architecture,+Volume+2,+Patterns+for+Concurrent+and+Networked+Objects-p-9781118725177
-    diagram:
-        type: graph
-        nodes: "[[ARCH:CO.UNIT:*]]"
-        labeled: true
-        properties:
-            -   KIND
-    childs:
-        -   kind: UNIT
-            desc: >
-                A single concurrency unit, named with a short (2-5 word) summary (e.g. `Web Worker
-                Pool`, `Background Scheduler`, `Ingest Queue Consumer`) and described in a concise
-                (1-3 sentence) paragraph by how it executes and how it avoids or manages contention,
-                races, and deadlocks (including its start order and failure/restart behavior where
-                non-obvious), plus a 1-sentence rationale ("why") for the chosen concurrency
-                structure.
-
-                A unit executes work at runtime: a queue or channel between units is not a unit
-                but the coordination mechanism stated in `COORDINATION`, its contract an Interface
-                Model interface (e.g. of kind `MQTT` or `WebSocket`), and the platform element
-                hosting a managed broker a Deployment View `Managed` node -- only the executing
-                structure itself belongs to the Concurrency View.
-            diagram:
-                type: hub
-                center: self
-                nodes: "[[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
-                labeled: true
-                qualified: true
-                properties:
-                    -   KIND
-                config:
-                    size-node-width-max:    440
-                    size-node-height-scale: 1.75
-            props:
-                -   name: KIND
-                    desc: |
-                        The kind of the concurrency unit, one of:
-
-                        -   `Process`:   An independent OS process with its own address space.
-                        -   `Thread`:    A thread of execution within a process.
-                        -   `Task`:      A lightweight cooperative task (e.g. coroutine, fiber).
-                        -   `Pool`:      A managed group of interchangeable workers.
-                        -   `EventLoop`: A single-threaded cooperative scheduler of tasks.
-                    value: enum(Process,Thread,Task,Pool,EventLoop)
-                -   name: PART-OF
-                    desc: >
-                        Reference to the CONCURRENCY-VIEW object this unit is contained in,
-                        expressing the containment the kinds imply: a `Thread`, `Task`, `Pool`, or
-                        `EventLoop` references the `Process` it executes within, and a `Task` the
-                        `EventLoop` or `Pool` scheduling it; omitted for a top-level unit.
-                    value: "[[ARCH:CO.UNIT:*]]"
-                    optional: true
-                    acyclic: true
-                -   name: HOSTS
-                    desc: >
-                        Comma-separated references to the FUNCTIONALITY-VIEW objects that run inside
-                        this concurrency unit; omitted when no modeled component runs inside it.
-                    value: list([[ARCH:FV.COMPONENT:*]])
-                    optional: true
-                -   name: MULTIPLICITY
-                    desc: >
-                        How many instances of the unit run (e.g. `1`, `1 per CPU core`, `0..n
-                        auto-scaled`).
-                -   name: COORDINATES-WITH
-                    desc: >
-                        Comma-separated references to the CONCURRENCY-VIEW objects this unit
-                        coordinates or communicates with at runtime, naming the peer unit only
-                        (e.g. a producer names the consumer it feeds through a shared queue),
-                        while the mechanism is stated by `COORDINATION`.
-                    value: list([[ARCH:CO.UNIT:*]])
-                    optional: true
-                -   name: COORDINATION
-                    desc: >
-                        The mechanism by which the unit coordinates or communicates with other
-                        units, usually those referenced in `COORDINATES-WITH` (e.g. `shared
-                        queue`, `mutex`, `message passing`, `optimistic locking`).
-
--   kind: ARCH
-    name: Development View
-    id: DV
-    file: 25-ARCH-DV-Development-View.md
-    desc: >
-        The architecture supporting the software development process, defining the module
-        organization, build approach, and codeline conventions. The artifact is absent when the
-        development conventions are governed outside the specification (e.g. by repository-level
-        contributor instructions).
-    optional: true
-    refs: >
-        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Development Viewpoint (2011),
-            https://www.viewpoints-and-perspectives.info/home/viewpoints/development/
-        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
-            https://ieeexplore.ieee.org/document/469759
-        -   Clements et al.: Documenting Software Architectures: Views and Beyond, 2nd ed. (2010),
-            https://www.informit.com/store/documenting-software-architectures-views-and-beyond-9780321552686
-    diagram:
-        type: grid
-        nodes: "[[ARCH:DV.ASPECT:*]]"
-        properties:
-            -   CATEGORY
-    childs:
-        -   kind: ASPECT
-            desc: >
-                A single development aspect, named with a short (2-5 word) summary (e.g. `Module
-                Layering`, `Build Pipeline`, `Branching Model`) and described in a concise (1-3
-                sentence) paragraph by the development convention or structure and the rule
-                developers must follow, plus a 1-sentence rationale ("why").
-
-                An aspect states a standing developer-facing rule about the source structure and
-                process: it names no concrete products (a Technology Stack `Build-Time` component
-                states the product choice), does not restate the runtime structure (a Functionality
-                View `Module` or `Subsystem` groups the logic), does not cover production
-                procedures (an Operations View concern does), and the trade-off that produced a
-                rule is a Decision Record referencing the aspect through `AFFECTS`.
-            props:
-                -   name: CATEGORY
-                    desc: >
-                        The development concern the aspect governs: `Structure` (the physical
-                        source module/package layout), `Build` (compilation and packaging),
-                        `Dependency` (the allowed dependency edges between the structures),
-                        `Codeline` (branching, merging, versioning), `Standardization` (coding
-                        standards and conventions), `Testing` (test conventions, layout, and
-                        coverage rules), or `Tooling` (development tools and automation).
-                    value: enum(Structure,Build,Dependency,Codeline,Standardization,Testing,Tooling)
-
--   kind: ARCH
-    name: Deployment View
-    id: DP
-    file: 26-ARCH-DP-Deployment-View.md
-    desc: >
-        The environment into which the solution is deployed, partitioning it into tiers and mapping
-        software elements to the runtime platform, hardware, and network topology.
-    optional: true
-    refs: >
-        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Deployment Viewpoint (2011),
-            https://www.viewpoints-and-perspectives.info/home/viewpoints/deployment/
-        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
-            https://ieeexplore.ieee.org/document/469759
-        -   Brown: The C4 Model: Deployment Diagram (2018),
-            https://c4model.com/diagrams/deployment
-    diagram:
-        type: graph
-        nodes: "[[ARCH:DP.NODE:*]]"
-        labeled: true
-        properties:
-            -   TIER
-            -   AREA
-            -   KIND
-            -   PLATFORM
-        config:
-            size-node-width-max: 350
-    childs:
-        -   kind: TIER
-            desc: >
-                A single deployment tier, named with a short (1-3 word) summary (e.g. `Client`,
-                `Server`, `Database`, `Data Center`) and described in a concise (1-3 sentence)
-                paragraph by the code or data it hosts and its spatial and network separation from
-                the other tiers, plus a 1-sentence rationale ("why") for the partitioning.
-
-                A tier is a logically and spatially distinct, network-connected, technology-induced
-                partition of the solution, the *horizontal* split when drawn (an `AREA` is the
-                *vertical*, domain-induced one): every node belongs to exactly one tier via its
-                `TIER`, a location-level tier (e.g. a data center) groups the tiers referencing it
-                via `PART-OF`, and a single deployment unit within a tier is a `NODE` -- only the
-                partition itself belongs here.
-            format:
-                type: concise
-            diagram:
-                type: hub
-                center: self
-                nodes: "[[ARCH:DP.TIER:*]], [[ARCH:DP.NODE:*]]"
-                labeled: true
-                qualified: true
-                properties:
-                    -   LOCATION
-                    -   KIND
-                config:
-                    size-node-width-max:    440
-                    size-node-height-scale: 1.75
-            props:
-                -   name: PART-OF
-                    desc: >
-                        Reference to the DEPLOYMENT-VIEW tier this tier is contained in (e.g. the
-                        `Server` and `Database` tiers reference the `Data Center` tier hosting
-                        them); omitted for a top-level tier.
-                    value: "[[ARCH:DP.TIER:*]]"
-                    optional: true
-                    acyclic: true
-                -   name: LOCATION
-                    desc: >
-                        Where the tier physically runs (e.g. `Hetzner data center Nürnberg, dev/QA/prod
-                        environments`, `attendee and operator devices`, `Cloudflare edge`); omitted
-                        when inherited from the `PART-OF` tier.
-                    optional: true
-                -   name: STACK
-                    desc: >
-                        Reference to the TECHNOLOGY-STACK tier whose products run in this tier;
-                        omitted when the Technology Stack is absent, has no matching tier, or the
-                        tier (e.g. a data center) groups other tiers only.
-                    value: "[[ARCH:TS.TIER:*]]"
-                    optional: true
-        -   kind: AREA
-            desc: >
-                A single deployment area, named with a short (1-3 word) summary (e.g. `Ordering`,
-                `Billing`, `Identity`) and described in a concise (1-3 sentence) paragraph by the
-                domain it covers and its separation from the other areas, plus a 1-sentence rationale
-                ("why") for the partitioning.
-
-                An area is a logically distinct, domain-induced partition of the solution deployed
-                as physical units of its own, the *vertical* split when drawn (a `TIER` is the
-                *horizontal*, technology-induced one): a node dedicated to the area references it via
-                its `AREA`, a node shared by several areas references none, and a domain grouping
-                without deployment units of its own is a Functionality View `Subsystem` instead. The
-                kind is absent when the solution is not split vertically.
-            optional: true
-            format:
-                type: concise
-            diagram:
-                type: hub
-                center: self
-                nodes: "[[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]]"
-                labeled: true
-                qualified: true
-                properties:
-                    -   KIND
-                config:
-                    size-node-width-max:    440
-                    size-node-height-scale: 1.75
-        -   kind: NODE
-            desc: >
-                A single deployment node, named with a short (2-5 word) summary (e.g. `Web Servers`,
-                `Database Cluster`, `Edge CDN`) and described in a concise (1-3 sentence) paragraph
-                by the node, its sizing, and its place in the deployment topology, plus a 1-sentence
-                rationale ("why") for the node's placement and platform choice.
-
-                A node is a platform element the solution deploys onto and operates itself: a
-                managed third-party service the solution merely consumes is a Context View
-                `Service` entity, the software products running on the node are Technology Stack
-                components (referencing the hosted components through `USED-BY`), and the procedures
-                operating the node are Operations View concerns -- only the runtime environment
-                itself belongs to the Deployment View, with the tier and area the node belongs to
-                and the network segments it is attached to as its `TIER`, `AREA`, and `NETWORK`
-                siblings.
-            diagram:
-                type: hub
-                center: self
-                nodes: "[[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]],
-                    [[ARCH:DP.NETWORK:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]]"
-                labeled: true
-                qualified: true
-                properties:
-                    -   LOCATION
-                    -   KIND
-                    -   PLATFORM
-                    -   SCOPE
-                config:
-                    size-node-width-max:    440
-                    size-node-height-scale: 1.75
-            props:
-                -   name: KIND
-                    desc: |
-                        The kind of the deployment node, one of:
-                        -   `Server`:    A physical or virtual machine.
-                        -   `Container`: A containerized runtime (e.g. Docker, OCI).
-                        -   `Cluster`:   A group of nodes managed as one (e.g. Kubernetes cluster),
-                                         containing the nodes referencing it via `PART-OF`.
-                        -   `Function`:  A serverless / function-as-a-service runtime.
-                        -   `Device`:    An edge or client device.
-                        -   `Managed`:   A managed cloud service (e.g. managed database, queue).
-                    value: enum(Server,Container,Cluster,Function,Device,Managed)
-                -   name: TIER
-                    desc: >
-                        Reference to the DEPLOYMENT-VIEW tier the node belongs to, exactly one, as a
-                        single deployment unit never spans tiers.
-                    value: "[[ARCH:DP.TIER:*]]"
-                -   name: AREA
-                    desc: >
-                        Reference to the DEPLOYMENT-VIEW area the node is dedicated to, at most one,
-                        as a single deployment unit never spans areas; omitted for a node shared by
-                        several areas or when the solution is not split vertically.
-                    value: "[[ARCH:DP.AREA:*]]"
-                    optional: true
-                -   name: PLATFORM
-                    desc: >
-                        The execution platform of the node, i.e. its operating system, runtime, or
-                        cloud service (e.g. `Linux x86-64`, `Kubernetes 1.30`, `AWS Lambda
-                        (Node.js)`), not the software products running on it, which are Technology
-                        Stack components.
-                -   name: PART-OF
-                    desc: >
-                        Reference to the DEPLOYMENT-VIEW object this node is contained in,
-                        expressing the nesting the kinds imply: a `Container` references the
-                        `Server` or `Cluster` running it, and a `Server` the `Cluster` it belongs
-                        to; omitted for a top-level node.
-                    value: "[[ARCH:DP.NODE:*]]"
-                    optional: true
-                    acyclic: true
-                -   name: HOSTS
-                    desc: >
-                        Comma-separated references to the CONCURRENCY-VIEW or FUNCTIONALITY-VIEW
-                        objects deployed onto this node: the concurrency units executing on the
-                        node (which themselves state the components they host), and the functional
-                        components not mapped by any concurrency unit directly. A containing node
-                        does not repeat what its `PART-OF` nodes host.
-                    value: list([[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]])
-                    optional: true
-                -   name: INSTANCES
-                    desc: >
-                        How many instances of the node run (e.g. `1`, `3 per environment`, `0..n
-                        auto-scaled`).
-                    optional: true
-                -   name: CONNECTS-TO
-                    desc: >
-                        Comma-separated references to the DEPLOYMENT-VIEW objects this node opens
-                        network connections to at runtime, naming the target node only, while the
-                        carried protocols are stated by the `PROTOCOLS` of the shared `NETWORK`.
-                    value: list([[ARCH:DP.NODE:*]])
-                    optional: true
-                -   name: NETWORKS
-                    desc: >
-                        Comma-separated references to the DEPLOYMENT-VIEW network segments the node
-                        is attached to (e.g. a public ingress and a private backend network); omitted
-                        when the topology models no network segments.
-                    value: list([[ARCH:DP.NETWORK:*]])
-                    optional: true
-        -   kind: NETWORK
-            desc: >
-                A single network segment the deployment nodes are attached to, named with a short
-                (2-5 word) summary (e.g. `Public Internet`, `Backend VLAN`, `Database Subnet`) and
-                described in a concise (1-3 sentence) paragraph by its reach, its isolation from the
-                other segments, and the traffic it carries, plus a 1-sentence rationale ("why") for
-                the segmentation.
-
-                A segment is the medium the nodes communicate over: the attached nodes reference it
-                via `NETWORKS`, the directed links between them are their `CONNECTS-TO` references,
-                and the contract of the carried traffic is an Interface Model interface -- only the
-                network itself belongs here. The kind is absent when the topology has no
-                segmentation worth describing.
-            optional: true
-            format:
-                type: concise
-            diagram:
-                type: hub
-                center: self
-                nodes: "[[ARCH:DP.NETWORK:*]], [[ARCH:DP.NODE:*]]"
-                labeled: true
-                qualified: true
-                properties:
-                    -   KIND
-                    -   SCOPE
-                config:
-                    size-node-width-max:    440
-                    size-node-height-scale: 1.75
-            props:
-                -   name: SCOPE
-                    desc: |
-                        The reach of the segment, one of:
-                        -   `Public`:   Reachable from the Internet.
-                        -   `Private`:  Reachable from the solution's own nodes only.
-                        -   `Isolated`: Reachable from selected nodes only (e.g. a database subnet).
-                    value: enum(Public,Private,Isolated)
-                -   name: PROTOCOLS
-                    desc: >
-                        The protocols and ports carried by the segment (e.g. `HTTPS 443, WSS 443`,
-                        `HTTP, WS, TCP 5432`).
-                -   name: ADDRESSING
-                    desc: >
-                        The address range or naming of the segment (e.g. `10.0.0.0/8`, `public IPv4
-                        and IPv6`, `*.example.com`).
-                    optional: true
-
--   kind: ARCH
-    name: Operations View
-    id: OV
-    file: 27-ARCH-OV-Operations-View.md
-    desc: >
-        The way the solution is operated, administered, and supported in production, defining the
-        standing procedures by which the operating organization installs, configures, migrates,
-        observes, protects, upgrades, scales, and supports the running solution.
-    optional: true
-    refs: >
-        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Operational Viewpoint (2011),
-            https://www.viewpoints-and-perspectives.info/home/viewpoints/operational/
-        -   Beyer et al.: Site Reliability Engineering: How Google Runs Production Systems (2016),
-            https://sre.google/sre-book/table-of-contents/
-        -   ISO/IEC 20000-1:2018: Information technology -- Service management -- Part 1: Service management system requirements (2018),
-            https://www.iso.org/standard/70636.html
-    diagram:
-        type: grid
-        nodes: "[[ARCH:OV.CONCERN:*]]"
-        properties:
-            -   CATEGORY
-    childs:
-        -   kind: CONCERN
-            desc: >
-                A single operational concern, named with a short (2-5 word) summary (e.g. `Rolling
-                Deployment`, `Metrics Collection`, `Backup and Restore`) and described in a concise
-                (1-3 sentence) paragraph by the procedure through which it is handled in production
-                and the steps and tools supporting it, plus a 1-sentence rationale ("why") for the
-                operational approach.
-
-                A concern states a standing production procedure the operating organization
-                performs on the running solution: a capability the solution offers its users (even
-                an administrating one) is a Functional Requirement or Use Case, an automatic
-                behavior of the solution is a Domain Rule, the design tactic making the solution
-                operable (e.g. replication, statelessness) is a Quality Perspectives tactic
-                referenced through `OPERATES`, the deployment shape acted upon (instances,
-                environments) is the
-                Deployment View, the pipeline producing the deployable artifact is a Development
-                View `Build` aspect, and the products used are Technology Stack `Operate-Time`
-                components referenced through `TOOLS` -- only the procedure itself, its trigger,
-                and its responsible operator belong here.
-            diagram:
-                type: hub
-                center: self
-                nodes: "[[ARCH:OV.CONCERN:*]], [[REQS:NR.REQUIREMENT:*]], [[REQS:UP.PERSONA:*]],
-                    [[ARCH:QP.TACTIC:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                    [[ARCH:DP.NODE:*]], [[DATA:DM.ENTITY:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
-                labeled: true
-                qualified: true
-                properties:
-                    -   CATEGORY
-                config:
-                    size-node-width-max:    440
-                    size-node-height-scale: 1.75
-            props:
-                -   name: CATEGORY
-                    desc: |
-                        The category of the concern, one of:
-                        -   `Installation`:   Provisioning the environments and installing the
-                                              solution into them.
-                        -   `Configuration`:  Managing the configuration of the installed solution.
-                        -   `Migration`:      Moving data or functionality between versions or
-                                              environments.
-                        -   `Monitoring`:     Observing the health and performance of the running
-                                              solution.
-                        -   `Logging`:        Collecting, retaining, and inspecting the logs.
-                        -   `Alerting`:       Notifying the operators of conditions requiring
-                                              attention.
-                        -   `Backup`:         Preserving the data and state of the solution.
-                        -   `Recovery`:       Restoring the solution after a failure or data loss.
-                        -   `Upgrade`:        Rolling out new versions of the solution.
-                        -   `Capacity`:       Scaling the solution and planning its capacity.
-                        -   `Administration`: Routine housekeeping (e.g. user administration, data
-                                              retention, certificate rotation).
-                        -   `Incident`:       Troubleshooting and responding to incidents.
-                        -   `Support`:        Handling the requests of the users through the support
-                                              tiers and their escalation.
-                    value: enum(Installation,Configuration,Migration,Monitoring,Logging,Alerting,Backup,Recovery,Upgrade,Capacity,Administration,Incident,Support)
-                -   name: TRIGGER
-                    desc: >
-                        When the procedure is performed (e.g. `nightly`, `on release`, `on alert`,
-                        `before each event`, `on demand`), separating the routine (scheduled)
-                        concerns from the reactive (event-driven) ones.
-                -   name: OPERATOR
-                    desc: >
-                        Comma-separated references to the User Personas objects performing the
-                        procedure, usually a `Stakeholder` persona like the operations team (a
-                        procedure performed by a `User` persona through the solution is a Use Case
-                        instead); omitted when no persona of the operating organization is modeled.
-                    value: list([[REQS:UP.PERSONA:*]])
-                    optional: true
-                -   name: ADDRESSES
-                    desc: >
-                        Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
-                        procedure fulfills (e.g. a recovery objective, a retention obligation);
-                        omitted when the concern fulfills no stated requirement.
-                    value: list([[REQS:NR.*]])
-                    optional: true
-                -   name: OPERATES
-                    desc: >
-                        Comma-separated references to the QUALITY-PERSPECTIVES objects whose design
-                        mechanism the procedure acts upon (e.g. the replication scaled out, the
-                        backup restored); omitted when the procedure operates no modeled tactic.
-                    value: list([[ARCH:QP.TACTIC:*]])
-                    optional: true
-                -   name: ELEMENTS
-                    desc: >
-                        Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW,
-                        DEPLOYMENT-VIEW, or DATA-MODEL objects the procedure acts upon (e.g. the
-                        nodes scaled, the units restarted, the entities backed up or migrated).
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DP.TIER:*]],
-                        [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
-                        [[DATA:DM.ENTITY:*]])
-                    optional: true
-                -   name: TOOLS
-                    desc: >
-                        Comma-separated references to the TECHNOLOGY-STACK components (usually of
-                        `PHASE` `Operate-Time`) supporting the procedure; omitted when the procedure
-                        uses no modeled product.
-                    value: list([[ARCH:TS.TIER:*.COMPONENT:*]])
-                    optional: true
-
--   kind: ARCH
-    name: Quality Perspectives
-    id: QP
-    file: 28-ARCH-QP-Quality-Perspectives.md
-    desc: >
-        How the Non-Functional Requirements (NR) are addressed by the architecture, through the
-        tactics built into the solution across the views.
-    optional: true
-    refs: >
-        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Perspectives (2011),
-            https://www.viewpoints-and-perspectives.info/home/perspectives/
-        -   Bass/Clements/Kazman: Software Architecture in Practice, 4th ed. (2021),
-            https://www.informit.com/store/software-architecture-in-practice-9780136886099
-        -   ISO/IEC 25010:2023: Systems and software engineering -- Systems and software Quality Requirements and Evaluation (SQuaRE) -- Product quality model (2023),
-            https://www.iso.org/standard/78176.html
-    diagram:
-        type: grid
-        nodes: "[[ARCH:QP.TACTIC:*]]"
-        properties:
-            -   QUALITY
-    childs:
-        -   kind: TACTIC
-            desc: >
-                A single quality tactic, one architectural tactic applied to one quality attribute
-                (the perspective in the sense of Rozanski/Woods, i.e. the cross-cutting quality
-                concern applied to the elements of all views, identified by `QUALITY`), named with
-                a short (2-5 word) summary (e.g. `Horizontal Scaling`, `Defense in Depth`,
-                `Graceful Degradation`) and described in a concise (1-3 sentence) paragraph by how
-                the tactic satisfies the quality attribute across the affected elements, plus a
-                1-sentence rationale ("why") for the tactic satisfying the addressed requirements
-                (not for choosing it over alternatives, which is the rationale of a Decision
-                Record).
-
-                A tactic states a design mechanism built into the solution: the threshold the
-                mechanism has to meet is the `METRIC` of the addressed Non-Functional Requirement
-                and is not restated, the production procedure performed against the mechanism
-                (e.g. scaling out, restoring) is an Operations View concern referencing the tactic
-                through `OPERATES`, the trade-off that chose the mechanism over alternatives is a
-                Decision Record referencing the tactic through `DECIDES`, the product realizing the
-                mechanism is a Technology Stack component referenced through `TOOLS`, the
-                developer-facing rule about the source structure is a Development View aspect, and
-                a mechanism driven solely by a `Constraint` requirement (e.g. a hosting or budget
-                mandate) protects no quality and is a Decision Record alone -- only the mechanism,
-                the quality it achieves, and the elements it shapes belong here.
-            diagram:
-                type: hub
-                center: self
-                nodes: "[[ARCH:QP.TACTIC:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]],
-                    [[ARCH:CO.UNIT:*]], [[ARCH:DV.ASPECT:*]], [[ARCH:DP.NODE:*]], [[DATA:DM.ENTITY:*]],
-                    [[DECS:DR.DECISION:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
-                labeled: true
-                qualified: true
-                properties:
-                    -   QUALITY
-                config:
-                    size-node-width-max: 440
-            props:
-                -   name: QUALITY
-                    desc: >
-                        The quality attribute the tactic addresses, a solution-oriented
-                        refinement of the NON-FUNCTIONAL-REQUIREMENTS categories which intentionally
-                        differs from them.
-
-                        The NR categories follow the ISO/IEC 25010:2023 top-level characteristics
-                        plus the non-quality categories `Compliance` and `Constraint`, whereas the
-                        tactic qualities decompose some of the characteristics into the
-                        finer-grained, architecturally actionable attributes `Scalability`,
-                        `Availability`, `Privacy`, `Accessibility`, and `Portability` (with
-                        `Flexibility` fully absorbed by `Scalability` and `Portability`), and
-                        address a `Compliance` or `Constraint` requirement through the quality it
-                        protects (e.g. a data protection obligation through `Privacy`). The
-                        quality therefore need not match the category of the requirements it
-                        addresses.
-                    value: enum(Performance,Scalability,Reliability,Availability,Safety,Security,Privacy,Usability,Accessibility,Maintainability,Portability,Compatibility)
-                -   name: ADDRESSES
-                    desc: >
-                        Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
-                        tactic addresses.
-                    value: list([[REQS:NR.*]])
-                -   name: MECHANISM
-                    desc: >
-                        The design mechanism through which the tactic is applied to achieve the
-                        quality (e.g. `stateless replication behind a load balancer`,
-                        `read-through cache`, `circuit breaker`).
-                -   name: TRADES-OFF
-                    desc: >
-                        Comma-separated quality attributes (from the same set as `QUALITY`) the
-                        tactic knowingly degrades in favor of the addressed one (e.g. a one-time
-                        token trades `Usability` for `Security`); omitted when the tactic has no
-                        notable cost on another quality.
-                    value: tags(Performance,Scalability,Reliability,Availability,Safety,Security,Privacy,Usability,Accessibility,Maintainability,Portability,Compatibility)
-                    optional: true
-                -   name: AFFECTS
-                    desc: >
-                        Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW,
-                        DEVELOPMENT-VIEW, DEPLOYMENT-VIEW, DATA-MODEL, AUTHORIZATION-MODEL, or
-                        INTERFACE-MODEL objects the tactic shapes (e.g. the components replicated,
-                        the aspects governing modifiability, the entities anonymized, the roles
-                        and interfaces secured).
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DV.ASPECT:*]],
-                        [[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
-                        [[DATA:DM.ENTITY:*]], [[DATA:AM.ROLE:*]], [[APIS:IM.INTERFACE:*]])
-                    optional: true
-                -   name: TOOLS
-                    desc: >
-                        Comma-separated references to the TECHNOLOGY-STACK components realizing the
-                        tactic (e.g. the load balancer, the message broker, the CDN); omitted when
-                        the tactic uses no modeled product.
-                    value: list([[ARCH:TS.TIER:*.COMPONENT:*]])
-                    optional: true
-
--   kind: ARCH
     name: Technology Stack
     id: TS
-    file: 29-ARCH-TS-Technology-Stack.md
+    file: 24-ARCH-TS-Technology-Stack.md
     desc: >
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives
@@ -1189,3 +570,622 @@
                                 all).
                             value: list([[ARCH:FV.COMPONENT:*]])
                             optional: true
+
+-   kind: ARCH
+    name: Concurrency View
+    id: CO
+    file: 25-ARCH-CO-Concurrency-View.md
+    desc: >
+        The concurrency structure of the solution, mapping functional components to processes and
+        threads, and defining how they coordinate and communicate. The artifact is absent when the
+        solution runs as a single sequential unit of execution and has no concurrency structure
+        worth describing.
+    optional: true
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Concurrency Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/concurrency/
+        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
+            https://ieeexplore.ieee.org/document/469759
+        -   Schmidt et al.: Pattern-Oriented Software Architecture, Volume 2: Patterns for Concurrent and Networked Objects (2000),
+            https://www.wiley.com/en-us/Pattern+Oriented+Software+Architecture,+Volume+2,+Patterns+for+Concurrent+and+Networked+Objects-p-9781118725177
+    diagram:
+        type: graph
+        nodes: "[[ARCH:CO.UNIT:*]]"
+        labeled: true
+        properties:
+            -   KIND
+    childs:
+        -   kind: UNIT
+            desc: >
+                A single concurrency unit, named with a short (2-5 word) summary (e.g. `Web Worker
+                Pool`, `Background Scheduler`, `Ingest Queue Consumer`) and described in a concise
+                (1-3 sentence) paragraph by how it executes and how it avoids or manages contention,
+                races, and deadlocks (including its start order and failure/restart behavior where
+                non-obvious), plus a 1-sentence rationale ("why") for the chosen concurrency
+                structure.
+
+                A unit executes work at runtime: a queue or channel between units is not a unit
+                but the coordination mechanism stated in `COORDINATION`, its contract an Interface
+                Model interface (e.g. of kind `MQTT` or `WebSocket`), and the platform element
+                hosting a managed broker a Deployment View `Managed` node -- only the executing
+                structure itself belongs to the Concurrency View.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   KIND
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the concurrency unit, one of:
+
+                        -   `Process`:   An independent OS process with its own address space.
+                        -   `Thread`:    A thread of execution within a process.
+                        -   `Task`:      A lightweight cooperative task (e.g. coroutine, fiber).
+                        -   `Pool`:      A managed group of interchangeable workers.
+                        -   `EventLoop`: A single-threaded cooperative scheduler of tasks.
+                    value: enum(Process,Thread,Task,Pool,EventLoop)
+                -   name: PART-OF
+                    desc: >
+                        Reference to the CONCURRENCY-VIEW object this unit is contained in,
+                        expressing the containment the kinds imply: a `Thread`, `Task`, `Pool`, or
+                        `EventLoop` references the `Process` it executes within, and a `Task` the
+                        `EventLoop` or `Pool` scheduling it; omitted for a top-level unit.
+                    value: "[[ARCH:CO.UNIT:*]]"
+                    optional: true
+                    acyclic: true
+                -   name: HOSTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONALITY-VIEW objects that run inside
+                        this concurrency unit; omitted when no modeled component runs inside it.
+                    value: list([[ARCH:FV.COMPONENT:*]])
+                    optional: true
+                -   name: MULTIPLICITY
+                    desc: >
+                        How many instances of the unit run (e.g. `1`, `1 per CPU core`, `0..n
+                        auto-scaled`).
+                -   name: COORDINATES-WITH
+                    desc: >
+                        Comma-separated references to the CONCURRENCY-VIEW objects this unit
+                        coordinates or communicates with at runtime, naming the peer unit only
+                        (e.g. a producer names the consumer it feeds through a shared queue),
+                        while the mechanism is stated by `COORDINATION`.
+                    value: list([[ARCH:CO.UNIT:*]])
+                    optional: true
+                -   name: COORDINATION
+                    desc: >
+                        The mechanism by which the unit coordinates or communicates with other
+                        units, usually those referenced in `COORDINATES-WITH` (e.g. `shared
+                        queue`, `mutex`, `message passing`, `optimistic locking`).
+
+-   kind: ARCH
+    name: Development View
+    id: DV
+    file: 26-ARCH-DV-Development-View.md
+    desc: >
+        The architecture supporting the software development process, defining the module
+        organization, build approach, and codeline conventions. The artifact is absent when the
+        development conventions are governed outside the specification (e.g. by repository-level
+        contributor instructions).
+    optional: true
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Development Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/development/
+        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
+            https://ieeexplore.ieee.org/document/469759
+        -   Clements et al.: Documenting Software Architectures: Views and Beyond, 2nd ed. (2010),
+            https://www.informit.com/store/documenting-software-architectures-views-and-beyond-9780321552686
+    diagram:
+        type: grid
+        nodes: "[[ARCH:DV.ASPECT:*]]"
+        properties:
+            -   CATEGORY
+    childs:
+        -   kind: ASPECT
+            desc: >
+                A single development aspect, named with a short (2-5 word) summary (e.g. `Module
+                Layering`, `Build Pipeline`, `Branching Model`) and described in a concise (1-3
+                sentence) paragraph by the development convention or structure and the rule
+                developers must follow, plus a 1-sentence rationale ("why").
+
+                An aspect states a standing developer-facing rule about the source structure and
+                process: it names no concrete products (a Technology Stack `Build-Time` component
+                states the product choice), does not restate the runtime structure (a Functionality
+                View `Module` or `Subsystem` groups the logic), does not cover production
+                procedures (an Operations View concern does), and the trade-off that produced a
+                rule is a Decision Record referencing the aspect through `AFFECTS`.
+            props:
+                -   name: CATEGORY
+                    desc: >
+                        The development concern the aspect governs: `Structure` (the physical
+                        source module/package layout), `Build` (compilation and packaging),
+                        `Dependency` (the allowed dependency edges between the structures),
+                        `Codeline` (branching, merging, versioning), `Standardization` (coding
+                        standards and conventions), `Testing` (test conventions, layout, and
+                        coverage rules), or `Tooling` (development tools and automation).
+                    value: enum(Structure,Build,Dependency,Codeline,Standardization,Testing,Tooling)
+
+-   kind: ARCH
+    name: Deployment View
+    id: DP
+    file: 27-ARCH-DP-Deployment-View.md
+    desc: >
+        The environment into which the solution is deployed, partitioning it into tiers and mapping
+        software elements to the runtime platform, hardware, and network topology.
+    optional: true
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Deployment Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/deployment/
+        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
+            https://ieeexplore.ieee.org/document/469759
+        -   Brown: The C4 Model: Deployment Diagram (2018),
+            https://c4model.com/diagrams/deployment
+    diagram:
+        type: graph
+        nodes: "[[ARCH:DP.NODE:*]]"
+        labeled: true
+        properties:
+            -   TIER
+            -   AREA
+            -   KIND
+            -   PLATFORM
+        config:
+            size-node-width-max: 350
+    childs:
+        -   kind: TIER
+            desc: >
+                A single deployment tier, named with a short (1-3 word) summary (e.g. `Client`,
+                `Server`, `Database`, `Data Center`) and described in a concise (1-3 sentence)
+                paragraph by the code or data it hosts and its spatial and network separation from
+                the other tiers, plus a 1-sentence rationale ("why") for the partitioning.
+
+                A tier is a logically and spatially distinct, network-connected, technology-induced
+                partition of the solution, the *horizontal* split when drawn (an `AREA` is the
+                *vertical*, domain-induced one): every node belongs to exactly one tier via its
+                `TIER`, a location-level tier (e.g. a data center) groups the tiers referencing it
+                via `PART-OF`, and a single deployment unit within a tier is a `NODE` -- only the
+                partition itself belongs here.
+            format:
+                type: concise
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DP.TIER:*]], [[ARCH:DP.NODE:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   LOCATION
+                    -   KIND
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
+            props:
+                -   name: PART-OF
+                    desc: >
+                        Reference to the DEPLOYMENT-VIEW tier this tier is contained in (e.g. the
+                        `Server` and `Database` tiers reference the `Data Center` tier hosting
+                        them); omitted for a top-level tier.
+                    value: "[[ARCH:DP.TIER:*]]"
+                    optional: true
+                    acyclic: true
+                -   name: LOCATION
+                    desc: >
+                        Where the tier physically runs (e.g. `Hetzner data center Nürnberg, dev/QA/prod
+                        environments`, `attendee and operator devices`, `Cloudflare edge`); omitted
+                        when inherited from the `PART-OF` tier.
+                    optional: true
+                -   name: STACK
+                    desc: >
+                        Reference to the TECHNOLOGY-STACK tier whose products run in this tier;
+                        omitted when the Technology Stack is absent, has no matching tier, or the
+                        tier (e.g. a data center) groups other tiers only.
+                    value: "[[ARCH:TS.TIER:*]]"
+                    optional: true
+        -   kind: AREA
+            desc: >
+                A single deployment area, named with a short (1-3 word) summary (e.g. `Ordering`,
+                `Billing`, `Identity`) and described in a concise (1-3 sentence) paragraph by the
+                domain it covers and its separation from the other areas, plus a 1-sentence rationale
+                ("why") for the partitioning.
+
+                An area is a logically distinct, domain-induced partition of the solution deployed
+                as physical units of its own, the *vertical* split when drawn (a `TIER` is the
+                *horizontal*, technology-induced one): a node dedicated to the area references it via
+                its `AREA`, a node shared by several areas references none, and a domain grouping
+                without deployment units of its own is a Functionality View `Subsystem` instead. The
+                kind is absent when the solution is not split vertically.
+            optional: true
+            format:
+                type: concise
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   KIND
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
+        -   kind: NODE
+            desc: >
+                A single deployment node, named with a short (2-5 word) summary (e.g. `Web Servers`,
+                `Database Cluster`, `Edge CDN`) and described in a concise (1-3 sentence) paragraph
+                by the node, its sizing, and its place in the deployment topology, plus a 1-sentence
+                rationale ("why") for the node's placement and platform choice.
+
+                A node is a platform element the solution deploys onto and operates itself: a
+                managed third-party service the solution merely consumes is a Context View
+                `Service` entity, the software products running on the node are Technology Stack
+                components (referencing the hosted components through `USED-BY`), and the procedures
+                operating the node are Operations View concerns -- only the runtime environment
+                itself belongs to the Deployment View, with the tier and area the node belongs to
+                and the network segments it is attached to as its `TIER`, `AREA`, and `NETWORK`
+                siblings.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]],
+                    [[ARCH:DP.NETWORK:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   LOCATION
+                    -   KIND
+                    -   PLATFORM
+                    -   SCOPE
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the deployment node, one of:
+                        -   `Server`:    A physical or virtual machine.
+                        -   `Container`: A containerized runtime (e.g. Docker, OCI).
+                        -   `Cluster`:   A group of nodes managed as one (e.g. Kubernetes cluster),
+                                         containing the nodes referencing it via `PART-OF`.
+                        -   `Function`:  A serverless / function-as-a-service runtime.
+                        -   `Device`:    An edge or client device.
+                        -   `Managed`:   A managed cloud service (e.g. managed database, queue).
+                    value: enum(Server,Container,Cluster,Function,Device,Managed)
+                -   name: TIER
+                    desc: >
+                        Reference to the DEPLOYMENT-VIEW tier the node belongs to, exactly one, as a
+                        single deployment unit never spans tiers.
+                    value: "[[ARCH:DP.TIER:*]]"
+                -   name: AREA
+                    desc: >
+                        Reference to the DEPLOYMENT-VIEW area the node is dedicated to, at most one,
+                        as a single deployment unit never spans areas; omitted for a node shared by
+                        several areas or when the solution is not split vertically.
+                    value: "[[ARCH:DP.AREA:*]]"
+                    optional: true
+                -   name: PLATFORM
+                    desc: >
+                        The execution platform of the node, i.e. its operating system, runtime, or
+                        cloud service (e.g. `Linux x86-64`, `Kubernetes 1.30`, `AWS Lambda
+                        (Node.js)`), not the software products running on it, which are Technology
+                        Stack components.
+                -   name: PART-OF
+                    desc: >
+                        Reference to the DEPLOYMENT-VIEW object this node is contained in,
+                        expressing the nesting the kinds imply: a `Container` references the
+                        `Server` or `Cluster` running it, and a `Server` the `Cluster` it belongs
+                        to; omitted for a top-level node.
+                    value: "[[ARCH:DP.NODE:*]]"
+                    optional: true
+                    acyclic: true
+                -   name: HOSTS
+                    desc: >
+                        Comma-separated references to the CONCURRENCY-VIEW or FUNCTIONALITY-VIEW
+                        objects deployed onto this node: the concurrency units executing on the
+                        node (which themselves state the components they host), and the functional
+                        components not mapped by any concurrency unit directly. A containing node
+                        does not repeat what its `PART-OF` nodes host.
+                    value: list([[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]])
+                    optional: true
+                -   name: INSTANCES
+                    desc: >
+                        How many instances of the node run (e.g. `1`, `3 per environment`, `0..n
+                        auto-scaled`).
+                    optional: true
+                -   name: CONNECTS-TO
+                    desc: >
+                        Comma-separated references to the DEPLOYMENT-VIEW objects this node opens
+                        network connections to at runtime, naming the target node only, while the
+                        carried protocols are stated by the `PROTOCOLS` of the shared `NETWORK`.
+                    value: list([[ARCH:DP.NODE:*]])
+                    optional: true
+                -   name: NETWORKS
+                    desc: >
+                        Comma-separated references to the DEPLOYMENT-VIEW network segments the node
+                        is attached to (e.g. a public ingress and a private backend network); omitted
+                        when the topology models no network segments.
+                    value: list([[ARCH:DP.NETWORK:*]])
+                    optional: true
+        -   kind: NETWORK
+            desc: >
+                A single network segment the deployment nodes are attached to, named with a short
+                (2-5 word) summary (e.g. `Public Internet`, `Backend VLAN`, `Database Subnet`) and
+                described in a concise (1-3 sentence) paragraph by its reach, its isolation from the
+                other segments, and the traffic it carries, plus a 1-sentence rationale ("why") for
+                the segmentation.
+
+                A segment is the medium the nodes communicate over: the attached nodes reference it
+                via `NETWORKS`, the directed links between them are their `CONNECTS-TO` references,
+                and the contract of the carried traffic is an Interface Model interface -- only the
+                network itself belongs here. The kind is absent when the topology has no
+                segmentation worth describing.
+            optional: true
+            format:
+                type: concise
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DP.NETWORK:*]], [[ARCH:DP.NODE:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   KIND
+                    -   SCOPE
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
+            props:
+                -   name: SCOPE
+                    desc: |
+                        The reach of the segment, one of:
+                        -   `Public`:   Reachable from the Internet.
+                        -   `Private`:  Reachable from the solution's own nodes only.
+                        -   `Isolated`: Reachable from selected nodes only (e.g. a database subnet).
+                    value: enum(Public,Private,Isolated)
+                -   name: PROTOCOLS
+                    desc: >
+                        The protocols and ports carried by the segment (e.g. `HTTPS 443, WSS 443`,
+                        `HTTP, WS, TCP 5432`).
+                -   name: ADDRESSING
+                    desc: >
+                        The address range or naming of the segment (e.g. `10.0.0.0/8`, `public IPv4
+                        and IPv6`, `*.example.com`).
+                    optional: true
+
+-   kind: ARCH
+    name: Operations View
+    id: OV
+    file: 28-ARCH-OV-Operations-View.md
+    desc: >
+        The way the solution is operated, administered, and supported in production, defining the
+        standing procedures by which the operating organization installs, configures, migrates,
+        observes, protects, upgrades, scales, and supports the running solution.
+    optional: true
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Operational Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/operational/
+        -   Beyer et al.: Site Reliability Engineering: How Google Runs Production Systems (2016),
+            https://sre.google/sre-book/table-of-contents/
+        -   ISO/IEC 20000-1:2018: Information technology -- Service management -- Part 1: Service management system requirements (2018),
+            https://www.iso.org/standard/70636.html
+    diagram:
+        type: grid
+        nodes: "[[ARCH:OV.CONCERN:*]]"
+        properties:
+            -   CATEGORY
+    childs:
+        -   kind: CONCERN
+            desc: >
+                A single operational concern, named with a short (2-5 word) summary (e.g. `Rolling
+                Deployment`, `Metrics Collection`, `Backup and Restore`) and described in a concise
+                (1-3 sentence) paragraph by the procedure through which it is handled in production
+                and the steps and tools supporting it, plus a 1-sentence rationale ("why") for the
+                operational approach.
+
+                A concern states a standing production procedure the operating organization
+                performs on the running solution: a capability the solution offers its users (even
+                an administrating one) is a Functional Requirement or Use Case, an automatic
+                behavior of the solution is a Domain Rule, the design tactic making the solution
+                operable (e.g. replication, statelessness) is a Quality Perspectives tactic
+                referenced through `OPERATES`, the deployment shape acted upon (instances,
+                environments) is the
+                Deployment View, the pipeline producing the deployable artifact is a Development
+                View `Build` aspect, and the products used are Technology Stack `Operate-Time`
+                components referenced through `TOOLS` -- only the procedure itself, its trigger,
+                and its responsible operator belong here.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:OV.CONCERN:*]], [[REQS:NR.REQUIREMENT:*]], [[REQS:UP.PERSONA:*]],
+                    [[ARCH:QP.TACTIC:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
+                    [[ARCH:DP.NODE:*]], [[DATA:DM.ENTITY:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   CATEGORY
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
+            props:
+                -   name: CATEGORY
+                    desc: |
+                        The category of the concern, one of:
+                        -   `Installation`:   Provisioning the environments and installing the
+                                              solution into them.
+                        -   `Configuration`:  Managing the configuration of the installed solution.
+                        -   `Migration`:      Moving data or functionality between versions or
+                                              environments.
+                        -   `Monitoring`:     Observing the health and performance of the running
+                                              solution.
+                        -   `Logging`:        Collecting, retaining, and inspecting the logs.
+                        -   `Alerting`:       Notifying the operators of conditions requiring
+                                              attention.
+                        -   `Backup`:         Preserving the data and state of the solution.
+                        -   `Recovery`:       Restoring the solution after a failure or data loss.
+                        -   `Upgrade`:        Rolling out new versions of the solution.
+                        -   `Capacity`:       Scaling the solution and planning its capacity.
+                        -   `Administration`: Routine housekeeping (e.g. user administration, data
+                                              retention, certificate rotation).
+                        -   `Incident`:       Troubleshooting and responding to incidents.
+                        -   `Support`:        Handling the requests of the users through the support
+                                              tiers and their escalation.
+                    value: enum(Installation,Configuration,Migration,Monitoring,Logging,Alerting,Backup,Recovery,Upgrade,Capacity,Administration,Incident,Support)
+                -   name: TRIGGER
+                    desc: >
+                        When the procedure is performed (e.g. `nightly`, `on release`, `on alert`,
+                        `before each event`, `on demand`), separating the routine (scheduled)
+                        concerns from the reactive (event-driven) ones.
+                -   name: OPERATOR
+                    desc: >
+                        Comma-separated references to the User Personas objects performing the
+                        procedure, usually a `Stakeholder` persona like the operations team (a
+                        procedure performed by a `User` persona through the solution is a Use Case
+                        instead); omitted when no persona of the operating organization is modeled.
+                    value: list([[REQS:UP.PERSONA:*]])
+                    optional: true
+                -   name: ADDRESSES
+                    desc: >
+                        Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
+                        procedure fulfills (e.g. a recovery objective, a retention obligation);
+                        omitted when the concern fulfills no stated requirement.
+                    value: list([[REQS:NR.*]])
+                    optional: true
+                -   name: OPERATES
+                    desc: >
+                        Comma-separated references to the QUALITY-PERSPECTIVES objects whose design
+                        mechanism the procedure acts upon (e.g. the replication scaled out, the
+                        backup restored); omitted when the procedure operates no modeled tactic.
+                    value: list([[ARCH:QP.TACTIC:*]])
+                    optional: true
+                -   name: ELEMENTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW,
+                        DEPLOYMENT-VIEW, or DATA-MODEL objects the procedure acts upon (e.g. the
+                        nodes scaled, the units restarted, the entities backed up or migrated).
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DP.TIER:*]],
+                        [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                        [[DATA:DM.ENTITY:*]])
+                    optional: true
+                -   name: TOOLS
+                    desc: >
+                        Comma-separated references to the TECHNOLOGY-STACK components (usually of
+                        `PHASE` `Operate-Time`) supporting the procedure; omitted when the procedure
+                        uses no modeled product.
+                    value: list([[ARCH:TS.TIER:*.COMPONENT:*]])
+                    optional: true
+
+-   kind: ARCH
+    name: Quality Perspectives
+    id: QP
+    file: 29-ARCH-QP-Quality-Perspectives.md
+    desc: >
+        How the Non-Functional Requirements (NR) are addressed by the architecture, through the
+        tactics built into the solution across the views.
+    optional: true
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Perspectives (2011),
+            https://www.viewpoints-and-perspectives.info/home/perspectives/
+        -   Bass/Clements/Kazman: Software Architecture in Practice, 4th ed. (2021),
+            https://www.informit.com/store/software-architecture-in-practice-9780136886099
+        -   ISO/IEC 25010:2023: Systems and software engineering -- Systems and software Quality Requirements and Evaluation (SQuaRE) -- Product quality model (2023),
+            https://www.iso.org/standard/78176.html
+    diagram:
+        type: grid
+        nodes: "[[ARCH:QP.TACTIC:*]]"
+        properties:
+            -   QUALITY
+    childs:
+        -   kind: TACTIC
+            desc: >
+                A single quality tactic, one architectural tactic applied to one quality attribute
+                (the perspective in the sense of Rozanski/Woods, i.e. the cross-cutting quality
+                concern applied to the elements of all views, identified by `QUALITY`), named with
+                a short (2-5 word) summary (e.g. `Horizontal Scaling`, `Defense in Depth`,
+                `Graceful Degradation`) and described in a concise (1-3 sentence) paragraph by how
+                the tactic satisfies the quality attribute across the affected elements, plus a
+                1-sentence rationale ("why") for the tactic satisfying the addressed requirements
+                (not for choosing it over alternatives, which is the rationale of a Decision
+                Record).
+
+                A tactic states a design mechanism built into the solution: the threshold the
+                mechanism has to meet is the `METRIC` of the addressed Non-Functional Requirement
+                and is not restated, the production procedure performed against the mechanism
+                (e.g. scaling out, restoring) is an Operations View concern referencing the tactic
+                through `OPERATES`, the trade-off that chose the mechanism over alternatives is a
+                Decision Record referencing the tactic through `DECIDES`, the product realizing the
+                mechanism is a Technology Stack component referenced through `TOOLS`, the
+                developer-facing rule about the source structure is a Development View aspect, and
+                a mechanism driven solely by a `Constraint` requirement (e.g. a hosting or budget
+                mandate) protects no quality and is a Decision Record alone -- only the mechanism,
+                the quality it achieves, and the elements it shapes belong here.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:QP.TACTIC:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]],
+                    [[ARCH:CO.UNIT:*]], [[ARCH:DV.ASPECT:*]], [[ARCH:DP.NODE:*]], [[DATA:DM.ENTITY:*]],
+                    [[DECS:DR.DECISION:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   QUALITY
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: QUALITY
+                    desc: >
+                        The quality attribute the tactic addresses, a solution-oriented
+                        refinement of the NON-FUNCTIONAL-REQUIREMENTS categories which intentionally
+                        differs from them.
+
+                        The NR categories follow the ISO/IEC 25010:2023 top-level characteristics
+                        plus the non-quality categories `Compliance` and `Constraint`, whereas the
+                        tactic qualities decompose some of the characteristics into the
+                        finer-grained, architecturally actionable attributes `Scalability`,
+                        `Availability`, `Privacy`, `Accessibility`, and `Portability` (with
+                        `Flexibility` fully absorbed by `Scalability` and `Portability`), and
+                        address a `Compliance` or `Constraint` requirement through the quality it
+                        protects (e.g. a data protection obligation through `Privacy`). The
+                        quality therefore need not match the category of the requirements it
+                        addresses.
+                    value: enum(Performance,Scalability,Reliability,Availability,Safety,Security,Privacy,Usability,Accessibility,Maintainability,Portability,Compatibility)
+                -   name: ADDRESSES
+                    desc: >
+                        Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
+                        tactic addresses.
+                    value: list([[REQS:NR.*]])
+                -   name: MECHANISM
+                    desc: >
+                        The design mechanism through which the tactic is applied to achieve the
+                        quality (e.g. `stateless replication behind a load balancer`,
+                        `read-through cache`, `circuit breaker`).
+                -   name: TRADES-OFF
+                    desc: >
+                        Comma-separated quality attributes (from the same set as `QUALITY`) the
+                        tactic knowingly degrades in favor of the addressed one (e.g. a one-time
+                        token trades `Usability` for `Security`); omitted when the tactic has no
+                        notable cost on another quality.
+                    value: tags(Performance,Scalability,Reliability,Availability,Safety,Security,Privacy,Usability,Accessibility,Maintainability,Portability,Compatibility)
+                    optional: true
+                -   name: AFFECTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW,
+                        DEVELOPMENT-VIEW, DEPLOYMENT-VIEW, DATA-MODEL, AUTHORIZATION-MODEL, or
+                        INTERFACE-MODEL objects the tactic shapes (e.g. the components replicated,
+                        the aspects governing modifiability, the entities anonymized, the roles
+                        and interfaces secured).
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DV.ASPECT:*]],
+                        [[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                        [[DATA:DM.ENTITY:*]], [[DATA:AM.ROLE:*]], [[APIS:IM.INTERFACE:*]])
+                    optional: true
+                -   name: TOOLS
+                    desc: >
+                        Comma-separated references to the TECHNOLOGY-STACK components realizing the
+                        tactic (e.g. the load balancer, the message broker, the CDN); omitted when
+                        the tactic uses no modeled product.
+                    value: list([[ARCH:TS.TIER:*.COMPONENT:*]])
+                    optional: true

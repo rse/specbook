@@ -502,7 +502,7 @@ A one-time second factor proving an attendee controls the email address used as 
 BECAUSE email-verified access is the core mechanism limiting the audience.
 
 -   ATTRIBUTE: token (*); TYPE: `string`; CONSTRAINT: `six digits as NNN-NNN`;
-    CLASSIFICATION: Confidential; RETENTION: until validity expiry, at latest until event finish;
+    CLASSIFICATION: Confidential; RETENTION: until validity expiry, at the latest until event finish;
     The generated one-time token for the next login attempt,
     BECAUSE the attendee proves control of the email by returning this token.
 

@@ -52,7 +52,7 @@ the moderation or on the personal data of other attendees.
 
 -   Read Visible Messages {{attendee-read-message}}; ENTITY: [[ENTITY:Message]]; OPERATIONS: Read;
     STATES: [[STATE:Accepted]], [[STATE:Forwarded]], [[STATE:Answered]], [[STATE:Suspended]];
-    CONDITION: The message is a chat, a question the event does not keep private, or a support message of the own conversation of the attendee.;
+    CONDITION: The message is a chat, a question the event does not keep private, or a support message of the attendee's own conversation.;
     RULES: [[RULE:moderation-gate]];
     The attendee reads the messages which passed the moderation, with their texts and like counts, under the sender name the event configures.
 
@@ -70,7 +70,7 @@ the moderation or on the personal data of other attendees.
 
 -   Like Messages {{attendee-like}}; ENTITY: [[ENTITY:Message]]; OPERATIONS: Update;
     STATES: [[STATE:Accepted]], [[STATE:Forwarded]], [[STATE:Answered]], [[STATE:Suspended]];
-    CONDITION: The update is confined to adding or revoking the own like of the attendee on a chat or question of another attendee.;
+    CONDITION: The update is confined to adding or revoking the attendee's own like on a chat or question of another attendee.;
     RULES: [[RULE:like-count]];
     The attendee likes the visible messages of others and revokes the like again until the event finishes.
 

@@ -284,7 +284,7 @@
             desc: >
                 A single depicted dialog flow, named with a short (3-8 word) summary of the flow and
                 comprised of frames in sequence. A storyboard shows the concrete user interface of
-                one flow, as seen by its actors (the intent and the information exchanged is a Use
+                one flow, as seen by its actors (the intent and the information exchanged are a Use
                 Cases scenario instead, and a structure recurring across flows is a Dialog Pattern
                 instead).
             diagram:

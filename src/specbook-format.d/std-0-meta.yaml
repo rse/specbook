@@ -9,7 +9,7 @@
 #   Modeling Purpose
 #   ----------------
 #
-#   This schema allows to specify a large variety documents for the
+#   This schema allows specifying a large variety of documents for the
 #   precise specification of solutions, systems and software.
 #
 #   Modeling Coverage
@@ -85,7 +85,7 @@
 #   -   The traditional hard Software Requirements Specification (SRS)
 #       vs. Architecture Description (AD) document split is
 #       intentionally smoothed, so we can link from AD to SRS objects
-#       and in AI-times (where no longer dedicated teams write
+#       and in AI-times (where dedicated teams no longer write
 #       those documents separately) the AI should see one coherent
 #       specification document, too.
 #
