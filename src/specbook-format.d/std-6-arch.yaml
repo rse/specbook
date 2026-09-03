@@ -849,190 +849,6 @@
                     optional: true
 
 -   kind: ARCH
-    name: Decision Record
-    id: DR
-    file: 30-ARCH-DR-Decision-Record.md
-    desc: >
-        The major decisions related to the architecture, each recording the forces at play, the
-        chosen response, and the reasoning that justifies it.
-    optional: true
-    refs: >
-        -   Nygard: Documenting Architecture Decisions (2011),
-            https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions
-        -   Tyree/Akerman: Architecture Decisions: Demystifying Architecture (2005),
-            https://ieeexplore.ieee.org/document/1407822
-        -   ADR: Architectural Decision Records (2017),
-            https://adr.github.io/
-    diagram:
-        type: grid
-        nodes: "[[ARCH:DR.DECISION:*]]"
-        properties:
-            -   STATUS
-        config:
-            size-node-width-max: 440
-            grid-columns-max: 5
-    childs:
-        -   kind: DECISION
-            desc: |
-                A single architecture decision, named with a short summary of the decision, not
-                longer than 80 characters, and recorded as its context (`WHEN`), the decision
-                itself (`WHAT`), its rationale (`WHY`), and optional background (`NOTES`).
-
-                A decision *MUST* qualify on all of the following three tenets:
-
-                -   **Hard to Reverse**: the cost of changing it later is meaningful ("Oh my god,
-                    this would result in a dramatic refactoring!"). So, if a decision is easy to
-                    reverse, just skip it.
-
-                -   **Surprising without Context**: a future architect will look at the code and
-                    wonder ("Why on earth did they do it this way?"). So, if a decision is not
-                    surprising, nobody will wonder why.
-
-                -   **Result of a Real Trade-Off**: there were genuine alternatives and one was
-                    picked for specific reasons ("We deliberately chose this, because..."). So, if
-                    there was no real alternative, there's nothing to record beyond "we did the
-                    obvious thing."
-
-                The following typically qualify as a decision:
-
-                -   **Architectural shape.** "We're using a monorepo." "The write model is
-                    event-sourced, the read model is projected into PostgreSQL."
-
-                -   **Integration patterns between contexts.** "Ordering and Billing communicate
-                    via domain events, not synchronous HTTP."
-
-                -   **Technology choices that carry lock-in.** Database, message bus, auth
-                    provider, deployment target. Not every library - just the ones that would take
-                    a quarter to swap out.
-
-                -   **Boundary and scope decisions.** "Customer data is owned by the Customer
-                    context; other contexts reference it by ID only." The explicit no's are as
-                    valuable as the yes's.
-
-                -   **Deliberate deviations from the obvious path.** "We're using manual SQL
-                    instead of an ORM because X." Anything where a reasonable reader would assume
-                    the opposite. These stop the next engineer from "fixing" something that was
-                    deliberate.
-
-                -   **Constraints not visible in the code.** "We can't use AWS because of
-                    compliance requirements." "Response times must be under 200ms because of the
-                    partner API contract."
-
-                -   **Rejected alternatives when the rejection is non-obvious.** If you considered
-                    GraphQL and picked REST for subtle reasons, record it - otherwise someone will
-                    suggest GraphQL again in six months.
-
-                `WHEN`, `WHAT`, and `WHY` are each just a single paragraph of concise and brief
-                prose text, usually comprised of just 1 to 3 sentences. The value of a decision is
-                in recording *that* a decision was made and *why* - not in filling out sections of
-                a document.
-
-                For the relationship between context, decision, and rationale, good checks are:
-                the "litmus test" is that context = forces, decision = response to those forces,
-                rationale = why the decision answers the forces in the context. The decision
-                should feel like the natural, almost inevitable answer to the context - if a reader
-                is surprised by the decision, either the context is missing a force, or the
-                decision is under-justified. The rationale should make the decision feel earned,
-                not asserted - if you delete the rationale and the decision suddenly looks
-                arbitrary, the rationale was doing its job.
-            diagram:
-                type: hub
-                center: self
-                nodes: "[[ARCH:DR.DECISION:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DV.ASPECT:*]],
-                    [[ARCH:DP.NODE:*]]"
-                labeled: true
-                qualified: true
-                properties:
-                    -   STATUS
-                config:
-                    size-node-width-max: 440
-            props:
-                -   name: STATUS
-                    desc: >
-                        The status of the decision: `proposed`, `accepted`, `deprecated`, or
-                        `superseded`.
-                    value: enum(proposed,accepted,deprecated,superseded)
-                -   name: AFFECTS
-                    desc: >
-                        Comma-separated references to the FUNCTIONALITY-VIEW, DEVELOPMENT-VIEW, or
-                        DEPLOYMENT-VIEW objects the decision affects.
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DV.ASPECT:*]], [[ARCH:DP.TIER:*]],
-                        [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]])
-                    optional: true
-                -   name: SUPERSEDED-BY
-                    desc: >
-                        Reference to the DECISION-RECORD object that supersedes this decision.
-                        Should be present if and only if `STATUS` is `superseded`.
-                    value: "[[ARCH:DR.DECISION:*]]"
-                    optional: true
-                -   name: WHEN
-                    desc: |
-                        The **Context** of the decision: it captures the situation that forces the
-                        decision - the "why are we even talking about this" part. It describes the
-                        situation as it is, before the decision is made. The following usually
-                        goes into it:
-
-                        -   the problem or need (what's broken, missing, or about to change that
-                            requires a decision);
-                        -   the forces at play (technical constraints, business requirements,
-                            deadlines, team skills, existing systems, regulatory/compliance
-                            pressures - often competing, and that tension is the whole point);
-                        -   relevant facts (current architecture, prior decisions, assumptions,
-                            what's known and what's uncertain); and
-                        -   scope/boundaries (what this decision is and isn't about).
-
-                        It is written neutrally and factually. It should not contain the decision
-                        itself, nor advocate for an option - a reader should be able to read it,
-                        pause, and arrive at the decision themselves because the forces make it
-                        (nearly) inevitable.
-                -   name: WHAT
-                    desc: |
-                        The **Decision** itself: it states what is actually going to be done - the
-                        chosen response to the forces laid out in the context. It is written in
-                        active, assertive voice, in the present or imperative tense, as a committed
-                        position rather than a discussion. The following usually goes into it:
-
-                        -   the choice itself (clearly and unambiguously); and
-                        -   the essence of how (enough of the approach to make the choice concrete
-                            - the mechanism, pattern, or technology - but not a full implementation
-                            specification).
-
-                        It is a declaration, not a deliberation, usually using the wording "We
-                        use..." or "We do...", active, definite, owning the choice. Avoid hedging
-                        ("we might", "we could consider") - the deliberation already happened, the
-                        decision records the verdict.
-                -   name: WHY
-                    desc: |
-                        The **Rationale** of the decision: it is the reasoning that justifies the
-                        decision - the bridge that explains why this choice, given those forces. It
-                        answers "Of all the things we could have done, why was this the right
-                        one?". Where the context states the forces and the decision states the
-                        choice, the rationale is the logical connective tissue between them - it
-                        shows that the decision actually follows from the context. The following
-                        usually goes into it:
-
-                        -   the deciding factors (which forces from the context carried the most
-                            weight, and how the chosen option satisfies them best);
-                        -   the trade-off reasoning (what was optimized for and what was knowingly
-                            sacrificed - naming the trade-off is the heart of rationale);
-                        -   why the alternatives lost (the comparative argument: "option B failed
-                            on X, option C cost too much on Y"); and
-                        -   assumptions and evidence (benchmarks, prior experience, constraints, or
-                            principles the reasoning rests on).
-                -   name: NOTES
-                    desc: |
-                        The **Background** of the decision: it is *OPTIONAL* and can be omitted
-                        when it does not add genuine value - most decisions won't need it. The
-                        following usually goes into it:
-
-                        -   information about the decision *process* (e.g. a weighted decision
-                            matrix of considered alternatives);
-                        -   consequences of the decision (but only when non-obvious downstream
-                            effects need to be called out); and
-                        -   links to strongly related decisions.
-                    optional: true
-
--   kind: ARCH
     name: Technology Stack
     id: TS
     file: 31-ARCH-TS-Technology-Stack.md
@@ -1283,3 +1099,187 @@
                             value: enum(Build-Time,Run-Time,Operate-Time)
                             optional: true
 
+
+-   kind: ARCH
+    name: Decision Record
+    id: DR
+    file: 30-ARCH-DR-Decision-Record.md
+    desc: >
+        The major decisions related to the architecture, each recording the forces at play, the
+        chosen response, and the reasoning that justifies it.
+    optional: true
+    refs: >
+        -   Nygard: Documenting Architecture Decisions (2011),
+            https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions
+        -   Tyree/Akerman: Architecture Decisions: Demystifying Architecture (2005),
+            https://ieeexplore.ieee.org/document/1407822
+        -   ADR: Architectural Decision Records (2017),
+            https://adr.github.io/
+    diagram:
+        type: grid
+        nodes: "[[ARCH:DR.DECISION:*]]"
+        properties:
+            -   STATUS
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 5
+    childs:
+        -   kind: DECISION
+            desc: |
+                A single architecture decision, named with a short summary of the decision, not
+                longer than 80 characters, and recorded as its context (`WHEN`), the decision
+                itself (`WHAT`), its rationale (`WHY`), and optional background (`NOTES`).
+
+                A decision *MUST* qualify on all of the following three tenets:
+
+                -   **Hard to Reverse**: the cost of changing it later is meaningful ("Oh my god,
+                    this would result in a dramatic refactoring!"). So, if a decision is easy to
+                    reverse, just skip it.
+
+                -   **Surprising without Context**: a future architect will look at the code and
+                    wonder ("Why on earth did they do it this way?"). So, if a decision is not
+                    surprising, nobody will wonder why.
+
+                -   **Result of a Real Trade-Off**: there were genuine alternatives and one was
+                    picked for specific reasons ("We deliberately chose this, because..."). So, if
+                    there was no real alternative, there's nothing to record beyond "we did the
+                    obvious thing."
+
+                The following typically qualify as a decision:
+
+                -   **Architectural shape.** "We're using a monorepo." "The write model is
+                    event-sourced, the read model is projected into PostgreSQL."
+
+                -   **Integration patterns between contexts.** "Ordering and Billing communicate
+                    via domain events, not synchronous HTTP."
+
+                -   **Technology choices that carry lock-in.** Database, message bus, auth
+                    provider, deployment target. Not every library - just the ones that would take
+                    a quarter to swap out.
+
+                -   **Boundary and scope decisions.** "Customer data is owned by the Customer
+                    context; other contexts reference it by ID only." The explicit no's are as
+                    valuable as the yes's.
+
+                -   **Deliberate deviations from the obvious path.** "We're using manual SQL
+                    instead of an ORM because X." Anything where a reasonable reader would assume
+                    the opposite. These stop the next engineer from "fixing" something that was
+                    deliberate.
+
+                -   **Constraints not visible in the code.** "We can't use AWS because of
+                    compliance requirements." "Response times must be under 200ms because of the
+                    partner API contract."
+
+                -   **Rejected alternatives when the rejection is non-obvious.** If you considered
+                    GraphQL and picked REST for subtle reasons, record it - otherwise someone will
+                    suggest GraphQL again in six months.
+
+                `WHEN`, `WHAT`, and `WHY` are each just a single paragraph of concise and brief
+                prose text, usually comprised of just 1 to 3 sentences. The value of a decision is
+                in recording *that* a decision was made and *why* - not in filling out sections of
+                a document.
+
+                For the relationship between context, decision, and rationale, good checks are:
+                the "litmus test" is that context = forces, decision = response to those forces,
+                rationale = why the decision answers the forces in the context. The decision
+                should feel like the natural, almost inevitable answer to the context - if a reader
+                is surprised by the decision, either the context is missing a force, or the
+                decision is under-justified. The rationale should make the decision feel earned,
+                not asserted - if you delete the rationale and the decision suddenly looks
+                arbitrary, the rationale was doing its job.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DR.DECISION:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DV.ASPECT:*]],
+                    [[ARCH:DP.NODE:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   STATUS
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: STATUS
+                    desc: >
+                        The status of the decision: `proposed`, `accepted`, `deprecated`, or
+                        `superseded`.
+                    value: enum(proposed,accepted,deprecated,superseded)
+                -   name: AFFECTS
+                    desc: >
+                        Comma-separated references to the FUNCTIONALITY-VIEW, DEVELOPMENT-VIEW, or
+                        DEPLOYMENT-VIEW objects the decision affects.
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DV.ASPECT:*]], [[ARCH:DP.TIER:*]],
+                        [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]])
+                    optional: true
+                -   name: SUPERSEDED-BY
+                    desc: >
+                        Reference to the DECISION-RECORD object that supersedes this decision.
+                        Should be present if and only if `STATUS` is `superseded`.
+                    value: "[[ARCH:DR.DECISION:*]]"
+                    optional: true
+                -   name: WHEN
+                    desc: |
+                        The **Context** of the decision: it captures the situation that forces the
+                        decision - the "why are we even talking about this" part. It describes the
+                        situation as it is, before the decision is made. The following usually
+                        goes into it:
+
+                        -   the problem or need (what's broken, missing, or about to change that
+                            requires a decision);
+                        -   the forces at play (technical constraints, business requirements,
+                            deadlines, team skills, existing systems, regulatory/compliance
+                            pressures - often competing, and that tension is the whole point);
+                        -   relevant facts (current architecture, prior decisions, assumptions,
+                            what's known and what's uncertain); and
+                        -   scope/boundaries (what this decision is and isn't about).
+
+                        It is written neutrally and factually. It should not contain the decision
+                        itself, nor advocate for an option - a reader should be able to read it,
+                        pause, and arrive at the decision themselves because the forces make it
+                        (nearly) inevitable.
+                -   name: WHAT
+                    desc: |
+                        The **Decision** itself: it states what is actually going to be done - the
+                        chosen response to the forces laid out in the context. It is written in
+                        active, assertive voice, in the present or imperative tense, as a committed
+                        position rather than a discussion. The following usually goes into it:
+
+                        -   the choice itself (clearly and unambiguously); and
+                        -   the essence of how (enough of the approach to make the choice concrete
+                            - the mechanism, pattern, or technology - but not a full implementation
+                            specification).
+
+                        It is a declaration, not a deliberation, usually using the wording "We
+                        use..." or "We do...", active, definite, owning the choice. Avoid hedging
+                        ("we might", "we could consider") - the deliberation already happened, the
+                        decision records the verdict.
+                -   name: WHY
+                    desc: |
+                        The **Rationale** of the decision: it is the reasoning that justifies the
+                        decision - the bridge that explains why this choice, given those forces. It
+                        answers "Of all the things we could have done, why was this the right
+                        one?". Where the context states the forces and the decision states the
+                        choice, the rationale is the logical connective tissue between them - it
+                        shows that the decision actually follows from the context. The following
+                        usually goes into it:
+
+                        -   the deciding factors (which forces from the context carried the most
+                            weight, and how the chosen option satisfies them best);
+                        -   the trade-off reasoning (what was optimized for and what was knowingly
+                            sacrificed - naming the trade-off is the heart of rationale);
+                        -   why the alternatives lost (the comparative argument: "option B failed
+                            on X, option C cost too much on Y"); and
+                        -   assumptions and evidence (benchmarks, prior experience, constraints, or
+                            principles the reasoning rests on).
+                -   name: NOTES
+                    desc: |
+                        The **Background** of the decision: it is *OPTIONAL* and can be omitted
+                        when it does not add genuine value - most decisions won't need it. The
+                        following usually goes into it:
+
+                        -   information about the decision *process* (e.g. a weighted decision
+                            matrix of considered alternatives);
+                        -   consequences of the decision (but only when non-obvious downstream
+                            effects need to be called out); and
+                        -   links to strongly related decisions.
+                    optional: true
