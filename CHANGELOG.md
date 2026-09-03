@@ -5,6 +5,10 @@ ChangeLog
 1.2.0 (2026-09-03)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Deployment View Identifier
+    The standard "Deployment View" gets the id "DV" (freed by "Development Aspects") instead of
+    "DP", as the latter collided with the id of the "Dialog Patterns" and made references ambiguous.
+
 -   IMPROVEMENT [code, othr]: Solution Premises References
     The Solution Premises "TERMS", "OWNER", and "AFFECTS" become the "PREMISES" of the glossary
     terms, personas, requirements, and rules, so that the references become backward references.

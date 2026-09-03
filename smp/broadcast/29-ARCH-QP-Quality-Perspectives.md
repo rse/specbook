@@ -12,7 +12,7 @@ ARCH: Quality Perspectives (QP)
 -   ADDRESSES:   [[NR.attendee-scale]], [[NR.scalability]]
 -   MECHANISM:   stateless proxy and relay pools behind a round-robin router
 -   TRADES-OFF:  Maintainability
--   AFFECTS:     [[FV.proxy]], [[FV.relay]], [[CO.relay-pool]], [[DP.proxy]], [[DP.relay]]
+-   AFFECTS:     [[FV.proxy]], [[FV.relay]], [[CO.relay-pool]], [[DV.proxy]], [[DV.relay]]
 -   OPERATED-BY: [[OV.scaling]]
 -   TOOLS:       [[TS.Server.container-orchestration]]
 
@@ -81,7 +81,7 @@ BECAUSE combining rate limits with content filtering defends the interaction cha
 -   QUALITY:    Portability
 -   ADDRESSES:  [[NR.browser-compat]], [[NR.mobile-usability]]
 -   MECHANISM:  standards-based responsive web client with no plugins
--   AFFECTS:    [[FV.client]], [[DP.client-device]]
+-   AFFECTS:    [[FV.client]], [[DV.client-device]]
 -   TOOLS:      [[TS.Client.ui-framework]], [[TS.Client.styling-framework]]
 
 The client is a standards-based responsive web application that adapts from desktop to mobile without plugins, BECAUSE a

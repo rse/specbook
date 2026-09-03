@@ -24,7 +24,7 @@
 + 24-ARCH-FV-Functionality-View.md
 - 25-ARCH-CO-Concurrency-View.md
 - 26-ARCH-DV-Development-View.md
-- 27-ARCH-DP-Deployment-View.md
+- 27-ARCH-DV-Deployment-View.md
 - 28-ARCH-OV-Operations-View.md
 - 29-ARCH-QP-Quality-Perspectives.md
 - 30-ARCH-DR-Decision-Record.md

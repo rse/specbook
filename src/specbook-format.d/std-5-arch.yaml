@@ -659,7 +659,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DP.NODE:*]]"
+                nodes: "[[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DV.NODE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -713,8 +713,8 @@
 
 -   kind: ARCH
     name: Deployment View
-    id: DP
-    file: 27-ARCH-DP-Deployment-View.md
+    id: DV
+    file: 27-ARCH-DV-Deployment-View.md
     desc: >
         The environment into which the solution is deployed, partitioning it into tiers and mapping
         software elements to the runtime platform, hardware, and network topology.
@@ -728,7 +728,7 @@
             https://c4model.com/diagrams/deployment
     diagram:
         type: graph
-        nodes: "[[ARCH:DP.NODE:*]]"
+        nodes: "[[ARCH:DV.NODE:*]]"
         labeled: true
         properties:
             -   TIER
@@ -756,7 +756,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DP.TIER:*]], [[ARCH:DP.NODE:*]]"
+                nodes: "[[ARCH:DV.TIER:*]], [[ARCH:DV.NODE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -771,7 +771,7 @@
                         Reference to the DEPLOYMENT-VIEW tier this tier is contained in (e.g. the
                         `Server` and `Database` tiers reference the `Data Center` tier hosting
                         them); omitted for a top-level tier.
-                    value: "[[ARCH:DP.TIER:*]]"
+                    value: "[[ARCH:DV.TIER:*]]"
                     optional: true
                     acyclic: true
                 -   name: LOCATION
@@ -806,7 +806,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]]"
+                nodes: "[[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -832,8 +832,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]],
-                    [[ARCH:DP.NETWORK:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]]"
+                nodes: "[[ARCH:DV.TIER:*]], [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]],
+                    [[ARCH:DV.NETWORK:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -860,13 +860,13 @@
                     desc: >
                         Reference to the DEPLOYMENT-VIEW tier the node belongs to, exactly one, as a
                         single deployment unit never spans tiers.
-                    value: "[[ARCH:DP.TIER:*]]"
+                    value: "[[ARCH:DV.TIER:*]]"
                 -   name: AREA
                     desc: >
                         Reference to the DEPLOYMENT-VIEW area the node is dedicated to, at most one,
                         as a single deployment unit never spans areas; omitted for a node shared by
                         several areas or when the solution is not split vertically.
-                    value: "[[ARCH:DP.AREA:*]]"
+                    value: "[[ARCH:DV.AREA:*]]"
                     optional: true
                 -   name: PLATFORM
                     desc: >
@@ -880,7 +880,7 @@
                         expressing the nesting the kinds imply: a `Container` references the
                         `Server` or `Cluster` running it, and a `Server` the `Cluster` it belongs
                         to; omitted for a top-level node.
-                    value: "[[ARCH:DP.NODE:*]]"
+                    value: "[[ARCH:DV.NODE:*]]"
                     optional: true
                     acyclic: true
                 -   name: HOSTS
@@ -902,14 +902,14 @@
                         Comma-separated references to the DEPLOYMENT-VIEW objects this node opens
                         network connections to at runtime, naming the target node only, while the
                         carried protocols are stated by the `PROTOCOLS` of the shared `NETWORK`.
-                    value: list([[ARCH:DP.NODE:*]])
+                    value: list([[ARCH:DV.NODE:*]])
                     optional: true
                 -   name: NETWORKS
                     desc: >
                         Comma-separated references to the DEPLOYMENT-VIEW network segments the node
                         is attached to (e.g. a public ingress and a private backend network); omitted
                         when the topology models no network segments.
-                    value: list([[ARCH:DP.NETWORK:*]])
+                    value: list([[ARCH:DV.NETWORK:*]])
                     optional: true
         -   kind: NETWORK
             desc: >
@@ -930,7 +930,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DP.NETWORK:*]], [[ARCH:DP.NODE:*]]"
+                nodes: "[[ARCH:DV.NETWORK:*]], [[ARCH:DV.NODE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1002,7 +1002,7 @@
                 center: self
                 nodes: "[[ARCH:OV.CONCERN:*]], [[REQS:NR.REQUIREMENT:*]], [[REQS:UP.PERSONA:*]],
                     [[ARCH:QP.TACTIC:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                    [[ARCH:DP.NODE:*]], [[DATA:DM.ENTITY:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                    [[ARCH:DV.NODE:*]], [[DATA:DM.ENTITY:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1059,8 +1059,8 @@
                         Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW,
                         DEPLOYMENT-VIEW, or DATA-MODEL objects the procedure acts upon (e.g. the
                         nodes scaled, the units restarted, the entities backed up or migrated).
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DP.TIER:*]],
-                        [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DV.TIER:*]],
+                        [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]], [[ARCH:DV.NETWORK:*]],
                         [[DATA:DM.ENTITY:*]])
                     optional: true
                 -   name: TOOLS
@@ -1119,7 +1119,7 @@
                 type: hub
                 center: self
                 nodes: "[[ARCH:QP.TACTIC:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]],
-                    [[ARCH:CO.UNIT:*]], [[ARCH:DA.ASPECT:*]], [[ARCH:DP.NODE:*]], [[DATA:DM.ENTITY:*]],
+                    [[ARCH:CO.UNIT:*]], [[ARCH:DA.ASPECT:*]], [[ARCH:DV.NODE:*]], [[DATA:DM.ENTITY:*]],
                     [[ARCH:OV.CONCERN:*]], [[DECS:DR.DECISION:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
                 labeled: true
                 qualified: true
@@ -1171,7 +1171,7 @@
                         the aspects governing modifiability, the entities anonymized, the roles
                         and interfaces secured).
                     value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DA.ASPECT:*]],
-                        [[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                        [[ARCH:DV.TIER:*]], [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]], [[ARCH:DV.NETWORK:*]],
                         [[DATA:DM.ENTITY:*]], [[DATA:AM.ROLE:*]], [[APIS:IM.INTERFACE:*]])
                     optional: true
                 -   name: OPERATED-BY

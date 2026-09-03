@@ -97,8 +97,8 @@
                     [[UXUI:IC.PRINCIPLE:*]], [[UXUI:LC.CONVENTION:*]], [[UXUI:DP.PATTERN:*]],
                     [[UXUI:DS.STORYBOARD:*]], [[UXUI:VD.ELEMENT:*]],
                     [[ARCH:CV.ENTITY:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                    [[ARCH:DA.ASPECT:*]], [[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]],
-                    [[ARCH:DP.NETWORK:*]], [[ARCH:QP.TACTIC:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                    [[ARCH:DA.ASPECT:*]], [[ARCH:DV.TIER:*]], [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]],
+                    [[ARCH:DV.NETWORK:*]], [[ARCH:QP.TACTIC:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -148,8 +148,8 @@
                         [[UXUI:IC.PRINCIPLE:*]], [[UXUI:LC.CONVENTION:*]], [[UXUI:DP.PATTERN:*]],
                         [[UXUI:DS.STORYBOARD:*]], [[UXUI:VD.ELEMENT:*]],
                         [[ARCH:CV.ENTITY:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                        [[ARCH:DA.ASPECT:*]], [[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]],
-                        [[ARCH:DP.NETWORK:*]])
+                        [[ARCH:DA.ASPECT:*]], [[ARCH:DV.TIER:*]], [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]],
+                        [[ARCH:DV.NETWORK:*]])
                     optional: true
                 -   name: DECIDES
                     desc: >

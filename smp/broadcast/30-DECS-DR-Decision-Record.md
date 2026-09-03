@@ -31,7 +31,7 @@ DECS: Decision Record (DR)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[NR.gdpr]], [[NR.cost]], [[SP.eu-hosting]]
--   AFFECTS:      [[DP.datacenter]]
+-   AFFECTS:      [[DV.datacenter]]
 -   ALTERNATIVES: Azure, AWS
 -   WHEN:
     The solution must be GDPR-compliant with EU data residency, and a primary economic goal is to minimize recurring cost per

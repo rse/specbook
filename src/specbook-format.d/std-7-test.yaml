@@ -74,7 +74,7 @@
                     [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                     [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
                     [[UXUI:DS.STORYBOARD:*.FRAME:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                    [[ARCH:DA.ASPECT:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                    [[ARCH:DA.ASPECT:*]], [[ARCH:DV.NODE:*]], [[ARCH:DV.NETWORK:*]],
                     [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[DECS:DR.DECISION:*]]"
                 labeled: true
                 qualified: true
@@ -115,7 +115,7 @@
                         [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                         [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
                         [[UXUI:DS.STORYBOARD:*.FRAME:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                        [[ARCH:DA.ASPECT:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                        [[ARCH:DA.ASPECT:*]], [[ARCH:DV.NODE:*]], [[ARCH:DV.NETWORK:*]],
                         [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[DECS:DR.DECISION:*]])
                 -   name: WORKFLOWS
                     desc: >

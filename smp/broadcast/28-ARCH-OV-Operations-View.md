@@ -11,7 +11,7 @@ ARCH: Operations View (OV)
 -   CATEGORY:  Upgrade
 -   TRIGGER:   on every release, outside running events
 -   OPERATOR:  [[UP.administrator]]
--   ELEMENTS:  [[DP.service]]
+-   ELEMENTS:  [[DV.service]]
 -   TOOLS:     [[TS.Server.container-orchestration]]
 
 A release is rolled out per environment by pulling the new service
@@ -49,7 +49,7 @@ controlled administratively to uphold privacy by design.
 -   TRIGGER:   during each event
 -   OPERATOR:  [[UP.administrator]]
 -   ADDRESSES: [[NR.attendee-scale]]
--   ELEMENTS:  [[FV.statistics]], [[DP.proxy]], [[DP.relay]]
+-   ELEMENTS:  [[FV.statistics]], [[DV.proxy]], [[DV.relay]]
 
 During a broadcast the administrator watches the statistics dashboard
 for the attendee curve, the channel distribution, and the
@@ -74,7 +74,7 @@ find out why an attendee fails to authenticate while the event runs.
 -   TRIGGER:   ahead of large events
 -   OPERATOR:  [[UP.administrator]]
 -   ADDRESSES: [[NR.scalability]], [[NR.attendee-scale]]
--   ELEMENTS:  [[DP.proxy]], [[DP.relay]], [[DP.service]]
+-   ELEMENTS:  [[DV.proxy]], [[DV.relay]], [[DV.service]]
 -   TOOLS:     [[TS.Server.container-orchestration]]
 
 Operators scale an environment by adding proxy, relay, and service
@@ -87,7 +87,7 @@ to 10000 require capacity provisioned per environment.
 -   TRIGGER:   nightly and before each event
 -   OPERATOR:  [[UP.administrator]]
 -   ADDRESSES: [[NR.gdpr]]
--   ELEMENTS:  [[DP.database]], [[DM.Event]]
+-   ELEMENTS:  [[DV.database]], [[DM.Event]]
 -   TOOLS:     [[TS.Database.database-backup]]
 
 The PostgreSQL database and the filesystem assets are dumped nightly and
@@ -100,7 +100,7 @@ EU hosting boundary.
 -   CATEGORY:  Recovery
 -   TRIGGER:   on database loss
 -   OPERATOR:  [[UP.administrator]]
--   ELEMENTS:  [[DP.database]], [[DP.service]]
+-   ELEMENTS:  [[DV.database]], [[DV.service]]
 -   TOOLS:     [[TS.Database.database-backup]], [[TS.Server.container-orchestration]]
 
 A lost database is rebuilt from the latest dump onto a fresh database
