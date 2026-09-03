@@ -5,6 +5,10 @@ ChangeLog
 1.2.0 (2026-09-03)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Technology Stack Position
+    The standard "Technology Stack" moves directly behind the "Functionality View", so that the
+    "STACK" and "TOOLS" references of the later architecture views become backward references.
+
 -   IMPROVEMENT [code]: Reference Resolution Performance
     The Wiki-style reference resolution now uses per-index lookup maps and memoizes its results,
     and the diagram derivation is memoized per specification, cutting a lint from 9s to 0.4s.
