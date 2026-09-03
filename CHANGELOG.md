@@ -2,6 +2,11 @@
 ChangeLog
 =========
 
+1.2.1 (2026-09-03)
+------------------
+
+-   CLEANUP [docs]: tell about live-updates for developers in README.md
+
 1.2.0 (2026-09-03)
 ------------------
 
