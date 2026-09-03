@@ -18,8 +18,12 @@ import { renderAst, type AstFormat } from "./specbook-export-ast.js"
 import { renderMarkdown }            from "./specbook-export-md.js"
 import { renderHtml, htmlOutline, titlePageObject }
     from "./specbook-export-html.js"
-import { htmlToPdf }                 from "./specbook-export-pdf.js"
+import { htmlToPdf, requireBrowser } from "./specbook-export-pdf.js"
 import { literal, type Verbose }     from "./specbook-verbose.js"
+
+/*  re-export the browser pre-check of the PDF renderer, so the API
+    facade reaches the renderers through this command module only  */
+export { requireBrowser }
 
 /*  the supported export formats  */
 export const formats = [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ] as const

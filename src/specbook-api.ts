@@ -5,6 +5,7 @@
 */
 
 import * as fs                                           from "node:fs"
+import * as path                                         from "node:path"
 import { fileURLToPath }                                 from "node:url"
 import { glob }                                          from "glob"
 
@@ -14,12 +15,11 @@ import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type Diagno
 import { initSpecification }                             from "./specbook-cmd-init.js"
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
 import { exportSpecification, watchSpecification, parseOutputSpec, formats,
-    type ExportFormat }                                  from "./specbook-cmd-export.js"
+    requireBrowser, type ExportFormat }                  from "./specbook-cmd-export.js"
 import { servePreview, previewAddr, previewPort }        from "./specbook-cmd-preview.js"
 import { describeFormat, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
     compressLevels, parseCompressLevel, type DescribeFormat, type DescribePart, type CompressLevel }
     from "./specbook-cmd-describe.js"
-import { requireBrowser }                                from "./specbook-export-pdf.js"
 import { literal, renderVerbose, type Verbose, type VerboseLevel }
     from "./specbook-verbose.js"
 import { type Schema }                                   from "./specbook-format-schema.js"
@@ -83,7 +83,8 @@ export class SpecBook {
                 files.push(standardConfig)
                 continue
             }
-            const matches = await glob(pattern, { nodir: true })
+            const matches = await glob(pattern, { nodir: true,
+                windowsPathsNoEscape: process.platform === "win32" })
             if (matches.length === 0)
                 throw new Error(`no configuration file matches "${pattern}"`)
             files.push(...matches.sort())
@@ -157,21 +158,23 @@ export class SpecBook {
     }
 
     /*  keep an export in sync with its sources (the shared core of
-        "watch" and "preview"): every change of an artifact file or of one
-        of its embedded assets re-exports the specification and hands the
-        buffers to "onExport" once the sources fell silent again. A failed
-        re-export is reported and leaves the observe loop intact, so a
-        transiently invalid specification does not end the watch. The
-        returned promise settles once the initial export is done, while
-        the active watcher keeps the process alive afterwards  */
+        "watch" and "preview"): every change of a configuration file, of an
+        artifact file, or of one of its embedded assets re-exports the
+        specification and hands the buffers to "onExport" once the sources
+        fell silent again. A failed re-export is reported and leaves the
+        observe loop intact, so a transiently invalid specification (or
+        configuration) does not end the watch. The returned promise settles
+        once the initial export is done, while the active watcher keeps the
+        process alive afterwards  */
     private async observe (options: { config?: string[], basedir?: string, formats: ExportFormat[],
         realtime: boolean, onExport: (buffers: Buffer[]) => void | Promise<void> },
     verbose: Verbose): Promise<void> {
         const config = await this.configFiles(options.config)
         return watchSpecification(async () => {
             /*  the lint result carries the files to observe even for an
-                invalid specification, so a failing export still keeps the
-                observe loop fed with an up-to-date file set  */
+                invalid specification, and the configuration files are
+                observed, too, so a failing export (even one due to an
+                invalid configuration) still keeps the observe loop fed  */
             const result = lint({ config, basedir: options.basedir ?? ".", verbose })
             try {
                 await options.onExport(await this.renderFormats(result, options.formats,
@@ -181,7 +184,7 @@ export class SpecBook {
                 verbose("export failed: " +
                     (err instanceof Error ? err.message : String(err)), "notice")
             }
-            return result.files
+            return [ ...config.map((file) => path.resolve(file)), ...result.files ]
         }, verbose)
     }
 

@@ -63,7 +63,8 @@ const parseMarkers = (raw: string) => {
     return { text, anchor, paren, primary }
 }
 
-/*  parse a heading text of the form "<KIND>: <name> [(<token>)] [<a id="..."></a>]"  */
+/*  parse a heading text of the form
+    "<KIND>: <name> [(<token>)] [(*)] [{{<anchor>}}] [<a id="..."></a>]"  */
 const parseHeadingText = (raw: string) => {
     let text = raw.trim()
     let id: string | undefined

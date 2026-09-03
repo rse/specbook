@@ -39,7 +39,8 @@ export type CompressLevel   = typeof compressLevels[number]
 /*  parse and validate a compression level specification,
     where a bare flag selects the plain re-emitting  */
 export const parseCompressLevel = (value: string | number | boolean): CompressLevel => {
-    const level = typeof value === "boolean" ? (value ? 1 : 0) : Number(value)
+    const level = typeof value === "boolean" ? (value ? 1 : 0) :
+        typeof value === "string" && !(/^\d+$/).test(value) ? NaN : Number(value)
     if (!(compressLevels as readonly number[]).includes(level))
         throw new Error(`unknown compress level "${value}" ` +
             `(supported: ${compressLevels.join(", ")})`)
@@ -75,10 +76,13 @@ const compressYaml = (yaml: string, level: CompressLevel): string => {
 /*  provide the YAML text of the schema configuration: the verbatim
     content of its single file, or the merged configuration re-emitted
     for several files (as no single file carries their merge)  */
-const schemaYaml = (config: string[], schema?: Schema): string =>
-    config.length > 1 && schema !== undefined ?
-        stringify(schema, { indent: 2, lineWidth: 0 }) :
-        fs.readFileSync(config[0], "utf8")
+const schemaYaml = (config: string[], schema?: Schema): string => {
+    if (config.length === 1)
+        return fs.readFileSync(config[0], "utf8")
+    if (schema === undefined)
+        throw new Error("re-emitting the merged YAML schema configuration requires its loaded configuration")
+    return stringify(schema, { indent: 2, lineWidth: 0 })
+}
 
 /*  render the reference to (or the embedding of) the YAML schema configuration,
     where the bundled standard one is embedded without its leading comment block  */

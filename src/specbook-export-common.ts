@@ -187,13 +187,13 @@ const subsetCache = new Map<number[], string>()
     codepoints of a charset plus the always-used symbol and typography
     glyphs (no charset or a full Unicode charset keeps the fonts complete)  */
 export const subsetStylesheet = async (charset?: string): Promise<string> => {
-    const css        = stylesheet()
     const codepoints = charset !== undefined ? charsetCodepoints(charset) : undefined
     if (codepoints === undefined)
-        return css
+        return stylesheet()
     const cached = subsetCache.get(codepoints)
     if (cached !== undefined)
         return cached
+    const css = stylesheet()
     const { default: subsetFont } = await import("subset-font")
     const text = String.fromCodePoint(...codepoints, ...symbolGlyphs, ...typographyGlyphs)
     let result = ""

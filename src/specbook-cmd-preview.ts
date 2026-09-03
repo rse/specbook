@@ -44,7 +44,8 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
             if (html === undefined)
                 return reply.code(503).type("text/plain; charset=utf-8")
                     .send("no specification export available yet\n")
-            return reply.type("text/html; charset=utf-8").send(html)
+            return reply.type("text/html; charset=utf-8")
+                .header("cache-control", "no-store").send(html)
         },
         wsHandler: (socket, request) => {
             /*  identify the client by its remote address and port  */

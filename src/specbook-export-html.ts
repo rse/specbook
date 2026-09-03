@@ -424,33 +424,18 @@ const tocPanelScript = textframe`
 `
 
 /*  the client-side script of the description popups: the info tab
-    toggles the popups on and off (default), persisting the choice
-    across page loads, and while they are on, hovering an element
-    carrying a "data-info" key shows the schema description of its
-    object kind (or, with "data-info-prop", of its property), while
-    hovering an element carrying a "data-info-spec" key (an object
-    name) shows the corpus description of the object instance, in a
-    single shared popup -- a hovered diagram node box resolves through
-    its hyperlinked object anchor to the instance popup attributes of
-    the object's heading name or table row name -- opened only after
-    the mouse rested 400ms on the element (so mere mouse movements
-    across the page pop nothing up), titled with the "data-info-path"
-    object path (one filled-circle "KIND: Name" segment per level,
-    arbitrarily deep and separated by pointer icons, ending for a kind
-    in the bare kind and extended for a property with the not-filled-
-    circle property name, styled as in the document content: the kinds
-    and the property bold in the path color, the names bold in the
-    description color) and fed from the injected INFO map of
-    pre-rendered schema description HTML or SPEC map of pre-rendered
-    corpus description HTML (a missing entry pops up the title path
-    alone), the description led by a bold "Schema:" or "Specification:"
-    label naming its origin (a corpus-fed instance popup additionally
-    carrying the page background colors instead of the accent), where
-    the popup is capped at 40% viewport width and attached above or below the
-    hovered element, whichever side offers more viewport space; the
+    toggles the popups (off by default, persisted across page loads),
+    and while they are on, a mouse resting 400ms on an element carrying
+    a "data-info" key (plus "data-info-prop" for a property) pops up the
+    schema description of its object kind (or property), while one
+    carrying a "data-info-spec" key pops up the corpus description of
+    the object instance (a diagram node box resolves through its
+    hyperlinked object anchor), titled with the "data-info-path" object
+    path and fed from the injected INFO/SPEC maps of pre-rendered
+    description HTML; the popup is capped at 40% viewport width and
+    attached above or below, whichever side offers more space; the
     script runs at the end of the body, so a live preview body swap
-    replaces the popup element and the body-bound listeners along
-    with the re-executed script  */
+    replaces the popup and the body-bound listeners along with it  */
 const infoPopupScript = textframe`
     (function (INFO, SPEC) {
         const popup = document.createElement("div")
@@ -552,7 +537,7 @@ const infoPopupScript = textframe`
                 title.appendChild(name)
             }
             popup.replaceChildren(title)
-            const entry = INFO[key]
+            const entry = key !== null ? INFO[key] : undefined
             const desc  = prop !== null ? entry?.p?.[prop] :
                 (spec !== null ? SPEC[spec] : entry?.d)
             if (desc !== undefined) {
@@ -696,11 +681,11 @@ let infoParents: Map<SpecObject, SpecObject> | null   = null
     resolution of the references inside them (nearest object wins),
     established around every object rendering and restored afterwards  */
 let scope: SpecObject | null = null
-const scoped = <T>(object: SpecObject, render: () => T): T => {
+const scoped = <T>(object: SpecObject, body: () => T): T => {
     const outer = scope
     scope = object
     try {
-        return render()
+        return body()
     }
     finally {
         scope = outer
@@ -1046,6 +1031,13 @@ const renderCell = (child: SpecObject): string => {
     return html.trim() !== "" ? html : "<span class=\"value-absent\"></span>"
 }
 
+/*  the pre-rendered diagram of an object as an embeddable block
+    (empty for an object without a configured or renderable diagram)  */
+const diagramOf = (object: SpecObject) => {
+    const diagram = diagrams?.get(object)
+    return diagram !== undefined ? safe(`<div class="diagram">${diagram}</div>`) : ""
+}
+
 /*  render a single-kind group of childs into one compact table:
     the name first, then the property columns, then the description;
     a group wider than maxColumns, or carrying diagrams, instead chunks
@@ -1121,13 +1113,6 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
             }
         }))
     } })
-}
-
-/*  the pre-rendered diagram of an object as an embeddable block
-    (empty for an object without a configured or renderable diagram)  */
-const diagramOf = (object: SpecObject) => {
-    const diagram = diagrams?.get(object)
-    return diagram !== undefined ? safe(`<div class="diagram">${diagram}</div>`) : ""
 }
 
 /*  recursively render an object into HTML  */
@@ -1370,14 +1355,9 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         info     = {}
         collectInfo(config, "", infoKeys, info)
         const parents = new Map<SpecObject, SpecObject>()
-        const link = (object: SpecObject) => {
-            for (const child of object.childs) {
-                parents.set(child, object)
-                link(child)
-            }
-        }
-        for (const artifact of specification.artifacts)
-            artifact.objects.forEach(link)
+        for (const node of index)
+            if (node.parent !== undefined)
+                parents.set(node.object, node.parent.object)
         infoParents = parents
     }
     linker   = makeLinker(index)

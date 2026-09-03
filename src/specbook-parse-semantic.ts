@@ -24,11 +24,18 @@ const directMatches = (expr: ValueExpr, text: string): boolean =>
     (expr.kind === "regex" && expr.regex.test(text))
     || (expr.kind === "enum" && expr.members.includes(text))
 
+/*  a text resolved as exactly one Wiki-style reference: the reference
+    itself and its (leniently resolved) target object  */
+interface SingleTarget {
+    ref:     string
+    target?: SpecObject
+}
+
 /*  resolve a text consisting of exactly one Wiki-style reference from
     its carrying object (leniently, as unresolvable and ambiguous
     references are already reported by the reference pass)  */
 const singleTarget = (ctx: ParseContext, object: SpecObject,
-    text: string): { ref: string, target?: SpecObject } | undefined => {
+    text: string): SingleTarget | undefined => {
     const rm = text.match(singleReferenceRegex)
     if (rm === null)
         return undefined
@@ -83,7 +90,7 @@ const splitPropItems = (ctx: ParseContext, prop: SchemaProperty,
     referencing object (a top-level object has no parent, and hence
     no locality to keep)  */
 const checkLocal = (ctx: ParseContext, object: SpecObject, prop: SchemaProperty,
-    single: { ref: string, target?: SpecObject } | undefined, meta: ObjectMeta) => {
+    single: SingleTarget | undefined, meta: ObjectMeta) => {
     if (prop.local !== true || single?.target === undefined)
         return
     const chain  = chainOf(ctx.linkIndex, object)
@@ -487,11 +494,11 @@ const checkRelations = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject
     the references from within the subtree of the object itself do not
     count (a lapse is a warning only, as the specification stays valid)  */
 const checkReferenced = (ctx: ParseContext, specification: Spec, schemas: Map<SpecObject, SchemaObject>) => {
-    /*  collect the referencing objects of every referenced object,
-        together with the parent of every object for the ancestor walk  */
+    /*  collect the referencing objects of every referenced object
+        (the references from within its own subtree excluded)  */
     const referrers = new Map<SpecObject, Set<SpecObject>>()
-    const parents   = new Map<SpecObject, SpecObject>()
-    const walk = (object: SpecObject, chain: SpecObject[]) => {
+    const walk = (object: SpecObject) => {
+        const chain = chainOf(ctx.linkIndex, object)
         const texts = [ object.name, ...object.properties.map((p) => p.value) ]
         if (object.description !== undefined)
             texts.push(object.description.description, object.description.rationale ?? "")
@@ -501,14 +508,10 @@ const checkReferenced = (ctx: ParseContext, specification: Spec, schemas: Map<Sp
                 if (target !== undefined && !chain.includes(target))
                     referrers.set(target, (referrers.get(target) ?? new Set<SpecObject>()).add(object))
             }
-        for (const child of object.childs) {
-            parents.set(child, object)
-            walk(child, [ ...chain, child ])
-        }
+        object.childs.forEach(walk)
     }
     for (const artifact of specification.artifacts)
-        for (const object of artifact.objects)
-            walk(object, [ object ])
+        artifact.objects.forEach(walk)
 
     /*  resolve the reference patterns of every flagged kind into the
         admissible referencing objects (once per shared schema node)  */
@@ -527,12 +530,8 @@ const checkReferenced = (ctx: ParseContext, specification: Spec, schemas: Map<Sp
             }
             sources.set(schema, admissible)
         }
-        const covered = Array.from(referrers.get(object) ?? []).some((referrer) => {
-            for (let o: SpecObject | undefined = referrer; o !== undefined; o = parents.get(o))
-                if (admissible.has(o))
-                    return true
-            return false
-        })
+        const covered = Array.from(referrers.get(object) ?? [])
+            .some((referrer) => chainOf(ctx.linkIndex, referrer).some((o) => admissible.has(o)))
         if (!covered) {
             const meta = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
             ctx.diagnose(meta.file, meta.line,

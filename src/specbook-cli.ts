@@ -202,9 +202,9 @@ withCommonOptions(program.command("preview"))
 
 /*  the describe command also describes the generic SpecBook models and
     formats alone, so its YAML schema configuration stays optional  */
-withConfigOption(withVerboseOption(program.command("describe"))
-    .description("describe the SpecBook models and formats as Markdown"),
-"the bundled standard schema configuration, embedded")
+withConfigOption(withVerboseOption(program.command("describe")),
+    "the bundled standard schema configuration, embedded")
+    .description("describe the SpecBook models and formats as Markdown")
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir"))
     .option("-e, --embed", "embed the given YAML schema configuration instead of just referencing it",
         envDefaultFlag("embed", false))

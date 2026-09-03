@@ -117,26 +117,6 @@ type Diagnose = (path: YamlPath, message: string) => void
     optionally carry a regexp or enum expression  */
 const checkProperties = (props: SchemaProperty[], at: YamlPath, diagnose: Diagnose) => {
     for (const [ j, prop ] of props.entries()) {
-        /*  the relation shape flags apply to reference-valued
-            properties only (an invalid expression is reported on
-            its own, without a cascading flag diagnostic)  */
-        let expr: ValueExpr | undefined
-        if (prop.value !== undefined) {
-            try {
-                expr = compileValueExpr(prop.value)
-            }
-            catch (err) {
-                diagnose([ ...at, "props", j, "value" ],
-                    `invalid value expression "${prop.value}": ` +
-                        (err instanceof Error ? err.message : String(err)))
-                continue
-            }
-        }
-        for (const flag of [ "local", "symmetric", "acyclic" ] as const)
-            if (prop[flag] === true && (expr === undefined || !admitsReferences(expr)))
-                diagnose([ ...at, "props", j, flag ],
-                    `"${flag}" flag requires a reference-valued property`)
-
         /*  the sibling marker flags optionally carry a regexp or
             enum expression selecting the values they apply to  */
         for (const flag of [ "unique", "present" ] as const) {
@@ -156,6 +136,26 @@ const checkProperties = (props: SchemaProperty[], at: YamlPath, diagnose: Diagno
                 diagnose([ ...at, "props", j, flag ],
                     `"${flag}" expression "${marker}" is neither a regexp nor an enum`)
         }
+
+        /*  the relation shape flags apply to reference-valued
+            properties only (an invalid expression is reported on
+            its own, without a cascading flag diagnostic)  */
+        let expr: ValueExpr | undefined
+        if (prop.value !== undefined) {
+            try {
+                expr = compileValueExpr(prop.value)
+            }
+            catch (err) {
+                diagnose([ ...at, "props", j, "value" ],
+                    `invalid value expression "${prop.value}": ` +
+                        (err instanceof Error ? err.message : String(err)))
+                continue
+            }
+        }
+        for (const flag of [ "local", "symmetric", "acyclic" ] as const)
+            if (prop[flag] === true && (expr === undefined || !admitsReferences(expr)))
+                diagnose([ ...at, "props", j, flag ],
+                    `"${flag}" flag requires a reference-valued property`)
     }
 }
 
@@ -316,12 +316,12 @@ export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Dia
     /*  merge the documents in order, out of fresh conversions, as the
         merge mutates its target while the raw ones have to stay intact
         for the path translation  */
-    const obj = docs.map(({ doc }) => doc.toJS() as unknown)
+    const merged = docs.map(({ doc }) => doc.toJS() as unknown)
         .reduce((target, source) => mergeConfig(target, source))
 
     /*  semantically validate the merged result against the schema of the configuration  */
-    const posOfPath = (path: YamlPath) => posOfMergedPath(docs, obj, path)
-    const result = v.safeParse(Schema, obj)
+    const posOfPath = (path: YamlPath) => posOfMergedPath(docs, merged, path)
+    const result = v.safeParse(Schema, merged)
     if (!result.success) {
         for (const issue of result.issues) {
             /*  the path is rendered as it is in the positioned file  */

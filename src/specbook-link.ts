@@ -54,13 +54,13 @@ const lookup = (index: LinkIndex): LinkLookup => {
             const nodes = map.get(key)
             if (nodes === undefined)
                 map.set(key, [ node ])
-            else if (!nodes.includes(node))
+            else
                 nodes.push(node)
         }
         for (const node of index) {
             result.nodes.set(node.object, node)
             add(result.byKey, node.object.id, node)
-            if (node.object.anchor !== undefined)
+            if (node.object.anchor !== undefined && node.object.anchor !== node.object.id)
                 add(result.byKey, node.object.anchor, node)
             add(result.byName, node.name, node)
             add(result.byKind, node.object.kind, node)
