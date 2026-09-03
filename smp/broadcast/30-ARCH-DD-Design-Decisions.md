@@ -3,8 +3,8 @@ Created:  2026-06-18 10:18
 Modified: 2026-09-03 18:30
 ---
 
-DECS: Decision Record (DR)
-==========================
+ARCH: Design Decisions (DD)
+===========================
 
 ##  DECISION: Use MQTT over WebSockets as the live transport {{mqtt-transport}}
 

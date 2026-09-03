@@ -15,47 +15,46 @@
 #   Modeling Coverage
 #   -----------------
 #
-#   | "Standard" SpecBook Object        | PRD | StRS | SyRS | SRS | UIS | UISG | TCS | AD  |
-#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
-#   | META: Title                       |     |      |      |     |     |      |     |     |
-#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
-#   | REQS: Solution Vision             |  X  |  X   |      |     |     |      |     |     |
-#   | REQS: Solution Premises           |  X  |  X   |  X   |  X  |     |      |     |     |
-#   | REQS: Domain Glossary             |  X  |  X   |  X   |  X  |     |      |     |     |
-#   | REQS: User Personas               |  X  |  X   |  X   |  X  |  X  |      |     |     |
-#   | REQS: User Journey                |  X  |  X   |      |     |  X  |      |     |     |
-#   | REQS: Functional Requirements     |  X  |  X   |  X   |  X  |     |      |     |     |
-#   | REQS: Non-Functional Requirements |  X  |  X   |  X   |  X  |  X  |      |     |     |
-#   | REQS: Domain Rules                |     |  X   |  X   |  X  |     |      |     |     |
-#   | REQS: Domain Workflows            |     |  X   |  X   |  X  |     |      |     |     |
-#   | REQS: Use Cases                   |     |      |  X   |  X  |  X  |      |     |     |
-#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
-#   | DATA: Data Model                  |     |      |  X   |  X  |     |      |     |     |
-#   | DATA: State Model                 |     |      |  X   |  X  |     |      |     |     |
-#   | DATA: Authorization Model         |     |      |  X   |  X  |     |      |     |     |
-#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
-#   | APIS: Interface Model             |     |      |  X   |  X  |     |      |     |     |
-#   | APIS: Interface Datatypes         |     |      |      |  X  |     |      |     |     |
-#   | APIS: Interface Endpoints         |     |      |      |  X  |     |      |     |     |
-#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
-#   | UXUI: Interaction Concept         |     |      |      |     |  X  |  X   |     |     |
-#   | UXUI: Language Conventions        |     |      |      |     |  X  |  X   |     |     |
-#   | UXUI: Dialog Patterns             |     |      |      |     |  X  |  X   |     |     |
-#   | UXUI: Dialog Storyboard           |     |      |      |     |  X  |      |     |     |
-#   | UXUI: Visual Design               |     |      |      |     |  X  |  X   |     |     |
-#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
-#   | ARCH: Context View                |     |      |      |     |     |      |     |  X  |
-#   | ARCH: Functionality View          |     |      |      |     |     |      |     |  X  |
-#   | ARCH: Technology Stack            |     |      |      |     |     |      |     |  X  |
-#   | ARCH: Development Aspects         |     |      |      |     |     |      |     |  X  |
-#   | ARCH: Concurrency View            |     |      |      |     |     |      |     |  X  |
-#   | ARCH: Deployment View             |     |      |      |     |     |      |     |  X  |
-#   | ARCH: Operations View             |     |      |      |     |     |      |     |  X  |
-#   | ARCH: Quality Perspectives        |     |      |      |     |     |      |     |  X  |
-#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
-#   | DECS: Decision Record             |     |      |      |     |     |      |     |  X  |
-#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
-#   | TEST: Test Cases                  |     |      |      |     |     |      |  X  |     |
+#   | "Standard" SpecBook Object             | PRD | StRS | SyRS | SRS | UIS | UISG | TCS | AD  |
+#   | -------------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | META: Title (TI)                       |     |      |      |     |     |      |     |     |
+#   | -------------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | REQS: Solution Vision (SV)             |  X  |  X   |      |     |     |      |     |     |
+#   | REQS: Solution Premises (SP)           |  X  |  X   |  X   |  X  |     |      |     |     |
+#   | REQS: Domain Glossary (GL)             |  X  |  X   |  X   |  X  |     |      |     |     |
+#   | REQS: User Personas (UP)               |  X  |  X   |  X   |  X  |  X  |      |     |     |
+#   | REQS: User Journey (UJ)                |  X  |  X   |      |     |  X  |      |     |     |
+#   | REQS: Functional Requirements (FR)     |  X  |  X   |  X   |  X  |     |      |     |     |
+#   | REQS: Non-Functional Requirements (NR) |  X  |  X   |  X   |  X  |  X  |      |     |     |
+#   | REQS: Domain Rules (DR)                |     |  X   |  X   |  X  |     |      |     |     |
+#   | REQS: Domain Workflows (DW)            |     |  X   |  X   |  X  |     |      |     |     |
+#   | REQS: Use Cases (UC)                   |     |      |  X   |  X  |  X  |      |     |     |
+#   | -------------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | DATA: Data Model (DM)                  |     |      |  X   |  X  |     |      |     |     |
+#   | DATA: State Model (SM)                 |     |      |  X   |  X  |     |      |     |     |
+#   | DATA: Authorization Model (AM)         |     |      |  X   |  X  |     |      |     |     |
+#   | -------------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | APIS: Interface Model (IM)             |     |      |  X   |  X  |     |      |     |     |
+#   | APIS: Interface Datatypes (ID)         |     |      |      |  X  |     |      |     |     |
+#   | APIS: Interface Endpoints (IE)         |     |      |      |  X  |     |      |     |     |
+#   | -------------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | UXUI: Interaction Concept (IC)         |     |      |      |     |  X  |  X   |     |     |
+#   | UXUI: Language Conventions (LC)        |     |      |      |     |  X  |  X   |     |     |
+#   | UXUI: Dialog Patterns (DP)             |     |      |      |     |  X  |  X   |     |     |
+#   | UXUI: Dialog Storyboard (DS)           |     |      |      |     |  X  |      |     |     |
+#   | UXUI: Visual Design (VD)               |     |      |      |     |  X  |  X   |     |     |
+#   | -------------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | ARCH: Context View (CV)                |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Functionality View (FV)          |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Technology Stack (TS)            |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Development Aspects (DA)         |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Concurrency View (CO)            |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Deployment View (DV)             |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Operations View (OV)             |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Quality Perspectives (QP)        |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Design Decisions (DD)            |     |      |      |     |     |      |     |  X  |
+#   | -------------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | TEST: Test Cases (TC)                  |     |      |      |     |     |      |  X  |     |
 #
 #   Legend:
 #   -   PRD:  Product Requirements Document                      (Cagan 2005)
@@ -67,8 +66,8 @@
 #   -   TCS:  Test Case Specification                            (ISO/IEC/IEEE 29119-3:2021)
 #   -   AD:   Architecture Description                           (ISO/IEC/IEEE 42010)
 #
-#   Design Decisions
-#   ----------------
+#   Modeling Decisions
+#   ------------------
 #
 #   -   All object references are strictly back-references, i.e., later
 #       objects reference earlier ones. Only the "referenced" coverage
@@ -102,7 +101,7 @@
     optional: true
     diagram:
         type: graph
-        nodes: "[[REQS:*]], [[DATA:*]], [[APIS:*]], [[UXUI:*]], [[ARCH:*]], [[DECS:*]], [[TEST:*]]"
+        nodes: "[[REQS:*]], [[DATA:*]], [[APIS:*]], [[UXUI:*]], [[ARCH:*]], [[TEST:*]]"
         deep: true
         qualified: true
     props:

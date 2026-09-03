@@ -64,7 +64,7 @@
                 (e.g. a restore drill), a Deployment View node or network when its topology is
                 inspected (e.g. a port scan proving an `Isolated` segment), a component or
                 concurrency unit when its collaboration or contention is exercised, an aspect of
-                the Development Aspects or a Decision Record decision when its rule is checked by
+                the Development Aspects or a Design Decisions decision when its rule is checked by
                 an architectural fitness function (e.g. no dependency edge against the layering).
             diagram:
                 type: hub
@@ -75,7 +75,7 @@
                     [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
                     [[UXUI:DS.STORYBOARD:*.FRAME:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
                     [[ARCH:DA.ASPECT:*]], [[ARCH:DV.NODE:*]], [[ARCH:DV.NETWORK:*]],
-                    [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[DECS:DR.DECISION:*]]"
+                    [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[ARCH:DD.DECISION:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -91,7 +91,7 @@
                         the INTERFACE-ENDPOINTS objects, the DIALOG-STORYBOARD frame objects, the
                         FUNCTIONALITY-VIEW, CONCURRENCY-VIEW, DEVELOPMENT-ASPECTS, DEPLOYMENT-VIEW
                         (node and network), OPERATIONS-VIEW, and QUALITY-PERSPECTIVES objects,
-                        and/or the DECISION-RECORD objects the test case verifies, so that a
+                        and/or the DESIGN-DECISIONS objects the test case verifies, so that a
                         scenario (in particular an `Exceptional` one, judged by its `OUTCOME`) is
                         covered by an acceptance test beside the requirements it exercises, a rule
                         (judged by the condition it states) is proven to hold, not just to be
@@ -116,7 +116,7 @@
                         [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
                         [[UXUI:DS.STORYBOARD:*.FRAME:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
                         [[ARCH:DA.ASPECT:*]], [[ARCH:DV.NODE:*]], [[ARCH:DV.NETWORK:*]],
-                        [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[DECS:DR.DECISION:*]])
+                        [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[ARCH:DD.DECISION:*]])
                 -   name: WORKFLOWS
                     desc: >
                         Comma-separated references to the DOMAIN-WORKFLOWS objects the test case

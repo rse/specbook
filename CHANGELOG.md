@@ -5,6 +5,10 @@ ChangeLog
 1.2.0 (2026-09-03)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Design Decisions
+    The standard "Decision Record" (part "DECS", id "DR") becomes the "Design Decisions" (part
+    "ARCH", id "DD"), as its id collided with the "Domain Rules" and it is an architecture artifact.
+
 -   IMPROVEMENT [code, othr]: Deployment View Identifier
     The standard "Deployment View" gets the id "DV" (freed by "Development Aspects") instead of
     "DP", as the latter collided with the id of the "Dialog Patterns" and made references ambiguous.

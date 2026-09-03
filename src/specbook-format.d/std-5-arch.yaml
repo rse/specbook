@@ -276,14 +276,14 @@
 
                         A component states one product in one role on one tier: the product used
                         by several tiers alike belongs to the `Common` tier once, the lock-in
-                        carrying trade-off behind the choice is a Decision Record referencing the
-                        component through `DECIDES`, and the functional components depending on
-                        the product reference it through `USED-BY`.
+                        carrying trade-off behind the choice is a Design Decisions decision
+                        referencing the component through `DECIDES`, and the functional components
+                        depending on the product reference it through `USED-BY`.
                     diagram:
                         type: hub
                         center: self
                         nodes: "[[ARCH:TS.TIER:*.COMPONENT:*]], [[ARCH:FV.COMPONENT:*]],
-                            [[DECS:DR.DECISION:*]]"
+                            [[ARCH:DD.DECISION:*]]"
                         labeled: true
                         qualified: true
                         properties:
@@ -606,7 +606,7 @@
                 states the product choice), does not restate the runtime structure (a Functionality
                 View `Module` or `Subsystem` groups the logic), does not cover production
                 procedures (an Operations View concern does), and the trade-off that produced a
-                rule is a Decision Record referencing the aspect through `AFFECTS`.
+                rule is a Design Decisions decision referencing the aspect through `AFFECTS`.
             props:
                 -   name: CATEGORY
                     desc: >
@@ -1101,26 +1101,27 @@
                 `Graceful Degradation`) and described in a concise (1-3 sentence) paragraph by how
                 the tactic satisfies the quality attribute across the affected elements, plus a
                 1-sentence rationale ("why") for the tactic satisfying the addressed requirements
-                (not for choosing it over alternatives, which is the rationale of a Decision
-                Record).
+                (not for choosing it over alternatives, which is the rationale of a Design
+                Decisions decision).
 
                 A tactic states a design mechanism built into the solution: the threshold the
                 mechanism has to meet is the `METRIC` of the addressed Non-Functional Requirement
                 and is not restated, the production procedure performed against the mechanism
                 (e.g. scaling out, restoring) is an Operations View concern referenced through
                 `OPERATED-BY`, the trade-off that chose the mechanism over alternatives is a
-                Decision Record referencing the tactic through `DECIDES`, the product realizing the
-                mechanism is a Technology Stack component referenced through `TOOLS`, the
-                developer-facing rule about the source structure is an aspect of the Development
-                Aspects, and a mechanism driven solely by a `Constraint` requirement (e.g. a hosting
-                or budget mandate) protects no quality and is a Decision Record alone -- only the
-                mechanism, the quality it achieves, and the elements it shapes belong here.
+                Design Decisions decision referencing the tactic through `DECIDES`, the product
+                realizing the mechanism is a Technology Stack component referenced through
+                `TOOLS`, the developer-facing rule about the source structure is an aspect of the
+                Development Aspects, and a mechanism driven solely by a `Constraint` requirement
+                (e.g. a hosting or budget mandate) protects no quality and is a Design Decisions
+                decision alone -- only the mechanism, the quality it achieves, and the elements it
+                shapes belong here.
             diagram:
                 type: hub
                 center: self
                 nodes: "[[ARCH:QP.TACTIC:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]],
                     [[ARCH:CO.UNIT:*]], [[ARCH:DA.ASPECT:*]], [[ARCH:DV.NODE:*]], [[DATA:DM.ENTITY:*]],
-                    [[ARCH:OV.CONCERN:*]], [[DECS:DR.DECISION:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                    [[ARCH:OV.CONCERN:*]], [[ARCH:DD.DECISION:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1188,4 +1189,243 @@
                         tactic (e.g. the load balancer, the message broker, the CDN); omitted when
                         the tactic uses no modeled product.
                     value: list([[ARCH:TS.TIER:*.COMPONENT:*]])
+                    optional: true
+-   kind: ARCH
+    name: Design Decisions
+    id: DD
+    file: 30-ARCH-DD-Design-Decisions.md
+    desc: >
+        The major decisions related to the solution design, each recording the forces at play, the
+        chosen response, and the reasoning that justifies it. The artifact is the last one of the
+        architecture, as a decision references the requirements forcing it, the elements it
+        shapes, and the tactics and products it chose, all of which precede it.
+    optional: true
+    refs: >
+        -   Nygard: Documenting Architecture Decisions (2011),
+            https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions
+        -   Tyree/Akerman: Architecture Decisions: Demystifying Architecture (2005),
+            https://ieeexplore.ieee.org/document/1407822
+        -   ADR: Architectural Decision Records (2017),
+            https://adr.github.io/
+    diagram:
+        type: grid
+        nodes: "[[ARCH:DD.DECISION:*]]"
+        properties:
+            -   STATUS
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 5
+    childs:
+        -   kind: DECISION
+            desc: |
+                A single architecture decision, named with a short summary of the decision, not
+                longer than 80 characters, and recorded entirely in its properties, with no
+                description paragraph of its own: the forces driving it (`DRIVEN-BY`), the options
+                it was chosen over (`ALTERNATIVES`), its context (`WHEN`), the decision itself
+                (`WHAT`), its rationale (`WHY`), and its optional consequences (`CONSEQUENCES`) and
+                background (`NOTES`).
+
+                A decision *MUST* qualify on all of the following three tenets:
+                -   **Hard to Reverse**: the cost of changing it later is meaningful ("Oh my god,
+                    this would result in a dramatic refactoring!"). So, if a decision is easy to
+                    reverse, just skip it.
+                -   **Surprising without Context**: a future architect will look at the code and
+                    wonder ("Why on earth did they do it this way?"). So, if a decision is not
+                    surprising, nobody will wonder why.
+                -   **Result of a Real Trade-Off**: there were genuine alternatives and one was
+                    picked for specific reasons ("We deliberately chose this, because..."). So, if
+                    there was no real alternative, there's nothing to record beyond "we did the
+                    obvious thing."
+
+                The following typically qualify as a decision:
+                -   **Architectural shape.** "We're using a monorepo." "The write model is
+                    event-sourced, the read model is projected into PostgreSQL."
+                -   **Integration patterns between contexts.** "Ordering and Billing communicate
+                    via domain events, not synchronous HTTP."
+                -   **Technology choices that carry lock-in.** Database, message bus, auth
+                    provider, deployment target. Not every library - just the ones that would take
+                    a quarter to swap out.
+                -   **Boundary and scope decisions.** "Customer data is owned by the Customer
+                    context; other contexts reference it by ID only." The explicit no's are as
+                    valuable as the yes's.
+                -   **Deliberate deviations from the obvious path.** "We're using manual SQL
+                    instead of an ORM because X." Anything where a reasonable reader would assume
+                    the opposite. These stop the next engineer from "fixing" something that was
+                    deliberate.
+                -   **Rejected alternatives when the rejection is non-obvious.** If you considered
+                    GraphQL and picked REST for subtle reasons, record it - otherwise someone will
+                    suggest GraphQL again in six months.
+
+                A constraint itself is not a decision: a compliance obligation, a hosting mandate,
+                or a partner-imposed threshold is a Non-Functional Requirement (of category
+                `Compliance`, `Constraint`, or the affected quality), and the decision is the
+                response to it, referencing it through `DRIVEN-BY`.
+
+                `WHEN`, `WHAT`, and `WHY` are each just a single paragraph of concise and brief
+                prose text, usually comprised of just 1 to 3 sentences. The value of a decision is
+                in recording *that* a decision was made and *why* - not in filling out sections of
+                a document.
+
+                For the relationship between context, decision, and rationale, good checks are:
+                the "litmus test" is that context = forces, decision = response to those forces,
+                rationale = why the decision answers the forces in the context. The decision
+                should feel like the natural, almost inevitable answer to the context - if a reader
+                is surprised by the decision, either the context is missing a force, or the
+                decision is under-justified. The rationale should make the decision feel earned,
+                not asserted - if you delete the rationale and the decision suddenly looks
+                arbitrary, the rationale was doing its job.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ARCH:DD.DECISION:*]], [[REQS:NR.REQUIREMENT:*]], [[REQS:SP.PREMISE:*]],
+                    [[DATA:DM.ENTITY:*]], [[DATA:SM.LIFECYCLE:*]], [[DATA:AM.ROLE:*]],
+                    [[APIS:IM.INTERFACE:*]], [[APIS:ID.TYPE:*]], [[APIS:IE.ENDPOINT:*]],
+                    [[UXUI:IC.PRINCIPLE:*]], [[UXUI:LC.CONVENTION:*]], [[UXUI:DP.PATTERN:*]],
+                    [[UXUI:DS.STORYBOARD:*]], [[UXUI:VD.ELEMENT:*]],
+                    [[ARCH:CV.ENTITY:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
+                    [[ARCH:DA.ASPECT:*]], [[ARCH:DV.TIER:*]], [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]],
+                    [[ARCH:DV.NETWORK:*]], [[ARCH:QP.TACTIC:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   STATUS
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: STATUS
+                    desc: |
+                        The status of the decision, one of:
+                        -   `Proposed`:   Under consideration, not yet binding.
+                        -   `Accepted`:   Binding for the solution.
+                        -   `Rejected`:   Considered and deliberately turned down, recorded so
+                                          that it is not proposed again unknowingly.
+                        -   `Deprecated`: No longer binding, without a replacing decision.
+                        -   `Superseded`: Replaced by the decision referenced in `SUPERSEDED-BY`.
+                    value: enum(Proposed,Accepted,Rejected,Deprecated,Superseded)
+                -   name: SUPERSEDED-BY
+                    desc: >
+                        Reference to the DESIGN-DECISIONS object that supersedes this decision,
+                        present if and only if `STATUS` is `Superseded` (which the schema cannot
+                        enforce itself).
+                    value: "[[ARCH:DD.DECISION:*]]"
+                    optional: true
+                    acyclic: true
+                -   name: DRIVEN-BY
+                    desc: >
+                        Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS or
+                        SOLUTION-PREMISES objects forcing the decision (e.g. the compliance
+                        obligation, the budget constraint, the dependency taken as given), anchoring
+                        the forces `WHEN` describes in prose; omitted when no modeled requirement or
+                        premise drives the decision.
+                    value: list([[REQS:NR.*]], [[REQS:SP.PREMISE:*]])
+                    optional: true
+                -   name: AFFECTS
+                    desc: >
+                        Comma-separated references to the objects of the DATA, APIS, UXUI, or ARCH
+                        artifacts the decision shapes, i.e. the entities, lifecycles, and roles, the
+                        interfaces, datatypes, and endpoints, the interaction principles, language
+                        conventions, dialog patterns, storyboards, and visual elements, and the
+                        elements of the architecture views (e.g. the entity owned by a single
+                        context, the interface styled REST instead of GraphQL, the dialog pattern
+                        chosen over a native one, the components split, the external system
+                        integrated); omitted for a decision shaping no modeled element.
+                    value: list([[DATA:DM.ENTITY:*]], [[DATA:SM.LIFECYCLE:*]], [[DATA:AM.ROLE:*]],
+                        [[APIS:IM.INTERFACE:*]], [[APIS:ID.TYPE:*]], [[APIS:IE.ENDPOINT:*]],
+                        [[UXUI:IC.PRINCIPLE:*]], [[UXUI:LC.CONVENTION:*]], [[UXUI:DP.PATTERN:*]],
+                        [[UXUI:DS.STORYBOARD:*]], [[UXUI:VD.ELEMENT:*]],
+                        [[ARCH:CV.ENTITY:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
+                        [[ARCH:DA.ASPECT:*]], [[ARCH:DV.TIER:*]], [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]],
+                        [[ARCH:DV.NETWORK:*]])
+                    optional: true
+                -   name: DECIDES
+                    desc: >
+                        Comma-separated references to the QUALITY-PERSPECTIVES tactics or
+                        TECHNOLOGY-STACK components the decision chose over their alternatives,
+                        i.e. the mechanism or product which exists because of this decision; omitted
+                        when the decision chose no modeled tactic or product.
+                    value: list([[ARCH:QP.TACTIC:*]], [[ARCH:TS.TIER:*.COMPONENT:*]])
+                    optional: true
+                -   name: ALTERNATIVES
+                    desc: >
+                        Comma-separated names of the options considered but not chosen (e.g.
+                        `REST polling, bespoke WebSocket protocol`): the rationale `WHY` states *why*
+                        the decision won, this property states *against what*, and as a decision
+                        qualifies only as the result of a real trade-off, there is always at least
+                        one.
+                -   name: WHEN
+                    desc: |
+                        The **Context** of the decision: it captures the situation that forces the
+                        decision - the "why are we even talking about this" part. It describes the
+                        situation as it is, before the decision is made. The following usually
+                        goes into it:
+
+                        -   the problem or need (what's broken, missing, or about to change that
+                            requires a decision);
+                        -   the forces at play (technical constraints, business requirements,
+                            deadlines, team skills, existing systems, regulatory/compliance
+                            pressures - often competing, and that tension is the whole point);
+                        -   relevant facts (current architecture, prior decisions, assumptions,
+                            what's known and what's uncertain); and
+                        -   scope/boundaries (what this decision is and isn't about).
+
+                        It is written neutrally and factually. It should not contain the decision
+                        itself, nor advocate for an option - a reader should be able to read it,
+                        pause, and arrive at the decision themselves because the forces make it
+                        (nearly) inevitable.
+                -   name: WHAT
+                    desc: |
+                        The **Decision** itself: it states what is actually going to be done - the
+                        chosen response to the forces laid out in the context. It is written in
+                        active, assertive voice, in the present or imperative tense, as a committed
+                        position rather than a discussion. The following usually goes into it:
+
+                        -   the choice itself (clearly and unambiguously); and
+                        -   the essence of how (enough of the approach to make the choice concrete
+                            - the mechanism, pattern, or technology - but not a full implementation
+                            specification).
+
+                        It is a declaration, not a deliberation, usually using the wording "We
+                        use..." or "We do...", active, definite, owning the choice. Avoid hedging
+                        ("we might", "we could consider") - the deliberation already happened, the
+                        decision records the verdict.
+                -   name: WHY
+                    desc: |
+                        The **Rationale** of the decision: it is the reasoning that justifies the
+                        decision - the bridge that explains why this choice, given those forces. It
+                        answers "Of all the things we could have done, why was this the right
+                        one?" Where the context states the forces and the decision states the
+                        choice, the rationale is the logical connective tissue between them - it
+                        shows that the decision actually follows from the context. The following
+                        usually goes into it:
+
+                        -   the deciding factors (which forces from the context carried the most
+                            weight, and how the chosen option satisfies them best);
+                        -   the trade-off reasoning (what was optimized for and what was knowingly
+                            sacrificed - naming the trade-off is the heart of rationale);
+                        -   why the alternatives lost (the comparative argument: "option B failed
+                            on X, option C cost too much on Y"); and
+                        -   assumptions and evidence (benchmarks, prior experience, constraints, or
+                            principles the reasoning rests on).
+                -   name: CONSEQUENCES
+                    desc: |
+                        The **Consequences** of the decision: what follows from it once made, in
+                        contrast to the trade-off reasoning of `WHY`, which precedes it. It is
+                        *OPTIONAL* and omitted when nothing non-obvious follows. The following
+                        usually goes into it:
+
+                        -   what becomes easier and what becomes harder (the negative consequences
+                            are the valuable ones, as they are the price knowingly paid);
+                        -   the obligations the decision imposes on the elements it affects (e.g.
+                            a convention to follow, a migration to perform); and
+                        -   the follow-up decisions it makes necessary.
+                    optional: true
+                -   name: NOTES
+                    desc: |
+                        The **Background** of the decision: it is *OPTIONAL* and can be omitted
+                        when it does not add genuine value - most decisions won't need it. The
+                        following usually goes into it:
+
+                        -   information about the decision *process* (e.g. a weighted decision
+                            matrix of considered alternatives); and
+                        -   links to strongly related decisions.
                     optional: true
