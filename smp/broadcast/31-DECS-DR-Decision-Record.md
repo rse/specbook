@@ -1,9 +1,9 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-03 18:05
+Modified: 2026-09-03 18:30
 ---
 
-ARCH: Decision Record (DR)
+DECS: Decision Record (DR)
 ==========================
 
 ##  DECISION: Use MQTT over WebSockets as the live transport {{mqtt-transport}}
@@ -51,7 +51,7 @@ ARCH: Decision Record (DR)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[NR.privacy]], [[NR.gdpr]], [[SP.message-personal-data]]
--   AFFECTS:      [[FV.auth]], [[FV.service]], [[ENTITY:User]]
+-   AFFECTS:      [[FV.auth]], [[FV.service]], [[ENTITY:User]], [[PRINCIPLE:privacy-identity]]
 -   DECIDES:      [[QP.privacy]]
 -   ALTERNATIVES: persistent user accounts
 -   WHEN:
@@ -69,7 +69,7 @@ ARCH: Decision Record (DR)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[NR.token-strength]], [[SP.email-at-hand]], [[SP.email-delivery]]
--   AFFECTS:      [[FV.auth]]
+-   AFFECTS:      [[FV.auth]], [[PATTERN:two-factor-login]], [[PRINCIPLE:frictionless-join]]
 -   DECIDES:      [[QP.access-security]]
 -   ALTERNATIVES: password accounts, external identity providers
 -   WHEN:

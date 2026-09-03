@@ -54,7 +54,8 @@
 #   | ARCH: Operations View             |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Quality Perspectives        |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Technology Stack            |     |      |      |     |     |      |     |  X  |
-#   | ARCH: Decision Record             |     |      |      |     |     |      |     |  X  |
+#   | --------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
+#   | DECS: Decision Record             |     |      |      |     |     |      |     |  X  |
 #
 #   Legend:
 #   -   PRD:  Product Requirements Document                      (Cagan 2005)
@@ -99,7 +100,7 @@
     optional: true
     diagram:
         type: graph
-        nodes: "[[REQS:*]], [[DATA:*]], [[APIS:*]], [[UXUI:*]], [[TEST:*]], [[ARCH:*]]"
+        nodes: "[[REQS:*]], [[DATA:*]], [[APIS:*]], [[UXUI:*]], [[TEST:*]], [[ARCH:*]], [[DECS:*]]"
         deep: true
         qualified: true
     props:

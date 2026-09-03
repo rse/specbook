@@ -6,8 +6,8 @@ ChangeLog
 ------------------
 
 -   IMPROVEMENT [code, othr]: Decision Record Delineation
-    The standard "Decision Record" moves last, gains "DRIVEN-BY", "DECIDES", "ALTERNATIVES", and
-    "CONSEQUENCES", widens "AFFECTS", and capitalizes "STATUS" (adding "Rejected").
+    The standard "Decision Record" becomes the last kind "DECS", gains "DRIVEN-BY", "DECIDES",
+    "ALTERNATIVES", and "CONSEQUENCES", widens "AFFECTS", and capitalizes "STATUS" with "Rejected".
 
 -   IMPROVEMENT [code, othr]: Technology Stack Delineation
     The standard "Technology Stack" opens the tier names (adding "Common"), renames "WHEN" to the
