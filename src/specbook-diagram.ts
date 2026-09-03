@@ -4,6 +4,9 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
+import { Gradia }
+    from "@rse/gradia"
+
 import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
 import type { Schema, SchemaDiagram }
@@ -15,6 +18,8 @@ import type { ParseContext }
     from "./specbook-parse-common.js"
 import { collectSchemas }
     from "./specbook-parse-semantic.js"
+import { literal, type Verbose }
+    from "./specbook-verbose.js"
 
 /*  the single Wiki-style reference match (the non-global sibling of
     the imported, global "referenceRegex")  */
@@ -493,6 +498,48 @@ export const specDiagrams = (specification: Spec,
         if (schema.diagram !== undefined)
             results.set(object, deriveDiagram(object, schema.diagram, index, anchors, parents))
     return results
+}
+
+/*  the in-memory cache of the rendered diagram SVGs, keyed by Gradia
+    spec text plus rendering options, as a long-running process (the
+    live preview, the export watch, the MCP service) and the multiple
+    passes and formats of a single export render the very same diagrams
+    over and over again  */
+let svgCache = new Map<string, string>()
+
+/*  render the Gradia specs of all diagram-configured objects of a
+    specification into embeddable SVGs (a runtime rendering failure omits
+    the diagram, as the statically detectable invalid situations are
+    already reported as lint diagnostics), served from the cache where
+    possible, which is afterwards swept to the diagrams of this very
+    rendering, so it never grows beyond a single document  */
+export const renderDiagrams = async (specification: Spec, config: Schema,
+    verbose?: Verbose): Promise<Map<SpecObject, DiagramResult & { svg: string }>> => {
+    const cache    = new Map<string, string>()
+    const rendered = new Map<SpecObject, DiagramResult & { svg: string }>()
+    let   cached   = 0
+    for (const [ object, result ] of specDiagrams(specification, config)) {
+        if (result.spec === undefined)
+            continue
+        const key = result.spec + JSON.stringify(result.config ?? {})
+        let svg = svgCache.get(key) ?? cache.get(key)
+        if (svg !== undefined)
+            cached++
+        else {
+            try {
+                svg = await Gradia.render(result.spec,
+                    { format: "svg:embedded", config: result.config })
+            }
+            catch {
+                continue
+            }
+        }
+        cache.set(key, svg)
+        rendered.set(object, { ...result, svg })
+    }
+    svgCache = cache
+    verbose?.(`rendering ${literal(rendered.size)} diagram(s) (${literal(cached)} cached)`)
+    return rendered
 }
 
 /*  validate all configured diagrams of a specification, reporting

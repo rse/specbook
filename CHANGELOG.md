@@ -5,6 +5,14 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code]: Export Duration
+    The verbose output of "export" (and of "export --watch", "preview", and MCP) reports the
+    duration of every format rendering, so the export performance can be observed.
+
+-   IMPROVEMENT [code]: Diagram Rendering Cache
+    The rendered diagram SVGs are cached in memory per Gradia spec, so the repeated exports of
+    "preview", "export --watch", and MCP, and the passes and formats of one export, reuse them.
+
 -   IMPROVEMENT [code, othr]: Test Cases Verify Architecture
     The standard "Test Cases" move last, behind "ARCH" and "DECS", and "VERIFIES" widens onto the
     components, units, aspects, nodes, networks, concerns, tactics, and decisions.

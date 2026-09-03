@@ -108,18 +108,15 @@ export const watchSpecification = async (
     })
 }
 
-/*  export a specification into the requested format, where "realtime"
+/*  render a specification into the requested format, where "realtime"
     injects the client-side script of the live preview into the HTML  */
-export const exportSpecification = async (
+const renderFormat = async (
     specification:   Spec,
     format:          ExportFormat,
     verbose:         Verbose,
     config?:         Schema,
     realtime         = false
 ): Promise<Buffer> => {
-    if (!formats.includes(format))
-        throw new Error(`unknown export format "${format}"`)
-    verbose(`exporting specification as "${literal(format)}"`)
     if (format === "json" || format === "json5" || format === "yaml" || format === "toon")
         return renderAst(specification, format satisfies AstFormat, config)
     else if (format === "md")
@@ -143,7 +140,7 @@ export const exportSpecification = async (
     const css    = themeStylesheet(colors) + await subsetStylesheet(charset) + paperStylesheet(paper)
     if (format === "html") {
         /*  compress the rendered HTML (whitespace, comments, and inline CSS/JS)  */
-        const html     = await renderHtml(specification, config, undefined, css, realtime)
+        const html     = await renderHtml(specification, config, undefined, css, realtime, verbose)
         const minified = await minify(Buffer.from(html, "utf8"), {
             collapseWhitespaces: "smart",
             removeComments:      true,
@@ -155,8 +152,27 @@ export const exportSpecification = async (
     else
         /*  the PDF export (like print in general) always uses the light
             theme, so its decoration colors are the light mapping, too  */
-        return htmlToPdf((tocPages) => renderHtml(specification, config, tocPages, css),
+        return htmlToPdf((tocPages) => renderHtml(specification, config, tocPages, css, false, verbose),
             { ...documentTitle(specification), logo: documentLogo(specification) },
             htmlOutline(specification, config), verbose, css,
             themeMapping(colors, "light"), paper)
+}
+
+/*  export a specification into the requested format (see "renderFormat"),
+    reporting the duration of the rendering in the verbose output  */
+export const exportSpecification = async (
+    specification:   Spec,
+    format:          ExportFormat,
+    verbose:         Verbose,
+    config?:         Schema,
+    realtime         = false
+): Promise<Buffer> => {
+    if (!formats.includes(format))
+        throw new Error(`unknown export format "${format}"`)
+    verbose(`exporting specification as "${literal(format)}"`)
+    const started = performance.now()
+    const buffer  = await renderFormat(specification, format, verbose, config, realtime)
+    const seconds = ((performance.now() - started) / 1000).toFixed(3)
+    verbose(`exported specification as "${literal(format)}" in ${literal(seconds)}s`)
+    return buffer
 }

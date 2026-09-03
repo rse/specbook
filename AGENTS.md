@@ -125,7 +125,10 @@ The export option `-w`/`--watch` performs the regular export and then
 observes the referenced artifact files and their embedded assets,
 re-exporting once a change burst stayed silent for one second, where a
 failed re-export is reported but leaves the observe loop intact and where
-`-` (stdout) is rejected as an output.
+`-` (stdout) is rejected as an output. The rendered diagram SVGs are
+cached in memory per Gradia spec and swept to the diagrams of the
+latest rendering, so the repeated renderings of a process (watch,
+preview, MCP, and the passes and formats of a single export) reuse them.
 The `preview` command serves the HTML export as a live preview through
 Fastify on `http://<ip-addr>:<tcp-port>/` (`-a`/`--addr`, default
 `127.0.0.1`, and `-p`/`--port`, default `12345`): it observes the

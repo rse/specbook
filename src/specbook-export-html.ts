@@ -26,8 +26,10 @@ import { escapeHtml, stylesheet, searchScript, fallbackLogo,
     from "./specbook-export-common.js"
 import { collectSchemas }
     from "./specbook-parse-semantic.js"
-import { specDiagrams }
+import { renderDiagrams }
     from "./specbook-diagram.js"
+import type { Verbose }
+    from "./specbook-verbose.js"
 
 /*  ==== Templates ====  */
 
@@ -700,11 +702,6 @@ const scoped = <T>(object: SpecObject, render: () => T): T => {
     }
 }
 
-/*  the cache of the pre-rendered diagram SVGs, keyed by specification,
-    as the PDF export renders the very same document multiple times  */
-const diagramCache = new WeakMap<Spec,
-    { config: Schema, diagrams: Map<SpecObject, string> }>()
-
 /*  determine the fully-qualified anchor path of an object  */
 const anchorOf = (object: SpecObject): string =>
     anchors?.get(object) ?? object.id
@@ -1291,47 +1288,32 @@ const titlePageObject = (specification: Spec): SpecObject | undefined => {
     optional per-anchor page numbers attached to the ToC entries, and
     optionally the client-side script of the live preview injected  */
 export const renderHtml = async (specification: Spec, config?: Schema,
-    tocPages?: Map<string, number>, css?: string, realtime = false): Promise<string> => {
-    /*  pre-render the configured diagrams as embeddable SVGs (a runtime
-        rendering failure omits the diagram, as the statically detectable
-        invalid situations are already reported as lint diagnostics),
-        displayed at a reduced coordinate scale, as the Gradia geometry
-        (node boxes, font sizes) is dimensioned for a stand-alone
-        canvas and would dwarf the document text at 1:1  */
+    tocPages?: Map<string, number>, css?: string, realtime = false,
+    verbose?: Verbose): Promise<string> => {
+    /*  pre-render the configured diagrams as embeddable SVGs, displayed
+        at a reduced coordinate scale, as the Gradia geometry (node
+        boxes, font sizes) is dimensioned for a stand-alone canvas and
+        would dwarf the document text at 1:1  */
     const scale  = 0.75
-    const cached = diagramCache.get(specification)
     let rendered: Map<SpecObject, string> | null = null
-    if (cached !== undefined && cached.config === config)
-        rendered = cached.diagrams
-    else if (config !== undefined) {
+    if (config !== undefined) {
         rendered = new Map<SpecObject, string>()
-        for (const [ object, result ] of specDiagrams(specification, config)) {
-            if (result.spec === undefined)
-                continue
-            try {
-                const svg = await Gradia.render(result.spec,
-                    { format: "svg:embedded", config: result.config })
-
-                /*  a "hub" diagram is capped to the width share it would
-                    occupy on its full three-column canvas (padded by the
-                    minimum widths of the absent columns and their channels),
-                    so all hub diagrams share the zoom level of the
-                    three-column ones and are centered in the leftover space  */
-                const absent = result.columns !== undefined ? 3 - result.columns : 0
-                const pad    = absent * (
-                    (result.config?.["size-node-width-min"]  ?? Gradia.config["size-node-width-min"]) +
-                    (result.config?.["hub-channel-width-min"] ?? Gradia.config["hub-channel-width-min"]))
-                rendered.set(object, svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
-                    (_, head: string, w: string, h: string) =>
-                        `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"` +
-                        (result.columns !== undefined ? " class=\"hub\"" : "") +
-                        (absent > 0 ? ` style="max-width: ${(Number(w) / (Number(w) + pad) * 100).toFixed(2)}%"` : "")))
-            }
-            catch {
-                /*  intentionally omitted  */
-            }
+        for (const [ object, result ] of await renderDiagrams(specification, config, verbose)) {
+            /*  a "hub" diagram is capped to the width share it would
+                occupy on its full three-column canvas (padded by the
+                minimum widths of the absent columns and their channels),
+                so all hub diagrams share the zoom level of the
+                three-column ones and are centered in the leftover space  */
+            const absent = result.columns !== undefined ? 3 - result.columns : 0
+            const pad    = absent * (
+                (result.config?.["size-node-width-min"]  ?? Gradia.config["size-node-width-min"]) +
+                (result.config?.["hub-channel-width-min"] ?? Gradia.config["hub-channel-width-min"]))
+            rendered.set(object, result.svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
+                (_, head: string, w: string, h: string) =>
+                    `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"` +
+                    (result.columns !== undefined ? " class=\"hub\"" : "") +
+                    (absent > 0 ? ` style="max-width: ${(Number(w) / (Number(w) + pad) * 100).toFixed(2)}%"` : "")))
         }
-        diagramCache.set(specification, { config, diagrams: rendered })
     }
 
     /*  the document language selects the smart typography quote style  */
