@@ -8,7 +8,7 @@ ChangeLog
 -   IMPROVEMENT [code, othr]: Technology Stack Delineation
     The standard "Technology Stack" opens the tier names (adding "Common"), renames "WHEN" to the
     mandatory tags "PHASE", constrains a phase-aware "COVERAGE", and gains "LICENSE", "DECIDED-BY",
-    and "USED-BY".
+    "USED-BY", and a component hub diagram.
 
 -   IMPROVEMENT [code, othr]: Quality Perspectives Delineation
     The standard "Quality Perspectives" delineates its scope, renames "PERSPECTIVE" to "TACTIC" with
