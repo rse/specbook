@@ -769,7 +769,7 @@
                 and is not restated, the production procedure performed against the mechanism
                 (e.g. scaling out, restoring) is an Operations View concern referencing the tactic
                 through `OPERATES`, the trade-off that chose the mechanism over alternatives is a
-                Decision Record referenced through `DECIDED-BY`, the product realizing the
+                Decision Record referencing the tactic through `DECIDES`, the product realizing the
                 mechanism is a Technology Stack component referenced through `TOOLS`, the
                 developer-facing rule about the source structure is a Development View aspect, and
                 a mechanism driven solely by a `Constraint` requirement (e.g. a hosting or budget
@@ -823,12 +823,6 @@
                         notable cost on another quality.
                     value: tags(Performance,Scalability,Reliability,Availability,Safety,Security,Privacy,Usability,Accessibility,Maintainability,Portability,Compatibility)
                     optional: true
-                -   name: DECIDED-BY
-                    desc: >
-                        Reference to the DECISION-RECORD object which chose the tactic over its
-                        alternatives; omitted when the choice qualifies for no decision record.
-                    value: "[[ARCH:DR.DECISION:*]]"
-                    optional: true
                 -   name: AFFECTS
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW,
@@ -851,7 +845,7 @@
 -   kind: ARCH
     name: Technology Stack
     id: TS
-    file: 31-ARCH-TS-Technology-Stack.md
+    file: 30-ARCH-TS-Technology-Stack.md
     desc: >
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives
@@ -901,13 +895,14 @@
 
                         A component states one product in one role on one tier: the product used
                         by several tiers alike belongs to the `Common` tier once, the lock-in
-                        carrying trade-off behind the choice is a Decision Record referenced
-                        through `DECIDED-BY`, and the functional components depending on the
-                        product reference it through `USED-BY`.
+                        carrying trade-off behind the choice is a Decision Record referencing the
+                        component through `DECIDES`, and the functional components depending on
+                        the product reference it through `USED-BY`.
                     diagram:
                         type: hub
                         center: self
-                        nodes: "[[ARCH:TS.TIER:*.COMPONENT:*]], [[ARCH:FV.COMPONENT:*]]"
+                        nodes: "[[ARCH:TS.TIER:*.COMPONENT:*]], [[ARCH:FV.COMPONENT:*]],
+                            [[ARCH:DR.DECISION:*]]"
                         labeled: true
                         qualified: true
                         properties:
@@ -1184,13 +1179,6 @@
                                 "Storage Engine","Transaction Management","Query Language","Indexing",
                                 "Replication","Database Security")
                             optional: true
-                        -   name: DECIDED-BY
-                            desc: >
-                                Reference to the DECISION-RECORD object which chose the product over
-                                its alternatives; omitted when the choice qualifies for no decision
-                                record.
-                            value: "[[ARCH:DR.DECISION:*]]"
-                            optional: true
                         -   name: USED-BY
                             desc: >
                                 Comma-separated references to the FUNCTIONALITY-VIEW objects using
@@ -1206,10 +1194,12 @@
 -   kind: ARCH
     name: Decision Record
     id: DR
-    file: 30-ARCH-DR-Decision-Record.md
+    file: 31-ARCH-DR-Decision-Record.md
     desc: >
         The major decisions related to the architecture, each recording the forces at play, the
-        chosen response, and the reasoning that justifies it.
+        chosen response, and the reasoning that justifies it. The artifact is the last one, as a
+        decision references the requirements forcing it, the elements it shapes, and the tactics
+        and products it chose, all of which precede it.
     optional: true
     refs: >
         -   Nygard: Documenting Architecture Decisions (2011),
@@ -1230,8 +1220,11 @@
         -   kind: DECISION
             desc: |
                 A single architecture decision, named with a short summary of the decision, not
-                longer than 80 characters, and recorded as its context (`WHEN`), the decision
-                itself (`WHAT`), its rationale (`WHY`), and optional background (`NOTES`).
+                longer than 80 characters, and recorded entirely in its properties, with no
+                description paragraph of its own: the forces driving it (`DRIVEN-BY`), the options
+                it was chosen over (`ALTERNATIVES`), its context (`WHEN`), the decision itself
+                (`WHAT`), its rationale (`WHY`), and its optional consequences (`CONSEQUENCES`) and
+                background (`NOTES`).
 
                 A decision *MUST* qualify on all of the following three tenets:
                 -   **Hard to Reverse**: the cost of changing it later is meaningful ("Oh my god,
@@ -1260,12 +1253,14 @@
                     instead of an ORM because X." Anything where a reasonable reader would assume
                     the opposite. These stop the next engineer from "fixing" something that was
                     deliberate.
-                -   **Constraints not visible in the code.** "We can't use AWS because of
-                    compliance requirements." "Response times must be under 200ms because of the
-                    partner API contract."
                 -   **Rejected alternatives when the rejection is non-obvious.** If you considered
                     GraphQL and picked REST for subtle reasons, record it - otherwise someone will
                     suggest GraphQL again in six months.
+
+                A constraint itself is not a decision: a compliance obligation, a hosting mandate,
+                or a partner-imposed threshold is a Non-Functional Requirement (of category
+                `Compliance`, `Constraint`, or the affected quality), and the decision is the
+                response to it, referencing it through `DRIVEN-BY`.
 
                 `WHEN`, `WHAT`, and `WHY` are each just a single paragraph of concise and brief
                 prose text, usually comprised of just 1 to 3 sentences. The value of a decision is
@@ -1283,8 +1278,11 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DR.DECISION:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DV.ASPECT:*]],
-                    [[ARCH:DP.NODE:*]]"
+                nodes: "[[ARCH:DR.DECISION:*]], [[REQS:NR.REQUIREMENT:*]], [[REQS:SP.PREMISE:*]],
+                    [[ARCH:CV.ENTITY:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
+                    [[ARCH:DV.ASPECT:*]], [[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]],
+                    [[ARCH:DP.NETWORK:*]], [[DATA:DM.ENTITY:*]], [[DATA:AM.ROLE:*]],
+                    [[APIS:IM.INTERFACE:*]], [[ARCH:QP.TACTIC:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1293,23 +1291,60 @@
                     size-node-width-max: 440
             props:
                 -   name: STATUS
-                    desc: >
-                        The status of the decision: `proposed`, `accepted`, `deprecated`, or
-                        `superseded`.
-                    value: enum(proposed,accepted,deprecated,superseded)
-                -   name: AFFECTS
-                    desc: >
-                        Comma-separated references to the FUNCTIONALITY-VIEW, DEVELOPMENT-VIEW, or
-                        DEPLOYMENT-VIEW objects the decision affects.
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:DV.ASPECT:*]], [[ARCH:DP.TIER:*]],
-                        [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]])
-                    optional: true
+                    desc: |
+                        The status of the decision, one of:
+                        -   `Proposed`:   Under consideration, not yet binding.
+                        -   `Accepted`:   Binding for the solution.
+                        -   `Rejected`:   Considered and deliberately turned down, recorded so
+                                          that it is not proposed again unknowingly.
+                        -   `Deprecated`: No longer binding, without a replacing decision.
+                        -   `Superseded`: Replaced by the decision referenced in `SUPERSEDED-BY`.
+                    value: enum(Proposed,Accepted,Rejected,Deprecated,Superseded)
                 -   name: SUPERSEDED-BY
                     desc: >
-                        Reference to the DECISION-RECORD object that supersedes this decision.
-                        Should be present if and only if `STATUS` is `superseded`.
+                        Reference to the DECISION-RECORD object that supersedes this decision,
+                        present if and only if `STATUS` is `Superseded` (which the schema cannot
+                        enforce itself).
                     value: "[[ARCH:DR.DECISION:*]]"
                     optional: true
+                    acyclic: true
+                -   name: DRIVEN-BY
+                    desc: >
+                        Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS or
+                        SOLUTION-PREMISES objects forcing the decision (e.g. the compliance
+                        obligation, the budget constraint, the dependency taken as given), anchoring
+                        the forces `WHEN` describes in prose; omitted when no modeled requirement or
+                        premise drives the decision.
+                    value: list([[REQS:NR.*]], [[REQS:SP.PREMISE:*]])
+                    optional: true
+                -   name: AFFECTS
+                    desc: >
+                        Comma-separated references to the CONTEXT-VIEW, FUNCTIONALITY-VIEW,
+                        CONCURRENCY-VIEW, DEVELOPMENT-VIEW, DEPLOYMENT-VIEW, DATA-MODEL,
+                        AUTHORIZATION-MODEL, or INTERFACE-MODEL objects the decision shapes (e.g.
+                        the components split, the entity owned by a single context, the interface
+                        styled REST instead of GraphQL, the external system integrated); omitted for
+                        a decision shaping no modeled element.
+                    value: list([[ARCH:CV.ENTITY:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
+                        [[ARCH:DV.ASPECT:*]], [[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]],
+                        [[ARCH:DP.NETWORK:*]], [[DATA:DM.ENTITY:*]], [[DATA:AM.ROLE:*]],
+                        [[APIS:IM.INTERFACE:*]])
+                    optional: true
+                -   name: DECIDES
+                    desc: >
+                        Comma-separated references to the QUALITY-PERSPECTIVES tactics or
+                        TECHNOLOGY-STACK components the decision chose over their alternatives,
+                        i.e. the mechanism or product which exists because of this decision; omitted
+                        when the decision chose no modeled tactic or product.
+                    value: list([[ARCH:QP.TACTIC:*]], [[ARCH:TS.TIER:*.COMPONENT:*]])
+                    optional: true
+                -   name: ALTERNATIVES
+                    desc: >
+                        Comma-separated names of the options considered but not chosen (e.g.
+                        `REST polling, bespoke WebSocket protocol`): the rationale `WHY` states *why*
+                        the decision won, this property states *against what*, and as a decision
+                        qualifies only as the result of a real trade-off, there is always at least
+                        one.
                 -   name: WHEN
                     desc: |
                         The **Context** of the decision: it captures the situation that forces the
@@ -1364,6 +1399,19 @@
                             on X, option C cost too much on Y"); and
                         -   assumptions and evidence (benchmarks, prior experience, constraints, or
                             principles the reasoning rests on).
+                -   name: CONSEQUENCES
+                    desc: |
+                        The **Consequences** of the decision: what follows from it once made, in
+                        contrast to the trade-off reasoning of `WHY`, which precedes it. It is
+                        *OPTIONAL* and omitted when nothing non-obvious follows. The following
+                        usually goes into it:
+
+                        -   what becomes easier and what becomes harder (the negative consequences
+                            are the valuable ones, as they are the price knowingly paid);
+                        -   the obligations the decision imposes on the elements it affects (e.g.
+                            a convention to follow, a migration to perform); and
+                        -   the follow-up decisions it makes necessary.
+                    optional: true
                 -   name: NOTES
                     desc: |
                         The **Background** of the decision: it is *OPTIONAL* and can be omitted
@@ -1371,8 +1419,6 @@
                         following usually goes into it:
 
                         -   information about the decision *process* (e.g. a weighted decision
-                            matrix of considered alternatives);
-                        -   consequences of the decision (but only when non-obvious downstream
-                            effects need to be called out); and
+                            matrix of considered alternatives); and
                         -   links to strongly related decisions.
                     optional: true

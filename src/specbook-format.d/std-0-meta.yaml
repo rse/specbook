@@ -53,8 +53,8 @@
 #   | ARCH: Deployment View             |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Operations View             |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Quality Perspectives        |     |      |      |     |     |      |     |  X  |
-#   | ARCH: Decision Record             |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Technology Stack            |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Decision Record             |     |      |      |     |     |      |     |  X  |
 #
 #   Legend:
 #   -   PRD:  Product Requirements Document                      (Cagan 2005)

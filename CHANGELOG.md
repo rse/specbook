@@ -5,15 +5,19 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Decision Record Delineation
+    The standard "Decision Record" moves last, gains "DRIVEN-BY", "DECIDES", "ALTERNATIVES", and
+    "CONSEQUENCES", widens "AFFECTS", and capitalizes "STATUS" (adding "Rejected").
+
 -   IMPROVEMENT [code, othr]: Technology Stack Delineation
     The standard "Technology Stack" opens the tier names (adding "Common"), renames "WHEN" to the
-    mandatory tags "PHASE", constrains a phase-aware "COVERAGE", and gains "LICENSE", "DECIDED-BY",
-    "USED-BY", and a component hub diagram.
+    mandatory tags "PHASE", constrains a phase-aware "COVERAGE", and gains "LICENSE", "USED-BY", and
+    a component hub diagram.
 
 -   IMPROVEMENT [code, othr]: Quality Perspectives Delineation
     The standard "Quality Perspectives" delineates its scope, renames "PERSPECTIVE" to "TACTIC" with
-    "MECHANISM", gains "TRADES-OFF", "DECIDED-BY", and "TOOLS", widens "AFFECTS", swaps "Compliance"
-    for "Safety" in "QUALITY", and the Operations View concern gains "OPERATES" referencing tactics.
+    "MECHANISM", gains "TRADES-OFF" and "TOOLS", widens "AFFECTS", swaps "Compliance" for "Safety"
+    in "QUALITY", and the Operations View concern gains "OPERATES" referencing tactics.
 
 -   IMPROVEMENT [code, othr]: Operations View Delineation
     The standard "Operations View" delineates its scope, realigns its categories, gains "TRIGGER",

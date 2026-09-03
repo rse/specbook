@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-19 00:15
-Modified: 2026-09-03 14:30
+Modified: 2026-09-03 18:05
 ---
 
 #   ARCH: Technology Stack (TS)
@@ -44,7 +44,6 @@ for HTML, and StyleLint for Stylus, BECAUSE multiple focused linters keep each l
 -   LICENSE:    MIT
 -   PHASE:      Run-Time
 -   COVERAGE:   Client Networking, Dialog Communication, Server Networking, Component Communication
--   DECIDED-BY: [[DR.mqtt-transport]]
 -   USED-BY:    [[FV.client]], [[FV.relay]], [[FV.service]]
 
 MQTT-Plus handles the MQTT-over-WebSocket communication of the client with the relay layer and the MQTT messaging of the
@@ -195,7 +194,6 @@ entry point and the horizontally scaled per-environment forwarding.
 -   LICENSE:    EPL-2.0
 -   PHASE:      Run-Time
 -   COVERAGE:   Message Brokering
--   DECIDED-BY: [[DR.mqtt-transport]]
 -   USED-BY:    [[FV.relay]]
 
 Mosquitto brokers the MQTT messages between the thousands of WebSocket connections of the clients and the service

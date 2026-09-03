@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-03 14:30
+Modified: 2026-09-03 18:05
 ---
 
 ARCH: Quality Perspectives (QP)
@@ -23,7 +23,6 @@ environment, BECAUSE a single broker cannot hold the required attendee count whi
 -   QUALITY:    Availability
 -   ADDRESSES:  [[NR.failover]]
 -   MECHANISM:  multi-provider resources with server-pushed active-resource switch
--   DECIDED-BY: [[DECISION:channel-resource]]
 -   AFFECTS:    [[FV.service]], [[FV.client]], [[ENTITY:Channel]], [[ENTITY:Resource]]
 -   TOOLS:      [[TS.Common.messaging]]
 
@@ -36,7 +35,6 @@ follow automatically, BECAUSE provider outages must be survived without attendee
 -   ADDRESSES:  [[NR.privacy]], [[NR.gdpr]]
 -   MECHANISM:  automated anonymization on finish and no permanent accounts
 -   TRADES-OFF: Usability
--   DECIDED-BY: [[DECISION:no-accounts]]
 -   AFFECTS:    [[FV.service]], [[FV.database]], [[ENTITY:User]], [[ENTITY:Message]], [[ENTITY:AuthorizationToken]],
                 [[ENTITY:SessionToken]]
 
@@ -49,7 +47,6 @@ accounts, BECAUSE minimizing retained personal data is the strongest guarantee a
 -   ADDRESSES:  [[NR.token-strength]]
 -   MECHANISM:  unguessable URLs plus time-limited one-time tokens and single sessions
 -   TRADES-OFF: Usability
--   DECIDED-BY: [[DECISION:email-token]]
 -   AFFECTS:    [[FV.auth]], [[ENTITY:AuthorizationToken]], [[ENTITY:SessionToken]]
 
 Access requires an unguessable URL and a short-lived one-time token, with only one active session enforced per user per event,
@@ -60,7 +57,6 @@ BECAUSE layered, expiring secrets keep unauthorized viewers out without permanen
 -   QUALITY:    Performance
 -   ADDRESSES:  [[NR.config-latency]]
 -   MECHANISM:  MQTT publish/subscribe fan-out on per-event topics
--   DECIDED-BY: [[DECISION:mqtt-transport]]
 -   AFFECTS:    [[FV.relay]], [[FV.service]], [[FV.client]]
 -   TOOLS:      [[TS.Common.messaging]]
 
