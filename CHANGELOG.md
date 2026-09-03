@@ -5,6 +5,10 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code]: Reference Resolution Performance
+    The Wiki-style reference resolution now uses per-index lookup maps and memoizes its results,
+    and the diagram derivation is memoized per specification, cutting a lint from 9s to 0.4s.
+
 -   IMPROVEMENT [code]: Export Duration
     The verbose output of "export" (and of "export --watch", "preview", and MCP) reports the
     duration of every format rendering, so the export performance can be observed.

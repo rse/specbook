@@ -15,32 +15,64 @@ export const plainText = (text: string): string =>
     text.replace(/`/g, "")
 
 /*  a single indexed object with its direct parent (undefined for
-    the top-level objects of an artifact)  */
+    the top-level objects of an artifact), its index position, and
+    its plain name (the inline code markup stripped once for matching)  */
 interface LinkNode {
     object:  SpecObject
     parent?: LinkNode
+    pos:     number
+    name:    string
 }
 
 /*  the pre-built resolution index over a specification  */
 export type LinkIndex = LinkNode[]
 
-/*  the per-index lookup of the nodes by their objects, built lazily on
-    the first scoped resolution (as the index itself stays a plain list)  */
-const lookups = new WeakMap<LinkIndex, Map<SpecObject, LinkNode>>()
-const lookup = (index: LinkIndex, object: SpecObject): LinkNode | undefined => {
-    let nodes = lookups.get(index)
-    if (nodes === undefined) {
-        nodes = new Map<SpecObject, LinkNode>(index.map((node) => [ node.object, node ]))
-        lookups.set(index, nodes)
+/*  the per-index lookup structures: the nodes by object, by id/anchor,
+    by plain name, and by kind (each in index order), plus the memoized
+    resolutions, as the very same references are resolved over and over
+    again (per property check, reference check, and diagram). They are
+    built lazily on the first use, as the implicit ids of the objects
+    are assigned after the index build (the index itself stays a plain
+    list and has to be complete and final by then)  */
+interface LinkLookup {
+    nodes:   Map<SpecObject, LinkNode>
+    byKey:   Map<string, LinkNode[]>
+    byName:  Map<string, LinkNode[]>
+    byKind:  Map<string, LinkNode[]>
+    sets:    Map<string, SpecObject[]>
+    uniques: Map<string, SpecObject[]>
+}
+const lookups = new WeakMap<LinkIndex, LinkLookup>()
+const lookup = (index: LinkIndex): LinkLookup => {
+    let result = lookups.get(index)
+    if (result === undefined) {
+        result = { nodes: new Map(), byKey: new Map(), byName: new Map(), byKind: new Map(),
+            sets: new Map(), uniques: new Map() }
+        const add = (map: Map<string, LinkNode[]>, key: string, node: LinkNode) => {
+            const nodes = map.get(key)
+            if (nodes === undefined)
+                map.set(key, [ node ])
+            else if (!nodes.includes(node))
+                nodes.push(node)
+        }
+        for (const node of index) {
+            result.nodes.set(node.object, node)
+            add(result.byKey, node.object.id, node)
+            if (node.object.anchor !== undefined)
+                add(result.byKey, node.object.anchor, node)
+            add(result.byName, node.name, node)
+            add(result.byKind, node.object.kind, node)
+        }
+        lookups.set(index, result)
     }
-    return nodes.get(object)
+    return result
 }
 
 /*  the ancestor-or-self chain of an object, root first
     (empty for an object unknown to the index)  */
 export const chainOf = (index: LinkIndex, object: SpecObject): SpecObject[] => {
     const chain = new Array<SpecObject>()
-    for (let node = lookup(index, object); node !== undefined; node = node.parent)
+    for (let node = lookup(index).nodes.get(object); node !== undefined; node = node.parent)
         chain.unshift(node.object)
     return chain
 }
@@ -55,7 +87,7 @@ export interface LinkTarget {
 export const buildLinkIndex = (specification: Spec): LinkIndex => {
     const index: LinkIndex = []
     const walk = (object: SpecObject, parent?: LinkNode) => {
-        const node: LinkNode = { object, parent }
+        const node: LinkNode = { object, parent, pos: index.length, name: plainText(object.name) }
         index.push(node)
         for (const child of object.childs)
             walk(child, node)
@@ -86,22 +118,38 @@ const splitQuoted = (text: string, separator: string): string[] => {
 const unquote = (part: string): string =>
     part.replace(/^"(.*)"$/s, "$1")
 
-/*  match a name-or-id part against an object (with "*" wildcard)  */
-const matchesPart = (object: SpecObject, part: string): boolean =>
-    part === "*"
-    || object.id === part
-    || object.anchor === part
-    || plainText(object.name) === part
-
-/*  match a single reference segment ("id", "name", "KIND:name-or-id",
+/*  a parsed reference segment ("id", "name", "KIND:name-or-id",
     "KIND:*", or "*", each part optionally double-quoted to allow
-    spaces, dots, and colons) against a single object  */
-const matchesSegment = (object: SpecObject, segment: string): boolean => {
+    spaces, dots, and colons): the optional kind plus the name-or-id
+    part, parsed once per reference instead of once per candidate  */
+interface Segment {
+    kind?: string
+    part:  string
+}
+const parseSegment = (segment: string): Segment => {
     const parts = splitQuoted(segment, ":")
     if (parts.length >= 2)
-        return object.kind === unquote(parts[0].trim())
-            && matchesPart(object, unquote(parts.slice(1).join(":").trim()))
-    return matchesPart(object, unquote(segment.trim()))
+        return { kind: unquote(parts[0].trim()), part: unquote(parts.slice(1).join(":").trim()) }
+    return { part: unquote(segment.trim()) }
+}
+
+/*  match a parsed segment against a single node (with "*" wildcard)  */
+const matchesSegment = (node: LinkNode, segment: Segment): boolean =>
+    (segment.kind === undefined || node.object.kind === segment.kind)
+    && (segment.part === "*"
+        || node.object.id     === segment.part
+        || node.object.anchor === segment.part
+        || node.name          === segment.part)
+
+/*  the candidate nodes matching a parsed segment, in index order,
+    found through the lookup structures instead of an index scan  */
+const candidates = (index: LinkIndex, segment: Segment): LinkNode[] => {
+    const { byKey, byName, byKind } = lookup(index)
+    if (segment.part === "*")
+        return segment.kind !== undefined ? (byKind.get(segment.kind) ?? []) : index
+    const nodes = Array.from(new Set([ ...(byKey.get(segment.part) ?? []), ...(byName.get(segment.part) ?? []) ]))
+        .sort((a, b) => a.pos - b.pos)
+    return segment.kind !== undefined ? nodes.filter((node) => node.object.kind === segment.kind) : nodes
 }
 
 /*  split a reference into its hierarchical path segments,
@@ -111,20 +159,26 @@ const segmentsOf = (reference: string): string[] =>
 
 /*  resolve a reference into the set of all matching objects: a path
     matches object chains connected by direct parent-to-child steps,
-    with the leading segments up to the root freely omittable  */
+    with the leading segments up to the root freely omittable (the
+    candidates of the last segment are walked up along the parents)  */
 export const resolveSet = (index: LinkIndex, reference: string): SpecObject[] => {
-    const segments = segmentsOf(reference)
-    if (segments.length === 0)
-        return []
-    return index.filter((node) => {
-        let current: LinkNode | undefined = node
-        for (let i = segments.length - 1; i >= 0; i--) {
-            if (current === undefined || !matchesSegment(current.object, segments[i]))
-                return false
-            current = current.parent
-        }
-        return true
-    }).map((node) => node.object)
+    const { sets } = lookup(index)
+    let matches = sets.get(reference)
+    if (matches === undefined) {
+        const segments = segmentsOf(reference).map(parseSegment)
+        matches = segments.length === 0 ? [] :
+            candidates(index, segments[segments.length - 1]).filter((node) => {
+                let current = node.parent
+                for (let i = segments.length - 2; i >= 0; i--) {
+                    if (current === undefined || !matchesSegment(current, segments[i]))
+                        return false
+                    current = current.parent
+                }
+                return true
+            }).map((node) => node.object)
+        sets.set(reference, matches)
+    }
+    return matches
 }
 
 /*  narrow several matches down to the ones nearest to the referencing
@@ -150,26 +204,32 @@ const nearest = (index: LinkIndex, matches: SpecObject[], from: SpecObject): Spe
     the first variant yielding matches decides, while a hierarchical path
     resolves via its full match set; several matches are narrowed down to
     the ones nearest to the referencing object (if known) and remain an
-    ambiguity only if still more than one remains  */
+    ambiguity only if still more than one remains (the scope-independent
+    match set is memoized per reference)  */
 export const resolveUnique = (index: LinkIndex, reference: string, from?: SpecObject): LinkTarget => {
-    const segments = segmentsOf(reference)
-    let   matches: SpecObject[] = []
-    if (segments.length === 1) {
-        const segment  = segments[0]
-        const unquoted = unquote(segment)
-        const variants = [
-            (object: SpecObject) => object.id === unquoted || object.anchor === unquoted,
-            (object: SpecObject) => plainText(object.name) === unquoted,
-            (object: SpecObject) => matchesSegment(object, segment)
-        ]
-        for (const variant of variants) {
-            matches = index.filter((node) => variant(node.object)).map((node) => node.object)
-            if (matches.length > 0)
-                break
+    const { byKey, byName, uniques } = lookup(index)
+    let matches = uniques.get(reference)
+    if (matches === undefined) {
+        const segments = segmentsOf(reference)
+        matches = []
+        if (segments.length === 1) {
+            const segment  = segments[0]
+            const unquoted = unquote(segment)
+            const variants = [
+                () => byKey.get(unquoted)  ?? [],
+                () => byName.get(unquoted) ?? [],
+                () => candidates(index, parseSegment(segment))
+            ]
+            for (const variant of variants) {
+                matches = variant().map((node) => node.object)
+                if (matches.length > 0)
+                    break
+            }
         }
+        else
+            matches = resolveSet(index, reference)
+        uniques.set(reference, matches)
     }
-    else
-        matches = resolveSet(index, reference)
     if (matches.length > 1 && from !== undefined)
         matches = nearest(index, matches, from)
     return { target: matches.length === 1 ? matches[0] : undefined, ambiguous: matches.length > 1 }

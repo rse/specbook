@@ -484,10 +484,18 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         config: diagram.config, columns, errors }
 }
 
+/*  the memoized diagram derivations, keyed by specification, as the
+    lint validation and every renderer of an export derive the very
+    same diagrams of the very same parsed specification again  */
+const derivations = new WeakMap<Spec, { config: Schema, results: Map<SpecObject, DiagramResult> }>()
+
 /*  derive the Gradia specs of all diagram-configured objects
-    of a specification  */
+    of a specification (memoized per specification and schema)  */
 export const specDiagrams = (specification: Spec,
     config: Schema): Map<SpecObject, DiagramResult> => {
+    const derived = derivations.get(specification)
+    if (derived !== undefined && derived.config === config)
+        return derived.results
     const index   = buildLinkIndex(specification)
     const anchors = anchorPaths(index)
     const parents = new Map<SpecObject, SpecObject | undefined>()
@@ -497,6 +505,7 @@ export const specDiagrams = (specification: Spec,
     for (const [ object, schema ] of collectSchemas(specification, config))
         if (schema.diagram !== undefined)
             results.set(object, deriveDiagram(object, schema.diagram, index, anchors, parents))
+    derivations.set(specification, { config, results })
     return results
 }
 
