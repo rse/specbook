@@ -643,8 +643,9 @@
                 performs on the running solution: a capability the solution offers its users (even
                 an administrating one) is a Functional Requirement or Use Case, an automatic
                 behavior of the solution is a Domain Rule, the design tactic making the solution
-                operable (e.g. replication, statelessness) is a Quality Perspective addressing the
-                same requirement, the deployment shape acted upon (instances, environments) is the
+                operable (e.g. replication, statelessness) is a Quality Perspectives tactic
+                referenced through `OPERATES`, the deployment shape acted upon (instances,
+                environments) is the
                 Deployment View, the pipeline producing the deployable artifact is a Development
                 View `Build` aspect, and the products used are Technology Stack `Operate-Time`
                 components referenced through `TOOLS` -- only the procedure itself, its trigger,
@@ -653,8 +654,8 @@
                 type: hub
                 center: self
                 nodes: "[[ARCH:OV.CONCERN:*]], [[REQS:NR.REQUIREMENT:*]], [[REQS:UP.PERSONA:*]],
-                    [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DP.NODE:*]],
-                    [[DATA:DM.ENTITY:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                    [[ARCH:QP.TACTIC:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
+                    [[ARCH:DP.NODE:*]], [[DATA:DM.ENTITY:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -702,11 +703,16 @@
                 -   name: ADDRESSES
                     desc: >
                         Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
-                        procedure fulfills (e.g. a recovery objective, a retention obligation),
-                        complemented by the Quality Perspective addressing the same requirement
-                        through its design tactic; omitted when the concern fulfills no stated
-                        requirement.
+                        procedure fulfills (e.g. a recovery objective, a retention obligation);
+                        omitted when the concern fulfills no stated requirement.
                     value: list([[REQS:NR.*]])
+                    optional: true
+                -   name: OPERATES
+                    desc: >
+                        Comma-separated references to the QUALITY-PERSPECTIVES objects whose design
+                        mechanism the procedure acts upon (e.g. the replication scaled out, the
+                        backup restored); omitted when the procedure operates no modeled tactic.
+                    value: list([[ARCH:QP.TACTIC:*]])
                     optional: true
                 -   name: ELEMENTS
                     desc: >
@@ -730,7 +736,8 @@
     id: QP
     file: 29-ARCH-QP-Quality-Perspectives.md
     desc: >
-        How the Non-Functional Requirements (NR) are addressed.
+        How the Non-Functional Requirements (NR) are addressed by the architecture, through the
+        tactics built into the solution across the views.
     optional: true
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Perspectives (2011),
@@ -741,22 +748,39 @@
             https://www.iso.org/standard/78176.html
     diagram:
         type: grid
-        nodes: "[[ARCH:QP.PERSPECTIVE:*]]"
+        nodes: "[[ARCH:QP.TACTIC:*]]"
         properties:
             -   QUALITY
     childs:
-        -   kind: PERSPECTIVE
+        -   kind: TACTIC
             desc: >
-                A single quality perspective, named with a short (2-5 word) summary (e.g.
-                `Horizontal Scaling`, `Defense in Depth`, `Graceful Degradation`) and described in a
-                concise (1-3 sentence) paragraph by how the architecture satisfies the quality
-                attribute across the affected elements, plus a 1-sentence rationale ("why") for the
-                chosen tactic over alternatives.
+                A single quality tactic, one architectural tactic applied to one quality attribute
+                (the perspective in the sense of Rozanski/Woods, i.e. the cross-cutting quality
+                concern applied to the elements of all views, identified by `QUALITY`), named with
+                a short (2-5 word) summary (e.g. `Horizontal Scaling`, `Defense in Depth`,
+                `Graceful Degradation`) and described in a concise (1-3 sentence) paragraph by how
+                the tactic satisfies the quality attribute across the affected elements, plus a
+                1-sentence rationale ("why") for the tactic satisfying the addressed requirements
+                (not for choosing it over alternatives, which is the rationale of a Decision
+                Record).
+
+                A tactic states a design mechanism built into the solution: the threshold the
+                mechanism has to meet is the `METRIC` of the addressed Non-Functional Requirement
+                and is not restated, the production procedure performed against the mechanism
+                (e.g. scaling out, restoring) is an Operations View concern referencing the tactic
+                through `OPERATES`, the trade-off that chose the mechanism over alternatives is a
+                Decision Record referenced through `DECIDED-BY`, the product realizing the
+                mechanism is a Technology Stack component referenced through `TOOLS`, the
+                developer-facing rule about the source structure is a Development View aspect, and
+                a mechanism driven solely by a `Constraint` requirement (e.g. a hosting or budget
+                mandate) protects no quality and is a Decision Record alone -- only the mechanism,
+                the quality it achieves, and the elements it shapes belong here.
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:QP.PERSPECTIVE:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]],
-                    [[ARCH:CO.UNIT:*]], [[ARCH:DP.NODE:*]]"
+                nodes: "[[ARCH:QP.TACTIC:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]],
+                    [[ARCH:CO.UNIT:*]], [[ARCH:DV.ASPECT:*]], [[ARCH:DP.NODE:*]], [[DATA:DM.ENTITY:*]],
+                    [[ARCH:DR.DECISION:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -766,35 +790,62 @@
             props:
                 -   name: QUALITY
                     desc: >
-                        The quality attribute the perspective addresses, a solution-oriented
+                        The quality attribute the tactic addresses, a solution-oriented
                         refinement of the NON-FUNCTIONAL-REQUIREMENTS categories which intentionally
                         differs from them.
 
                         The NR categories follow the ISO/IEC 25010:2023 top-level characteristics
-                        (and include `Safety` and `Flexibility`) plus the non-quality categories
-                        `Compliance` and `Constraint`, whereas the perspective qualities decompose
-                        some of the characteristics into the finer-grained, architecturally
-                        actionable attributes `Scalability`, `Availability`, `Privacy`,
-                        `Accessibility`, and `Portability`, and address a `Constraint` through the
-                        quality it protects. The quality therefore need not match the category of
-                        the requirements it addresses.
-                    value: enum(Performance,Scalability,Reliability,Availability,Security,Privacy,Usability,Accessibility,Maintainability,Portability,Compatibility,Compliance)
+                        plus the non-quality categories `Compliance` and `Constraint`, whereas the
+                        tactic qualities decompose some of the characteristics into the
+                        finer-grained, architecturally actionable attributes `Scalability`,
+                        `Availability`, `Privacy`, `Accessibility`, and `Portability` (with
+                        `Flexibility` fully absorbed by `Scalability` and `Portability`), and
+                        address a `Compliance` or `Constraint` requirement through the quality it
+                        protects (e.g. a data protection obligation through `Privacy`). The
+                        quality therefore need not match the category of the requirements it
+                        addresses.
+                    value: enum(Performance,Scalability,Reliability,Availability,Safety,Security,Privacy,Usability,Accessibility,Maintainability,Portability,Compatibility)
                 -   name: ADDRESSES
                     desc: >
                         Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
-                        perspective addresses.
+                        tactic addresses.
                     value: list([[REQS:NR.*]])
-                -   name: TACTIC
+                -   name: MECHANISM
                     desc: >
-                        The architectural tactic or strategy applied to achieve the quality (e.g.
-                        `stateless replication behind a load balancer`, `read-through cache`,
-                        `circuit breaker`).
+                        The design mechanism through which the tactic is applied to achieve the
+                        quality (e.g. `stateless replication behind a load balancer`,
+                        `read-through cache`, `circuit breaker`).
+                -   name: TRADES-OFF
+                    desc: >
+                        Comma-separated quality attributes (from the same set as `QUALITY`) the
+                        tactic knowingly degrades in favor of the addressed one (e.g. a one-time
+                        token trades `Usability` for `Security`); omitted when the tactic has no
+                        notable cost on another quality.
+                    value: tags(Performance,Scalability,Reliability,Availability,Safety,Security,Privacy,Usability,Accessibility,Maintainability,Portability,Compatibility)
+                    optional: true
+                -   name: DECIDED-BY
+                    desc: >
+                        Reference to the DECISION-RECORD object which chose the tactic over its
+                        alternatives; omitted when the choice qualifies for no decision record.
+                    value: "[[ARCH:DR.DECISION:*]]"
+                    optional: true
                 -   name: AFFECTS
                     desc: >
-                        Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW, or
-                        DEPLOYMENT-VIEW objects the tactic affects.
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DP.TIER:*]],
-                        [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]])
+                        Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW,
+                        DEVELOPMENT-VIEW, DEPLOYMENT-VIEW, DATA-MODEL, AUTHORIZATION-MODEL, or
+                        INTERFACE-MODEL objects the tactic shapes (e.g. the components replicated,
+                        the aspects governing modifiability, the entities anonymized, the roles
+                        and interfaces secured).
+                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DV.ASPECT:*]],
+                        [[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                        [[DATA:DM.ENTITY:*]], [[DATA:AM.ROLE:*]], [[APIS:IM.INTERFACE:*]])
+                    optional: true
+                -   name: TOOLS
+                    desc: >
+                        Comma-separated references to the TECHNOLOGY-STACK components realizing the
+                        tactic (e.g. the load balancer, the message broker, the CDN); omitted when
+                        the tactic uses no modeled product.
+                    value: list([[ARCH:TS.TIER:*.COMPONENT:*]])
                     optional: true
 
 -   kind: ARCH

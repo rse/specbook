@@ -74,6 +74,7 @@ find out why an attendee fails to authenticate while the event runs.
 -   TRIGGER:   ahead of large events
 -   OPERATOR:  [[UP.administrator]]
 -   ADDRESSES: [[NR.scalability]], [[NR.attendee-scale]]
+-   OPERATES:  [[QP.connection-scaling]]
 -   ELEMENTS:  [[DP.proxy]], [[DP.relay]], [[DP.service]]
 -   TOOLS:     [[TS.Server.container-orchestration]]
 

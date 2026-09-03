@@ -5,6 +5,11 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Quality Perspectives Delineation
+    The standard "Quality Perspectives" delineates its scope, renames "PERSPECTIVE" to "TACTIC" with
+    "MECHANISM", gains "TRADES-OFF", "DECIDED-BY", and "TOOLS", widens "AFFECTS", swaps "Compliance"
+    for "Safety" in "QUALITY", and the Operations View concern gains "OPERATES" referencing tactics.
+
 -   IMPROVEMENT [code, othr]: Operations View Delineation
     The standard "Operations View" delineates its scope, realigns its categories, gains "TRIGGER",
     "OPERATOR", "ADDRESSES", and "TOOLS", and the Technology Stack "WHEN" gains "Operate-Time".
