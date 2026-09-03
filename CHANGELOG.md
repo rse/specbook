@@ -5,6 +5,10 @@ ChangeLog
 1.2.0 (2026-09-03)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Development Aspects
+    The standard "Development View" (id "DV") is renamed to "Development Aspects" (id "DA"), as it
+    is a categorized list of developer rules rather than a structural view of the architecture.
+
 -   IMPROVEMENT [code, othr]: Development View Position
     The standard "Development View" moves directly behind the "Technology Stack", so that the
     build-time views precede the runtime views "Concurrency", "Deployment", and "Operations".

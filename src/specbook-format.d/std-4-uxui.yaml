@@ -94,7 +94,7 @@
         Concept states how it behaves, the Language Conventions how it talks, and the Visual Design
         how it looks. Domain terms are *defined* in the Domain Glossary and only *surfaced* here,
         while the conventions of the specification text itself and of code identifiers are out of
-        scope (they belong to the Development View).
+        scope (they belong to the Development Aspects).
     refs: >
         -   Podmajersky: Strategic Writing for UX (2019),
             https://www.oreilly.com/library/view/strategic-writing-for/9781492049388/

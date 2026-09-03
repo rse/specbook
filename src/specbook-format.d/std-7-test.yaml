@@ -63,9 +63,9 @@
                 happens, not how fast), an Operations View concern when its procedure is rehearsed
                 (e.g. a restore drill), a Deployment View node or network when its topology is
                 inspected (e.g. a port scan proving an `Isolated` segment), a component or
-                concurrency unit when its collaboration or contention is exercised, a Development
-                View aspect or a Decision Record decision when its rule is checked by an
-                architectural fitness function (e.g. no dependency edge against the layering).
+                concurrency unit when its collaboration or contention is exercised, an aspect of
+                the Development Aspects or a Decision Record decision when its rule is checked by
+                an architectural fitness function (e.g. no dependency edge against the layering).
             diagram:
                 type: hub
                 center: self
@@ -74,7 +74,7 @@
                     [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                     [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
                     [[UXUI:DS.STORYBOARD:*.FRAME:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                    [[ARCH:DV.ASPECT:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                    [[ARCH:DA.ASPECT:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
                     [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[DECS:DR.DECISION:*]]"
                 labeled: true
                 qualified: true
@@ -89,7 +89,7 @@
                         USE-CASES scenario objects, the STATE-MODEL transition objects, the
                         DATA-MODEL attribute objects, the AUTHORIZATION-MODEL permission objects,
                         the INTERFACE-ENDPOINTS objects, the DIALOG-STORYBOARD frame objects, the
-                        FUNCTIONALITY-VIEW, CONCURRENCY-VIEW, DEVELOPMENT-VIEW, DEPLOYMENT-VIEW
+                        FUNCTIONALITY-VIEW, CONCURRENCY-VIEW, DEVELOPMENT-ASPECTS, DEPLOYMENT-VIEW
                         (node and network), OPERATIONS-VIEW, and QUALITY-PERSPECTIVES objects,
                         and/or the DECISION-RECORD objects the test case verifies, so that a
                         scenario (in particular an `Exceptional` one, judged by its `OUTCOME`) is
@@ -115,7 +115,7 @@
                         [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
                         [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
                         [[UXUI:DS.STORYBOARD:*.FRAME:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                        [[ARCH:DV.ASPECT:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
+                        [[ARCH:DA.ASPECT:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
                         [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[DECS:DR.DECISION:*]])
                 -   name: WORKFLOWS
                     desc: >

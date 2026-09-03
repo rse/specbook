@@ -1,10 +1,10 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 12:00
+Modified: 2026-09-03 23:10
 ---
 
-ARCH: Development View (DV)
-===========================
+ARCH: Development Aspects (DA)
+==============================
 
 ##  ASPECT: Client/Common/Server Split {{module-split}}
 
