@@ -48,7 +48,7 @@
                         Comma-separated references to the GLOSSARY terms the entity materializes,
                         i.e. the domain terms whose information it carries, so that every entity
                         is anchored in the ubiquitous language and every term shows its data.
-                    value: list([[REQS:GL.TERM:*]])
+                    value: list([[REQS:DG.TERM:*]])
                     optional: true
             childs:
                 -   kind: ATTRIBUTE
@@ -328,7 +328,7 @@
                 type: hub
                 center: self
                 deep: true
-                nodes: "[[DATA:AM.ROLE:*]], [[REQS:UP.PERSONA:*]], [[REQS:GL.TERM:*]], [[DATA:DM.ENTITY:*]],
+                nodes: "[[DATA:AM.ROLE:*]], [[REQS:UP.PERSONA:*]], [[REQS:DG.TERM:*]], [[DATA:DM.ENTITY:*]],
                     [[REQS:DR.RULE:*]]"
                 labeled: true
                 qualified: true
@@ -345,12 +345,12 @@
                         `Actor` denoting the external systems holding the role (e.g. a registration
                         system calling the machine-facing interface), as an external system is no
                         persona.
-                    value: list([[REQS:UP.PERSONA:*]], [[REQS:GL.TERM:*]])
+                    value: list([[REQS:UP.PERSONA:*]], [[REQS:DG.TERM:*]])
                 -   name: TERM
                     desc: >
                         Reference to the GLOSSARY term of type `Actor` the role grants, anchoring
                         the role in the ubiquitous language.
-                    value: "[[REQS:GL.TERM:*]]"
+                    value: "[[REQS:DG.TERM:*]]"
                     optional: true
                 -   name: INHERITS
                     desc: >

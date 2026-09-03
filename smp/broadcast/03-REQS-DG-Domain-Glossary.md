@@ -3,7 +3,7 @@ Created:  2026-06-18 10:18
 Modified: 2026-08-29 13:40
 ---
 
-REQS: Domain Glossary (GL)
+REQS: Domain Glossary (DG)
 ==========================
 
 -   TERM: Event {{event}};

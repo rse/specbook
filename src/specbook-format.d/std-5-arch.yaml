@@ -79,7 +79,7 @@
                         the domain (usually a term of type `Actor`, which covers an external system
                         as a party acting in the domain), anchoring every boundary entity in the
                         ubiquitous language.
-                    value: list([[REQS:GL.TERM:*]])
+                    value: list([[REQS:DG.TERM:*]])
                     optional: true
                 -   name: INTERFACE
                     desc: >

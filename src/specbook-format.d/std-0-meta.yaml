@@ -21,7 +21,7 @@
 #   | -------------------------------------- | --- | ---- | ---- | --- | --- | ---- | --- | --- |
 #   | REQS: Solution Vision (SV)             |  X  |  X   |      |     |     |      |     |     |
 #   | REQS: Solution Premises (SP)           |  X  |  X   |  X   |  X  |     |      |     |     |
-#   | REQS: Domain Glossary (GL)             |  X  |  X   |  X   |  X  |     |      |     |     |
+#   | REQS: Domain Glossary (DG)             |  X  |  X   |  X   |  X  |     |      |     |     |
 #   | REQS: User Personas (UP)               |  X  |  X   |  X   |  X  |  X  |      |     |     |
 #   | REQS: User Journey (UJ)                |  X  |  X   |      |     |  X  |      |     |     |
 #   | REQS: Functional Requirements (FR)     |  X  |  X   |  X   |  X  |     |      |     |     |

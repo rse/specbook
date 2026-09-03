@@ -1,7 +1,7 @@
 + 00-META-TI-Title.md
 + 01-REQS-SV-Solution-Vision.md
 + 02-REQS-SP-Solution-Premises.md
-+ 03-REQS-GL-Domain-Glossary.md
++ 03-REQS-DG-Domain-Glossary.md
 + 04-REQS-UP-User-Personas.md
 + 05-REQS-UJ-User-Journey.md
 + 06-REQS-FR-Functional-Requirements.md

@@ -153,7 +153,7 @@
                         Comma-separated references to the GLOSSARY terms whose surfacing in the
                         user-facing text the convention governs, so that the Domain Glossary defines
                         the term and the convention states how it is written.
-                    value: list([[REQS:GL.TERM:*]])
+                    value: list([[REQS:DG.TERM:*]])
                     optional: true
                 -   name: EXAMPLE
                     desc: >

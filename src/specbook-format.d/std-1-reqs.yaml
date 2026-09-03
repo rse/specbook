@@ -146,8 +146,8 @@
 
 -   kind: REQS
     name: Domain Glossary
-    id: GL
-    file: 03-REQS-GL-Domain-Glossary.md
+    id: DG
+    file: 03-REQS-DG-Domain-Glossary.md
     desc: >
         The ubiquitous language of the domain, defining the meaning of each domain term in business
         language, together with its synonyms, its place in the hierarchy of terms, and the terms it
@@ -162,7 +162,7 @@
             https://www.domainlanguage.com/ddd/
     diagram:
         type: grid
-        nodes: "[[REQS:GL.TERM:*]]"
+        nodes: "[[REQS:DG.TERM:*]]"
         properties:
             -   TYPE
         config:
@@ -188,7 +188,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[REQS:GL.TERM:*]], [[REQS:SP.PREMISE:*]], [[REQS:DR.RULE:*]], [[DATA:DM.ENTITY:*]],
+                nodes: "[[REQS:DG.TERM:*]], [[REQS:SP.PREMISE:*]], [[REQS:DR.RULE:*]], [[DATA:DM.ENTITY:*]],
                     [[REQS:UP.PERSONA:*]]"
                 labeled: true
                 qualified: true
@@ -216,7 +216,7 @@
                         that the terms form a hierarchy in which a rule governing the broader term
                         covers the narrower ones, too; at most one broader term, keeping the
                         hierarchy a tree.
-                    value: "[[REQS:GL.TERM:*]]"
+                    value: "[[REQS:DG.TERM:*]]"
                     optional: true
                     acyclic: true
                 -   name: DISTINCT-FROM
@@ -224,7 +224,7 @@
                         Comma-separated references to the GLOSSARY terms easily confused with this
                         one but deliberately *not* synonymous, listed on both terms of each pair,
                         with the distinction stated in the definitions.
-                    value: list([[REQS:GL.TERM:*]])
+                    value: list([[REQS:DG.TERM:*]])
                     optional: true
                     symmetric: true
                 -   name: PREMISES
@@ -303,7 +303,7 @@
                         Comma-separated references to the GLOSSARY terms the persona embodies, i.e.
                         the domain roles it acts in and the domain concepts it primarily deals
                         with, so that every persona is anchored in the ubiquitous language.
-                    value: list([[REQS:GL.TERM:*]])
+                    value: list([[REQS:DG.TERM:*]])
                     optional: true
                 -   name: PROFICIENCY
                     desc: >
@@ -624,7 +624,7 @@
                         Comma-separated references to the GLOSSARY terms the rule governs, i.e.
                         the domain terms its statement is about, so that every rule is anchored in
                         the ubiquitous language and every term shows the rules that hold for it.
-                    value: list([[REQS:GL.TERM:*]])
+                    value: list([[REQS:DG.TERM:*]])
                     optional: true
                 -   name: CONSTRAINS
                     desc: >
@@ -734,7 +734,7 @@
                     desc: >
                         Comma-separated references to the GLOSSARY terms of type `Activity` the
                         workflow realizes, anchoring it in the ubiquitous language.
-                    value: list([[REQS:GL.TERM:*]])
+                    value: list([[REQS:DG.TERM:*]])
                     optional: true
                 -   name: RULES
                     desc: >
