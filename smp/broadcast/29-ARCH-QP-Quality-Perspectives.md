@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-03 10:00
+Modified: 2026-09-03 14:30
 ---
 
 ARCH: Quality Perspectives (QP)
@@ -25,7 +25,7 @@ environment, BECAUSE a single broker cannot hold the required attendee count whi
 -   MECHANISM:  multi-provider resources with server-pushed active-resource switch
 -   DECIDED-BY: [[DECISION:channel-resource]]
 -   AFFECTS:    [[FV.service]], [[FV.client]], [[ENTITY:Channel]], [[ENTITY:Resource]]
--   TOOLS:      [[TS.Server.server-messaging]]
+-   TOOLS:      [[TS.Common.messaging]]
 
 Each channel carries multiple configured resources and the service pushes the active-resource change over MQTT so clients
 follow automatically, BECAUSE provider outages must be survived without attendee action.
@@ -62,7 +62,7 @@ BECAUSE layered, expiring secrets keep unauthorized viewers out without permanen
 -   MECHANISM:  MQTT publish/subscribe fan-out on per-event topics
 -   DECIDED-BY: [[DECISION:mqtt-transport]]
 -   AFFECTS:    [[FV.relay]], [[FV.service]], [[FV.client]]
--   TOOLS:      [[TS.Server.server-messaging]], [[TS.Client.client-messaging]]
+-   TOOLS:      [[TS.Common.messaging]]
 
 Configuration and interaction changes are published on per-event MQTT topics and fanned out to subscribers, BECAUSE
 publish/subscribe propagates every change to all clients within the required time without polling.

@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-02 18:04
+Modified: 2026-09-03 14:30
 ---
 
 #   ARCH: Deployment View (DP)
@@ -30,6 +30,7 @@ self-hosting satisfies GDPR and minimizes per-event cost versus public cloud.
 ##  TIER: Middleware {{middleware-tier}}
 
 -   PART-OF:  [[DP.datacenter]]
+-   STACK:    [[TS.Middleware]]
 
 The middleware tier terminates, balances, and relays the client connections between the Internet and the business
 services, BECAUSE sustaining thousands of bidirectional connections is a concern separate from the business logic.
@@ -45,6 +46,7 @@ independently of the connection handling and the persistence.
 ##  TIER: Database {{database-tier}}
 
 -   PART-OF:  [[DP.datacenter]]
+-   STACK:    [[TS.Database]]
 
 The database tier holds the authoritative persistent state, BECAUSE durable state must reside on a protected tier
 reachable from the business services alone.

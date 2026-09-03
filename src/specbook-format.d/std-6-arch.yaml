@@ -476,7 +476,7 @@
                 A node is a platform element the solution deploys onto and operates itself: a
                 managed third-party service the solution merely consumes is a Context View
                 `Service` entity, the software products running on the node are Technology Stack
-                components (reached through the hosted units and components), and the procedures
+                components (referencing the hosted components through `USED-BY`), and the procedures
                 operating the node are Operations View concerns -- only the runtime environment
                 itself belongs to the Deployment View, with the tier and area the node belongs to
                 and the network segments it is attached to as its `TIER`, `AREA`, and `NETWORK`
@@ -726,7 +726,7 @@
                 -   name: TOOLS
                     desc: >
                         Comma-separated references to the TECHNOLOGY-STACK components (usually of
-                        `WHEN` `Operate-Time`) supporting the procedure; omitted when the procedure
+                        `PHASE` `Operate-Time`) supporting the procedure; omitted when the procedure
                         uses no modeled product.
                     value: list([[ARCH:TS.TIER:*.COMPONENT:*]])
                     optional: true
@@ -858,25 +858,28 @@
         that were considered but not chosen.
     optional: true
     refs: >
-        -   ThoughtWorks: Technology Radar (2010),
-            https://www.thoughtworks.com/radar
-        -   Ford: Build Your Own Technology Radar (2013),
-            https://nealford.com/memeagora/2013/05/28/build_your_own_technology_radar.html
-        -   Fowler: Patterns of Enterprise Application Architecture (2002),
-            https://martinfowler.com/books/eaa.html
+        -   Starke/Hruschka: arc42 Template: Solution Strategy and Crosscutting Concepts (2005),
+            https://arc42.org/overview
+        -   Brown: The C4 Model: Container Diagram (2018),
+            https://c4model.com/diagrams/container
     diagram:
         type: grid
         nodes: "[[ARCH:TS.TIER:*]]"
     childs:
         -   kind: TIER
-            name: (?:Client|Server|Middleware|Database)
             desc: |
-                The architectural tier grouping the technology components belonging to it, one of:
+                The architectural tier grouping the technology components belonging to it, named
+                with a short (1-2 word) summary mirroring the name of the Deployment View tier
+                referencing it through `STACK`, typically one of:
 
                 -   `Client`:     Runs on the client side (e.g. browser, desktop, mobile).
                 -   `Server`:     Runs on the server side (e.g. backend, application, API).
                 -   `Middleware`: Runs between client and server (e.g. message broker, gateway).
                 -   `Database`:   Runs as the data store (e.g. relational or document database).
+                -   `Common`:     Runs on several tiers alike (e.g. a language, a logging library,
+                                  or a shared module used by client and server), so a product
+                                  used on several tiers is a single component here instead of
+                                  one per tier; referenced by no Deployment View tier.
             diagram:
                 type: hub
                 center: self
@@ -895,6 +898,12 @@
                         solution and how it fits into the overall technology stack, plus a
                         1-sentence rationale ("why") for choosing this product over the
                         alternatives.
+
+                        A component states one product in one role on one tier: the product used
+                        by several tiers alike belongs to the `Common` tier once, the lock-in
+                        carrying trade-off behind the choice is a Decision Record referenced
+                        through `DECIDED-BY`, and the functional components depending on the
+                        product reference it through `USED-BY`.
                     props:
                         -   name: PRODUCT
                             desc: >
@@ -902,191 +911,24 @@
                                 component (e.g. `VueJS`, `Node.js`, `PostgreSQL`).
                         -   name: ALTERNATIVES
                             desc: >
-                                Comma-separated names of products which would also fit this
-                                component but were not chosen (e.g. `React, Svelte`).
+                                Comma-separated names of the products which would also fit this
+                                component but were not chosen (e.g. `React, Svelte`): the
+                                rationale of the description states *why* the product won, this
+                                property states *against what*, so it is expected whenever the
+                                rationale compares the product against others; omitted when there
+                                was no real alternative.
                             optional: true
-                        -   name: COVERAGE
-                            desc: |
-                                A comma-separated list of either one or more of the *Client
-                                Aspects* or one or more of the *Server Aspects* (or their
-                                sub-aspects) defined below. The general goal is to achieve a
-                                maximum coverage of all aspects per `TIER` with the minimum
-                                total number of `PRODUCT`s.
-
-                                The known *Client Aspects* which usually have to be covered (at
-                                least for clients in a Rich-Client architecture):
-
-                                -   **Interface Theme**:
-                                    Style Reset, Shape, Color, Gradient, Shadow, Font, Icon.
-
-                                -   **Interface Widgets**:
-                                    Icon, Label, Text Paragraph, Image, Form, Text-Field,
-                                    Text-Area, Date Picker, Toggle, Radio Button, Checkbox,
-                                    Select List, Slider, Progress Bar, Hyperlink, Popup Menu,
-                                    Dropdown Menu, Toolbar, Tooltip, Tab, Pill, Breadcrumb,
-                                    Pagination, Badge, Alert, Panel, Modal, Table, Scrollbar,
-                                    Carousel.
-
-                                -   **Interface Layouting**:
-                                    Responsive Design, Media Query, Frame, Grid, Padding, Border,
-                                    Margin, Alignment, Force, Magnetism.
-
-                                -   **Interface Effects**:
-                                    Transition, Transformation, Keyframes, Easing Function, Sound
-                                    Effect, Physics.
-
-                                -   **Interface Interactions**:
-                                    Mouse, Keyboard, Touchscreen, Gesture, Clipboard, Drag & Drop.
-
-                                -   **Interface States**:
-                                    Rendered, Enabled, Visible, Focused, Warning, Error, Floating.
-
-                                -   **Interface Mask**:
-                                    Markup Loading, Markup Generation, Virtual DOM, Text, Bitmaps,
-                                    Vectors, 2D/3D Canvas, Accessibility.
-
-                                -   **Interface Internationalization**:
-                                    Text Internationalization (I18N).
-
-                                -   **Data Conversion**:
-                                    Value Formatting, Value Parsing, Localization (L10N).
-
-                                -   **Data Binding**:
-                                    Reactive, Observer, Unidirectional, Bidirectional, Incremental.
-
-                                -   **Presentation Model**:
-                                    Parameter Value, Command Value, State Value, Data Value, Event
-                                    Value, Value Validation, Presentation Logic.
-
-                                -   **Dialog Navigation**:
-                                    Deep Linking, Routing, Dialog Flow.
-
-                                -   **Dialog Automation**:
-                                    Dialog Macros, Click-Through, Smoke Testing.
-
-                                -   **Dialog Communication**:
-                                    Service, Event, Model, Socket, Hooks.
-
-                                -   **Dialog Life-Cycle**:
-                                    Component States, Component State Transitions.
-
-                                -   **Dialog Structure**:
-                                    Component, Model/View/Controller Roles, Hierarchical
-                                    Composition.
-
-                                -   **State Persistence**:
-                                    Local Storage, Cookies, Caching.
-
-                                -   **Business Model**:
-                                    Entity, Field, Relationship, Universally Unique Identifiers
-                                    (UUID).
-
-                                -   **Use-Case Authorization**:
-                                    User Experience, Dialog Restriction, User, Group, Role,
-                                    Use-Case, Data, Access.
-
-                                -   **Client Networking**:
-                                    Request/Response, Synchronization, Push, Pull, Pulled-Push,
-                                    REST, GraphQL, Authentication, Session.
-
-                                -   **Environment Detection**:
-                                    Runtime Detection, Feature Detection.
-
-                                The known *Server Aspects* which usually have to be covered (at
-                                least for servers, sometimes called Thin-Servers, in a Rich-Client
-                                architecture):
-
-                                -   **Environment Detection**:
-                                    Detect the run-time environment, like underlying operating
-                                    system, execution platform, network topology, feature toggles,
-                                    etc.
-
-                                -   **Argument Parsing**:
-                                    Parse options and arguments of the Command-Line Interface
-                                    (CLI) to bootstrap application parameters.
-
-                                -   **Configuration Parsing**:
-                                    Load and parse directives from a configuration file to
-                                    bootstrap application parameters.
-
-                                -   **Process Daemonizing**:
-                                    Detach from the startup terminal and host process in order to
-                                    run fully independently.
-
-                                -   **Process Management**:
-                                    (Pre-)fork child processes and/or threads of execution and
-                                    monitor and control them during the life-cycle of the
-                                    application.
-
-                                -   **Component Management**:
-                                    Structure the code into components, instantiate them at
-                                    run-time and manage them in a stateful component life-cycle.
-
-                                -   **Component Communication**:
-                                    Provide inter-component communication mechanisms like events,
-                                    hooks, registry, etc.
-
-                                -   **Server Networking**:
-                                    Listen to network sockets, accept connections and manage
-                                    request/response and message communication.
-
-                                -   **Peer Information**:
-                                    Determine unique identification and add-on information about
-                                    the client peer.
-
-                                -   **Session Handling**:
-                                    Manage secured per-connection sessions to keep state between
-                                    communication requests and/or client sessions.
-
-                                -   **User Authentication**:
-                                    Determine and validate the unique identity of the user
-                                    communicating over the current network connection.
-
-                                -   **Request Validation**:
-                                    Validate the syntactical and semantical compliance of the
-                                    requests and sanitize the requests.
-
-                                -   **Request Processing**:
-                                    Process the request by dispatching execution according to the
-                                    provided request and determined context information.
-
-                                -   **Role Authorization**:
-                                    Determine whether the role of the current user is allowed to
-                                    execute the current request.
-
-                                -   **Client Networking**:
-                                    Provide mechanisms to connect to peers over the network and
-                                    perform request/response and/or publish/subscribe
-                                    communication.
-
-                                -   **Task Scheduling**:
-                                    Schedule and execute recurring tasks independent of regular
-                                    I/O operations.
-
-                                -   **Execution Tracing**:
-                                    Provide mechanisms for tracing the execution by logging event
-                                    and measurement information at certain points of interest.
-
-                                -   **Database Access**:
-                                    Map in-memory domain entities onto a data-store-dependent
-                                    persistent data structure.
-
-                                -   **Database Connectivity**:
-                                    Locally or remotely connect the database access layer to the
-                                    underlying data store.
-
-                                -   **Database Schema**:
-                                    Create, update or downgrade the data schema inside the
-                                    underlying data store.
-
-                                -   **Database Bootstrapping**:
-                                    Create, update or downgrade both mandatory bootstrapping and
-                                    optional domain-specific data inside the underlying data
-                                    store.
+                        -   name: LICENSE
+                            desc: >
+                                The license under which the product is used (e.g. `MIT`,
+                                `Apache-2.0`, `AGPL-3.0`, `commercial`, `in-house`), the evidence
+                                for a Non-Functional Requirement of category `Compliance`;
+                                omitted when the license is of no concern to the solution.
                             optional: true
-                        -   name: WHEN
+                        -   name: PHASE
                             desc: |
-                                The lifecycle phase in which the component is relevant, one of:
+                                The lifecycle phases in which the component is relevant, one or
+                                more of:
 
                                 -   `Build-Time`:   Used during development, compilation, or
                                                     packaging.
@@ -1096,7 +938,256 @@
                                                     (e.g. for rollout, monitoring, or backup),
                                                     referenced by the Operations View concerns
                                                     through `TOOLS`.
-                            value: enum(Build-Time,Run-Time,Operate-Time)
+                            value: tags(Build-Time,Run-Time,Operate-Time)
+                        -   name: COVERAGE
+                            desc: |
+                                A comma-separated list of the aspects the component covers, drawn
+                                from the catalog of its `PHASE`: for `Build-Time` the *Build-Time
+                                Aspects* (the categories of the Development View aspects), for
+                                `Operate-Time` the *Operate-Time Aspects* (the categories of the
+                                Operations View concerns), and for `Run-Time` the *Client*,
+                                *Server*, *Middleware*, or *Database Aspects* of the component's
+                                `TIER` (a `Common` tier component draws from the catalogs of all
+                                tiers it serves), each defined below with its typical sub-aspects
+                                as an explanation only. The general goal is to achieve a maximum
+                                coverage of all aspects per tier and phase with the minimum total
+                                number of `PRODUCT`s.
+
+                                The *Build-Time Aspects* which usually have to be covered (the
+                                Development View `CATEGORY` values):
+                                -   **Structure**:
+                                    Module Layout, Package Layout, Workspace.
+                                -   **Build**:
+                                    Compilation, Transpilation, Bundling, Packaging.
+                                -   **Dependency**:
+                                    Dependency Management, Lock File, Vulnerability Audit.
+                                -   **Codeline**:
+                                    Version Control, Branching, Merging, Versioning, Release
+                                    Tagging.
+                                -   **Standardization**:
+                                    Linting, Formatting, Type Checking, Coding Conventions.
+                                -   **Testing**:
+                                    Unit Testing, Integration Testing, End-to-End Testing,
+                                    Coverage Measurement.
+                                -   **Tooling**:
+                                    Task Running, Code Generation, Development Automation.
+
+                                The *Operate-Time Aspects* which usually have to be covered (the
+                                Operations View `CATEGORY` values):
+                                -   **Installation**:
+                                    Provisioning, Container Orchestration, Infrastructure as
+                                    Code.
+                                -   **Configuration**:
+                                    Configuration Management, Secret Management, Environment
+                                    Files.
+                                -   **Migration**:
+                                    Data Migration, Schema Migration, Environment Promotion.
+                                -   **Monitoring**:
+                                    Metrics, Health Checks, Dashboards, Tracing.
+                                -   **Logging**:
+                                    Log Collection, Log Retention, Log Inspection.
+                                -   **Alerting**:
+                                    Notification, Escalation, On-Call Paging.
+                                -   **Backup**:
+                                    Dumps, Snapshots, Backup Storage.
+                                -   **Recovery**:
+                                    Restore, Failover, Point-in-Time Recovery.
+                                -   **Upgrade**:
+                                    Rollout, Rolling Update, Rollback, Image Distribution.
+                                -   **Capacity**:
+                                    Scaling, Autoscaling, Capacity Planning.
+                                -   **Administration**:
+                                    User Administration, Data Retention, Certificate Rotation.
+                                -   **Incident**:
+                                    Troubleshooting, Diagnostics, Post-Mortem.
+                                -   **Support**:
+                                    Ticketing, Knowledge Base, Escalation.
+
+                                The *Client Aspects* which usually have to be covered (at least
+                                for clients in a Rich-Client architecture):
+
+                                -   **Interface Theme**:
+                                    Style Reset, Shape, Color, Gradient, Shadow, Font, Icon.
+                                -   **Interface Widgets**:
+                                    Icon, Label, Text Paragraph, Image, Form, Text-Field,
+                                    Text-Area, Date Picker, Toggle, Radio Button, Checkbox,
+                                    Select List, Slider, Progress Bar, Hyperlink, Popup Menu,
+                                    Dropdown Menu, Toolbar, Tooltip, Tab, Pill, Breadcrumb,
+                                    Pagination, Badge, Alert, Panel, Modal, Table, Scrollbar,
+                                    Carousel.
+                                -   **Interface Layouting**:
+                                    Responsive Design, Media Query, Frame, Grid, Padding, Border,
+                                    Margin, Alignment, Force, Magnetism.
+                                -   **Interface Effects**:
+                                    Transition, Transformation, Keyframes, Easing Function, Sound
+                                    Effect, Physics.
+                                -   **Interface Interactions**:
+                                    Mouse, Keyboard, Touchscreen, Gesture, Clipboard, Drag & Drop.
+                                -   **Interface States**:
+                                    Rendered, Enabled, Visible, Focused, Warning, Error, Floating.
+                                -   **Interface Mask**:
+                                    Markup Loading, Markup Generation, Virtual DOM, Text, Bitmaps,
+                                    Vectors, 2D/3D Canvas, Accessibility.
+                                -   **Interface Internationalization**:
+                                    Text Internationalization (I18N).
+                                -   **Data Conversion**:
+                                    Value Formatting, Value Parsing, Localization (L10N).
+                                -   **Data Binding**:
+                                    Reactive, Observer, Unidirectional, Bidirectional, Incremental.
+                                -   **Presentation Model**:
+                                    Parameter Value, Command Value, State Value, Data Value, Event
+                                    Value, Value Validation, Presentation Logic.
+                                -   **Dialog Navigation**:
+                                    Deep Linking, Routing, Dialog Flow.
+                                -   **Dialog Automation**:
+                                    Dialog Macros, Click-Through, Smoke Testing.
+                                -   **Dialog Communication**:
+                                    Service, Event, Model, Socket, Hooks.
+                                -   **Dialog Life-Cycle**:
+                                    Component States, Component State Transitions.
+                                -   **Dialog Structure**:
+                                    Component, Model/View/Controller Roles, Hierarchical
+                                    Composition.
+                                -   **State Persistence**:
+                                    Local Storage, Cookies, Caching.
+                                -   **Business Model**:
+                                    Entity, Field, Relationship, Universally Unique Identifiers
+                                    (UUID).
+                                -   **Use-Case Authorization**:
+                                    User Experience, Dialog Restriction, User, Group, Role,
+                                    Use-Case, Data, Access.
+                                -   **Client Networking**:
+                                    Request/Response, Synchronization, Push, Pull, Pulled-Push,
+                                    REST, GraphQL, Authentication, Session.
+                                -   **Environment Detection**:
+                                    Runtime Detection, Feature Detection.
+
+                                The *Server Aspects* which usually have to be covered (at least
+                                for servers, sometimes called Thin-Servers, in a Rich-Client
+                                architecture):
+
+                                -   **Environment Detection**:
+                                    Operating System, Execution Platform, Network Topology,
+                                    Feature Toggles.
+                                -   **Argument Parsing**:
+                                    CLI Options, CLI Arguments, Bootstrapping Parameters.
+                                -   **Configuration Parsing**:
+                                    Configuration File, Environment Variables, Directives.
+                                -   **Process Daemonizing**:
+                                    Terminal Detaching, Host Process Detaching, PID File.
+                                -   **Process Management**:
+                                    Pre-Forking, Child Processes, Threads, Supervision.
+                                -   **Component Management**:
+                                    Component Structure, Instantiation, Component Life-Cycle.
+                                -   **Component Communication**:
+                                    Events, Hooks, Registry, Dependency Injection.
+                                -   **Server Networking**:
+                                    Socket Listening, Connection Acceptance, Request/Response,
+                                    Messaging.
+                                -   **Peer Information**:
+                                    Peer Identification, Peer Address, User Agent.
+                                -   **Session Handling**:
+                                    Session State, Session Security, Session Expiry.
+                                -   **User Authentication**:
+                                    Identity, Credentials, Tokens, Single Sign-On.
+                                -   **Request Validation**:
+                                    Syntax Validation, Semantic Validation, Sanitizing.
+                                -   **Request Processing**:
+                                    Dispatching, Routing, Context Determination.
+                                -   **Role Authorization**:
+                                    Role, Permission, Access Control.
+                                -   **Client Networking**:
+                                    Peer Connection, Request/Response, Publish/Subscribe.
+                                -   **Task Scheduling**:
+                                    Recurring Tasks, Cron, Job Queue.
+                                -   **Execution Tracing**:
+                                    Logging, Metrics, Measurement, Tracing.
+                                -   **Database Access**:
+                                    Object-Relational Mapping, Query Building, Entity Mapping.
+                                -   **Database Connectivity**:
+                                    Driver, Connection Pooling, Local/Remote Connection.
+                                -   **Database Schema**:
+                                    Schema Creation, Schema Upgrade, Schema Downgrade.
+                                -   **Database Bootstrapping**:
+                                    Mandatory Data, Domain Data, Seeding, Fixtures.
+
+                                The *Middleware Aspects* which usually have to be covered (at
+                                least for solutions with a dedicated tier between client and
+                                server):
+
+                                -   **Message Brokering**:
+                                    Publish/Subscribe, Queues, Topics, Delivery Guarantees,
+                                    Retention.
+                                -   **Request Routing**:
+                                    API Gateway, Reverse Proxy, Path Routing, Rewriting.
+                                -   **Load Balancing**:
+                                    Distribution, Health Checks, Sticky Sessions, Failover.
+                                -   **Transport Security**:
+                                    TLS Termination, Certificates, Mutual TLS, Firewalling.
+                                -   **Content Caching**:
+                                    Response Caching, Content Delivery, Compression.
+                                -   **Traffic Control**:
+                                    Rate Limiting, Throttling, Circuit Breaking, Retry.
+                                -   **Service Discovery**:
+                                    Registry, Naming, Configuration Distribution.
+                                -   **Identity Federation**:
+                                    OAuth, OpenID Connect, SAML, Token Exchange.
+
+                                The *Database Aspects* which usually have to be covered (at
+                                least for solutions with a data store of their own):
+
+                                -   **Storage Engine**:
+                                    Row Store, Column Store, Document Store, Key-Value Store,
+                                    Graph Store, Time Series, Binary Assets.
+                                -   **Transaction Management**:
+                                    ACID, Isolation Levels, Locking, Multi-Version Concurrency.
+                                -   **Query Language**:
+                                    SQL, Query DSL, Stored Procedures, Views.
+                                -   **Indexing**:
+                                    B-Tree, Hash, Full-Text Search, Geospatial, Vector.
+                                -   **Replication**:
+                                    Primary/Replica, Multi-Primary, Failover, Sharding.
+                                -   **Database Security**:
+                                    Encryption at Rest, Access Control, Auditing.
+
+                            value: tags(Structure,Build,Dependency,Codeline,Standardization,Testing,Tooling,
+                                Installation,Configuration,Migration,Monitoring,Logging,Alerting,Backup,
+                                Recovery,Upgrade,Capacity,Administration,Incident,Support,
+                                "Interface Theme","Interface Widgets","Interface Layouting","Interface Effects",
+                                "Interface Interactions","Interface States","Interface Mask",
+                                "Interface Internationalization","Data Conversion","Data Binding",
+                                "Presentation Model","Dialog Navigation","Dialog Automation",
+                                "Dialog Communication","Dialog Life-Cycle","Dialog Structure",
+                                "State Persistence","Business Model","Use-Case Authorization",
+                                "Client Networking","Environment Detection",
+                                "Argument Parsing","Configuration Parsing","Process Daemonizing",
+                                "Process Management","Component Management","Component Communication",
+                                "Server Networking","Peer Information","Session Handling",
+                                "User Authentication","Request Validation","Request Processing",
+                                "Role Authorization","Task Scheduling","Execution Tracing",
+                                "Database Access","Database Connectivity","Database Schema",
+                                "Database Bootstrapping",
+                                "Message Brokering","Request Routing","Load Balancing","Transport Security",
+                                "Content Caching","Traffic Control","Service Discovery","Identity Federation",
+                                "Storage Engine","Transaction Management","Query Language","Indexing",
+                                "Replication","Database Security")
+                            optional: true
+                        -   name: DECIDED-BY
+                            desc: >
+                                Reference to the DECISION-RECORD object which chose the product over
+                                its alternatives; omitted when the choice qualifies for no decision
+                                record.
+                            value: "[[ARCH:DR.DECISION:*]]"
+                            optional: true
+                        -   name: USED-BY
+                            desc: >
+                                Comma-separated references to the FUNCTIONALITY-VIEW objects using
+                                the product, the path along which a Deployment View node reaches
+                                the products running on it and along which swapping the product is
+                                impact-analyzed; omitted for a component not tied to particular
+                                functional components (e.g. a language or a build tool used by
+                                all).
+                            value: list([[ARCH:FV.COMPONENT:*]])
                             optional: true
 
 

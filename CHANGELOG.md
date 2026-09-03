@@ -5,6 +5,11 @@ ChangeLog
 1.1.1 (2026-09-02)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Technology Stack Delineation
+    The standard "Technology Stack" opens the tier names (adding "Common"), renames "WHEN" to the
+    mandatory tags "PHASE", constrains a phase-aware "COVERAGE", and gains "LICENSE", "DECIDED-BY",
+    and "USED-BY".
+
 -   IMPROVEMENT [code, othr]: Quality Perspectives Delineation
     The standard "Quality Perspectives" delineates its scope, renames "PERSPECTIVE" to "TACTIC" with
     "MECHANISM", gains "TRADES-OFF", "DECIDED-BY", and "TOOLS", widens "AFFECTS", swaps "Compliance"

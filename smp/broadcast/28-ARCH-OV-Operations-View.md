@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-03 10:00
+Modified: 2026-09-03 14:30
 ---
 
 ARCH: Operations View (OV)
@@ -62,7 +62,7 @@ be detected while the audience is still online.
 -   TRIGGER:   on reported login failures
 -   OPERATOR:  [[UP.administrator]]
 -   ELEMENTS:  [[FV.auth]]
--   TOOLS:     [[TS.Server.server-logging]]
+-   TOOLS:     [[TS.Common.logging]]
 
 Reported attendee login failures are diagnosed from the recorded token
 states (issued, sent, used) and the server log, BECAUSE operators must
@@ -89,7 +89,7 @@ to 10000 require capacity provisioned per environment.
 -   OPERATOR:  [[UP.administrator]]
 -   ADDRESSES: [[NR.gdpr]]
 -   ELEMENTS:  [[DP.database]], [[DM.Event]]
--   TOOLS:     [[TS.Server.database-backup]]
+-   TOOLS:     [[TS.Database.database-backup]]
 
 The PostgreSQL database and the filesystem assets are dumped nightly and
 before each event onto the backup storage of the same data center,
@@ -102,7 +102,7 @@ EU hosting boundary.
 -   TRIGGER:   on database loss
 -   OPERATOR:  [[UP.administrator]]
 -   ELEMENTS:  [[DP.database]], [[DP.service]]
--   TOOLS:     [[TS.Server.database-backup]], [[TS.Server.container-orchestration]]
+-   TOOLS:     [[TS.Database.database-backup]], [[TS.Server.container-orchestration]]
 
 A lost database is rebuilt from the latest dump onto a fresh database
 server and the service containers are recreated against it, BECAUSE the
