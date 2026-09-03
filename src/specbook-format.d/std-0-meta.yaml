@@ -47,8 +47,8 @@
 #   | ARCH: Context View                |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Functionality View          |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Technology Stack            |     |      |      |     |     |      |     |  X  |
-#   | ARCH: Concurrency View            |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Development View            |     |      |      |     |     |      |     |  X  |
+#   | ARCH: Concurrency View            |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Deployment View             |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Operations View             |     |      |      |     |     |      |     |  X  |
 #   | ARCH: Quality Perspectives        |     |      |      |     |     |      |     |  X  |

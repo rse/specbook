@@ -80,6 +80,13 @@ export const watchSpecification = async (
     const watcher = watch(observed, { ignoreInitial: true })
     verbose(`observing ${literal(observed.length)} specification file(s) for changes`)
 
+    /*  report the failures of the observation itself, as an unhandled
+        "error" event would otherwise terminate the process  */
+    watcher.on("error", (err: unknown) => {
+        verbose("observing failed: " +
+            (err instanceof Error ? err.message : String(err)), "notice")
+    })
+
     /*  perform a re-export and re-synchronize the observed files  */
     const cycle = async () => {
         const files = await run()

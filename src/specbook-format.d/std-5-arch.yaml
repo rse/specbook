@@ -572,9 +572,56 @@
                             optional: true
 
 -   kind: ARCH
+    name: Development View
+    id: DV
+    file: 25-ARCH-DV-Development-View.md
+    desc: >
+        The architecture supporting the software development process, defining the module
+        organization, build approach, and codeline conventions. The artifact is absent when the
+        development conventions are governed outside the specification (e.g. by repository-level
+        contributor instructions).
+    optional: true
+    refs: >
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Development Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/development/
+        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
+            https://ieeexplore.ieee.org/document/469759
+        -   Clements et al.: Documenting Software Architectures: Views and Beyond, 2nd ed. (2010),
+            https://www.informit.com/store/documenting-software-architectures-views-and-beyond-9780321552686
+    diagram:
+        type: grid
+        nodes: "[[ARCH:DV.ASPECT:*]]"
+        properties:
+            -   CATEGORY
+    childs:
+        -   kind: ASPECT
+            desc: >
+                A single development aspect, named with a short (2-5 word) summary (e.g. `Module
+                Layering`, `Build Pipeline`, `Branching Model`) and described in a concise (1-3
+                sentence) paragraph by the development convention or structure and the rule
+                developers must follow, plus a 1-sentence rationale ("why").
+
+                An aspect states a standing developer-facing rule about the source structure and
+                process: it names no concrete products (a Technology Stack `Build-Time` component
+                states the product choice), does not restate the runtime structure (a Functionality
+                View `Module` or `Subsystem` groups the logic), does not cover production
+                procedures (an Operations View concern does), and the trade-off that produced a
+                rule is a Decision Record referencing the aspect through `AFFECTS`.
+            props:
+                -   name: CATEGORY
+                    desc: >
+                        The development concern the aspect governs: `Structure` (the physical
+                        source module/package layout), `Build` (compilation and packaging),
+                        `Dependency` (the allowed dependency edges between the structures),
+                        `Codeline` (branching, merging, versioning), `Standardization` (coding
+                        standards and conventions), `Testing` (test conventions, layout, and
+                        coverage rules), or `Tooling` (development tools and automation).
+                    value: enum(Structure,Build,Dependency,Codeline,Standardization,Testing,Tooling)
+
+-   kind: ARCH
     name: Concurrency View
     id: CO
-    file: 25-ARCH-CO-Concurrency-View.md
+    file: 26-ARCH-CO-Concurrency-View.md
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
         threads, and defining how they coordinate and communicate. The artifact is absent when the
@@ -663,53 +710,6 @@
                         The mechanism by which the unit coordinates or communicates with other
                         units, usually those referenced in `COORDINATES-WITH` (e.g. `shared
                         queue`, `mutex`, `message passing`, `optimistic locking`).
-
--   kind: ARCH
-    name: Development View
-    id: DV
-    file: 26-ARCH-DV-Development-View.md
-    desc: >
-        The architecture supporting the software development process, defining the module
-        organization, build approach, and codeline conventions. The artifact is absent when the
-        development conventions are governed outside the specification (e.g. by repository-level
-        contributor instructions).
-    optional: true
-    refs: >
-        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Development Viewpoint (2011),
-            https://www.viewpoints-and-perspectives.info/home/viewpoints/development/
-        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
-            https://ieeexplore.ieee.org/document/469759
-        -   Clements et al.: Documenting Software Architectures: Views and Beyond, 2nd ed. (2010),
-            https://www.informit.com/store/documenting-software-architectures-views-and-beyond-9780321552686
-    diagram:
-        type: grid
-        nodes: "[[ARCH:DV.ASPECT:*]]"
-        properties:
-            -   CATEGORY
-    childs:
-        -   kind: ASPECT
-            desc: >
-                A single development aspect, named with a short (2-5 word) summary (e.g. `Module
-                Layering`, `Build Pipeline`, `Branching Model`) and described in a concise (1-3
-                sentence) paragraph by the development convention or structure and the rule
-                developers must follow, plus a 1-sentence rationale ("why").
-
-                An aspect states a standing developer-facing rule about the source structure and
-                process: it names no concrete products (a Technology Stack `Build-Time` component
-                states the product choice), does not restate the runtime structure (a Functionality
-                View `Module` or `Subsystem` groups the logic), does not cover production
-                procedures (an Operations View concern does), and the trade-off that produced a
-                rule is a Decision Record referencing the aspect through `AFFECTS`.
-            props:
-                -   name: CATEGORY
-                    desc: >
-                        The development concern the aspect governs: `Structure` (the physical
-                        source module/package layout), `Build` (compilation and packaging),
-                        `Dependency` (the allowed dependency edges between the structures),
-                        `Codeline` (branching, merging, versioning), `Standardization` (coding
-                        standards and conventions), `Testing` (test conventions, layout, and
-                        coverage rules), or `Tooling` (development tools and automation).
-                    value: enum(Structure,Build,Dependency,Codeline,Standardization,Testing,Tooling)
 
 -   kind: ARCH
     name: Deployment View
@@ -992,8 +992,8 @@
                 an administrating one) is a Functional Requirement or Use Case, an automatic
                 behavior of the solution is a Domain Rule, the design tactic making the solution
                 operable (e.g. replication, statelessness) is a Quality Perspectives tactic
-                referenced through `OPERATES`, the deployment shape acted upon (instances,
-                environments) is the
+                referencing the concern through `OPERATED-BY`, the deployment shape acted upon
+                (instances, environments) is the
                 Deployment View, the pipeline producing the deployable artifact is a Development
                 View `Build` aspect, and the products used are Technology Stack `Operate-Time`
                 components referenced through `TOOLS` -- only the procedure itself, its trigger,
@@ -1055,13 +1055,6 @@
                         omitted when the concern fulfills no stated requirement.
                     value: list([[REQS:NR.*]])
                     optional: true
-                -   name: OPERATES
-                    desc: >
-                        Comma-separated references to the QUALITY-PERSPECTIVES objects whose design
-                        mechanism the procedure acts upon (e.g. the replication scaled out, the
-                        backup restored); omitted when the procedure operates no modeled tactic.
-                    value: list([[ARCH:QP.TACTIC:*]])
-                    optional: true
                 -   name: ELEMENTS
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW,
@@ -1115,8 +1108,8 @@
                 A tactic states a design mechanism built into the solution: the threshold the
                 mechanism has to meet is the `METRIC` of the addressed Non-Functional Requirement
                 and is not restated, the production procedure performed against the mechanism
-                (e.g. scaling out, restoring) is an Operations View concern referencing the tactic
-                through `OPERATES`, the trade-off that chose the mechanism over alternatives is a
+                (e.g. scaling out, restoring) is an Operations View concern referenced through
+                `OPERATED-BY`, the trade-off that chose the mechanism over alternatives is a
                 Decision Record referencing the tactic through `DECIDES`, the product realizing the
                 mechanism is a Technology Stack component referenced through `TOOLS`, the
                 developer-facing rule about the source structure is a Development View aspect, and
@@ -1128,7 +1121,7 @@
                 center: self
                 nodes: "[[ARCH:QP.TACTIC:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]],
                     [[ARCH:CO.UNIT:*]], [[ARCH:DV.ASPECT:*]], [[ARCH:DP.NODE:*]], [[DATA:DM.ENTITY:*]],
-                    [[DECS:DR.DECISION:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                    [[ARCH:OV.CONCERN:*]], [[DECS:DR.DECISION:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1181,6 +1174,14 @@
                     value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DV.ASPECT:*]],
                         [[ARCH:DP.TIER:*]], [[ARCH:DP.AREA:*]], [[ARCH:DP.NODE:*]], [[ARCH:DP.NETWORK:*]],
                         [[DATA:DM.ENTITY:*]], [[DATA:AM.ROLE:*]], [[APIS:IM.INTERFACE:*]])
+                    optional: true
+                -   name: OPERATED-BY
+                    desc: >
+                        Comma-separated references to the OPERATIONS-VIEW objects whose procedure
+                        acts upon the design mechanism of the tactic (e.g. the scaling out of the
+                        replication, the restoring of the backup); omitted when no modeled procedure
+                        operates the tactic.
+                    value: list([[ARCH:OV.CONCERN:*]])
                     optional: true
                 -   name: TOOLS
                     desc: >

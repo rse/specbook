@@ -9,7 +9,7 @@ import { Gradia }
 
 import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
-import type { Schema, SchemaDiagram }
+import type { Schema, SchemaDiagram, SchemaDiagramCenterEdges }
     from "./specbook-format-schema.js"
 import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths,
     expandReferences, plainText, type LinkIndex }
@@ -300,6 +300,116 @@ const resolvePatterns = (index: LinkIndex, errors: DiagramError[],
     return matches
 }
 
+/*  the center of a "hub" diagram: the center object plus, for a
+    synthetic center, the URL of its source object  */
+interface DiagramCenter {
+    center:     SpecObject
+    centerUrl?: string
+}
+
+/*  determine the center object of a "hub" diagram: the current
+    object for the default "self" configuration, the uniquely
+    resolved object of an explicit "[[...]]" reference, or a fresh
+    synthetic node for the object configuration, labeled from a
+    referenced source object (or one of its properties) or a
+    literal text and linked to the source object (the solution
+    itself, e.g., is no specification object, yet a context
+    diagram places it in the middle) and injected into the node
+    set (the center is absent whenever the configuration is invalid)  */
+const deriveCenter = (object: SpecObject, diagram: SchemaDiagram,
+    nodes: SpecObject[], nodeSet: Set<SpecObject>, index: LinkIndex,
+    anchors: Map<SpecObject, string>, errors: DiagramError[]): DiagramCenter | undefined => {
+    if (typeof diagram.center === "string" && diagram.center !== "self") {
+        const reference = diagram.center.match(referenceOnce)?.[1].trim()
+        const resolved  = reference !== undefined ? resolveUnique(index, reference, object) : undefined
+        if (resolved?.target === undefined) {
+            errors.push({ reason: (resolved?.ambiguous === true ? "ambiguous" : "unresolvable") +
+                ` diagram "center" reference "${diagram.center}"` })
+            return undefined
+        }
+        return { center: resolved.target }
+    }
+    else if (typeof diagram.center === "object") {
+        const centerCfg = diagram.center
+        let   label     = centerCfg.label
+        let   centerUrl: string | undefined
+        if (centerCfg.property !== undefined && centerCfg.source === undefined) {
+            errors.push({ reason: "diagram \"center\" property requires a \"source\" reference" })
+            return undefined
+        }
+        if (centerCfg.source !== undefined) {
+            const reference = centerCfg.source.match(referenceOnce)?.[1].trim()
+            const resolved  = reference !== undefined ? resolveUnique(index, reference, object) : undefined
+            const source    = resolved?.target
+            if (source === undefined) {
+                errors.push({ reason: (resolved?.ambiguous === true ? "ambiguous" : "unresolvable") +
+                    ` diagram "center" source reference "${centerCfg.source}"` })
+                return undefined
+            }
+            centerUrl = `#${anchors.get(source) ?? source.id}`
+            if (centerCfg.property !== undefined) {
+                const value = source.properties.find((property) =>
+                    property.key === centerCfg.property)?.value
+                if (value === undefined) {
+                    errors.push({ reason:
+                        `diagram "center" source lacks the property "${centerCfg.property}"` })
+                    return undefined
+                }
+                label = plainText(expandReferences(value, (ref) =>
+                    resolveUnique(index, ref, source).target?.name ?? ref))
+            }
+            else if (label === undefined)
+                label = plainText(source.name)
+        }
+        if (label === undefined) {
+            errors.push({ reason: "diagram \"center\" configuration yields no label" })
+            return undefined
+        }
+
+        /*  inject the synthetic center node into the node set, with a
+            collision-free id ("@" never occurs in an anchor path)  */
+        const center: SpecObject = { kind: centerCfg.kind ?? "",
+            id: `${anchors.get(object) ?? object.id}-@center`, name: label, properties: [], childs: [] }
+        nodes.unshift(center)
+        nodeSet.add(center)
+        return { center, centerUrl }
+    }
+    return { center: object }
+}
+
+/*  synthesize the center edges of a "hub" diagram from the
+    direction property of the node objects: the "inbound" value
+    maps onto a node-to-center edge, the "outbound" value onto a
+    center-to-node edge, and the "both" value onto both (which
+    Gradia renders as an input node plus an output "ghost" node)  */
+const deriveCenterEdges = (cfg: SchemaDiagramCenterEdges, nodes: SpecObject[],
+    center: SpecObject, index: LinkIndex, errors: DiagramError[]): DiagramEdge[] => {
+    const edges = new Array<DiagramEdge>()
+    for (const node of nodes) {
+        if (node === center)
+            continue
+        const value    = node.properties.find((property) => property.key === cfg.property)?.value
+        const inbound  = cfg.inbound  !== undefined && value === cfg.inbound
+        const outbound = cfg.outbound !== undefined && value === cfg.outbound
+        const both     = cfg.both     !== undefined && value === cfg.both
+        if (!inbound && !outbound && !both) {
+            errors.push({ object: node, reason: value === undefined ?
+                `lacks the diagram "centerEdges" property "${cfg.property}"` :
+                `carries the unmapped diagram "centerEdges" value "${value}"` })
+            continue
+        }
+        const label = cfg.labeled !== undefined ?
+            node.properties.find((property) => property.key === cfg.labeled)?.value : undefined
+        const name  = label !== undefined ? plainText(expandReferences(label, (reference) =>
+            resolveUnique(index, reference, node).target?.name ?? reference)) : undefined
+        if (inbound || both)
+            edges.push({ source: node, target: center, name })
+        if (outbound || both)
+            edges.push({ source: center, target: node, name })
+    }
+    return edges
+}
+
 /*  derive the Gradia spec of a single object from its "diagram:"
     schema configuration (the returned spec is absent whenever the
     configured diagram situation is invalid)  */
@@ -331,107 +441,24 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     /*  derive the (deduplicated) edges of the diagram  */
     let edges = deriveEdges(diagram, type, nodes, nodeSet, edgeObjects, index, anchors, parents, errors)
 
-    /*  determine the center object of a "hub" diagram: the current
-        object for the default "self" configuration, the uniquely
-        resolved object of an explicit "[[...]]" reference, or a fresh
-        synthetic node for the object configuration, labeled from a
-        referenced source object (or one of its properties) or a
-        literal text and linked to the source object (the solution
-        itself, e.g., is no specification object, yet a context
-        diagram places it in the middle)  */
-    let center    = object
-    let centerUrl: string | undefined
+    /*  determine the center of a "hub" diagram (the only shape
+        carrying a center at all)  */
     if (type !== "hub") {
         if (diagram.center !== undefined)
             errors.push({ reason: `"${type}" diagram cannot carry a "center" configuration` })
         if (diagram.centerEdges !== undefined)
             errors.push({ reason: `"${type}" diagram cannot carry a "centerEdges" configuration` })
     }
-    else if (typeof diagram.center === "string" && diagram.center !== "self") {
-        const reference = diagram.center.match(referenceOnce)?.[1].trim()
-        const resolved  = reference !== undefined ? resolveUnique(index, reference, object) : undefined
-        if (resolved?.target === undefined) {
-            errors.push({ reason: (resolved?.ambiguous === true ? "ambiguous" : "unresolvable") +
-                ` diagram "center" reference "${diagram.center}"` })
-            return { errors }
-        }
-        center = resolved.target
-    }
-    else if (typeof diagram.center === "object") {
-        const centerCfg = diagram.center
-        let   label     = centerCfg.label
-        if (centerCfg.property !== undefined && centerCfg.source === undefined) {
-            errors.push({ reason: "diagram \"center\" property requires a \"source\" reference" })
-            return { errors }
-        }
-        if (centerCfg.source !== undefined) {
-            const reference = centerCfg.source.match(referenceOnce)?.[1].trim()
-            const resolved  = reference !== undefined ? resolveUnique(index, reference, object) : undefined
-            const source    = resolved?.target
-            if (source === undefined) {
-                errors.push({ reason: (resolved?.ambiguous === true ? "ambiguous" : "unresolvable") +
-                    ` diagram "center" source reference "${centerCfg.source}"` })
-                return { errors }
-            }
-            centerUrl = `#${anchors.get(source) ?? source.id}`
-            if (centerCfg.property !== undefined) {
-                const value = source.properties.find((property) =>
-                    property.key === centerCfg.property)?.value
-                if (value === undefined) {
-                    errors.push({ reason:
-                        `diagram "center" source lacks the property "${centerCfg.property}"` })
-                    return { errors }
-                }
-                label = plainText(expandReferences(value, (ref) =>
-                    resolveUnique(index, ref, source).target?.name ?? ref))
-            }
-            else if (label === undefined)
-                label = plainText(source.name)
-        }
-        if (label === undefined) {
-            errors.push({ reason: "diagram \"center\" configuration yields no label" })
-            return { errors }
-        }
+    const derived: DiagramCenter | undefined = type === "hub" ?
+        deriveCenter(object, diagram, nodes, nodeSet, index, anchors, errors) : { center: object }
+    if (derived === undefined)
+        return { errors }
+    const { center, centerUrl } = derived
 
-        /*  inject the synthetic center node into the node set, with a
-            collision-free id ("@" never occurs in an anchor path)  */
-        center = { kind: centerCfg.kind ?? "", id: `${anchors.get(object) ?? object.id}-@center`,
-            name: label, properties: [], childs: [] }
-        nodes.unshift(center)
-        nodeSet.add(center)
-    }
-
-    /*  synthesize the center edges of a "hub" diagram from the
-        direction property of the node objects: the "inbound" value
-        maps onto a node-to-center edge, the "outbound" value onto a
-        center-to-node edge, and the "both" value onto both (which
-        Gradia renders as an input node plus an output "ghost" node),
-        as the nodes carry no "[[...]]" reference to a synthetic center  */
-    if (type === "hub" && diagram.centerEdges !== undefined) {
-        const cfg = diagram.centerEdges
-        for (const node of nodes) {
-            if (node === center)
-                continue
-            const value    = node.properties.find((property) => property.key === cfg.property)?.value
-            const inbound  = cfg.inbound  !== undefined && value === cfg.inbound
-            const outbound = cfg.outbound !== undefined && value === cfg.outbound
-            const both     = cfg.both     !== undefined && value === cfg.both
-            if (!inbound && !outbound && !both) {
-                errors.push({ object: node, reason: value === undefined ?
-                    `lacks the diagram "centerEdges" property "${cfg.property}"` :
-                    `carries the unmapped diagram "centerEdges" value "${value}"` })
-                continue
-            }
-            const label = cfg.labeled !== undefined ?
-                node.properties.find((property) => property.key === cfg.labeled)?.value : undefined
-            const name  = label !== undefined ? plainText(expandReferences(label, (reference) =>
-                resolveUnique(index, reference, node).target?.name ?? reference)) : undefined
-            if (inbound || both)
-                edges.push({ source: node, target: center, name })
-            if (outbound || both)
-                edges.push({ source: center, target: node, name })
-        }
-    }
+    /*  synthesize the center edges of a "hub" diagram, as the nodes
+        carry no "[[...]]" reference to a synthetic center  */
+    if (type === "hub" && diagram.centerEdges !== undefined)
+        edges.push(...deriveCenterEdges(diagram.centerEdges, nodes, center, index, errors))
 
     /*  a "hub" diagram is the hub-projection onto its center object:
         only the edges incident to the center and only the nodes
@@ -518,10 +545,11 @@ let svgCache = new Map<string, string>()
 
 /*  render the Gradia specs of all diagram-configured objects of a
     specification into embeddable SVGs (a runtime rendering failure omits
-    the diagram, as the statically detectable invalid situations are
-    already reported as lint diagnostics), served from the cache where
-    possible, which is afterwards swept to the diagrams of this very
-    rendering, so it never grows beyond a single document  */
+    the diagram and is surfaced as a notice only, as the statically
+    detectable invalid situations are already reported as lint
+    diagnostics), served from the cache where possible, which is
+    afterwards swept to the diagrams of this very rendering, so it never
+    grows beyond a single document  */
 export const renderDiagrams = async (specification: Spec, config: Schema,
     verbose?: Verbose): Promise<Map<SpecObject, DiagramResult & { svg: string }>> => {
     const cache    = new Map<string, string>()
@@ -539,7 +567,9 @@ export const renderDiagrams = async (specification: Spec, config: Schema,
                 svg = await Gradia.render(result.spec,
                     { format: "svg:embedded", config: result.config })
             }
-            catch {
+            catch (err) {
+                verbose?.(`rendering diagram of ${object.kind} "${object.name}" failed: ` +
+                    (err instanceof Error ? err.message : String(err)), "notice")
                 continue
             }
         }

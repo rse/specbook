@@ -5,6 +5,14 @@ ChangeLog
 1.2.0 (2026-09-03)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Development View Position
+    The standard "Development View" moves directly behind the "Technology Stack", so that the
+    build-time views precede the runtime views "Concurrency", "Deployment", and "Operations".
+
+-   IMPROVEMENT [code, othr]: Operated Tactics Reference
+    The Operations View concern "OPERATES" becomes the Quality Perspectives tactic "OPERATED-BY",
+    so that the reference between the two views becomes a backward reference.
+
 -   IMPROVEMENT [code, othr]: Technology Stack Position
     The standard "Technology Stack" moves directly behind the "Functionality View", so that the
     "STACK" and "TOOLS" references of the later architecture views become backward references.

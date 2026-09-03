@@ -42,6 +42,7 @@ export const renderDiagnosticVerbose = (diagnostic: Diagnostic, colors = false):
     }
     if (code === "")
         return `${renderDiagnostic(diagnostic)}\n`
-    return sourceCodeError({ message: renderMessage(diagnostic), filename: diagnostic.file,
+    return sourceCodeError({ type: diagnostic.severity === "warning" ? "WARNING" : "ERROR",
+        message: diagnostic.message, filename: diagnostic.file,
         code, line: diagnostic.line, column: diagnostic.column, colors })
 }

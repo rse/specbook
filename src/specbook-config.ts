@@ -107,6 +107,98 @@ const posOfMergedPath = (docs: ConfigDoc[], merged: unknown, path: YamlPath) => 
         path: best.depth === path.length ? best.path : path }
 }
 
+/*  the sink of the constraint diagnostics, positioned by a path into
+    the merged configuration  */
+type Diagnose = (path: YamlPath, message: string) => void
+
+/*  check the properties of an object: the value expressions have to be
+    syntactically valid, the relation shape flags apply to
+    reference-valued properties only, and the sibling marker flags
+    optionally carry a regexp or enum expression  */
+const checkProperties = (props: SchemaProperty[], at: YamlPath, diagnose: Diagnose) => {
+    for (const [ j, prop ] of props.entries()) {
+        /*  the relation shape flags apply to reference-valued
+            properties only (an invalid expression is reported on
+            its own, without a cascading flag diagnostic)  */
+        let expr: ValueExpr | undefined
+        if (prop.value !== undefined) {
+            try {
+                expr = compileValueExpr(prop.value)
+            }
+            catch (err) {
+                diagnose([ ...at, "props", j, "value" ],
+                    `invalid value expression "${prop.value}": ` +
+                        (err instanceof Error ? err.message : String(err)))
+                continue
+            }
+        }
+        for (const flag of [ "local", "symmetric", "acyclic" ] as const)
+            if (prop[flag] === true && (expr === undefined || !admitsReferences(expr)))
+                diagnose([ ...at, "props", j, flag ],
+                    `"${flag}" flag requires a reference-valued property`)
+
+        /*  the sibling marker flags optionally carry a regexp or
+            enum expression selecting the values they apply to  */
+        for (const flag of [ "unique", "present" ] as const) {
+            const marker = prop[flag]
+            if (typeof marker !== "string")
+                continue
+            let kind: ValueExpr["kind"] | undefined
+            try {
+                kind = compileValueExpr(marker).kind
+            }
+            catch (err) {
+                diagnose([ ...at, "props", j, flag ],
+                    `invalid "${flag}" expression "${marker}": ` +
+                        (err instanceof Error ? err.message : String(err)))
+            }
+            if (kind !== undefined && kind !== "regex" && kind !== "enum")
+                diagnose([ ...at, "props", j, flag ],
+                    `"${flag}" expression "${marker}" is neither a regexp nor an enum`)
+        }
+    }
+}
+
+/*  check the automaton of an object (if any): it names the child kinds
+    acting as nodes and edges, the reference-valued edge properties
+    referencing the source and target nodes, and the node properties
+    flagging the initial and final nodes  */
+const checkAutomaton = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) => {
+    if (object.automaton === undefined)
+        return
+    const automaton = object.automaton
+    const childOf   = (kind: string) => (object.childs ?? []).find((c) => c.kind === kind)
+    const propOf    = (child: SchemaObject | undefined, name: string) =>
+        (child?.props ?? []).find((p) => p.name === name)
+    const isReference = (prop: SchemaProperty) => {
+        try {
+            return prop.value !== undefined && admitsReferences(compileValueExpr(prop.value))
+        }
+        catch {
+            return false
+        }
+    }
+    const nodes = childOf(automaton.nodes)
+    const edges = childOf(automaton.edges)
+    for (const [ field, child ] of [ [ "nodes", nodes ], [ "edges", edges ] ] as const)
+        if (child === undefined)
+            diagnose([ ...at, "automaton", field ],
+                `"automaton" ${field} kind "${automaton[field]}" is not a child object kind`)
+    for (const field of [ "source", "target" ] as const) {
+        const prop = propOf(edges, automaton[field])
+        if (edges !== undefined && prop === undefined)
+            diagnose([ ...at, "automaton", field ],
+                `"automaton" ${field} property "${automaton[field]}" is not a property of "${automaton.edges}"`)
+        else if (prop !== undefined && !isReference(prop))
+            diagnose([ ...at, "automaton", field ],
+                `"automaton" ${field} property "${automaton[field]}" is not reference-valued`)
+    }
+    for (const field of [ "initial", "final" ] as const)
+        if (nodes !== undefined && propOf(nodes, automaton[field]) === undefined)
+            diagnose([ ...at, "automaton", field ],
+                `"automaton" ${field} property "${automaton[field]}" is not a property of "${automaton.nodes}"`)
+}
+
 /*  check the constraints of a structurally valid configuration which
     are beyond its schema: sibling objects have to stay distinctly
     resolvable, "file" fields are allowed on the first (artifact) level
@@ -140,84 +232,8 @@ const checkConstraints = (
             if (depth > 1 && object.file !== undefined)
                 diagnose([ ...at, "file" ],
                     `"file" field is only allowed on the first (artifact) level (found on level ${depth})`)
-            for (const [ j, prop ] of (object.props ?? []).entries()) {
-                /*  the relation shape flags apply to reference-valued
-                    properties only (an invalid expression is reported on
-                    its own, without a cascading flag diagnostic)  */
-                let expr: ValueExpr | undefined
-                if (prop.value !== undefined) {
-                    try {
-                        expr = compileValueExpr(prop.value)
-                    }
-                    catch (err) {
-                        diagnose([ ...at, "props", j, "value" ],
-                            `invalid value expression "${prop.value}": ` +
-                                (err instanceof Error ? err.message : String(err)))
-                        continue
-                    }
-                }
-                for (const flag of [ "local", "symmetric", "acyclic" ] as const)
-                    if (prop[flag] === true && (expr === undefined || !admitsReferences(expr)))
-                        diagnose([ ...at, "props", j, flag ],
-                            `"${flag}" flag requires a reference-valued property`)
-
-                /*  the sibling marker flags optionally carry a regexp or
-                    enum expression selecting the values they apply to  */
-                for (const flag of [ "unique", "present" ] as const) {
-                    const marker = prop[flag]
-                    if (typeof marker !== "string")
-                        continue
-                    let kind: ValueExpr["kind"] | undefined
-                    try {
-                        kind = compileValueExpr(marker).kind
-                    }
-                    catch (err) {
-                        diagnose([ ...at, "props", j, flag ],
-                            `invalid "${flag}" expression "${marker}": ` +
-                                (err instanceof Error ? err.message : String(err)))
-                    }
-                    if (kind !== undefined && kind !== "regex" && kind !== "enum")
-                        diagnose([ ...at, "props", j, flag ],
-                            `"${flag}" expression "${marker}" is neither a regexp nor an enum`)
-                }
-            }
-            if (object.automaton !== undefined) {
-                /*  an automaton names the child kinds acting as nodes and
-                    edges, the reference-valued edge properties referencing
-                    the source and target nodes, and the node properties
-                    flagging the initial and final nodes  */
-                const automaton = object.automaton
-                const childOf   = (kind: string) => (object.childs ?? []).find((c) => c.kind === kind)
-                const propOf    = (child: SchemaObject | undefined, name: string) =>
-                    (child?.props ?? []).find((p) => p.name === name)
-                const isReference = (prop: SchemaProperty) => {
-                    try {
-                        return prop.value !== undefined && admitsReferences(compileValueExpr(prop.value))
-                    }
-                    catch {
-                        return false
-                    }
-                }
-                const nodes = childOf(automaton.nodes)
-                const edges = childOf(automaton.edges)
-                for (const [ field, child ] of [ [ "nodes", nodes ], [ "edges", edges ] ] as const)
-                    if (child === undefined)
-                        diagnose([ ...at, "automaton", field ],
-                            `"automaton" ${field} kind "${automaton[field]}" is not a child object kind`)
-                for (const field of [ "source", "target" ] as const) {
-                    const prop = propOf(edges, automaton[field])
-                    if (edges !== undefined && prop === undefined)
-                        diagnose([ ...at, "automaton", field ],
-                            `"automaton" ${field} property "${automaton[field]}" is not a property of "${automaton.edges}"`)
-                    else if (prop !== undefined && !isReference(prop))
-                        diagnose([ ...at, "automaton", field ],
-                            `"automaton" ${field} property "${automaton[field]}" is not reference-valued`)
-                }
-                for (const field of [ "initial", "final" ] as const)
-                    if (nodes !== undefined && propOf(nodes, automaton[field]) === undefined)
-                        diagnose([ ...at, "automaton", field ],
-                            `"automaton" ${field} property "${automaton[field]}" is not a property of "${automaton.nodes}"`)
-            }
+            checkProperties(object.props ?? [], at, diagnose)
+            checkAutomaton(object, at, diagnose)
             for (const [ j, entry ] of (object.referenced ?? []).entries()) {
                 /*  a reference coverage entry has to be a single
                     (usually wildcard) reference expression  */

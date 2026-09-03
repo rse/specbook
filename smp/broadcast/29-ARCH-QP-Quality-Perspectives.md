@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-03 18:05
+Modified: 2026-09-03 22:55
 ---
 
 ARCH: Quality Perspectives (QP)
@@ -8,12 +8,13 @@ ARCH: Quality Perspectives (QP)
 
 ##  TACTIC: Connection Scaling {{connection-scaling}}
 
--   QUALITY:    Scalability
--   ADDRESSES:  [[NR.attendee-scale]], [[NR.scalability]]
--   MECHANISM:  stateless proxy and relay pools behind a round-robin router
--   TRADES-OFF: Maintainability
--   AFFECTS:    [[FV.proxy]], [[FV.relay]], [[CO.relay-pool]], [[DP.proxy]], [[DP.relay]]
--   TOOLS:      [[TS.Server.container-orchestration]]
+-   QUALITY:     Scalability
+-   ADDRESSES:   [[NR.attendee-scale]], [[NR.scalability]]
+-   MECHANISM:   stateless proxy and relay pools behind a round-robin router
+-   TRADES-OFF:  Maintainability
+-   AFFECTS:     [[FV.proxy]], [[FV.relay]], [[CO.relay-pool]], [[DP.proxy]], [[DP.relay]]
+-   OPERATED-BY: [[OV.scaling]]
+-   TOOLS:       [[TS.Server.container-orchestration]]
 
 The proxy and relay tiers scale horizontally as stateless pools so connection load distributes across instances per
 environment, BECAUSE a single broker cannot hold the required attendee count while a sharded pool can.
