@@ -35,14 +35,14 @@ const splitDescription = (text: string) => {
     primary marker ("(*)"), and/or the implicit parenthesized anchor
     token ("(xxx)") off a name, in any order  */
 const parseMarkers = (raw: string) => {
-    let text = raw
-    let anchor:  string | undefined
-    let paren:   string | undefined
+    let text    = raw
+    let anchor:   string | undefined
+    let paren:    string | undefined
     let primary = false
     for (;;) {
         const am = text.match(/\{\{([^{}]+)\}\}\s*$/)
-        if (am !== null && am.index !== undefined) {
-            anchor ??= am[1].trim()
+        if (am !== null && am.index !== undefined && anchor === undefined) {
+            anchor   = am[1].trim()
             text     = text.slice(0, am.index).trim()
             continue
         }

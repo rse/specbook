@@ -58,9 +58,13 @@ const matchAlternatives = (ctx: ParseContext, object: SpecObject,
     return false
 }
 
-/*  find a property of an object by its key (case-sensitive)  */
-const findProp = (object: SpecObject, name: string) =>
-    object.properties.find((p) => p.key === name)
+/*  find a property of an object by its key (case-sensitive), including
+    the synthetic one supplied by a consumed parenthesized name token  */
+const findProp = (ctx: ParseContext, object: SpecObject, name: string): SpecProperty | undefined => {
+    const synthetic = ctx.parenProps.get(object)
+    return object.properties.find((p) => p.key === name) ??
+        (synthetic?.key === name ? synthetic : undefined)
+}
 
 /*  split a multi-valued property value into its items, reporting an
     empty one -- stemming from an empty value or a stray comma -- once,
@@ -146,7 +150,7 @@ const parenProp = (object: SpecObject, props: SchemaProperty[]): SchemaProperty 
     const paren = object.paren
     if (paren === undefined)
         return undefined
-    return props.find((prop) => prop.value !== undefined && findProp(object, prop.name) === undefined
+    return props.find((prop) => prop.value !== undefined && !object.properties.some((p) => p.key === prop.name)
         && directMatches(compileValueExpr(prop.value), paren))
 }
 
@@ -169,7 +173,7 @@ const checkSiblingFlags = (ctx: ParseContext, object: SpecObject, childs: Schema
             const seen  = new Map<string, SpecObject>()
             let   found = false
             for (const sibling of siblings) {
-                const property = findProp(sibling, prop.name)
+                const property = findProp(ctx, sibling, prop.name)
                 if (property === undefined)
                     continue
                 const value = plainText(property.value).trim()
@@ -215,11 +219,11 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
     /*  check every occurrence of the configured properties (a trailing
         parenthesized name token is accepted as the value of a still
         missing property, and a repeated key is reported as duplicate)  */
-    const consumed = parenProp(object, props)
+    const consumed = ctx.parenProps.get(object)
     for (const prop of props) {
         const expr    = prop.value !== undefined ? compileValueExpr(prop.value) : undefined
         const matches = object.properties.filter((p) => p.key === prop.name)
-        if (matches.length === 0 && prop !== consumed && prop.optional !== true)
+        if (matches.length === 0 && prop.name !== consumed?.key && prop.optional !== true)
             ctx.diagnose(meta.file, meta.line,
                 `required property "${prop.name}" missing on ${object.kind} "${object.name}"`)
         for (const [ i, match ] of matches.entries()) {
@@ -331,7 +335,7 @@ const checkIds = (ctx: ParseContext, objects: SpecObject[]) => {
     distinct, in document order), leniently skipping the unresolvable
     ones, as those are already reported by the reference pass  */
 const referencedObjects = (ctx: ParseContext, object: SpecObject, name: string): SpecObject[] => {
-    const property = findProp(object, name)
+    const property = findProp(ctx, object, name)
     if (property === undefined)
         return []
     const targets = new Array<SpecObject>()
@@ -361,7 +365,7 @@ const checkAutomata = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject>
         const nodes   = object.childs.filter((child) => child.kind === automaton.nodes)
         const nodeSet = new Set<SpecObject>(nodes)
         const flagged = (node: SpecObject, name: string) => {
-            const property = findProp(node, name)
+            const property = findProp(ctx, node, name)
             return property !== undefined && plainText(property.value).trim() === "true"
         }
         const initials = nodes.filter((node) => flagged(node, automaton.initial))
@@ -384,7 +388,7 @@ const checkAutomata = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject>
         const closure = (starts: SpecObject[], next: Map<SpecObject, Set<SpecObject>>) => {
             const seen  = new Set<SpecObject>(starts)
             const queue = [ ...starts ]
-            for (let node = queue.shift(); node !== undefined; node = queue.shift())
+            for (const node of queue)
                 for (const other of next.get(node) ?? [])
                     if (!seen.has(other)) {
                         seen.add(other)
@@ -431,7 +435,7 @@ const checkRelations = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject
         const members = new Set<SpecObject>(objects)
         const locate  = (object: SpecObject) => {
             const meta     = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
-            const property = findProp(object, prop.name)
+            const property = findProp(ctx, object, prop.name)
             const line     = property !== undefined ? ctx.propMeta.get(property)?.line : undefined
             return { file: meta.file, line: line ?? meta.line }
         }
@@ -552,9 +556,13 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
             token, so the token still acts as the id and a single
             unresolved heading no longer cascades into unresolvable
             references all over the corpus  */
-        if (object.paren !== undefined && object.anchor === undefined
-            && parenProp(object, schemas.get(object)?.props ?? []) === undefined)
-            object.id = object.paren
+        if (object.paren !== undefined) {
+            const prop = parenProp(object, schemas.get(object)?.props ?? [])
+            if (prop !== undefined)
+                ctx.parenProps.set(object, { key: prop.name, value: object.paren })
+            else if (object.anchor === undefined)
+                object.id = object.paren
+        }
         object.childs.forEach(promote)
     }
     for (const artifact of specification.artifacts)

@@ -38,13 +38,13 @@ export type { Schema, SchemaObject, SchemaProperty }                          fr
 
 /*  our own version, taken from the package manifest, which resides one
     level above both the source and the compiled module directory  */
-export const version: string = (JSON.parse(
+export const version = (JSON.parse(
     fs.readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string }).version
 
 /*  the bundled standard YAML schema configuration, which resides
     alongside the compiled module and is used whenever no particular
     schema configuration is given  */
-export const standardConfig: string =
+export const standardConfig =
     fileURLToPath(new URL("specbook-format.yaml", import.meta.url))
 
 /*  the sink of the verbose messages, receiving the emitting command,
@@ -227,7 +227,7 @@ export class SpecBook {
             they fall back onto the bundled standard one, which is always
             embedded, as its bundled file is no meaningful reference  */
         const given    = options.config !== undefined && options.config.length > 0
-        const standard = !given && (part === "all" || part === "schema" || options.embed === true)
+        const standard = !given && (part === "all" || part === "schema")
         const config   = given || standard ? await this.configFiles(options.config) : undefined
         const embed    = options.embed === true || standard
         const basedir  = options.basedir ?? (part === "spec" ? "." : undefined)

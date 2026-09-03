@@ -37,6 +37,11 @@ export class ParseContext {
     propMeta             = new WeakMap<SpecProperty, { line: number }>()
     linkIndex: LinkIndex = []
 
+    /*  the synthetic properties supplied by the parenthesized name
+        tokens consumed as property values (kept outside the AST, so
+        the tokens stay plain heading markers on export)  */
+    parenProps           = new WeakMap<SpecObject, SpecProperty>()
+
     /*  the resolved paths of the embedded asset files, recorded even for
         an unreadable one, as a watching consumer has to observe it, too  */
     assets               = new Set<string>()

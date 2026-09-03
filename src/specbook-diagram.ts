@@ -187,7 +187,7 @@ const deriveReferenceEdges = (diagram: SchemaDiagram, nodes: SpecObject[], nodeS
                     if (diagram.deep === true)
                         target = lift(target)
                     if (target !== undefined && target !== node && nodeSet.has(target)) {
-                        const key   = `${anchors.get(target) ?? target.id} ${name ?? ""}`
+                        const key   = `${anchors.get(target) ?? target.id}\u0000${name ?? ""}`
                         const entry = counts.get(key) ?? { target, name, count: 0 }
                         entry.count++
                         counts.set(key, entry)
@@ -280,8 +280,9 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
             errors.push({ reason: "\"grid\" diagram cannot carry an \"onlyConnected\" configuration" })
     }
 
-    /*  deduplicate the edges (the same reference can occur in
-        multiple texts of the same node object)  */
+    /*  deduplicate the edges (a containment or object edge can coincide
+        with a reference edge, and several edge objects can describe
+        the very same edge)  */
     const seenEdges = new Set<string>()
     return edges.filter((edge) => {
         const key = `${anchors.get(edge.source) ?? edge.source.id}` +

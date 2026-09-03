@@ -267,7 +267,14 @@ const realtimeScript = textframe`
         }
         let blink = 0
         const update = async () => {
-            const response = await fetch(window.location.pathname, { cache: "no-store" })
+            let response
+            try {
+                response = await fetch(window.location.pathname, { cache: "no-store" })
+            }
+            catch {
+                /*  an unreachable server just skips the update  */
+                return
+            }
             if (!response.ok)
                 return
             const doc = new DOMParser().parseFromString(await response.text(), "text/html")
@@ -1241,7 +1248,7 @@ const renderTocPanel = (objects: SpecObject[], title: boolean, doc: boolean): st
             spec:     infoParents !== null ? anchorOf(object) : undefined,
             specpath: infoPathOf(object),
             name:     inline(object.name),
-            childs: safe(entries(headingChilds(object)))
+            childs:   safe(entries(headingChilds(object)))
         })) })
     return render("TocPanel", { TocPanel: { title, doc, entries: safe(entries(objects)) } })
 }
@@ -1384,6 +1391,9 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         for (const artifact of specification.artifacts)
             collectSpec(artifact.objects, spec)
     }
+
+    /*  the artifact timestamps aggregate into the earliest creation
+        and the latest modification timestamp of the document  */
     const created  = new Date(Math.min(
         ...specification.artifacts.map((artifact) => artifact.created.getTime())))
     const modified = new Date(Math.max(
@@ -1397,7 +1407,8 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     const meta      = titleObject(specification)
     const doc       = meta !== undefined ? rendered?.get(meta) : undefined
     try {
-        const entries = tocEntries(artifacts.flatMap((artifact) => artifact.objects), tocPages)
+        const objects = artifacts.flatMap((artifact) => artifact.objects)
+        const entries = tocEntries(objects, tocPages)
         return render("Document", { Document: {
             title:     documentTitle(specification).title,
             lang,
@@ -1411,7 +1422,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             realtime:  realtime ? safe(realtimeScript) : "",
             toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
             tocpanel:  entries.length > 0 ?
-                safe(renderTocPanel(artifacts.flatMap((artifact) => artifact.objects),
+                safe(renderTocPanel(objects,
                     title !== undefined, doc !== undefined)) : "",
             tocscript: entries.length > 0 ? safe(tocPanelScript) : "",
             doc:       doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",

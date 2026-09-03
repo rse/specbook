@@ -51,7 +51,7 @@ export const parseSpecification = (sources: SourceFile[], config?: Schema): Pars
         if (!result.success)
             for (const issue of result.issues) {
                 const path = v.getDotPath(issue) ?? ""
-                ctx.diagnose(sources[0]?.file ?? "", 1, `internal AST invalid at "${path}": ${issue.message}`)
+                ctx.diagnose(sources[0].file, 1, `internal AST invalid at "${path}": ${issue.message}`)
             }
     }
     return { specification, diagnostics: ctx.diagnostics, assets: Array.from(ctx.assets) }

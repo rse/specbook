@@ -177,6 +177,12 @@ const typographyGlyphs = [
     0x00A0, 0x00AB, 0x00BB, 0x2013, 0x2014, 0x2018, 0x2019,
     0x201A, 0x201C, 0x201D, 0x201E, 0x2022, 0x2026, 0x2039, 0x203A ]
 
+/*  the memoized subsetted stylesheets, keyed by the (shared) codepoint
+    set of the charset, as the font subsetting is expensive and the
+    formats of a single export, the watch and preview re-exports, and
+    the MCP service request the very same subset over and over again  */
+const subsetCache = new Map<number[], string>()
+
 /*  provide the stylesheet with its embedded fonts subsetted to the
     codepoints of a charset plus the always-used symbol and typography
     glyphs (no charset or a full Unicode charset keeps the fonts complete)  */
@@ -185,6 +191,9 @@ export const subsetStylesheet = async (charset?: string): Promise<string> => {
     const codepoints = charset !== undefined ? charsetCodepoints(charset) : undefined
     if (codepoints === undefined)
         return css
+    const cached = subsetCache.get(codepoints)
+    if (cached !== undefined)
+        return cached
     const { default: subsetFont } = await import("subset-font")
     const text = String.fromCodePoint(...codepoints, ...symbolGlyphs, ...typographyGlyphs)
     let result = ""
@@ -195,7 +204,9 @@ export const subsetStylesheet = async (charset?: string): Promise<string> => {
             `url("data:font/woff2;base64,${subset.toString("base64")}")`
         last = m.index + m[0].length
     }
-    return result + css.slice(last)
+    const subsetted = result + css.slice(last)
+    subsetCache.set(codepoints, subsetted)
+    return subsetted
 }
 
 /*  determine the document title and subtitle from the title object (an

@@ -84,7 +84,7 @@ const posOfMergedPath = (docs: ConfigDoc[], merged: unknown, path: YamlPath) => 
     const at = (value: unknown, key: string | number): unknown =>
         (value as Record<string | number, unknown> | null | undefined)?.[key]
     let best = { file: docs[docs.length - 1].file, line: 1, column: 1, path, depth: -1 }
-    for (const { file, doc, lines, raw } of docs.slice().reverse()) {
+    for (const { file, doc, lines, raw } of docs.toReversed()) {
         const translated: YamlPath = []
         let node = merged
         let own  = raw
@@ -170,12 +170,14 @@ const checkAutomaton = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) 
     const childOf   = (kind: string) => (object.childs ?? []).find((c) => c.kind === kind)
     const propOf    = (child: SchemaObject | undefined, name: string) =>
         (child?.props ?? []).find((p) => p.name === name)
-    const isReference = (prop: SchemaProperty) => {
+    /*  an invalid value expression is reported on its own (see
+        "checkProperties"), so it must not cascade into a shape diagnostic  */
+    const isReference = (prop: SchemaProperty): boolean | undefined => {
         try {
             return prop.value !== undefined && admitsReferences(compileValueExpr(prop.value))
         }
         catch {
-            return false
+            return undefined
         }
     }
     const nodes = childOf(automaton.nodes)
@@ -189,7 +191,7 @@ const checkAutomaton = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) 
         if (edges !== undefined && prop === undefined)
             diagnose([ ...at, "automaton", field ],
                 `"automaton" ${field} property "${automaton[field]}" is not a property of "${automaton.edges}"`)
-        else if (prop !== undefined && !isReference(prop))
+        else if (prop !== undefined && isReference(prop) === false)
             diagnose([ ...at, "automaton", field ],
                 `"automaton" ${field} property "${automaton[field]}" is not reference-valued`)
     }
@@ -223,7 +225,7 @@ const checkConstraints = (
         const seen = new Set<string>()
         for (const [ i, object ] of objects.entries()) {
             const at    = [ ...path, i ]
-            const ident = depth > 1 ? object.kind : `${object.kind}:${object.id ?? object.name ?? ""}`
+            const ident = identityOf(object, depth > 1 ? "childs" : undefined)
             if (seen.has(ident))
                 diagnose([ ...at, "kind" ],
                     `object "${ident}" collides with a preceding sibling object (the later one is unreachable)`)
@@ -311,7 +313,9 @@ export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Dia
     if (diagnostics.length > 0)
         return { diagnostics }
 
-    /*  merge the documents in order  */
+    /*  merge the documents in order, out of fresh conversions, as the
+        merge mutates its target while the raw ones have to stay intact
+        for the path translation  */
     const obj = docs.map(({ doc }) => doc.toJS() as unknown)
         .reduce((target, source) => mergeConfig(target, source))
 

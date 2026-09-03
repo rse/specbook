@@ -56,6 +56,12 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
                 clients.delete(socket)
                 options.verbose(`client ${literal(client)} disconnected`, "notice")
             })
+
+            /*  report a failing client, as an unhandled "error" event
+                would otherwise terminate the process  */
+            socket.on("error", (err: Error) => {
+                options.verbose(`client ${literal(client)} failed: ${err.message}`, "notice")
+            })
         }
     })
 

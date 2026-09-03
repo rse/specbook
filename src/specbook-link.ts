@@ -213,20 +213,11 @@ export const resolveUnique = (index: LinkIndex, reference: string, from?: SpecOb
     let matches = uniques.get(reference)
     if (matches === undefined) {
         const segments = segmentsOf(reference)
-        matches = []
         if (segments.length === 1) {
             const segment  = segments[0]
             const unquoted = unquote(segment)
-            const variants = [
-                () => byKey.get(unquoted)  ?? [],
-                () => byName.get(unquoted) ?? [],
-                () => candidates(index, parseSegment(segment))
-            ]
-            for (const variant of variants) {
-                matches = variant().map((node) => node.object)
-                if (matches.length > 0)
-                    break
-            }
+            matches = (byKey.get(unquoted) ?? byName.get(unquoted) ?? candidates(index, parseSegment(segment)))
+                .map((node) => node.object)
         }
         else
             matches = resolveSet(index, reference)

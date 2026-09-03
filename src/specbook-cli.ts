@@ -33,8 +33,8 @@ const verboseOf = (opts: { verbose: boolean }, ...scope: string[]): VerboseSink 
 /*  write a buffer to a standard stream, awaiting the write callback
     which only fires once the data has been flushed to the underlying
     pipe, so a subsequent "process.exit" cannot truncate the output  */
-const writeStream = (stream: NodeJS.WriteStream, data: Buffer | string): Promise<void> => {
-    return new Promise<void>((resolve, reject) => {
+const writeStream = (stream: NodeJS.WriteStream, data: Buffer | string): Promise<void> =>
+    new Promise<void>((resolve, reject) => {
         stream.write(data, (err) => {
             if (err)
                 reject(err)
@@ -42,7 +42,6 @@ const writeStream = (stream: NodeJS.WriteStream, data: Buffer | string): Promise
                 resolve()
         })
     })
-}
 const writeStdout = (data: Buffer | string): Promise<void> => writeStream(process.stdout, data)
 const writeStderr = (data: Buffer | string): Promise<void> => writeStream(process.stderr, data)
 

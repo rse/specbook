@@ -102,7 +102,11 @@ const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
     const root = context.nextRef()
     const top  = materialize(items, root)
     context.assign(root, context.obj({
-        Type: "Outlines", First: top.first, Last: top.last, Count: items.length }))
+        Type:  "Outlines",
+        First: top.first,
+        Last:  top.last,
+        Count: items.length
+    }))
     doc.catalog.set(PDFName.of("Outlines"), root)
     doc.catalog.set(PDFName.of("PageMode"), PDFName.of("UseOutlines"))
 }
@@ -248,8 +252,9 @@ export const htmlToPdf = async (
 
         /*  determine the ToC page numbers via a fixpoint iteration:
             paginate undecorated, extract the per-anchor pages, and
-            re-render until the HTML is stable, as the ToC page number
-            column itself can shift the pagination  */
+            re-render until the HTML is stable (bounded to three
+            passes), as the ToC page number column itself can shift
+            the pagination  */
         verbose("determining ToC page numbers")
         let html  = await renderHtmlPass()
         let plain = await renderPdf(html)
