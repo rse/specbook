@@ -242,9 +242,6 @@
                         arrive at the very state it departs from (an internal transition, e.g.
                         `edit` on `Draft`). Any move not listed as a transition is implicitly
                         forbidden.
-                    referenced:
-                        -   "[[REQS:UC.USE-CASE:*]]"
-                        -   "[[TEST:TC.TEST-CASE:*]]"
                     props:
                         -   name: FROM
                             desc: The state (of the same lifecycle) the transition departs from.
@@ -274,6 +271,15 @@
                                 Comma-separated references to the DOMAIN-RULES objects the
                                 transition enforces, usually through its `GUARD`.
                             value: list([[REQS:DR.RULE:*]])
+                            optional: true
+                        -   name: USE-CASES
+                            desc: >
+                                Comma-separated references to the USE-CASES objects whose
+                                scenarios trigger the transition, i.e. in which a scenario step
+                                causes the state change, tracing the transition into the use
+                                cases exercising it; omitted for a transition no use case
+                                triggers (e.g. one triggered by `Time` or by the system alone).
+                            value: list([[REQS:UC.USE-CASE:*]])
                             optional: true
 
 -   kind: DATA

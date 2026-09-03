@@ -29,16 +29,20 @@ LIFECYCLE: Event {{event}}
 
 -   publish; FROM: [[STATE:Planning]]; TO: [[STATE:Published]]; ACTOR: [[PERSONA:manager]];
     GUARD: The event is fully configured.;
+    USE-CASES: [[USE-CASE:run-event]];
     The event becomes visible to invited attendees.
 
 -   start; FROM: [[STATE:Published]]; TO: [[STATE:Running]]; ACTOR: [[PERSONA:manager]];
+    USE-CASES: [[USE-CASE:run-event]];
     The live stream and interaction channels open for attendees.
 
 -   start {{start-unpublished}}; FROM: [[STATE:Planning]]; TO: [[STATE:Running]]; ACTOR: [[PERSONA:manager]];
+    USE-CASES: [[USE-CASE:run-event]];
     The event goes live directly from planning, without ever having been visible beforehand.
 
 -   finish; FROM: [[STATE:Running]]; TO: [[STATE:Finished]]; ACTOR: [[PERSONA:manager]];
     RULES: [[RULE:anonymize]];
+    USE-CASES: [[USE-CASE:run-event]];
     The anonymization procedure runs and access is closed.
 
 LIFECYCLE: Message {{message}}
@@ -71,22 +75,27 @@ LIFECYCLE: Message {{message}}
 -   `accept`; FROM: [[STATE:Pending]]; TO: [[STATE:Accepted]]; ACTOR: [[PERSONA:moderator-qa]], [[PERSONA:moderator-chat]], System;
     GUARD: A system-triggered acceptance requires a sentiment score at or above the threshold.;
     RULES: [[RULE:moderation-gate]], [[RULE:sentiment-threshold]];
+    USE-CASES: [[USE-CASE:ask-question]], [[USE-CASE:moderate]];
     The message becomes visible to the audience.
 
 -   `reject`; FROM: [[STATE:Pending]]; TO: [[STATE:Rejected]]; ACTOR: [[PERSONA:moderator-qa]], [[PERSONA:moderator-chat]], System;
     GUARD: A system-triggered rejection requires a sentiment score below the threshold.;
     RULES: [[RULE:moderation-gate]], [[RULE:sentiment-threshold]];
+    USE-CASES: [[USE-CASE:ask-question]], [[USE-CASE:moderate]];
     The message is hidden and marked for deletion.
 
 -   `forward`; FROM: [[STATE:Accepted]]; TO: [[STATE:Forwarded]]; ACTOR: [[PERSONA:moderator-qa]];
     GUARD: The message is a question.;
     RULES: [[RULE:type-states]], [[RULE:forward-lock]];
+    USE-CASES: [[USE-CASE:moderate]];
     The message enters the presenter's work basket and becomes immutable.
 
 -   `answer`; FROM: [[STATE:Forwarded]]; TO: [[STATE:Answered]]; ACTOR: [[PERSONA:presenter]], [[PERSONA:moderator-qa]];
+    USE-CASES: [[USE-CASE:present]];
     The answered timestamp is recorded.
 
 -   `suspend`; FROM: [[STATE:Forwarded]]; TO: [[STATE:Suspended]]; ACTOR: [[PERSONA:presenter]], [[PERSONA:moderator-qa]];
+    USE-CASES: [[USE-CASE:present]];
     The message is set aside for the live event.
 
 LIFECYCLE: AuthorizationToken {{authtoken}}
@@ -110,14 +119,17 @@ LIFECYCLE: AuthorizationToken {{authtoken}}
 -   `send`; FROM: [[STATE:Issued]]; TO: [[STATE:Sent]]; ACTOR: [[PERSONA:attendee]];
     GUARD: The email of the attendee is on the access list or matches the access pattern.;
     RULES: [[RULE:access-grant]];
+    USE-CASES: [[USE-CASE:authenticate]];
     The token is emailed to the attendee requesting a login challenge.
 
 -   `consume`; FROM: [[STATE:Sent]]; TO: [[STATE:Used]]; ACTOR: [[PERSONA:attendee]];
     GUARD: The token has not expired.;
     RULES: [[RULE:token-format]], [[RULE:single-session]];
+    USE-CASES: [[USE-CASE:authenticate]];
     The token is marked spent by a successful or unsuccessful login attempt.
 
 -   `consume {{consume-automatic}}`; FROM: [[STATE:Issued]]; TO: [[STATE:Used]]; ACTOR: [[PERSONA:attendee]];
     GUARD: The event allows automatic-access URLs.;
     RULES: [[RULE:token-format]];
+    USE-CASES: [[USE-CASE:authenticate]];
     The pre-generated token is marked spent by the use of an automatic-access URL carrying it.

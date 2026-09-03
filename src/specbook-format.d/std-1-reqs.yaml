@@ -120,21 +120,6 @@
                         behave as agreed), or `Risk` (an uncertain event which, if it occurs,
                         harms the achievement of the vision).
                     value: enum(Assumption,Dependency,Risk)
-                -   name: TERMS
-                    desc: >
-                        Comma-separated references to the GLOSSARY terms the premise is about
-                        (e.g. the external system a dependency relies on), anchoring it in the
-                        ubiquitous language.
-                    value: list([[REQS:GL.TERM:*]])
-                    optional: true
-                -   name: OWNER
-                    desc: >
-                        Reference to the User Personas object (usually a `Stakeholder`) who
-                        vouches for the premise, i.e. who confirms an assumption, holds the
-                        agreement of a dependency, or owns the mitigation of a risk, omitted when
-                        nobody in particular is accountable.
-                    value: "[[REQS:UP.PERSONA:*]]"
-                    optional: true
                 -   name: LIKELIHOOD
                     desc: >
                         The likelihood that the premise fails, i.e. that the assumption turns out
@@ -157,13 +142,6 @@
                         What is done to lower the likelihood or the impact of the failure or to
                         detect it early (e.g. a fallback, a contract, a load test), omitted for
                         a premise whose failure is knowingly accepted.
-                    optional: true
-                -   name: AFFECTS
-                    desc: >
-                        Comma-separated references to the FUNCTIONAL-REQUIREMENTS,
-                        NON-FUNCTIONAL-REQUIREMENTS, or DOMAIN-RULES objects resting on the
-                        premise, i.e. those to be revisited once it fails.
-                    value: list([[REQS:FR.*]], [[REQS:NR.*]], [[REQS:DR.RULE:*]])
                     optional: true
 
 -   kind: REQS
@@ -210,7 +188,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[REQS:GL.TERM:*]], [[REQS:DR.RULE:*]], [[DATA:DM.ENTITY:*]], [[REQS:UP.PERSONA:*]]"
+                nodes: "[[REQS:GL.TERM:*]], [[REQS:SP.PREMISE:*]], [[REQS:DR.RULE:*]], [[DATA:DM.ENTITY:*]],
+                    [[REQS:UP.PERSONA:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -248,6 +227,14 @@
                     value: list([[REQS:GL.TERM:*]])
                     optional: true
                     symmetric: true
+                -   name: PREMISES
+                    desc: >
+                        Comma-separated references to the SOLUTION-PREMISES objects about the
+                        term, i.e. the assumptions, dependencies, and risks concerning the thing
+                        or party it denotes (e.g. the dependency on the external system an
+                        `Actor` term names), anchoring every premise in the ubiquitous language.
+                    value: list([[REQS:SP.PREMISE:*]])
+                    optional: true
 
 -   kind: REQS
     name: User Personas
@@ -333,6 +320,14 @@
                         The status-quo pains and unmet needs motivating the persona, stated
                         independently of the per-step pain points of the User Journey, which
                         record the friction within the target journey instead.
+                    optional: true
+                -   name: PREMISES
+                    desc: >
+                        Comma-separated references to the SOLUTION-PREMISES objects the persona
+                        (usually a `Stakeholder`) vouches for, i.e. whose assumption it confirms,
+                        whose dependency agreement it holds, or whose risk mitigation it owns;
+                        omitted when the persona is accountable for no premise.
+                    value: list([[REQS:SP.PREMISE:*]])
                     optional: true
 
 -   kind: REQS
@@ -462,6 +457,13 @@
                         time"), preserving the conscious decision rather than silently dropping it,
                         with the statement still phrased as it would be if in scope.
                     value: enum(MUST,SHOULD,COULD,WONT)
+                -   name: PREMISES
+                    desc: >
+                        Comma-separated references to the SOLUTION-PREMISES objects the
+                        requirement rests on, i.e. the assumptions, dependencies, and risks whose
+                        failure calls for revisiting it.
+                    value: list([[REQS:SP.PREMISE:*]])
+                    optional: true
 
 -   kind: REQS
     name: Non-Functional Requirements
@@ -523,6 +525,13 @@
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects whose
                         capability the requirement bounds or constrains.
                     value: list([[REQS:FR.*]])
+                    optional: true
+                -   name: PREMISES
+                    desc: >
+                        Comma-separated references to the SOLUTION-PREMISES objects the
+                        requirement rests on, i.e. the assumptions, dependencies, and risks whose
+                        failure calls for revisiting it.
+                    value: list([[REQS:SP.PREMISE:*]])
                     optional: true
                 -   name: METRIC
                     desc: >
@@ -622,6 +631,13 @@
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
                         NON-FUNCTIONAL-REQUIREMENTS objects the rule constrains.
                     value: list([[REQS:FR.*]], [[REQS:NR.*]])
+                    optional: true
+                -   name: PREMISES
+                    desc: >
+                        Comma-separated references to the SOLUTION-PREMISES objects the rule
+                        rests on, i.e. the assumptions, dependencies, and risks whose failure
+                        calls for revisiting it.
+                    value: list([[REQS:SP.PREMISE:*]])
                     optional: true
 
 -   kind: REQS
@@ -877,14 +893,6 @@
                         the use case apply, i.e. whose condition a scenario step checks or enforces
                         (e.g. an access rule in an authentication step).
                     value: list([[REQS:DR.RULE:*]])
-                    optional: true
-                -   name: TRANSITIONS
-                    desc: >
-                        Comma-separated references to the STATE-MODEL transition objects the
-                        scenarios of the use case trigger, i.e. whose state change a scenario
-                        step causes, so that every transition is exercised by at least one use
-                        case or test case.
-                    value: list([[DATA:SM.LIFECYCLE:*.TRANSITION:*]])
                     optional: true
                 -   name: INCLUDES
                     desc: >

@@ -11,6 +11,7 @@ Modified: 2026-08-29 14:05
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:user]], [[TERM:sessiontoken]], [[TERM:event]]
 -   CONSTRAINS: [[FR.parallel-access]]
+-   PREMISES:   [[PREMISE:url-leakage]]
 
 A [[TERM:User]] MUST have at most one active [[TERM:Session Token]] per [[TERM:Event]] at any time; a new login MUST delete
 any existing [[TERM:Session Token]] and close its connection, BECAUSE concurrent sessions would allow access sharing beyond
@@ -22,6 +23,7 @@ the invited [[TERM:Attendee]].
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:user]], [[TERM:event]], [[TERM:accesslist]]
 -   CONSTRAINS: [[FR.authentication]]
+-   PREMISES:   [[PREMISE:url-leakage]]
 
 A [[TERM:User]] MUST be granted access to an [[TERM:Event]] only according to the first matching case:
 
@@ -58,6 +60,7 @@ Exactly one [[TERM:Resource]] of a [[TERM:Channel]] MUST be active at any time, 
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:message]], [[TERM:chat]], [[TERM:question]], [[TERM:attendee]]
 -   CONSTRAINS: [[FR.moderation]], [[FR.chat]], [[FR.questions]]
+-   PREMISES:   [[PREMISE:interaction-abuse]]
 
 When moderation is enabled for [[TERM:Chat]]s or [[TERM:Question]]s, a [[TERM:Message]] of that type sent by an
 [[TERM:Attendee]] MUST start in state pending and become visible only once accepted; when disabled, it MUST start in state
@@ -118,6 +121,7 @@ makes automated moderation predictable.
                 [[TERM:like]], [[TERM:authtoken]], [[TERM:sessiontoken]], [[TERM:accesslist]], [[TERM:user]],
                 [[TERM:role]], [[TERM:moderator]], [[TERM:manager]]
 -   CONSTRAINS: [[FR.user-consent]], [[FR.gdpr-eu]]
+-   PREMISES:   [[PREMISE:message-personal-data]]
 
 When an [[TERM:Event]] finishes, its [[TERM:Anonymization]] MUST reduce its [[TERM:Message]]s to a bare [[TERM:Like]] count
 with [[TERM:Chat]] and [[TERM:Question]] sender names set to "Anonymous" and liker and sender relations dropped, delete its
@@ -142,6 +146,7 @@ bare [[TERM:Like]] count before the liker relations are removed, BECAUSE [[TERM:
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:authtoken]], [[TERM:event]], [[TERM:registration-system]]
 -   CONSTRAINS: [[FR.registration-export]], [[FR.automatic-url]]
+-   PREMISES:   [[PREMISE:email-at-hand]], [[PREMISE:email-delivery]]
 
 An [[TERM:Authorization Token]] MUST be formatted as six digits "NNN-NNN"; a normal login token MUST expire within 5 minutes
 while a token pre-generated for the [[TERM:Event Registration System]] lasts until the [[TERM:Event]] ends, expiring on

@@ -7,6 +7,7 @@ REQS: Functional Requirements (FR)
 ==================================
 
 -   REQUIREMENT: User Authentication {{authentication}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:email-at-hand]], [[PREMISE:email-delivery]], [[PREMISE:start-surge]];
     The system MUST authenticate participants via their email address
     before showing the video stream or, at minimum, before allowing
     participation in questions and chat, re-checking on every access
@@ -15,17 +16,20 @@ REQS: Functional Requirements (FR)
     participants to minimize foreign viewers.
 
 -   REQUIREMENT: Limit Parallel Access {{parallel-access}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:url-leakage]];
     When participants must be authenticated to watch, the system MUST
     allow an event to be viewed only once per participant at a time,
     closing the prior connection on a new login, BECAUSE single
     concurrent sessions minimize unauthorized outside viewing.
 
 -   REQUIREMENT: Ask Questions {{questions}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:websocket-passage]];
     The system MUST let attendees submit questions as a dedicated
     feedback channel feeding the Q&A rounds, BECAUSE structured audience
     questions are a core interaction the event format depends on.
 
 -   REQUIREMENT: Chat Messages {{chat}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:websocket-passage]];
     The system MUST let attendees send chat messages for direct comment
     on the event, BECAUSE live commentary keeps the audience engaged
     during the broadcast.
@@ -60,6 +64,7 @@ REQS: Functional Requirements (FR)
     moderation load and discourages misconduct.
 
 -   REQUIREMENT: Server-Side Sentiment Analysis {{server-sentiment}}; PRIORITY: COULD;
+    PREMISES: [[PREMISE:interaction-abuse]];
     The system COULD perform configurable server-side sentiment analysis
     that checks attendee input before it is stored, auto-accepting
     positive and auto-rejecting negative input, BECAUSE automated triage
@@ -78,6 +83,7 @@ REQS: Functional Requirements (FR)
     group questions.
 
 -   REQUIREMENT: Moderate Chat and Questions {{moderation}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:interaction-abuse]];
     The system MUST support optional moderation in which moderators
     reject, approve, or forward attendee input, with messages held
     pending until approved when moderation is enabled, BECAUSE
@@ -122,11 +128,13 @@ REQS: Functional Requirements (FR)
     events integrate interactive apps that the moderator must control.
 
 -   REQUIREMENT: Browser Access {{browser-access}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:websocket-passage]];
     The system MUST be accessible from any reasonably recent web browser
     without installation, BECAUSE attendees use both managed and
     unmanaged devices with no common client software.
 
 -   REQUIREMENT: Individual Event Access URL {{individual-url}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:audience-known]];
     The system MUST allow accessing an event via an individual,
     unguessable URL of the form `#/event=<event>`, BECAUSE an obscure
     entry point minimizes access by external viewers.
@@ -151,11 +159,13 @@ REQS: Functional Requirements (FR)
     resource.
 
 -   REQUIREMENT: GDPR-Compliant EU Processing {{gdpr-eu}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:eu-hosting]];
     The system MUST provide all services in compliance with GDPR within
     the EU, BECAUSE the audience and operator are subject to European
     data-protection law.
 
 -   REQUIREMENT: Explicit User Consent {{user-consent}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:message-personal-data]];
     The system MUST require event attendees to give explicit consent
     before participating under defined conditions, in addition to prior
     platform consent, BECAUSE consent is both a legal safeguard and a
@@ -167,23 +177,27 @@ REQS: Functional Requirements (FR)
     communicate event information and conduct rules at these moments.
 
 -   REQUIREMENT: Multiple Streaming Providers {{multi-provider}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:provider-delivery]];
     The system MUST allow multiple streaming providers to be configured
     per event, BECAUSE a configured fallback is required to recover from
     provider problems even during a running event.
 
 -   REQUIREMENT: Live Provider Switching {{provider-switch}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:provider-delivery]];
     The system MUST allow switching the active streaming provider during
     an event, with attendee clients following the switch without user
     interaction, BECAUSE provider outages must be mitigated without
     disrupting the audience.
 
 -   REQUIREMENT: Import Registered Attendees {{registration-import}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:audience-known]], [[PREMISE:registration-exchange]];
     The system MUST import an Excel sheet of the Event Registration
     System to populate an event's access list and generate authorization
     tokens, avoiding duplicate invitations on repeated imports, BECAUSE
     events are provisioned from the Event Registration System.
 
 -   REQUIREMENT: Return Access URLs to Registration {{registration-export}}; PRIORITY: MUST;
+    PREMISES: [[PREMISE:audience-known]], [[PREMISE:registration-exchange]];
     The system MUST generate each attendee's personal access URL
     containing event, user, and a "NNN-NNN" six-digit token and return
     it in an Excel sheet to the Event Registration System, BECAUSE the
@@ -238,6 +252,7 @@ REQS: Functional Requirements (FR)
     attendees join from mobile devices.
 
 -   REQUIREMENT: In-Session Language Switching {{language-switch}}; PRIORITY: SHOULD;
+    PREMISES: [[PREMISE:two-languages]], [[PREMISE:translation-service]];
     The system SHOULD let an attendee switch the display and content
     language between German and English at any time from the header,
     applying the change immediately, BECAUSE attendees expect to read

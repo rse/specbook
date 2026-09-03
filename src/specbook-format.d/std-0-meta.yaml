@@ -71,7 +71,9 @@
 #   ----------------
 #
 #   -   All object references are strictly back-references, i.e., later
-#       objects reference earlier ones.
+#       objects reference earlier ones. Only the "referenced" coverage
+#       constraints and the diagram node sets (e.g. the inputs of a "hub"
+#       diagram) name later objects.
 #
 #   -   The depth of the modeling aspects is at maximum at level 3, which
 #       means that all objects stay at level 1 and 2 and level 3 is mainly

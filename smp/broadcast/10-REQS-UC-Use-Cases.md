@@ -84,7 +84,6 @@ USE-CASE: Authenticate via Email Token {{authenticate}}
 -   ACTIVITIES:     [[ACTIVITY:attend-event]]
 -   REQUIREMENTS:   [[FR.authentication]], [[FR.user-consent]], [[FR.parallel-access]], [[FR.personalized-url]], [[FR.automatic-url]], [[FR.info-messages]], [[FR.gdpr-eu]]
 -   RULES:          [[RULE:access-grant]], [[RULE:single-session]], [[RULE:token-format]]
--   TRANSITIONS:    [[TRANSITION:send]], [[consume]], [[consume-automatic]]
 -   PRE-CONDITION:  The attendee's email is granted access to the event.
 -   TRIGGER:        The attendee requests access to an event without holding an active session.
 -   POST-CONDITION: The attendee holds an active session token and any prior session of the same user is closed.
@@ -144,7 +143,6 @@ USE-CASE: Ask a Question {{ask-question}}
 -   ACTIVITIES:     [[ACTIVITY:attend-event]]
 -   REQUIREMENTS:   [[FR.questions]], [[FR.question-tags]], [[FR.moderation]], [[FR.server-sentiment]], [[FR.client-sentiment]]
 -   RULES:          [[RULE:moderation-gate]], [[RULE:type-states]], [[RULE:sentiment-threshold]]
--   TRANSITIONS:    [[TRANSITION:accept]], [[TRANSITION:reject]]
 -   PRE-CONDITION:  The attendee has an active session and questions are enabled.
 -   TRIGGER:        The attendee decides to raise a question during the running event.
 -   POST-CONDITION: The question is stored in state pending and awaits moderation.
@@ -303,7 +301,6 @@ USE-CASE: Moderate and Forward Messages {{moderate}}
 -   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:moderate-interaction]]
 -   REQUIREMENTS:   [[FR.moderation]], [[FR.forward-presenter]], [[FR.sort-filter]], [[FR.presenter-hints]]
 -   RULES:          [[RULE:type-states]], [[RULE:forward-lock]]
--   TRANSITIONS:    [[TRANSITION:accept]], [[TRANSITION:reject]], [[TRANSITION:forward]]
 -   PRE-CONDITION:  The event is running and the moderator has the Moderator role.
 -   TRIGGER:        An attendee message arrives in state pending for moderation.
 -   POST-CONDITION: Messages are accepted, rejected, or forwarded with optional hints.
@@ -440,7 +437,6 @@ USE-CASE: Run the Event {{run-event}}
 -   JOURNEYS:       [[STEP:configure]]
 -   ACTIVITIES:     [[ACTIVITY:go-live]], [[ACTIVITY:finish-event]]
 -   RULES:          [[RULE:anonymize]]
--   TRANSITIONS:    [[TRANSITION:publish]], [[start]], [[start-unpublished]], [[TRANSITION:finish]]
 -   PRE-CONDITION:  The event is configured and its access list is populated.
 -   TRIGGER:        The scheduled date of the event approaches.
 -   POST-CONDITION: The event is finished, access is closed, and the personal data is anonymized.
@@ -513,7 +509,6 @@ USE-CASE: Present Forwarded Questions {{present}}
 -   ACTOR:          [[PERSONA:presenter]]
 -   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:present-talk]]
 -   REQUIREMENTS:   [[FR.forward-presenter]], [[FR.presenter-dashboard]], [[FR.presenter-hints]]
--   TRANSITIONS:    [[TRANSITION:answer]], [[TRANSITION:suspend]]
 -   PRE-CONDITION:  The event is running and questions have been forwarded.
 -   TRIGGER:        The moderator forwards a question to the presenter.
 -   POST-CONDITION: Processed questions are marked answered or suspended.

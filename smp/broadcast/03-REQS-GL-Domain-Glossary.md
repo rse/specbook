@@ -8,6 +8,7 @@ REQS: Domain Glossary (GL)
 
 -   TERM: Event {{event}};
     TYPE: Entity;
+    PREMISES: [[PREMISE:audience-bound]], [[PREMISE:two-languages]], [[PREMISE:start-surge]];
     The central, organizer-defined live broadcast occasion to which an
     audience is invited; it carries all configuration, [[TERM:Channel]]s,
     roles, the [[TERM:Access List]], and [[TERM:Message]]s, and
@@ -17,6 +18,7 @@ REQS: Domain Glossary (GL)
     TYPE: Actor;
     SYNONYMS: Participant, Viewer;
     BROADER: [[TERM:User]];
+    PREMISES: [[PREMISE:email-at-hand]], [[PREMISE:audience-bound]], [[PREMISE:websocket-passage]], [[PREMISE:start-surge]], [[PREMISE:url-leakage]];
     A [[TERM:User]] invited to and logged into a specific [[TERM:Event]]
     who watches the stream and may use the interaction channels; an
     Attendee exists only for the duration of the [[TERM:Event]].
@@ -42,6 +44,7 @@ REQS: Domain Glossary (GL)
     TYPE: Actor;
     BROADER: [[TERM:Role]];
     DISTINCT-FROM: [[TERM:Presenter]];
+    PREMISES: [[PREMISE:interaction-abuse]];
     An event-specific [[TERM:Role]] that moderates chat and question
     [[TERM:Message]]s by rejecting, approving, and forwarding them, and
     that supports the [[TERM:Presenter]] with hints and curated input.
@@ -82,6 +85,7 @@ REQS: Domain Glossary (GL)
 -   TERM: Resource {{resource}};
     TYPE: Entity;
     DISTINCT-FROM: [[TERM:Channel]];
+    PREMISES: [[PREMISE:provider-delivery]];
     A physical content delivery endpoint backing a [[TERM:Channel]],
     such as a provider video stream or a static website; exactly one
     Resource of a [[TERM:Channel]] is active at a time.
@@ -89,12 +93,14 @@ REQS: Domain Glossary (GL)
 -   TERM: Streaming Provider {{provider}};
     TYPE: Actor;
     SYNONYMS: Provider, CDN Provider;
+    PREMISES: [[PREMISE:provider-delivery]];
     An external service such as msg Filmstudio, YouTube, Cloudflare,
     Twitch, or 3Q that ingests and delivers the video stream addressed
     by a [[TERM:Resource]] through configured provider parameters.
 
 -   TERM: Message {{message}};
     TYPE: Entity;
+    PREMISES: [[PREMISE:two-languages]], [[PREMISE:translation-service]], [[PREMISE:message-personal-data]], [[PREMISE:interaction-abuse]];
     A single unit of [[TERM:Event]] interaction of type [[TERM:Chat]],
     [[TERM:Question]], or [[TERM:Support]], carrying language-specific
     texts and moving through a moderation and presentation lifecycle.
@@ -135,6 +141,7 @@ REQS: Domain Glossary (GL)
     TYPE: Entity;
     SYNONYMS: Access Token;
     DISTINCT-FROM: [[TERM:Session Token]];
+    PREMISES: [[PREMISE:email-at-hand]], [[PREMISE:email-delivery]];
     A one-time, time-limited "NNN-NNN" six-digit second factor proving
     an [[TERM:Attendee]] controls their email address; it may be
     pre-generated for automatic access.
@@ -142,18 +149,21 @@ REQS: Domain Glossary (GL)
 -   TERM: Session Token {{sessiontoken}};
     TYPE: Entity;
     DISTINCT-FROM: [[TERM:Authorization Token]];
+    PREMISES: [[PREMISE:url-leakage]];
     The result of a successful login granting an [[TERM:Attendee]] an
     active connection to an [[TERM:Event]]; only one Session Token per
     User per [[TERM:Event]] may be active at a time.
 
 -   TERM: Access List {{accesslist}};
     TYPE: Entity;
+    PREMISES: [[PREMISE:audience-known]], [[PREMISE:registration-exchange]], [[PREMISE:url-leakage]];
     The set of Users, identified by email, invited to a specific
     [[TERM:Event]]; together with the access email pattern it determines
     who may be granted [[TERM:Event]] access.
 
 -   TERM: Event Registration System {{registration-system}};
     TYPE: Actor;
+    PREMISES: [[PREMISE:audience-known]], [[PREMISE:registration-exchange]];
     The external registration platform from which [[TERM:Attendee]]
     data is imported via Excel and to which generated access URLs are
     returned.
@@ -161,6 +171,7 @@ REQS: Domain Glossary (GL)
 -   TERM: Anonymization {{anonymization}};
     TYPE: Activity;
     SYNONYMS: Privacy by Design Finish;
+    PREMISES: [[PREMISE:message-personal-data]];
     The automated procedure on [[TERM:Event]] finish that reduces
     [[TERM:Message]]s to like counts, anonymizes sender names, drops
     personal relations, deletes tokens and Users, and removes
@@ -169,6 +180,7 @@ REQS: Domain Glossary (GL)
 -   TERM: Sentiment Analysis {{sentiment}};
     TYPE: Activity;
     SYNONYMS: Profanity Check;
+    PREMISES: [[PREMISE:interaction-abuse]];
     The optional client-side or server-side evaluation of
     [[TERM:Message]] text yielding a sentiment score used to prevent,
     auto-accept, or auto-reject improper input.

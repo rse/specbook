@@ -5,6 +5,14 @@ ChangeLog
 1.2.0 (2026-09-03)
 ------------------
 
+-   IMPROVEMENT [code, othr]: Solution Premises References
+    The Solution Premises "TERMS", "OWNER", and "AFFECTS" become the "PREMISES" of the glossary
+    terms, personas, requirements, and rules, so that the references become backward references.
+
+-   IMPROVEMENT [code, othr]: Use Case Transitions Reference
+    The Use Cases "TRANSITIONS" becomes the State Model transition "USE-CASES", so that the
+    reference between the two artifacts becomes a backward reference.
+
 -   IMPROVEMENT [code, othr]: Development Aspects
     The standard "Development View" (id "DV") is renamed to "Development Aspects" (id "DA"), as it
     is a categorized list of developer rules rather than a structural view of the architecture.
