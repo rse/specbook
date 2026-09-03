@@ -74,7 +74,8 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
     theme toggle. It is intended for the day-to-day online reading during
     development. The HTML export can map all object kinds to nested
     sections or compact tables, or an automatic mixture which collapses
-    only the deepest level into tables.
+    only the deepest level into tables. The HTML export even can be
+    previewed in the browser with live updates.
 
 -   **PDF Export for Customers**:
     The PDF export prints the HTML rendering via Chromium and post-processes
