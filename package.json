@@ -24,7 +24,7 @@
         "pdf-lib":                         "1.17.1",
         "subset-font":                     "2.7.0",
         "@rse/mrcs":                       "0.9.2",
-        "@rse/gradia":                     "1.1.7",
+        "@rse/gradia":                     "1.1.8",
         "@toon-format/toon":               "4.1.1",
         "valibot":                         "1.4.2",
         "nunjucks":                        "3.2.4",
@@ -39,7 +39,7 @@
         "chokidar":                        "5.0.0",
         "glob":                            "13.0.6",
         "es-toolkit":                      "1.52.0",
-        "fastify":                         "5.12.1",
+        "fastify":                         "5.12.3",
         "@fastify/websocket":              "11.3.0",
         "@modelcontextprotocol/sdk":       "1.30.0",
         "zod":                             "4.5.4"
