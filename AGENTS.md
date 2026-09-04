@@ -125,7 +125,8 @@ The export option `-w`/`--watch` performs the regular export and then
 observes the referenced artifact files and their embedded assets,
 re-exporting once a change burst stayed silent for one second, where a
 failed re-export is reported but leaves the observe loop intact and where
-`-` (stdout) is rejected as an output. The rendered diagram SVGs are
+`-` (stdout) and an output which is itself an observed source file are
+rejected as an output. The rendered diagram SVGs are
 cached in memory per Gradia spec and swept to the diagrams of the
 latest rendering, so the repeated renderings of a process (watch,
 preview, MCP, and the passes and formats of a single export) reuse them.

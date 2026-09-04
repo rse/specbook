@@ -167,7 +167,7 @@ export class SpecBook {
         once the initial export is done, while the active watcher keeps the
         process alive afterwards  */
     private async observe (options: { config?: string[], basedir?: string, formats: ExportFormat[],
-        realtime: boolean, onExport: (buffers: Buffer[]) => void | Promise<void> },
+        realtime: boolean, outputs?: string[], onExport: (buffers: Buffer[]) => void | Promise<void> },
     verbose: Verbose): Promise<void> {
         const config = await this.configFiles(options.config)
         return watchSpecification(async () => {
@@ -176,6 +176,16 @@ export class SpecBook {
                 observed, too, so a failing export (even one due to an
                 invalid configuration) still keeps the observe loop fed  */
             const result = lint({ config, basedir: options.basedir ?? ".", verbose })
+            const files  = [ ...config.map((file) => path.resolve(file)), ...result.files ]
+
+            /*  an output which is itself an observed source would re-trigger
+                the observation with its own write and hence feed an endless
+                re-export loop, so refuse it before it is ever written  */
+            const collision = options.outputs?.find((output) => files.includes(path.resolve(output)))
+            if (collision !== undefined)
+                throw new Error(`the output "${collision}" is an observed source file, ` +
+                    "which would re-trigger the observation endlessly")
+
             try {
                 await options.onExport(await this.renderFormats(result, options.formats,
                     verbose, options.realtime))
@@ -184,14 +194,17 @@ export class SpecBook {
                 verbose("export failed: " +
                     (err instanceof Error ? err.message : String(err)), "notice")
             }
-            return [ ...config.map((file) => path.resolve(file)), ...result.files ]
+            return files
         }, verbose)
     }
 
     /*  export the specification like "export" and then keep the export
-        in sync with its sources (see "observe")  */
+        in sync with its sources (see "observe"), where "outputs" names the
+        files "onExport" writes, so an output which is itself an observed
+        source can be refused  */
     async watch (options: { config?: string[], basedir?: string, formats?: ExportFormat[],
-        realtime?: boolean, onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
+        realtime?: boolean, outputs?: string[],
+        onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
         if (requested.includes("pdf"))

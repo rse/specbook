@@ -140,6 +140,7 @@ export class SpecBook {
         basedir?: string,
         formats?: ExportFormat[],
         realtime?: boolean,
+        outputs?: string[],        /*  paths "onExport" writes, refused if observed  */
         onExport: (buffers: Buffer[]) => void | Promise<void>
     }): Promise<void>
 
@@ -357,7 +358,9 @@ Options:
     silent for one second. A failed re-export is reported and leaves the
     observe loop intact, so a transiently invalid specification does not
     end the watch. The outputs have to be regular files, as `-` (stdout)
-    cannot receive a repeated export.
+    cannot receive a repeated export, and none of them may be an observed
+    source file itself, as its own write would re-trigger the observation
+    endlessly.
 
 -   `-a|--addr <ip-addr>`, `-p|--port <tcp-port>` (`preview` only):
     The IP address (default: `127.0.0.1`) and TCP port (default: `12345`)

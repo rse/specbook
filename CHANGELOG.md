@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.2.2 (2026-09-04)
+------------------
+
+-   BUGFIX [code, docs]: Self-Feeding Watch Outputs
+    The watch mode of "export" now also rejects an output file which is itself an observed source
+    file, as its own write re-triggered the observation and hence fed an endless re-export loop.
+
 1.2.1 (2026-09-03)
 ------------------
 

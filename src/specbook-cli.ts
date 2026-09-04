@@ -179,7 +179,7 @@ withCommonOptions(program.command("export"))
         }
         if (opts.watch)
             await specbook.watch({ config: configOf(opts), basedir: opts.basedir,
-                formats: distinct, onExport: write })
+                formats: distinct, outputs: outputs.map(({ output }) => output), onExport: write })
         else
             await write(await specbook.export({ config: configOf(opts), basedir: opts.basedir,
                 formats: distinct }))
