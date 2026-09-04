@@ -497,8 +497,8 @@ Rendering Examples
 See Also
 --------
 
-- [Gradia](https://github.com/rse/gradia)(Graph Diagram Rendering)
-- [ASE](https://ase.tools)(Agentic Software Engineering)
+- [Gradia](https://github.com/rse/gradia)
+- [ASE](https://ase.tools)
 
 Support
 -------
