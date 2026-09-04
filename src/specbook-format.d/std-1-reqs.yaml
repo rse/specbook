@@ -921,7 +921,7 @@
                 type: hub
                 center: self
                 nodes: "[[USE-CASE:*]], [[ROLE:*]], [[PERSONA:*]], [[STEP:*]], [[ACTIVITY:*]],
-                    [[FR.REQUIREMENT:*]], [[RULE:*]], [[TRANSITION:*]]"
+                    [[FR.REQUIREMENT:*]], [[RULE:*]], [[TRANSITION:*]], [[PERMISSION:*]]"
                 labeled: true
                 qualified: true
                 config:

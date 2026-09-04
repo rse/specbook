@@ -174,7 +174,7 @@ TEST: Test Cases (TC)
 
 ##  TEST-CASE: Manager Role Survives Finish {{manager-retained}}
 
--   VERIFIES:       [[REQUIREMENT:export-inputs]], [[SCENARIO:export-data-after]], [[RULE:manager-retained]], [[PERMISSION:manager-export-messages]], [[PERMISSION:moderator-enter-event]]
+-   VERIFIES:       [[REQUIREMENT:export-inputs]], [[SCENARIO:export-data-after]], [[SCENARIO:moderate-after-finish]], [[RULE:manager-retained]], [[PERMISSION:manager-export-messages]], [[PERMISSION:moderator-enter-event]]
 -   WORKFLOWS:      [[WORKFLOW:run-broadcast-event]]
 -   PRE-CONDITION:  A running event with a manager role and a moderator role assigned.
 -   INPUT:          The manager exports the event data after having finished the event.
@@ -258,7 +258,7 @@ TEST: Test Cases (TC)
 
 ##  TEST-CASE: Presenter Sees Forwarded Questions Only {{presenter-view}}
 
--   VERIFIES:       [[REQUIREMENT:presenter-dashboard]], [[PERMISSION:presenter-read-forwarded]]
+-   VERIFIES:       [[REQUIREMENT:presenter-dashboard]], [[SCENARIO:present-only-forwarded]], [[PERMISSION:presenter-read-forwarded]]
 -   PRE-CONDITION:  A running event holds one question in each of the states pending, accepted, rejected, and forwarded.
 -   INPUT:          The presenter opens the presenter view of the event.
 -   EXPECTED:       The view lists the forwarded question only, while a direct request for any of the three other questions is refused.

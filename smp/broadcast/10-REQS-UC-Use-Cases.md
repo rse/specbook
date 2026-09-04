@@ -229,6 +229,16 @@ from silent viewers into an engaged community.
 3.  The system stores the message in state pending and accepts it at once, unless the event moderates chat messages and hence holds it for the moderator decision.
 4.  The system shows the message in the stream under the sender name in the form the event configures (full name, first name, or anonymous), exposing the email address on hover.
 
+### SCENARIO: Pending Message Stays Private {{chat-pending-private}}
+
+-   TYPE:         Alternative
+-   RESULT:       Success
+-   AT-MAIN-STEP: 4
+-   OUTCOME:      The message is visible to its sender only until a moderator accepts it.
+
+4.  The system shows the pending message to its sender only, marked as awaiting the moderation decision.
+5.  The system shows the message to the other attendees once a moderator has accepted it.
+
 ### SCENARIO: Like a Message {{chat-like}}
 
 -   TYPE:         Alternative
@@ -312,7 +322,7 @@ USE-CASE: Moderate and Forward Messages {{moderate}}
 -   JOURNEYS:       [[STEP:support]]
 -   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:moderate-interaction]]
 -   REQUIREMENTS:   [[REQUIREMENT:moderation]], [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:sort-filter]], [[REQUIREMENT:presenter-hints]]
--   RULES:          [[RULE:type-states]], [[RULE:forward-lock]]
+-   RULES:          [[RULE:type-states]], [[RULE:forward-lock]], [[RULE:anonymize]]
 -   PRE-CONDITION:  The event is running and the moderator has the Moderator role.
 -   TRIGGER:        An attendee message arrives in state pending for moderation.
 -   POST-CONDITION: Messages are accepted, rejected, forwarded with optional hints, or settled on behalf of the presenter.
@@ -350,6 +360,16 @@ curated, ordered selection of the audience input while on stage.
 
 4.  The moderator marks the forwarded question as answered or suspended on behalf of the presenter, e.g. once the presenter addressed it on stage without marking it.
 5.  The system records the decision and removes the question from the presenter's work basket.
+
+### SCENARIO: Access Lost After Finish {{moderate-after-finish}}
+
+-   TYPE:         Exceptional
+-   RESULT:       Failure
+-   AT-MAIN-STEP: 1
+-   OUTCOME:      The moderator cannot enter the finished event, and no message is moderated anymore.
+
+1.  The moderator opens the event after the manager has finished it.
+2.  The system refuses the access, as the anonymization has deleted the Moderator role of the event.
 
 USE-CASE: Moderate the Chat Conversation {{moderate-chat}}
 ----------------------------------------
@@ -400,6 +420,119 @@ an unattended chat drowns in spam and off-topic noise.
 1.  The moderator opens the administration view an embedded third-party application exposes.
 2.  The moderator controls the application from this view.
 3.  The system passes the control on to the application without interrupting the stream.
+
+USE-CASE: Steer the Presenter {{steer-presenter}}
+---------------------------------
+
+-   ACTOR:          [[ROLE:moderator]]
+-   PERSONAS:       [[PERSONA:moderator-qa]]
+-   JOURNEYS:       [[STEP:support]]
+-   ACTIVITIES:     [[ACTIVITY:moderate-interaction]]
+-   REQUIREMENTS:   [[REQUIREMENT:presenter-hints]], [[REQUIREMENT:config-propagation]]
+-   PRE-CONDITION:  The event is running and the moderator has the Moderator role.
+-   TRIGGER:        The presenter needs timing or routing guidance during the live event.
+-   POST-CONDITION: The presenter alert is raised or the active agenda point is advanced, and the presenter sees it.
+
+The moderator raises a textual alert on the stage view of the presenter
+and advances the active agenda point of the event, BECAUSE the presenter
+on stage cannot watch the clock and the audience input at the same
+time.
+
+### SCENARIO: Raise a Presenter Alert {{steer-presenter-alert}}
+
+-   TYPE: Main
+
+1.  The moderator writes an alert for the presenter, e.g. a timing hint.
+2.  The moderator raises the alert.
+3.  The system shows the alert on the stage view of the presenter until the presenter confirms it.
+
+### SCENARIO: Advance the Agenda {{steer-presenter-agenda}}
+
+-   TYPE:         Alternative
+-   RESULT:       Success
+-   AT-MAIN-STEP: 1
+-   OUTCOME:      The next agenda point is the active one of the event.
+
+1.  The moderator marks the next agenda point as the active one.
+2.  The system propagates the active agenda point to the presenter and the attendees.
+
+USE-CASE: Configure the Event {{configure-event}}
+-----------------------------
+
+-   ACTOR:          [[ROLE:manager]]
+-   JOURNEYS:       [[STEP:configure]]
+-   ACTIVITIES:     [[ACTIVITY:plan-event]]
+-   REQUIREMENTS:   [[REQUIREMENT:multi-provider]], [[REQUIREMENT:name-appearance]], [[REQUIREMENT:question-tags]], [[REQUIREMENT:info-messages]], [[REQUIREMENT:config-propagation]], [[REQUIREMENT:event-portability]]
+-   RULES:          [[RULE:single-channel]], [[RULE:single-resource]], [[RULE:no-accounts]], [[RULE:manager-retained]]
+-   PRE-CONDITION:  The event is provisioned by the administrator and the manager holds its Manager role.
+-   TRIGGER:        The manager receives the Manager role of an upcoming event.
+-   POST-CONDITION: The event carries its channels, agenda, tags, roles, access list, and interaction settings, ready for the rehearsal.
+
+The manager lays out the channels and their fallback resources, curates
+the agenda and the question tags, grants the Moderator and Presenter
+roles, maintains the access list, and sets the interaction options of
+the event, BECAUSE a broadcast event needs its stage, its staff, and its
+audience set up before anyone can rehearse it.
+
+### SCENARIO: Lay Out the Channels {{configure-event-channels}}
+
+-   TYPE: Main
+
+1.  The manager opens the configuration of the event.
+2.  The manager defines the channels of the event and marks one of them as active.
+3.  The manager selects the active resource of each channel among its provisioned streaming resources.
+4.  The manager sets the interaction options, the name appearance, and the login and interaction messages of the event.
+5.  The system validates the settings and propagates them to the connected clients.
+
+### SCENARIO: Curate the Agenda {{configure-event-agenda}}
+
+-   TYPE:         Alternative
+-   RESULT:       Success
+-   AT-MAIN-STEP: 2
+-   OUTCOME:      The event carries an ordered agenda the moderator advances during the live event.
+
+2.  The manager defines the ordered agenda points of the event and the tags corresponding to them.
+3.  The system stores the agenda for the presenter and the moderators.
+
+### SCENARIO: Curate the Tags {{configure-event-tags}}
+
+-   TYPE:         Alternative
+-   RESULT:       Success
+-   AT-MAIN-STEP: 2
+-   OUTCOME:      The event carries a tag vocabulary for the questions, partly reserved for the moderators.
+
+2.  The manager defines the tag vocabulary of the questions, reserving some tags for the moderators.
+3.  The system offers the public tags to the attendees and every tag to the moderators.
+
+### SCENARIO: Grant the Event Roles {{configure-event-roles}}
+
+-   TYPE:         Alternative
+-   RESULT:       Success
+-   AT-MAIN-STEP: 2
+-   OUTCOME:      The moderators and the presenter can enter the unpublished event for the rehearsal.
+
+2.  The manager grants the Moderator and Presenter roles of the event by email address, or revokes them again.
+3.  The system creates the users of the roles without permanent accounts and admits them to the unpublished event.
+
+### SCENARIO: Maintain the Access List {{configure-event-access}}
+
+-   TYPE:         Alternative
+-   RESULT:       Success
+-   AT-MAIN-STEP: 2
+-   OUTCOME:      The access list names exactly the invited attendees.
+
+2.  The manager adds attendees to the access list by email address, or removes them again.
+3.  The system deletes a removed user without any role entirely.
+
+### SCENARIO: Delete the Event {{configure-event-delete}}
+
+-   TYPE:         Alternative
+-   RESULT:       Success
+-   AT-MAIN-STEP: 2
+-   OUTCOME:      The event no longer exists.
+
+2.  The manager deletes the event entirely.
+3.  The system deletes the event with its messages, statistics, and remaining Manager roles.
 
 USE-CASE: Switch Streaming Provider {{switch-provider}}
 -----------------------------------
@@ -532,6 +665,7 @@ USE-CASE: Present Forwarded Questions {{present}}
 -   ACTOR:          [[ROLE:presenter]]
 -   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:present-talk]]
 -   REQUIREMENTS:   [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:presenter-dashboard]], [[REQUIREMENT:presenter-hints]]
+-   RULES:          [[RULE:forward-lock]]
 -   PRE-CONDITION:  The event is running and questions have been forwarded.
 -   TRIGGER:        The moderator forwards a question to the presenter.
 -   POST-CONDITION: Processed questions are marked answered or suspended.
@@ -559,3 +693,22 @@ focused on the audience.
 2.  The presenter decides not to address a forwarded question on stage.
 3.  The presenter marks the question as suspended.
 4.  The system removes the question from the active basket.
+
+### SCENARIO: Forwarded Questions Only {{present-only-forwarded}}
+
+-   TYPE:         Alternative
+-   RESULT:       Resume
+-   AT-MAIN-STEP: 1
+-   OUTCOME:      The presenter works on the curated forwarded questions alone, and the flow resumes at step 2.
+
+1.  The presenter views the forwarded questions only, while the pending, accepted, and rejected messages of the event stay invisible to them.
+
+### SCENARIO: Confirm a Raised Alert {{present-confirm-alert}}
+
+-   TYPE:         Alternative
+-   RESULT:       Resume
+-   AT-MAIN-STEP: 1
+-   OUTCOME:      The alert is taken off the stage view, and the flow resumes at step 1.
+
+1.  The presenter sees an alert a moderator has raised on the stage view.
+2.  The presenter confirms the alert, which takes it off the stage view.

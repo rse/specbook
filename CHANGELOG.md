@@ -5,6 +5,10 @@ ChangeLog
 1.2.5 (2026-09-04)
 ------------------
 
+-   IMPROVEMENT [docs, othr]: Trace the Permissions into the Use Case Scenarios
+    A `PERMISSION` now references the `USE-CASES` and scenarios exercising and refusing it, and the
+    sample adds the configuration and presenter-steering use cases plus the refusal scenarios.
+
 -   IMPROVEMENT [code, docs, othr]: Trace the State Transitions into the Use Case Scenarios
     A `TRANSITION` now traces its `USE-CASES` down to the very scenarios triggering it, a reference
     onto a descendant of a diagram node yields an edge onto it, and the sample closes its gaps.

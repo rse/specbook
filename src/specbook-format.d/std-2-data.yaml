@@ -389,4 +389,16 @@
                         the right.
                     value: list([[RULE:*]])
                     optional: true
+                -   name: USE-CASES
+                    desc: >
+                        Comma-separated references to the USE-CASES objects whose scenarios
+                        exercise the permission, i.e. in which a scenario step performs one of
+                        the granted operations, or, where not every scenario of a use case does
+                        so, to the very `SCENARIO` objects doing so, including the exceptional
+                        scenarios in which the solution refuses an operation at the boundary of
+                        the permission, tracing the permission into the step-by-step flows
+                        exercising and enforcing it; omitted for a permission exercised outside
+                        any use case (e.g. through the configuration).
+                    value: list([[USE-CASE:*]], [[SCENARIO:*]])
+                    optional: true
 
