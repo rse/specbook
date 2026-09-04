@@ -5,6 +5,10 @@ ChangeLog
 1.2.3 (2026-09-04)
 ------------------
 
+-   IMPROVEMENT [code]: Schema and Corpus Statistics in Verbose Output
+    The verbose output now reports the object kinds and link relationships the schema
+    configuration specifies and the objects and link relationships the specification defines.
+
 -   CLEANUP [spec, othr]: Shortest Reference Form in Standard Schema and Sample
     The references of the standard schema configuration now use the plain `[[KIND:*]]` form for
     the unique kinds, and the sample corpus uses `[[KIND:name]]` instead of `[[XX.name]]` paths.

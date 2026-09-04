@@ -6,11 +6,11 @@
 
 import * as v from "valibot"
 
-import { Spec, type SpecArtifact }
+import { Spec, type SpecArtifact, type SpecObject }
     from "./specbook-format-spec.js"
 import { type Schema }
     from "./specbook-format-schema.js"
-import { buildLinkIndex }
+import { buildLinkIndex, referenceRegex, plainText }
     from "./specbook-link.js"
 import { ParseContext, type SourceFile, type ParseResult }
     from "./specbook-parse-common.js"
@@ -55,4 +55,24 @@ export const parseSpecification = (sources: SourceFile[], config?: Schema): Pars
             }
     }
     return { specification, diagnostics: ctx.diagnostics, assets: Array.from(ctx.assets) }
+}
+
+/*  the statistics of a specification: the number of defined objects
+    (recursively) and of relationships, i.e. the Wiki-style references
+    in the names, property values, descriptions, and rationales  */
+export const specStatistics = (specification: Spec): { objects: number, links: number } => {
+    let objects = 0
+    let links   = 0
+    const walk = (object: SpecObject) => {
+        objects++
+        const texts = [ object.name, ...object.properties.map((p) => p.value) ]
+        if (object.description !== undefined)
+            texts.push(object.description.description, object.description.rationale ?? "")
+        for (const text of texts)
+            links += Array.from(plainText(text).matchAll(referenceRegex)).length
+        object.childs.forEach(walk)
+    }
+    for (const artifact of specification.artifacts)
+        artifact.objects.forEach(walk)
+    return { objects, links }
 }

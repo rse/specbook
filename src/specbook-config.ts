@@ -286,6 +286,26 @@ const checkConstraints = (
     return diagnostics
 }
 
+/*  the statistics of a schema configuration: the number of specified
+    object kinds (recursively) and of relationship kinds, i.e. the
+    reference-valued properties (whose expressions are valid, as the
+    configuration is validated before use)  */
+export const configStatistics = (config: Schema): { objects: number, links: number } => {
+    let objects = 0
+    let links   = 0
+    const walk = (object: SchemaObject) => {
+        objects++
+        for (const prop of object.props ?? [])
+            if (prop.value !== undefined && admitsReferences(compileValueExpr(prop.value)))
+                links++
+        for (const child of object.childs ?? [])
+            walk(child)
+    }
+    for (const object of config)
+        walk(object)
+    return { objects, links }
+}
+
 /*  load and validate the YAML schema configuration, merged in order out
     of its files (the later ones into the earlier ones), where every file
     has to be readable and syntactically valid on its own, while the

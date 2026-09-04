@@ -9,7 +9,7 @@ import * as path                                         from "node:path"
 import { fileURLToPath }                                 from "node:url"
 import { glob }                                          from "glob"
 
-import { loadConfig }                                    from "./specbook-config.js"
+import { loadConfig, configStatistics }                  from "./specbook-config.js"
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
     from "./specbook-diagnostic.js"
 import { initSpecification }                             from "./specbook-cmd-init.js"
@@ -100,6 +100,9 @@ export class SpecBook {
         if (config === undefined)
             throw new Error("invalid configuration:\n" +
                 diagnostics.map(renderDiagnostic).join("\n"))
+        const stats = configStatistics(config)
+        verbose(`loaded schema configuration specifying ${literal(stats.objects)} object kind(s) ` +
+            `and ${literal(stats.links)} link relationship(s)`)
         return config
     }
 

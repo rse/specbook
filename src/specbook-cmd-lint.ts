@@ -7,10 +7,11 @@
 import * as fs   from "node:fs"
 import * as path from "node:path"
 
-import { loadConfig }                                           from "./specbook-config.js"
+import { loadConfig, configStatistics }                         from "./specbook-config.js"
 import { literal, type Verbose }                                from "./specbook-verbose.js"
 import { type Diagnostic }                                      from "./specbook-diagnostic.js"
-import { parseSpecification, resolveArtifact, type SourceFile } from "./specbook-parse.js"
+import { parseSpecification, specStatistics, resolveArtifact, type SourceFile }
+    from "./specbook-parse.js"
 import { type Spec }                                            from "./specbook-format-spec.js"
 import { type Schema, type SchemaObject }                       from "./specbook-format-schema.js"
 
@@ -58,6 +59,11 @@ export const lint = (options: LintOptions): LintResult => {
     const loaded = loadConfig(options.config)
     diagnostics.push(...loaded.diagnostics)
     const config = loaded.config
+    if (config !== undefined) {
+        const stats = configStatistics(config)
+        options.verbose(`loaded schema configuration specifying ${literal(stats.objects)} object kind(s) ` +
+            `and ${literal(stats.links)} link relationship(s)`)
+    }
 
     /*  read the artifact files the configuration references, resolved
         against the base directory and tolerating an absent file if all
@@ -94,6 +100,9 @@ export const lint = (options: LintOptions): LintResult => {
     const result = parseSpecification(sources, config)
     diagnostics.push(...result.diagnostics)
     watched.push(...result.assets)
+    const stats = specStatistics(result.specification)
+    options.verbose(`parsed specification defining ${literal(stats.objects)} object(s) ` +
+        `and ${literal(stats.links)} link relationship(s)`)
 
     /*  report the non-optional artifacts absent from the specification,
         against their loaded artifact file (an absent or unreadable file
