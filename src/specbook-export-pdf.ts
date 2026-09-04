@@ -172,6 +172,12 @@ const drawBrandBar = async (doc: PDFDocument, accent: string) => {
     renderer both ask for the very same browser  */
 let browserOptions: Promise<LaunchOptions | undefined> | undefined
 
+/*  the remedy of an unavailable Playwright Chromium, shared by the
+    fallback notice and the missing-browser error, as both have to point
+    at the very same one-time command  */
+const chromiumRemedy =
+    `run "${literal("npx playwright install chromium")}" once to download the Playwright Chromium`
+
 /*  resolve the browser printing the PDF: the downloaded Playwright
     Chromium is a plain file check, while a system-installed Google
     Chrome is only detectable by launching it  */
@@ -190,7 +196,7 @@ const resolveBrowser = async (verbose: Verbose): Promise<LaunchOptions | undefin
         const chrome = await chromium.launch({ channel: "chrome" })
         await chrome.close()
         verbose("Playwright Chromium unavailable -- falling back to the " +
-            "system-installed Google Chrome", "notice")
+            `system-installed Google Chrome (${chromiumRemedy})`, "notice")
         return { channel: "chrome" }
     }
     catch {
@@ -206,8 +212,7 @@ export const requireBrowser = async (verbose: Verbose): Promise<LaunchOptions> =
     const options = await browserOptions
     if (options === undefined)
         throw new Error("the PDF export requires a Chromium-class browser, but neither the " +
-            "Playwright Chromium nor a system-installed Google Chrome was found -- run " +
-            `"${literal("npx playwright install chromium")}" once to download the Playwright Chromium`)
+            `Playwright Chromium nor a system-installed Google Chrome was found -- ${chromiumRemedy}`)
     return options
 }
 
