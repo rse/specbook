@@ -5,14 +5,21 @@ ChangeLog
 1.2.3 (2026-09-04)
 ------------------
 
--   CLEANUP [code]: Code Cleanups
-    Applied various code cleanups based on ASE Code Lint results.
-
 -   IMPROVEMENT [code]: Schema and Corpus Statistics in Verbose Output
     The verbose output now reports the object kinds and link relationships the schema
     configuration specifies and the objects and link relationships the specification defines.
 
--   CLEANUP [spec, othr]: Shortest Reference Form in Standard Schema and Sample
+-   BUGFIX [code, othr]: Proofreading Fixes in Standard Schema and Sample Corpus
+    Corrected wording and grammar issues in the descriptions of the standard schema configuration
+    and in the sample corpus.
+
+-   UPDATE [infr]: Dependency Upgrades
+    Upgraded the NPM dependencies, notably `@rse/gradia` to 1.1.9 and `fastify` to 5.12.3.
+
+-   CLEANUP [code]: Code Cleanups
+    Applied various code cleanups based on ASE Code Lint results.
+
+-   CLEANUP [code, othr]: Shortest Reference Form in Standard Schema and Sample
     The references of the standard schema configuration now use the plain `[[KIND:*]]` form for
     the unique kinds, and the sample corpus uses `[[KIND:name]]` instead of `[[XX.name]]` paths.
 
