@@ -14,8 +14,8 @@ Modified: 2026-09-03 18:05
 -   PHASE:    Build-Time
 -   COVERAGE: Build, Standardization
 
-All client-side and server-side code, including the shared common module, is authored in strongly-typed TypeScript and
-compiled to JavaScript, BECAUSE a single strongly-typed language catches contract mismatches against the shared common
+All client-side and server-side code, including the shared common module, is authored in strongly typed TypeScript and
+compiled to JavaScript, BECAUSE a single strongly typed language catches contract mismatches against the shared common
 module at compile time.
 
 ### COMPONENT: Task Runner {{task-runner}}

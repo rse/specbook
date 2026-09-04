@@ -70,7 +70,7 @@ UXUI: Interaction Concept (IC)
     MOTIVATED-BY: [[STEP:participate]];
     TRADE-OFF: A confirmation step before every submission, which would reduce mistaken posts at the cost of interrupting the flow;
     Input is sent without a confirmation step and corrected afterwards
-    instead, as the attendee can edit and delete own messages while a
+    instead, as the attendee can edit and delete their own messages while a
     deleted message leaves a placeholder, BECAUSE a fast conversation
     tolerates a repaired mistake better than a delay before every message.
 

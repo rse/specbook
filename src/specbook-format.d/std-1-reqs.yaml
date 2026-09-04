@@ -30,7 +30,7 @@
                 Why the solution exists.
         -   name: TARGET-AUDIENCE
             desc: >
-                Who the solution serves.
+                Whom the solution serves.
         -   name: SOLUTION
             desc: >
                 What the solution is, in a single sentence naming its kind or

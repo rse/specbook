@@ -91,7 +91,7 @@
                         (node and network), OPERATIONS-VIEW, and QUALITY-PERSPECTIVES objects,
                         and/or the DESIGN-DECISIONS objects the test case verifies, so that a
                         scenario (in particular an `Exceptional` one, judged by its `OUTCOME`) is
-                        covered by an acceptance test beside the requirements it exercises, a rule
+                        covered by an acceptance test besides the requirements it exercises, a rule
                         (judged by the condition it states) is proven to hold, not just to be
                         documented, a transition (judged by its `GUARD` and the resulting state) is
                         proven to be permitted exactly as modeled, an attribute (judged by its
