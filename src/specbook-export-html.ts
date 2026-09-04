@@ -283,8 +283,8 @@ const placeholderStylesheet = textframe`
         transform: translateY(-50%); text-align: center; opacity: 0.6 }
 `
 
-/*  the client-side script of the live preview: it connects back to the
-    own page over WebSocket (the URL scheme "http"/"https" replaced with
+/*  the client-side script of the live preview: it connects back to
+    its own page over WebSocket (the URL scheme "http"/"https" replaced with
     "ws"/"wss"), re-connects every second after a lost connection, and
     updates the page on a received "RELOAD" command as well as on every
     re-established connection (as the server was restarted meanwhile).
@@ -307,7 +307,11 @@ const realtimeScript = textframe`
                 icon.className = "realtime-status " + state
         }
         let blink = 0
+        let seq   = 0
         const update = async () => {
+            /*  a superseded update (an overlapping newer one started
+                meanwhile) is dropped, as its stale page could arrive last  */
+            const mine = ++seq
             let response
             try {
                 response = await fetch(window.location.pathname, { cache: "no-store" })
@@ -318,7 +322,10 @@ const realtimeScript = textframe`
             }
             if (!response.ok)
                 return
-            const doc = new DOMParser().parseFromString(await response.text(), "text/html")
+            const html = await response.text()
+            if (mine !== seq)
+                return
+            const doc = new DOMParser().parseFromString(html, "text/html")
             const x = window.scrollX
             const y = window.scrollY
             document.title = doc.title
@@ -1110,8 +1117,8 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
 
             /*  under the fixed table layout the description column claims
                 twice the share of a regular column, compressing the others  */
-            width: Math.round(200 / (keys.length + 3)),
-            rows: childs.map((child, i) => scoped(child, () => ({
+            width:    Math.round(200 / (keys.length + 3)),
+            rows:     childs.map((child, i) => scoped(child, () => ({
                 id:          anchorOf(child),
                 paren:       child.paren,
                 primary:     child.primary,
@@ -1455,8 +1462,8 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             .filter((artifact) => !artifact.objects.some(isTitleObject))
         const meta      = titleObject(specification)
         const doc       = meta !== undefined ? rendered?.get(meta) : undefined
-        const objects = artifacts.flatMap((artifact) => artifact.objects)
-        const entries = tocEntries(objects, tocPages)
+        const objects   = artifacts.flatMap((artifact) => artifact.objects)
+        const entries   = tocEntries(objects, tocPages)
         return render("Document", { Document: {
             title:       documentTitle(specification).title,
             lang,

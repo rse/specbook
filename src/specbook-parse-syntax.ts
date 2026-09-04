@@ -227,7 +227,8 @@ const parseGrouped = (ctx: ParseContext, list: Tokens.List, group: Group, file: 
     "<kind>: <name>; <key>: <value>; ...; <statement>, BECAUSE <rationale>.",
     which may continue on the following lines of the item; a grouped item
     omits the leading "<kind>: " and receives its kind from the group  */
-const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObject, file: string, line: number, group?: string) => {
+const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObject,
+    file: string, line: number, group?: string) => {
     const text     = itemLines(item).join(" ").trim()
     const segments = text.split(/\s*;\s*/).filter((segment) => segment !== "")
     const head     = segments.shift() ?? ""

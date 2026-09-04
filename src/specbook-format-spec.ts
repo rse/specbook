@@ -53,6 +53,8 @@ export type SpecProperty = {
 
 /*  ==== Schema ====  */
 
+/*  the Valibot schemas mirroring the types above, with the object
+    schema referencing itself lazily for the nested childs  */
 const SpecProperty: v.GenericSchema<SpecProperty> = v.object({
     key:               v.string(),
     value:             v.string(),

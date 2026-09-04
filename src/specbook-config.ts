@@ -57,15 +57,16 @@ const mergeConfig = (target: unknown, source: unknown, list?: string): unknown =
     if (source === null || source === undefined)
         return target
     else if (Array.isArray(target) && Array.isArray(source)) {
+        const items = target as unknown[]
         for (const item of source as unknown[]) {
-            const i = (target as unknown[]).findIndex((existing) =>
+            const i = items.findIndex((existing) =>
                 identityOf(existing, list) === identityOf(item, list))
             if (i < 0)
-                target.push(item)
+                items.push(item)
             else
-                target[i] = mergeConfig(target[i], item, list)
+                items[i] = mergeConfig(items[i], item, list)
         }
-        return target
+        return items
     }
     else if (isPlainObject(target) && isPlainObject(source))
         return mergeWith(target, source, (t: unknown, s: unknown, key: string) =>
@@ -79,7 +80,7 @@ const mergeConfig = (target: unknown, source: unknown, list?: string): unknown =
     merge otherwise would alter through every alias at once  */
 const unshared = (value: unknown): unknown => {
     if (Array.isArray(value))
-        return value.map((item) => unshared(item))
+        return (value as unknown[]).map((item) => unshared(item))
     else if (isPlainObject(value))
         return Object.fromEntries(Object.entries(value).map(([ key, val ]) => [ key, unshared(val) ]))
     else

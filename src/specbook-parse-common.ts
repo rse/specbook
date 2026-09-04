@@ -50,6 +50,12 @@ export class ParseContext {
     diagnose (file: string, line: number, message: string, severity: DiagnosticSeverity = "error") {
         this.diagnostics.push({ file, line, column: 1, severity, message })
     }
+
+    /*  the source location of an object (defensively falling back onto
+        line 1 of no file for an object unknown to the syntactic phase)  */
+    metaOf (object: SpecObject): ObjectMeta {
+        return this.objectMeta.get(object) ?? { file: "", line: 1 }
+    }
 }
 
 /*  the marker separating a statement from its rationale  */

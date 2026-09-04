@@ -48,11 +48,8 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
         method: "GET",
         url:    "/",
         handler: (_request, reply) => {
-            if (html === undefined)
-                return reply.code(503).type("text/html; charset=utf-8")
-                    .header("cache-control", "no-store").send(placeholder)
-            return reply.type("text/html; charset=utf-8")
-                .header("cache-control", "no-store").send(html)
+            reply.type("text/html; charset=utf-8").header("cache-control", "no-store")
+            return html === undefined ? reply.code(503).send(placeholder) : reply.send(html)
         },
         wsHandler: (socket, request) => {
             /*  identify the client by its remote address and port  */

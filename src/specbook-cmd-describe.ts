@@ -98,7 +98,7 @@ const schemaSection = (config: string[], schema: Schema | undefined,
     yaml = compressYaml(yaml, compress)
     return textframe(`
         The **SpecBook SCHEMA Model** is the following YAML schema configuration:
-    `) + "\n```yaml\n" + yaml.replace(/\n*$/, "\n") + "```\n\n"
+    `) + "\n```yaml\n" + yaml.replace(/\n*$/, "\n") + "```\n"
 }
 
 /*  render the reference to the specification Markdown files  */
@@ -106,7 +106,7 @@ const specSection = (basedir: string): string =>
     textframe(`
         The **SpecBook SPEC Model** is the set of Markdown specification files in directory:
         @${basedir}
-    `) + "\n"
+    `)
 
 /*  describe the generic SpecBook models and formats as Markdown,
     optionally extended by the references to (or the embeddings of) the

@@ -10,6 +10,8 @@ import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
 import type { embeddingThemes }
     from "./specbook-parse-common.js"
+import { plainText }
+    from "./specbook-link.js"
 
 /*  escape a text for embedding into template HTML (text and attributes)  */
 export const escapeHtml = (text: string): string =>
@@ -218,13 +220,16 @@ export const subsetStylesheet = async (charset?: string): Promise<string> => {
 }
 
 /*  determine the document title and subtitle from the title object (an
-    empty TITLE counts as absent, exactly like for the title page)  */
+    empty TITLE counts as absent, exactly like for the title page), with
+    the inline code markup stripped, as the plain-text targets (the HTML
+    <title>, the PDF metadata and page header) render no Markdown  */
 export const documentTitle = (specification: Spec): { title: string, subtitle?: string } => {
-    const title = titleProperty(specification, "TITLE")?.trim()
+    const title    = titleProperty(specification, "TITLE")?.trim()
+    const subtitle = titleProperty(specification, "SUBTITLE")?.trim()
     return {
-        title:    title !== undefined && title !== "" ? title :
-            titleObject(specification)?.name ?? "Specification",
-        subtitle: titleProperty(specification, "SUBTITLE")?.trim()
+        title:    plainText(title !== undefined && title !== "" ? title :
+            titleObject(specification)?.name ?? "Specification"),
+        subtitle: subtitle !== undefined ? plainText(subtitle) : undefined
     }
 }
 

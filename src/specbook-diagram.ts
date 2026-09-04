@@ -644,11 +644,11 @@ export const validateDiagrams = (ctx: ParseContext, specification: Spec,
                 object itself and report it just once, as a wildcard
                 "edges" pattern lets every diagram walk the very same
                 edge objects again  */
-            const meta    = ctx.objectMeta.get(error.object ?? object) ?? { file: "", line: 1 }
+            const meta    = ctx.metaOf(error.object ?? object)
             const message = error.object !== undefined ?
                 `invalid diagram edge on ${error.object.kind} "${error.object.name}": ${error.reason}` :
                 `invalid diagram on ${object.kind} "${object.name}": ${error.reason}`
-            const key     = `${meta.file} ${meta.line} ${message}`
+            const key     = `${meta.file}\u0000${meta.line}\u0000${message}`
             if (seen.has(key))
                 continue
             seen.add(key)

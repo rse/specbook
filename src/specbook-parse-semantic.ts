@@ -194,7 +194,7 @@ const checkSiblingFlags = (ctx: ParseContext, object: SpecObject, childs: Schema
                 if (first === undefined)
                     seen.set(value, sibling)
                 else {
-                    const siblingMeta = ctx.objectMeta.get(sibling) ?? { file: "", line: 1 }
+                    const siblingMeta = ctx.metaOf(sibling)
                     ctx.diagnose(siblingMeta.file, ctx.propMeta.get(property)?.line ?? siblingMeta.line,
                         `value "${value}" of unique property "${prop.name}" on ${sibling.kind} "${sibling.name}" ` +
                         `already used by preceding ${sibling.kind} "${first.name}"`)
@@ -210,7 +210,7 @@ const checkSiblingFlags = (ctx: ParseContext, object: SpecObject, childs: Schema
 
 /*  validate a single object (and recursively its childs) against its schema  */
 const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObject, level: number) => {
-    const meta  = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
+    const meta  = ctx.metaOf(object)
     const props = schema.props ?? []
 
     /*  check the name convention (the configured name of non-artifact
@@ -254,7 +254,7 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
     /*  check the configured child objects  */
     const childs = schema.childs ?? []
     for (const child of object.childs) {
-        const childMeta   = ctx.objectMeta.get(child) ?? { file: "", line: 1 }
+        const childMeta   = ctx.metaOf(child)
         const childSchema = childs.find((c) => c.kind === child.kind)
         if (childSchema === undefined) {
             ctx.diagnose(childMeta.file, childMeta.line,
@@ -346,7 +346,7 @@ const checkIds = (ctx: ParseContext, objects: SpecObject[]) => {
         if (first === undefined)
             seen.set(key, object)
         else {
-            const meta = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
+            const meta = ctx.metaOf(object)
             ctx.diagnose(meta.file, meta.line,
                 `id "${object.id}" of ${object.kind} "${object.name}" collides with preceding ${object.kind} "${first.name}"`)
         }
@@ -422,7 +422,7 @@ const checkAutomata = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject>
         const reachable   = closure(initials, succs)
         const coreachable = closure(finals, preds)
         for (const node of nodes) {
-            const meta = ctx.objectMeta.get(node) ?? { file: "", line: 1 }
+            const meta = ctx.metaOf(node)
             const name = `${node.kind} "${node.name}" of ${object.kind} "${object.name}"`
             if (initials.length > 0 && !reachable.has(node))
                 ctx.diagnose(meta.file, meta.line,
@@ -457,7 +457,7 @@ const checkRelations = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject
     for (const [ prop, objects ] of groups) {
         const members = new Set<SpecObject>(objects)
         const locate  = (object: SpecObject) => {
-            const meta     = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
+            const meta     = ctx.metaOf(object)
             const property = findProp(ctx, object, prop.name)
             const line     = property !== undefined ? ctx.propMeta.get(property)?.line : undefined
             return { file: meta.file, line: line ?? meta.line }
@@ -549,7 +549,7 @@ const checkReferenced = (ctx: ParseContext, specification: Spec, schemas: Map<Sp
         const covered = Array.from(referrers.get(object) ?? [])
             .some((referrer) => chainOf(ctx.linkIndex, referrer).some((o) => admissible.has(o)))
         if (!covered) {
-            const meta = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
+            const meta = ctx.metaOf(object)
             ctx.diagnose(meta.file, meta.line,
                 `${object.kind} "${object.name}" is not referenced from any object matching ` +
                 schema.referenced.map((entry) => `"${entry}"`).join(" or "), "warning")
@@ -587,7 +587,7 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
     const position = new Map<SpecArtifact, number>()
     for (const artifact of specification.artifacts) {
         for (const object of artifact.objects) {
-            const meta   = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
+            const meta   = ctx.metaOf(object)
             const schema = schemas.get(object)
             if (schema === undefined) {
                 ctx.diagnose(meta.file, meta.line,
@@ -636,7 +636,7 @@ export const validateReferences = (ctx: ParseContext, specification: Spec) => {
         }
     }
     const walk = (object: SpecObject) => {
-        const meta = ctx.objectMeta.get(object) ?? { file: "", line: 1 }
+        const meta = ctx.metaOf(object)
         check(object, object.name, meta.file, meta.line)
         for (const property of object.properties)
             check(object, property.value, meta.file, ctx.propMeta.get(property)?.line ?? meta.line)

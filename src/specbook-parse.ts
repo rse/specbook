@@ -69,7 +69,7 @@ export const specStatistics = (specification: Spec): { objects: number, links: n
         if (object.description !== undefined)
             texts.push(object.description.description, object.description.rationale ?? "")
         for (const text of texts)
-            links += Array.from(plainText(text).matchAll(referenceRegex)).length
+            links += (plainText(text).match(referenceRegex) ?? []).length
         object.childs.forEach(walk)
     }
     for (const artifact of specification.artifacts)

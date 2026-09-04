@@ -50,14 +50,16 @@ const nameSuffixMd = (object: SpecObject): string =>
     (object.paren   !== undefined ? ` (${object.paren})`    : "") +
     (object.anchor  !== undefined ? ` {{${object.anchor}}}` : "")
 
-/*  whether any descendant of an object carries a description which no
-    Concise Format item can carry -- a multi-line one (a fenced code
-    block, an ordered list, a blockquote, or multiple paragraphs) or one
-    carrying a ";", as only a ";"-free description stays a single segment
-    on re-parsing instead of splitting off a spurious property  */
+/*  whether any descendant of an object carries a name or a description
+    which no Concise Format item can carry -- a name carrying a ";" (it
+    would split the head segment), or a multi-line description (a fenced
+    code block, an ordered list, a blockquote, or multiple paragraphs) or
+    one carrying a ";", as only a ";"-free description stays a single
+    segment on re-parsing instead of splitting off a spurious property  */
 const complexBelowMd = (object: SpecObject): boolean =>
-    object.childs.some((child) => (child.description !== undefined
-        && /[\n;]/.test(renderDescriptionMd(child.description))) || complexBelowMd(child))
+    object.childs.some((child) => child.name.includes(";")
+        || (child.description !== undefined
+            && /[\n;]/.test(renderDescriptionMd(child.description))) || complexBelowMd(child))
 
 /*  render an object in the Concise Format as a list item of the
     given nesting depth, with its childs as nested list items  */
