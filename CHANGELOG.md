@@ -9,6 +9,10 @@ ChangeLog
     The roles move from the Authorization Model into the User Personas, where the personas embody
     them and the use cases, workflows, transitions, and context entities name them as actors.
 
+-   IMPROVEMENT [docs, othr]: Trace the Data Model Entities into the Use Cases
+    An `ENTITY` now references the `USE-CASES` touching its instances and its hub diagram shows
+    them beside its requirements, while the broadcast sample states its statistics cadence.
+
 -   IMPROVEMENT [docs]: Delimit the Solution Premises from Constraints
     The artifact description now states that a premise lies outside the control of the solution,
     whereas a constraint is imposed on it and belongs to the requirements or the domain rules.

@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 17:28
+Modified: 2026-09-05 01:00
 ---
 
 #   DATA: Data Model (DM)
@@ -12,6 +12,8 @@ Modified: 2026-08-29 17:28
     [[REQUIREMENT:replies]], [[REQUIREMENT:questions]], [[REQUIREMENT:moderation]], [[REQUIREMENT:client-sentiment]],
     [[REQUIREMENT:server-sentiment]], [[REQUIREMENT:presenter-hints]], [[REQUIREMENT:manage-app]],
     [[REQUIREMENT:config-propagation]], [[REQUIREMENT:event-portability]]
+-   USE-CASES: [[USE-CASE:create-event]], [[USE-CASE:publish-start-finish]], [[USE-CASE:join-event]],
+    [[USE-CASE:switch-provider]], [[USE-CASE:moderate]], [[USE-CASE:export-data]]
 -   TERMS: [[TERM:event]]
 
 The master entity describing a single live broadcast event and all of its configuration,
@@ -204,6 +206,7 @@ BECAUSE the entire data model is event-centric and every other entity hangs off 
 ##  ENTITY: AgendaPoint
 
 -   REQUIREMENTS: [[REQUIREMENT:question-tags]]
+-   USE-CASES: [[USE-CASE:join-event]], [[USE-CASE:moderate]]
 -   TERMS: [[TERM:agendapoint]]
 
 The textual description of a phase in an event,
@@ -228,6 +231,7 @@ BECAUSE attendees and moderators track which part of the event is currently acti
 ##  ENTITY: Channel
 
 -   REQUIREMENTS: [[REQUIREMENT:multi-provider]], [[REQUIREMENT:provider-switch]], [[REQUIREMENT:channel-stats]]
+-   USE-CASES: [[USE-CASE:join-event]], [[USE-CASE:switch-provider]]
 -   TERMS: [[TERM:channel]]
 
 A logical content delivery stream linking video streams to an event,
@@ -260,6 +264,7 @@ BECAUSE an event groups its streams by language and resolution into channels.
 ##  ENTITY: Resource
 
 -   REQUIREMENTS: [[REQUIREMENT:multi-provider]], [[REQUIREMENT:provider-switch]], [[REQUIREMENT:resource-url]]
+-   USE-CASES: [[USE-CASE:join-event]], [[USE-CASE:switch-provider]]
 -   TERMS: [[TERM:resource]], [[TERM:provider]]
 
 A physical content delivery resource such as a provider stream or static website linked to a channel,
@@ -284,6 +289,7 @@ BECAUSE a channel must map to concrete provider endpoints to be playable.
 ##  ENTITY: ResourceProviderParam
 
 -   REQUIREMENTS: [[REQUIREMENT:multi-provider]]
+-   USE-CASES: [[USE-CASE:switch-provider]]
 -   TERMS: [[TERM:provider]]
 
 A key-value parameter belonging to exactly one resource and provider, defined in the event configuration file,
@@ -308,6 +314,7 @@ BECAUSE provider endpoints are parameterized by values an administrator supplies
 ##  ENTITY: Role
 
 -   REQUIREMENTS: [[REQUIREMENT:moderation]], [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:export-inputs]]
+-   USE-CASES: [[USE-CASE:authenticate]], [[USE-CASE:publish-start-finish]], [[USE-CASE:export-data]]
 -   TERMS: [[TERM:role]], [[TERM:manager]], [[TERM:moderator]], [[TERM:presenter]]
 
 A grant of special rights to a specific user within an event,
@@ -330,6 +337,8 @@ BECAUSE the application is role-based and rights are granted through roles.
 
 -   REQUIREMENTS: [[REQUIREMENT:authentication]], [[REQUIREMENT:name-appearance]], [[REQUIREMENT:likes]],
     [[REQUIREMENT:personalized-url]], [[REQUIREMENT:registration-import]]
+-   USE-CASES: [[USE-CASE:authenticate]], [[USE-CASE:create-event]], [[USE-CASE:chat-during-event]],
+    [[USE-CASE:publish-start-finish]]
 -   TERMS: [[TERM:user]], [[TERM:attendee]], [[TERM:accesslist]]
 
 A helper entity enabling event-based logins for invited or pattern-matched attendees,
@@ -369,6 +378,8 @@ BECAUSE the system holds no permanent accounts yet must identify attendees per e
     [[REQUIREMENT:moderation]], [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:answer-inputs]],
     [[REQUIREMENT:moderator-messages]], [[REQUIREMENT:message-editing]], [[REQUIREMENT:deleted-placeholder]],
     [[REQUIREMENT:server-sentiment]], [[REQUIREMENT:sort-filter]], [[REQUIREMENT:question-tags]], [[REQUIREMENT:export-inputs]]
+-   USE-CASES: [[USE-CASE:ask-question]], [[USE-CASE:chat-during-event]], [[USE-CASE:moderate]],
+    [[USE-CASE:moderate-chat]], [[USE-CASE:present]], [[USE-CASE:export-data]]
 -   TERMS: [[TERM:message]], [[TERM:chat]], [[TERM:question]], [[TERM:support]], [[TERM:like]],
     [[TERM:sentiment]]
 
@@ -451,6 +462,7 @@ BECAUSE all event interaction is represented uniformly as messages with language
 ##  ENTITY: MessageText
 
 -   REQUIREMENTS: [[REQUIREMENT:language-switch]], [[REQUIREMENT:export-inputs]]
+-   USE-CASES: [[USE-CASE:join-event]], [[USE-CASE:chat-during-event]], [[USE-CASE:export-data]]
 -   TERMS: [[TERM:message]]
 
 A language-specific text of a message,
@@ -471,6 +483,7 @@ BECAUSE a message is translated into multiple languages while retaining one orig
 ##  ENTITY: QuestionTag
 
 -   REQUIREMENTS: [[REQUIREMENT:question-tags]]
+-   USE-CASES: [[USE-CASE:ask-question]], [[USE-CASE:moderate]]
 -   TERMS: [[TERM:questiontag]]
 
 A named tag attachable to question messages,
@@ -496,6 +509,7 @@ BECAUSE questions are categorized by topic or addressed person for routing and g
 
 -   REQUIREMENTS: [[REQUIREMENT:authentication]], [[REQUIREMENT:automatic-url]], [[REQUIREMENT:registration-import]],
     [[REQUIREMENT:registration-export]], [[REQUIREMENT:debug-stats]]
+-   USE-CASES: [[USE-CASE:authenticate]], [[USE-CASE:create-event]], [[USE-CASE:export-data]]
 -   TERMS: [[TERM:authtoken]]
 
 A one-time second factor proving an attendee controls the email address used as the first factor,
@@ -525,6 +539,7 @@ BECAUSE email-verified access is the core mechanism limiting the audience.
 ##  ENTITY: SessionToken
 
 -   REQUIREMENTS: [[REQUIREMENT:authentication]], [[REQUIREMENT:parallel-access]], [[REQUIREMENT:event-stats]]
+-   USE-CASES: [[USE-CASE:authenticate]], [[USE-CASE:join-event]]
 -   TERMS: [[TERM:sessiontoken]]
 
 The result of a successful login of a user to an event,
@@ -548,7 +563,8 @@ BECAUSE an active session must be tracked to enforce single concurrent access.
 
 ##  ENTITY: EventStatistic
 
--   REQUIREMENTS: [[REQUIREMENT:event-stats]], [[REQUIREMENT:debug-stats]]
+-   REQUIREMENTS: [[REQUIREMENT:event-stats]], [[REQUIREMENT:debug-stats]], [[REQUIREMENT:stats-snapshots]]
+-   USE-CASES: [[USE-CASE:export-data]]
 
 A periodic cumulative snapshot of event-wide counts,
 BECAUSE trend visualization of audience size and authentication flow requires regular snapshots.
@@ -583,7 +599,8 @@ BECAUSE trend visualization of audience size and authentication flow requires re
 
 ##  ENTITY: ChannelStatistic
 
--   REQUIREMENTS: [[REQUIREMENT:channel-stats]]
+-   REQUIREMENTS: [[REQUIREMENT:channel-stats]], [[REQUIREMENT:stats-snapshots]]
+-   USE-CASES: [[USE-CASE:export-data]]
 
 A periodic count of viewers for a channel,
 BECAUSE organizers need per-channel popularity over time.
@@ -603,6 +620,7 @@ BECAUSE organizers need per-channel popularity over time.
 ##  ENTITY: UserStatistic
 
 -   REQUIREMENTS: [[REQUIREMENT:user-stats]]
+-   USE-CASES: [[USE-CASE:join-event]], [[USE-CASE:export-data]]
 
 Tracked viewer information about a user,
 BECAUSE audience composition informs reporting and default localization.

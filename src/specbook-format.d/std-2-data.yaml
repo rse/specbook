@@ -31,10 +31,13 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[DM.ENTITY:*]]"
+                nodes: "[[DM.ENTITY:*]], [[FR.REQUIREMENT:*]], [[USE-CASE:*]]"
                 edges: "[[RELATION:*]]"
+                labeled: true
+                qualified: true
                 config:
                     size-node-width-max: 440
+                    size-node-height-scale: 1.75
             props:
                 -   name: REQUIREMENTS
                     desc: >
@@ -42,6 +45,16 @@
                         entity supports, i.e. whose behavior needs the information it carries,
                         tracing the requirements into the data model.
                     value: list([[FR.*]])
+                    optional: true
+                -   name: USE-CASES
+                    desc: >
+                        Comma-separated references to the USE-CASES objects whose scenarios
+                        create, read, update, or delete instances of the entity, tracing the use
+                        cases into the data model, so that every entity shows where its data
+                        comes from and where it goes; omitted for an entity no actor goal touches
+                        (e.g. a purely system-maintained one, justified by its `REQUIREMENTS`
+                        alone).
+                    value: list([[USE-CASE:*]])
                     optional: true
                 -   name: TERMS
                     desc: >
@@ -189,6 +202,7 @@
                     -   FINAL
                 config:
                     size-node-width-max: 440
+                    size-node-height-scale: 1.75
             props:
                 -   name: ENTITY
                     desc: >

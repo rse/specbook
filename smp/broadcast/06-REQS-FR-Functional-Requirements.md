@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-06-18 10:34
+Modified: 2026-09-05 01:00
 ---
 
 REQS: Functional Requirements (FR)
@@ -229,6 +229,13 @@ REQS: Functional Requirements (FR)
     browser, device, and viewport, using country to select the default
     application language on first use, BECAUSE audience composition
     informs both reporting and localization.
+
+-   REQUIREMENT: Periodic Statistics Snapshots {{stats-snapshots}}; PRIORITY: MUST;
+    While an event is running, the system MUST capture a cumulative
+    snapshot of its event and channel statistics every five minutes,
+    independent of any user activity, BECAUSE a trend curve needs
+    regularly sampled counts and not just the counts at the moments
+    someone looks.
 
 -   REQUIREMENT: Live Configuration Propagation {{config-propagation}}; PRIORITY: MUST;
     The system MUST propagate event configuration changes directly to

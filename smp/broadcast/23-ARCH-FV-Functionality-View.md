@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-30 01:12
+Modified: 2026-09-05 01:00
 ---
 
 #   ARCH: Functionality View (FV)
@@ -88,7 +88,7 @@ languages on the fly while preserving the original, BECAUSE chat and questions m
 
 -   KIND:           Module
 -   PART-OF:        [[COMPONENT:service]]
--   REALIZES:       [[REQUIREMENT:event-stats]], [[REQUIREMENT:debug-stats]], [[REQUIREMENT:channel-stats]], [[REQUIREMENT:user-stats]]
+-   REALIZES:       [[REQUIREMENT:event-stats]], [[REQUIREMENT:debug-stats]], [[REQUIREMENT:channel-stats]], [[REQUIREMENT:user-stats]], [[REQUIREMENT:stats-snapshots]]
 -   OWNS:           [[ENTITY:EventStatistic]], [[ENTITY:ChannelStatistic]], [[ENTITY:UserStatistic]]
 -   DEPENDS-ON:     [[FV.database]]
 

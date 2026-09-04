@@ -474,7 +474,7 @@ USE-CASE: Export Anonymized Event Data {{export-data}}
 -   ACTOR:          [[ROLE:manager]]
 -   JOURNEYS:       [[STEP:export]]
 -   ACTIVITIES:     [[ACTIVITY:archive-results]]
--   REQUIREMENTS:   [[REQUIREMENT:export-inputs]], [[REQUIREMENT:event-stats]], [[REQUIREMENT:channel-stats]], [[REQUIREMENT:user-stats]], [[REQUIREMENT:debug-stats]]
+-   REQUIREMENTS:   [[REQUIREMENT:export-inputs]], [[REQUIREMENT:event-stats]], [[REQUIREMENT:channel-stats]], [[REQUIREMENT:user-stats]], [[REQUIREMENT:debug-stats]], [[REQUIREMENT:stats-snapshots]]
 -   RULES:          [[RULE:anonymize]], [[RULE:like-count]], [[RULE:manager-retained]]
 -   PRE-CONDITION:  The event has finished and the manager retains the Manager role.
 -   TRIGGER:        The manager is asked to hand over the recorded interaction of a finished event.
