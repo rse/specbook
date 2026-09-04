@@ -25,16 +25,35 @@ API.
         HTML preview, fed by the watch mechanism of `export`;
         `describe` emits `src/specbook-format.md`, the static description of
         the SpecBook models and formats
-    -   `src/specbook-export-common.ts`: cross-renderer helpers
-        (HTML escaping, stylesheet, document title)
-    -   `src/specbook-export-ast.ts`: the AST renderer (JSON, JSON5, YAML, TOON)
+    -   `src/specbook-export-common.ts`: cross-renderer helpers (HTML
+        escaping, the pre-assembled stylesheet plus its charset-driven
+        font subsetting, the bundled fallback logo, and the document
+        properties of the title object: `TITLE`, `SUBTITLE`, `LOGO`,
+        `LANG`, `CHARSET`, `THEME-STYLE`, `THEME-TONE`, `PAPER-SIZE`,
+        the latter also yielding the print stylesheet)
+    -   `src/specbook-export-ast.ts`: the AST renderer (JSON, JSON5,
+        YAML, TOON), attaching the derived Gradia spec of a
+        diagram-configured object as its `diagram` field (except for the
+        title object, whose diagram the HTML/PDF export reserves)
     -   `src/specbook-export-md.ts`: the normalized Markdown renderer
     -   `src/specbook-export-html.ts`: the HTML renderer
         (with `src/specbook-export-html.styl` as its inlined stylesheet,
-        compiled from Stylus to CSS at build time)
+        compiled from Stylus to CSS at build time, and
+        `src/specbook-export-html-search.js` as its bundled client-side
+        fuzzy search; the other client-side scripts -- color theme,
+        scroll progress meter, table of contents side panel, description
+        popups, and live preview -- are inlined in the module itself)
     -   `src/specbook-export-pdf.ts`: the PDF renderer (HTML printed
         via Playwright/Chromium, post-processed with `pdf-lib`)
-    -   `src/specbook-config.ts`: YAML schema configuration loading and validation (Valibot)
+    -   `src/specbook-theme.ts`: the theme color spreads generated from
+        the `THEME-TONE` (via `@rse/mrcs`), their layer-1 `:root` CSS
+        variable block, and the layer-2 semantic mapping the PDF
+        decoration needs outside of CSS
+    -   `src/specbook-diagram.ts`: the derivation of the Gradia specs of
+        the configured `graph`/`hub`/`grid` diagrams from the object
+        model and its references, their validation, and the in-memory
+        cache of the rendered SVGs
+    -   `src/specbook-config.ts`: YAML schema configuration loading, merging, and validation (Valibot)
     -   `src/specbook-diagnostic.ts`: the `Diagnostic` type and its
         single-line/verbose renderers, shared by all layers
     -   `src/specbook-verbose.ts`: the marking (`literal`) and rendering
@@ -42,14 +61,19 @@ API.
         which the CLI styles with Chalk
     -   `src/specbook-link.ts`: Wiki-style reference (`[[xxx]]`) syntax,
         link index building, reference resolution, and anchor path derivation
-    -   `src/specbook-parse.ts`: parser facade class `Parser`, wiring the
-        two parsing phases with file/line-precise diagnostics
+    -   `src/specbook-parse.ts`: the parser facade `parseSpecification`,
+        wiring the two parsing phases plus the diagram validation with
+        file/line-precise diagnostics
     -   `src/specbook-parse-common.ts`: parsing types, the shared phase
-        context, and the image embedding MIME type mapping
+        context, and the image embedding syntax, theme variants, and
+        MIME type mapping
     -   `src/specbook-parse-syntax.ts`: the syntactic phase, parsing
-        Markdown into the `Specification` AST
+        Markdown into the `Spec` AST
     -   `src/specbook-parse-semantic.ts`: the semantic phase, validating
-        the AST against the schema configuration and the link references
+        the AST against the schema configuration (property values,
+        uniqueness/presence, symmetric/acyclic references, the
+        `automaton` state machines, and the `referenced` coverage) and
+        the link references
     -   `src/specbook-parse-value.ts`: property value expression language
         (Tokenizr-based compiler for regex/enum/tags/list/reference constraints)
     -   `src/specbook-format-spec.ts`: types/schema of the generic Markdown
@@ -57,11 +81,16 @@ API.
     -   `src/specbook-format-schema.ts`: types/schema of the YAML schema
         configuration (which domain-specific objects are allowed)
     -   `src/specbook-format.d/std-N-XXX.yaml`: the bundled standard YAML schema
-        configuration, used whenever no particular one is given
+        configuration (`std-0-meta` through `std-6-test`), assembled into
+        one file at build time and used whenever no particular one is given
 -   `etc/`: the tool configurations (`eslint.mjs`, `markdownlint.yaml`,
-    `tsconfig.json`, `stx.conf`)
+    `tsconfig.json`, `postcss.config.mjs`, `stx.conf`), the assembler of
+    the standard schema configuration (`specbook-format-assemble.mjs`),
+    and the artwork (logos, posters, screenshots)
 -   `smp/`: the sample specification corpus (`broadcast/`, based on the
-    standard schema configuration) and a small standalone sample (`sample/`)
+    standard schema configuration, exported into the git-ignored
+    `smp/broadcast.*` files) and a small standalone sample (`sample/`,
+    with its own `sample.yaml` schema configuration)
 -   `dst/`: the compiled output (`main` is `dst/specbook-api.js`,
     `bin` `specbook` is `dst/specbook-cli.js`) -- never edit it, it is regenerated
 
@@ -71,15 +100,26 @@ Build orchestration uses `@rse/stx`, not plain npm scripts. The only npm
 script is `npm start`, which invokes stx with `etc/stx.conf`:
 
 ```
-npm start build         # lint + build-cmd
-npm start build-cmd     # tsc --project etc/tsconfig.json (emits into dst/)
-npm start lint          # eslint on src/*.ts, markdownlint-cli2 on src/specbook-format{.md,.d/*.md}
-npm start build-watch   # nodemon rebuild on src/**/*.{ts,md}
-npm start lint-watch    # nodemon relint on src/**/*.{ts,md}
-npm start sample        # lint smp/broadcast/ and export it into smp/broadcast.html
-npm start clean         # remove regularly built files
-npm start distclean     # also remove node_modules and package-lock.json
+npm start build            # lint + build-cmd
+npm start build-cmd        # tsc, stylus+postcss, and the asset copies (all into dst/)
+npm start lint             # eslint on src/*.ts, markdownlint-cli2 on src/specbook-format{.md,.d/*.md}
+npm start build-watch      # nodemon rebuild on src/**/*.{ts,md}
+npm start lint-watch       # nodemon relint on src/**/*.{ts,md}
+npm start sample           # sample-broadcast + sample-sample
+npm start sample-broadcast # lint smp/broadcast/, export it into all formats, and describe it
+npm start sample-sample    # lint smp/sample/ and export it into HTML and PDF
+npm start dev              # chokidar rebuild + dev-sample on src/ and smp/broadcast/ changes
+npm start dev-sample       # export smp/broadcast/ into smp/broadcast.html only
+npm start publish          # kickout, GitHub release from the CHANGELOG.md section
+npm start clean            # remove regularly built files
+npm start distclean        # also remove node_modules and package-lock.json
 ```
+
+Beyond `tsc`, the `build-cmd` target compiles `src/specbook-export-html.styl`
+to `dst/specbook-export-html.css` (Stylus, then PostCSS inlining the font
+faces as base64 `data:` URIs), copies the client-side search script and
+`src/specbook-format.md`, assembles `src/specbook-format.d/*.yaml` into
+`dst/specbook-format.yaml`, and copies the two theme variants of the logo.
 
 No test target is defined.
 
@@ -90,7 +130,7 @@ specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
 specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-w] [-o [<format>:]<output-file>] [...]
 specbook preview  [-v] [-c <yaml-file>] [-b <basedir>] [-a <ip-addr>] [-p <tcp-port>]
-specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-f <format>] [-p <part>] [-o <markdown-file>]
+specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-z [<level>]] [-f <format>] [-p <part>] [-o <markdown-file>]
 specbook mcp      [-v]
 ```
 
@@ -110,11 +150,11 @@ objects merge deeply and the list elements are matched by identity
 properties by `name`): every file has to be valid YAML on its own, while
 the merged result alone is validated.
 
-The API methods and MCP tools take
-the patterns as `string[]`, and `SPECBOOK_CONFIG` carries a
-`path.delimiter`-separated list of patterns. With several files,
-`describe` references each of them, and embeds (or emits raw) the merged
-configuration re-emitted as YAML instead of a verbatim file.
+The API methods and MCP tools take the patterns as `string[]`, and
+`SPECBOOK_CONFIG` carries a `path.delimiter`-separated list of patterns.
+With several files, `describe` references each of them, and embeds (or
+emits raw) the merged configuration re-emitted as YAML instead of a
+verbatim file.
 
 Exactly the artifact files referenced by its `file` fields are loaded and parsed,
 resolved against the base directory, in which generated specification
@@ -122,22 +162,37 @@ Markdown files are placed, too. All other Markdown files below the base
 directory are ignored, while a referenced but absent file is reported
 unless all of its artifacts are optional.
 
+Parsing runs in two phases: the syntactic one turns the Markdown into
+the `Spec` AST, the semantic one validates it against the schema
+configuration. The latter checks the property values against the value
+expression language (regex, `enum(...)`, `tags(...)`, `list(...)`, and
+`[[...]]` reference constraints), the `unique`/`present` flags among the
+sibling objects, the `local`/`symmetric`/`acyclic` shape of the
+reference-valued properties, the finite state machines of the
+`automaton` object kinds (reachability, dead-ends, livelocks), the
+`referenced` coverage an object kind demands (a warning), and the
+resolvability of every Wiki-style reference. Both `lint` and `export`
+report all diagnostics and fail on any error among them, so a partial or
+invalid specification is never exported.
+
 The export output option `-o`/`--output` (default: `-` for stdout) can
 occur multiple times; the format is inferred from the filename extension,
 unless explicitly given as a `<format>:` prefix, and plain `-` (stdout)
 defaults to JSON.
 
 The export option `-w`/`--watch` performs the regular export and then
-observes the referenced artifact files and their embedded assets,
-re-exporting once a change burst stayed silent for one second, where a
-failed re-export is reported but leaves the observe loop intact and where
-`-` (stdout) and an output which is itself an observed source file are
-rejected as an output.
+observes the schema configuration files, the referenced artifact files,
+and their embedded assets, re-exporting once a change burst stayed
+silent for one second, where a failed re-export is reported but leaves
+the observe loop intact and where `-` (stdout) and an output which is
+itself an observed source file are rejected as an output. The observed
+set is re-synchronized after every re-export, as an edit can add or drop
+an embedded asset.
 
-The rendered diagram SVGs are
-cached in memory per Gradia spec and swept to the diagrams of the
-latest rendering, so the repeated renderings of a process (watch,
-preview, MCP, and the passes and formats of a single export) reuse them.
+The rendered diagram SVGs are cached in memory per Gradia spec and swept
+to the diagrams of the latest rendering, so the repeated renderings of a
+process (watch, preview, MCP, and the passes and formats of a single
+export) reuse them.
 
 The `preview` command serves the HTML export as a live preview through
 Fastify on `http://<ip-addr>:<tcp-port>/` (`-a`/`--addr`, default
@@ -158,12 +213,11 @@ is fetched and the document replaced in place (title, changed
 stylesheet, body, with the body scripts re-executed), so the scroll
 position and the theme choice survive the update.
 
-A status tab at the
-accent bar below the table of contents tab shows the connection state:
-its plug icon carries the search filter mark colors while disconnected
-(also before the first connection) and blinks in a soft accent box for
-2s after every update. There is no
-`preview` MCP tool, as it is a long-running server.
+A status tab at the brand bar below the table of contents tab shows the
+connection state: its plug icon carries the search filter mark colors
+while disconnected (also before the first connection) and blinks in a
+soft accent box for 2s after every update. There is no `preview` MCP
+tool, as it is a long-running server.
 
 The HTML export (screen only, hidden for print and hence PDF) carries a
 scroll progress meter at the bottom right corner of the viewport: a ring
@@ -173,6 +227,45 @@ by default the accent color) grow over the remaining circle (colored
 spread index) with the scrolled fraction of the document, which fades in
 once the page is scrolled beyond 400px and scrolls the page back to the
 top (stripping the URL hash) on click.
+
+The HTML document is assembled out of the front matter (the title page
+rendered from the `META: Title` object, the table of contents, and the
+"Diagram of Contents" page rendered from the diagram configured on that
+very object) followed by the artifacts, with the title object itself
+leaving the regular document flow. The vertical brand bar at the left
+viewport edge carries, top down, the theme-switching tab, the
+description popup tab, the search tab, the table of contents side panel
+tab, and (in the live preview only) the connection status tab, all of
+which follow the bar when the side panel shifts it aside. The side panel
+remembers its open state, marks the active and the anchored entry, and
+closes on a jump, on `Escape`, and on an outside click. The search is a
+client-side fuzzy one: the words of a comma-separated query part are
+AND-combined and the parts OR-combined, a match keeps its whole
+paragraph, table row, or diagram plus its enclosing headings, and the
+table of contents is filtered along. The description popups (off by
+default, persisted) show the schema `desc` of an object kind or property
+and the corpus description of an object instance after the mouse rested
+400ms on it. The rendered HTML is finally minified with `@swc/html`.
+
+The `META: Title` object drives the document beyond the title page:
+`TITLE`/`SUBTITLE`/`AUTHOR`/`VERSION`/`LOGO` fill the title page (a
+`{theme}` placeholder in a `LOGO` reference yields one variant per
+theme, and an absent `LOGO` falls back onto the bundled SpecBook logo),
+`LANG` selects the smart typography quote style, `CHARSET` (US-ASCII,
+ISO-8859-1, ISO-8859-15, or UTF-8) subsets the embedded fonts,
+`THEME-STYLE` presets the light/dark theme, `THEME-TONE` seeds the theme
+color spreads, and `PAPER-SIZE` (A4, Letter, or Legal) sets up the PDF
+pagination and the print-time height cap of the diagrams. The subsetted
+stylesheets are memoized per charset.
+
+The PDF export prints the HTML through Playwright/Chromium (the
+downloaded Playwright Chromium, else a system-installed Google Chrome,
+with a missing browser failing the export before the specification is
+even parsed) and post-processes it with `pdf-lib`: header/footer
+decoration, a vertical brand bar drawn onto the left edge of every page,
+and a hierarchical PDF outline. The page numbers of the table of
+contents are found by a bounded fixpoint iteration of at most three
+rendering passes, as the number column itself shifts the pagination.
 
 The `describe` command outputs `src/specbook-format.md` verbatim,
 followed by a "SpecBook Project Instantiation" section pointing to the
@@ -198,6 +291,13 @@ switches from the rendered Markdown onto the raw original file content
 
 The default value of every CLI option `--xxx` can be overridden by a
 corresponding `SPECBOOK_XXX` environment variable.
+
+Every verbose message carries a level: `debug` for the regular
+processing information, which `-v`/`--verbose` gates, and `notice` for
+the environment problems, the warning diagnostics, and the preview
+server events, which the CLI prints regardless of the option. The
+literal values inside a message are marked by `literal()` and styled by
+`renderVerbose()`, which the CLI feeds with Chalk.
 
 ## Code Style
 

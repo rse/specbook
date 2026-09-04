@@ -46,10 +46,15 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 -   **Strict Validation with Custom Schema**:
     The YAML schema configuration strictly defines the allowed object
     kinds, hierarchies, and properties, whose values are constrained by an
-    expression language (regex, enum, tags, list, and reference). Violations
-    are reported as file- and line-precise diagnostics, while the reference
-    coverage an object kind demands is reported as a warning only. A bundled
-    standard schema configuration applies if no particular one is given.
+    expression language (regex, enum, tags, list, and reference). Beyond the
+    plain values, it constrains the uniqueness and presence of a property
+    among the sibling objects and the shape of a reference-valued property
+    (local, symmetric, and/or acyclic), and it can declare the child objects
+    of an object kind a finite state machine, whose reachability, dead-ends,
+    and livelocks are then checked. Violations are reported as file- and
+    line-precise diagnostics, while the reference coverage an object kind
+    demands is reported as a warning only. A bundled standard schema
+    configuration applies if no particular one is given.
 
 -   **Object Model Diagram Visualisation**:
     Object kinds can declare "graph", "hub", or "grid" diagrams in the
@@ -66,26 +71,39 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 
 -   **AST Exports for AI/LLMs**:
     The parsed specification Abstract Syntax Tree (AST) can be exported in
-    JSON, JSON5, YAML, or TOON format for machine consumption. Together
-    with the `describe` command, which explains the models and formats,
-    this enables LLMs to both read and write specifications.
+    JSON, JSON5, YAML, or TOON format for machine consumption, with the
+    derived diagram of an object attached to it as a textual Gradia spec.
+    Together with the `describe` command, which explains the models and
+    formats, this enables LLMs to both read and write specifications.
 
 -   **HTML Export for Developers**:
-    The HTML export is a self-contained single document with a
-    table-of-contents (also as a slide-in side panel for quick navigation),
-    full-text search, embedded images, a scroll progress meter (which
-    also scrolls back to the top on click), and a light/dark
-    theme toggle. It is intended for the day-to-day online reading during
-    development. The HTML export can map all object kinds to nested
-    sections or compact tables, or an automatic mixture which collapses
-    only the deepest level into tables. The HTML export even can be
-    previewed in the browser with live updates.
+    The HTML export is a self-contained single document with a title page,
+    a table-of-contents (also as a slide-in side panel for quick navigation),
+    a diagram-of-contents, a fuzzy full-text search, embedded images, a
+    scroll progress meter (which also scrolls back to the top on click),
+    description popups (which show the schema and corpus description of
+    an object kind, property, or object instance on hover), and a
+    light/dark theme toggle. It is intended for the day-to-day online
+    reading during development. The HTML export can map all object kinds
+    to nested sections or compact tables, or an automatic mixture which
+    collapses only the deepest level into tables. The HTML export even can
+    be previewed in the browser with live updates.
 
 -   **PDF Export for Customers**:
     The PDF export prints the HTML rendering via Chromium and post-processes
-    it with page numbers, headers/footers, and a hierarchical PDF outline.
-    It is intended as a polished, paginated offline document for handing
-    over to customers.
+    it with page numbers, headers/footers, a brand bar, and a hierarchical
+    PDF outline. The paper size (A4, Letter, or Legal) drives the pagination
+    and scales the diagrams down to fit onto a single page. It is intended
+    as a polished, paginated offline document for handing over to customers.
+
+-   **Document Theming and Typography**:
+    The title object of the specification drives the entire document:
+    its title, subtitle, author, version, and logo fill the title page
+    (with an optional light/dark variant of the logo), its language
+    selects the smart typography quote style, its color tone seeds the
+    theme color spreads of both the light and the dark theme, and its
+    character set subsets the embedded fonts down to the actually needed
+    glyphs.
 
 Overview
 --------
@@ -193,13 +211,14 @@ Options:
 
 -   `-w|--watch` (`export` only):
     Keep the outputs in sync with their sources: after the regular export,
-    the referenced artifact files and all assets they embed are observed,
-    and every change re-exports the specification once the sources stayed
-    silent for one second. A failed re-export is reported and leaves the
-    observe loop intact, so a transiently invalid specification does not
-    end the watch. The outputs have to be regular files, as `-` (stdout)
-    cannot receive a repeated export, and none of them may be an observed
-    source file itself, as its own write would re-trigger the observation
+    the YAML schema configuration files, the referenced artifact files, and
+    all assets they embed are observed, and every change re-exports the
+    specification once the sources stayed silent for one second. A failed
+    re-export is reported and leaves the observe loop intact, so a
+    transiently invalid specification (or configuration) does not end the
+    watch. The outputs have to be regular files, as `-` (stdout) cannot
+    receive a repeated export, and none of them may be an observed source
+    file itself, as its own write would re-trigger the observation
     endlessly.
 
 -   `-a|--addr <ip-addr>`, `-p|--port <tcp-port>` (`preview` only):
@@ -208,11 +227,13 @@ Options:
     `http://<ip-addr>:<tcp-port>/`, kept in sync with its sources exactly
     like `export --watch`, and updated in the browser after every change
     through a WebSocket connection the served page keeps open, where the
-    document is replaced in place, so the scroll position survives (a
-    failed re-export keeps the previous HTML in place). A status icon
-    left of the theme switcher shows the connection state: grey while
-    connected, in the search highlight color while disconnected, and
-    blinking for 2s after every update.
+    document is replaced in place, so the scroll position and the theme
+    choice survive (a failed re-export keeps the previous HTML in place,
+    and a request before the first successful export is answered with a
+    placeholder page which replaces itself with the document once that
+    export arrives). A status tab at the bottom of the brand bar shows
+    the connection state: its plug icon carries the search highlight
+    color while disconnected and blinks for 2s after every update.
 
 -   `-o|--output <output-file>` (`describe` only):
     The output file (default: `-` for stdout) receives the described
@@ -323,12 +344,20 @@ export class SpecBook {
     }): Promise<string>
 }
 
-/*  the constructor options and the sink of the verbose messages,
-    receiving the emitting command and the message  */
+/*  the constructor options and the sink of the verbose messages, receiving
+    the emitting command, the message, and its level ("debug" for the regular
+    processing information, "notice" for the environment problems, the
+    warning diagnostics, and the preview server events)  */
 export interface SpecBookOptions {
     verbose?:      VerboseSink
 }
-export type VerboseSink = (cmd: string, msg: string) => void
+export type VerboseSink   = (cmd: string, msg: string, level: VerboseLevel) => void
+export type VerboseLevel  = "debug" | "notice"
+
+/*  mark a literal value inside a verbose message and render a verbose
+    message by styling (or just unmarking) its marked literal values  */
+export function literal (value: string | number): string
+export function renderVerbose (msg: string, style?: (value: string) => string): string
 
 /*  the result of the "lint" command and its file- and line-precise diagnostics  */
 export interface LintResult {
@@ -341,9 +370,15 @@ export interface Diagnostic {
     file:          string
     line:          number
     column:        number
-    severity:      "error" | "warning"
+    severity:      DiagnosticSeverity
     message:       string
 }
+export type DiagnosticSeverity = "error" | "warning"
+
+/*  render a diagnostic as a single-line message or as a multi-line
+    message with the affected source snippet (optionally colorized)  */
+export function renderDiagnostic (diagnostic: Diagnostic): string
+export function renderDiagnosticVerbose (diagnostic: Diagnostic, colors?: boolean): string
 
 /*  the supported export formats and describe formats/parts/compression levels  */
 export const formats:         readonly [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ]
@@ -354,6 +389,20 @@ export type  ExportFormat   = typeof formats[number]
 export type  DescribeFormat = typeof describeFormats[number]
 export type  DescribePart   = typeof describeParts[number]
 export type  CompressLevel  = typeof compressLevels[number]
+
+/*  parse an "[<format>:]<filename>" output specification, parse and
+    validate a describe format, part, or compression level  */
+export function parseOutputSpec (spec: string): { format: ExportFormat, output: string }
+export function parseDescribeFormat (value: string): DescribeFormat
+export function parseDescribePart (value: string): DescribePart
+export function parseCompressLevel (value: string | number | boolean): CompressLevel
+
+/*  the own version, the path of the bundled standard YAML schema
+    configuration, and the default listening address/port of "preview"  */
+export const version:        string
+export const standardConfig: string
+export const previewAddr:    string
+export const previewPort:    number
 
 /*  the Abstract Syntax Tree (AST) of a parsed specification  */
 export type Spec = {
@@ -386,8 +435,8 @@ export type SpecProperty = {
     embedding?:    string[]
 }
 
-/*  the YAML schema configuration, where the nested "diagram" and
-    "format" structures are detailed in the "describe" output  */
+/*  the YAML schema configuration, where the nested "automaton", "diagram",
+    and "format" structures are detailed in the "describe" output  */
 export type Schema = SchemaObject[]
 export type SchemaObject = {
     kind:          string
@@ -395,7 +444,10 @@ export type SchemaObject = {
     id?:           string
     file?:         string
     desc?:         string
+    refs?:         string      /*  the methodology sources of the object kind  */
     optional?:     boolean
+    referenced?:   string[]    /*  the reference coverage every object has to receive  */
+    automaton?:    SchemaAutomaton
     diagram?:      SchemaDiagram
     format?:       SchemaFormat
     props?:        SchemaProperty[]
@@ -404,8 +456,13 @@ export type SchemaObject = {
 export type SchemaProperty = {
     name:          string
     desc?:         string
-    value?:        string
+    value?:        string      /*  regexp, reference, enum, tags, or list expression  */
     optional?:     boolean
+    unique?:       boolean | string   /*  distinct among the sibling objects  */
+    present?:      boolean | string   /*  present among the sibling objects  */
+    local?:        boolean            /*  reference resolving below the same parent  */
+    symmetric?:    boolean            /*  reference answered back by the target  */
+    acyclic?:      boolean            /*  references forming no cycle  */
 }
 ```
 
@@ -415,7 +472,7 @@ Example:
 import { SpecBook } from "@rse/specbook"
 
 const specbook = new SpecBook({
-    verbose: (cmd, msg) => console.error(`specbook: ${cmd}: ${msg}`)
+    verbose: (cmd, msg, level) => console.error(`specbook: ${cmd}: ${level}: ${msg}`)
 })
 const result = await specbook.lint({
     basedir: "smp/broadcast"
@@ -440,6 +497,7 @@ Rendering Examples
 See Also
 --------
 
+- [Gradia](https://github.com/rse/gradia)(Graph Diagram Rendering)
 - [ASE](https://ase.tools)(Agentic Software Engineering)
 
 Support
