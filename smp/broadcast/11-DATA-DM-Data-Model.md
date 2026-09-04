@@ -402,7 +402,7 @@ BECAUSE all event interaction is represented uniformly as messages with language
     Time the message was answered,
     BECAUSE the presenter records when a question was answered.
 
--   ATTRIBUTE: state; TYPE: `enum(pending,accepted,rejected,forwarded,answered,suspended)`;
+-   ATTRIBUTE: state; TYPE: `enum(pending,accepted,rejected,forwarded,answered,suspended)`; DEFAULT: `pending`;
     Moderation and processing state of the message,
     BECAUSE the message moves through a defined moderation and presentation lifecycle.
 

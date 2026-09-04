@@ -51,10 +51,10 @@ TEST: Test Cases (TC)
 
 ##  TEST-CASE: Unmoderated Chat Starts Accepted {{unmoderated-accepted}}
 
--   VERIFIES:      [[REQUIREMENT:moderation]], [[RULE:moderation-gate]]
+-   VERIFIES:      [[REQUIREMENT:moderation]], [[SCENARIO:chat-post]], [[RULE:moderation-gate]]
 -   PRE-CONDITION: An event with chat moderation disabled is running.
 -   INPUT:         An attendee submits a chat message.
--   EXPECTED:      The message is stored in state accepted and is immediately visible.
+-   EXPECTED:      The message is accepted at once upon creation and is immediately visible.
 
 ##  TEST-CASE: Chat Cannot Enter Question States {{type-states}}
 
@@ -66,10 +66,10 @@ TEST: Test Cases (TC)
 
 ##  TEST-CASE: Moderator Message Starts Accepted {{moderator-accept}}
 
--   VERIFIES:      [[REQUIREMENT:moderator-messages]], [[RULE:moderator-accept]]
+-   VERIFIES:      [[REQUIREMENT:moderator-messages]], [[SCENARIO:moderate-chat-seed]], [[RULE:moderator-accept]]
 -   PRE-CONDITION: An event with chat moderation enabled is running.
 -   INPUT:         A moderator posts a chat message without overriding the sender name.
--   EXPECTED:      The message is stored directly in state accepted with the sender name "Moderator" and is immediately visible.
+-   EXPECTED:      The message is accepted at once upon creation with the sender name "Moderator" and is immediately visible.
 
 ##  TEST-CASE: Forwarded Message Is Locked {{forward-lock}}
 
@@ -84,17 +84,17 @@ TEST: Test Cases (TC)
 
 ##  TEST-CASE: Sentiment Auto-Reject Below Threshold {{sentiment-reject}}
 
--   VERIFIES:      [[REQUIREMENT:server-sentiment]], [[RULE:sentiment-threshold]]
+-   VERIFIES:      [[REQUIREMENT:server-sentiment]], [[SCENARIO:ask-question-auto-reject]], [[RULE:sentiment-threshold]]
 -   PRE-CONDITION: Server-side sentiment analysis and auto-reject are enabled.
 -   INPUT:         An attendee submits a message scoring -0.5.
--   EXPECTED:      The system stores the message directly in state rejected.
+-   EXPECTED:      The system rejects the message at once upon creation, without a moderator decision.
 
 ##  TEST-CASE: Sentiment Auto-Accept Above Threshold {{sentiment-accept}}
 
 -   VERIFIES:      [[REQUIREMENT:server-sentiment]], [[SCENARIO:ask-question-auto]], [[RULE:sentiment-threshold]]
 -   PRE-CONDITION: Server-side sentiment analysis and auto-accept are enabled for a moderated event.
 -   INPUT:         An attendee submits a question scoring +0.5.
--   EXPECTED:      The system stores the question directly in state accepted, bypassing moderation.
+-   EXPECTED:      The system accepts the question at once upon creation, bypassing the moderator decision.
 
 ##  TEST-CASE: Throttled Submission Not Stored {{throttled}}
 

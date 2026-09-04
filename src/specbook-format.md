@@ -351,7 +351,7 @@ type SchemaGradiaConfig = Partial<{
 
 -   `SchemaDiagram.deep?: boolean`:
     whether the references of the descendants of a node count as its own,
-    lifted to their nearest node and counted as the arity (default: `false`),
+    counted as the arity (default: `false`),
     BECAUSE the relations between coarse objects live in their fine parts
 
 -   `SchemaDiagram.onlyConnected?: boolean`:
@@ -479,9 +479,10 @@ type SchemaGradiaConfig = Partial<{
 
 The edges are derived from the `[[xxx]]` references of the node objects
 -- from their property values only, or, with `links: all`, from their
-descriptions as well. With `deep: true` the references of all
-descendants of a node object count as its own, every referenced object
-is lifted to its nearest ancestor-or-self within the node set, and the
+descriptions as well. Every referenced object is lifted to its nearest
+ancestor-or-self within the node set, so a reference onto the scenario
+of a use case yields an edge onto the use case. With `deep: true` the
+references of all descendants of a node object count as its own and the
 number of references behind an edge becomes its arity, so a diagram of
 coarse objects (like the artifacts of a whole specification) shows the
 relations living in their fine-grained parts. With `labeled: true` an

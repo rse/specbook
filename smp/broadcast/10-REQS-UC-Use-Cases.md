@@ -170,7 +170,18 @@ passive viewer into a participant.
 
 4.  The system runs server-side sentiment analysis on the text.
 5.  The system finds the sentiment proper and auto-accept is enabled.
-6.  The system stores the question directly in state accepted.
+6.  The system stores the question in state pending and accepts it at once, without a moderator decision.
+
+### SCENARIO: Auto-Rejected by Sentiment {{ask-question-auto-reject}}
+
+-   TYPE:         Exceptional
+-   RESULT:       Failure
+-   AT-MAIN-STEP: 4
+-   OUTCOME:      The question is stored in state rejected and hidden from the audience, without a moderator decision.
+
+4.  The system runs server-side sentiment analysis on the text.
+5.  The system finds the sentiment improper and auto-reject is enabled.
+6.  The system stores the question in state pending and rejects it at once, informing the attendee.
 
 ### SCENARIO: Throttled Submission {{ask-question-throttled}}
 
@@ -215,7 +226,7 @@ from silent viewers into an engaged community.
 
 1.  The attendee writes a chat message.
 2.  The attendee sends the message.
-3.  The system stores the message in state pending or accepted, as the moderation setting of the event determines.
+3.  The system stores the message in state pending and accepts it at once, unless the event moderates chat messages and hence holds it for the moderator decision.
 4.  The system shows the message in the stream under the sender name in the form the event configures (full name, first name, or anonymous), exposing the email address on hover.
 
 ### SCENARIO: Like a Message {{chat-like}}
@@ -250,7 +261,7 @@ from silent viewers into an engaged community.
 1.  The attendee opens one of their own chat messages or questions for editing.
 2.  The attendee changes the text and saves it.
 3.  The system marks the message as edited for the other readers.
-4.  The system re-runs the moderation on the edited message where the event requires it.
+4.  The system resubmits the edited message to the moderation where the event requires it, hiding it from the audience until it is accepted anew.
 
 ### SCENARIO: Delete an Own Message {{chat-delete}}
 
@@ -304,7 +315,7 @@ USE-CASE: Moderate and Forward Messages {{moderate}}
 -   RULES:          [[RULE:type-states]], [[RULE:forward-lock]]
 -   PRE-CONDITION:  The event is running and the moderator has the Moderator role.
 -   TRIGGER:        An attendee message arrives in state pending for moderation.
--   POST-CONDITION: Messages are accepted, rejected, or forwarded with optional hints.
+-   POST-CONDITION: Messages are accepted, rejected, forwarded with optional hints, or settled on behalf of the presenter.
 
 The moderator reviews the pending messages by state, approves or rejects them, forwards selected approved questions to the
 presenter in a chosen order, and may attach hints or raise a presenter alert, BECAUSE the presenter can only handle a
@@ -329,6 +340,16 @@ curated, ordered selection of the audience input while on stage.
 
 2.  The moderator rejects an improper message.
 3.  The system sets the message to rejected and hides it from the audience.
+
+### SCENARIO: Settle a Question for the Presenter {{moderate-settle}}
+
+-   TYPE:         Alternative
+-   RESULT:       Success
+-   AT-MAIN-STEP: 4
+-   OUTCOME:      The forwarded question is marked answered or suspended without the presenter touching it.
+
+4.  The moderator marks the forwarded question as answered or suspended on behalf of the presenter, e.g. once the presenter addressed it on stage without marking it.
+5.  The system records the decision and removes the question from the presenter's work basket.
 
 USE-CASE: Moderate the Chat Conversation {{moderate-chat}}
 ----------------------------------------
@@ -356,7 +377,7 @@ an unattended chat drowns in spam and off-topic noise.
 2.  The moderator selects a chat message which needs a clarification or support.
 3.  The moderator writes a reply to the attendee.
 4.  The moderator chooses whether the reply is visible to all or a direct message to the attendee only.
-5.  The system delivers the reply accordingly, in state accepted and without further approval.
+5.  The system stores the reply in state pending, accepts it at once as a moderator-authored message, and delivers it accordingly.
 
 ### SCENARIO: Seed the Conversation as Moderator {{moderate-chat-seed}}
 
@@ -367,7 +388,7 @@ an unattended chat drowns in spam and off-topic noise.
 
 1.  The moderator authors a chat message or a question for the audience, e.g. to seed a Q&A round.
 2.  The moderator keeps the sender name "Moderator" or overrides it for this message.
-3.  The system creates the message directly in state accepted and shows it to the audience.
+3.  The system stores the message in state pending, accepts it at once as a moderator-authored message, and shows it to the audience.
 
 ### SCENARIO: Administer the Embedded Application {{moderate-chat-app}}
 
@@ -527,3 +548,14 @@ focused on the audience.
 2.  The presenter addresses a question live on stage.
 3.  The presenter marks the question as answered.
 4.  The system records the answered timestamp and removes it from the active basket.
+
+### SCENARIO: Suspend a Forwarded Question {{present-suspend}}
+
+-   TYPE:         Alternative
+-   RESULT:       Success
+-   AT-MAIN-STEP: 2
+-   OUTCOME:      The question is marked suspended and leaves the active basket without having been addressed on stage.
+
+2.  The presenter decides not to address a forwarded question on stage.
+3.  The presenter marks the question as suspended.
+4.  The system removes the question from the active basket.

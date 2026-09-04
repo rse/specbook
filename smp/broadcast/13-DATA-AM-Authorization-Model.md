@@ -37,7 +37,7 @@ DATA: Authorization Model (AM)
 -   Send Messages {{attendee-send-message}}; ROLE: [[ROLE:attendee]]; ENTITY: [[ENTITY:Message]]; OPERATIONS: Create;
     CONDITION: The event is running, the type of the message is enabled for the event, and the throttling limit is not exceeded.;
     RULES: [[RULE:moderation-gate]], [[RULE:type-states]];
-    The attendee sends chat, question, and support messages of their own, which start in the state the moderation setting of the event determines.
+    The attendee sends chat, question, and support messages of their own, which await the moderation decision or are accepted at once, as the moderation setting of the event determines.
 
 -   Read Visible Messages {{attendee-read-message}}; ROLE: [[ROLE:attendee]]; ENTITY: [[ENTITY:Message]]; OPERATIONS: Read;
     STATES: [[STATE:Accepted]], [[STATE:Forwarded]], [[STATE:Answered]], [[STATE:Suspended]];
@@ -51,11 +51,12 @@ DATA: Authorization Model (AM)
     RULES: [[RULE:moderation-gate]];
     The attendee sees their own messages while they still await the moderation decision.
 
--   Correct Own Messages {{attendee-edit-own}}; ROLE: [[ROLE:attendee]]; ENTITY: [[ENTITY:Message]]; OPERATIONS: Update, Delete;
+-   Correct Own Messages {{attendee-edit-own}}; ROLE: [[ROLE:attendee]]; ENTITY: [[ENTITY:Message]];
+    OPERATIONS: Update, Delete, [[TRANSITION:resubmit]];
     STATES: [[STATE:Pending]], [[STATE:Accepted]];
     CONDITION: The attendee is the sender of the message.;
     RULES: [[RULE:forward-lock]], [[RULE:moderation-gate]];
-    The attendee edits or deletes their own chat messages and questions until a question is forwarded, where an edit is marked and moderated again as the event requires.
+    The attendee edits or deletes their own chat messages and questions until a question is forwarded, where an edit is marked and resubmitted to the moderation as the event requires.
 
 -   Like Messages {{attendee-like}}; ROLE: [[ROLE:attendee]]; ENTITY: [[ENTITY:Message]]; OPERATIONS: Update;
     STATES: [[STATE:Accepted]], [[STATE:Forwarded]], [[STATE:Answered]], [[STATE:Suspended]];
@@ -83,7 +84,7 @@ DATA: Authorization Model (AM)
     The moderator reads every message of the event in every state, with its sender, sentiment score, and like count.
 
 -   Decide Pending Messages {{moderator-decide}}; ROLE: [[ROLE:moderator]]; ENTITY: [[ENTITY:Message]];
-    OPERATIONS: [[TRANSITION:accept]], [[TRANSITION:reject]];
+    OPERATIONS: [[accept]], [[reject]];
     RULES: [[RULE:moderation-gate]], [[RULE:sentiment-threshold]];
     The moderator accepts or rejects the pending chats and questions, where the server-side sentiment analysis decides in their place if the event so configures.
 
@@ -100,7 +101,7 @@ DATA: Authorization Model (AM)
 -   Author Messages {{moderator-author}}; ROLE: [[ROLE:moderator]]; ENTITY: [[ENTITY:Message]]; OPERATIONS: Create;
     CONDITION: The event is running.;
     RULES: [[RULE:moderator-accept]];
-    The moderator answers attendees publicly or privately and seeds the conversation, where the messages are created directly in state accepted under the sender name "Moderator" unless overridden.
+    The moderator answers attendees publicly or privately and seeds the conversation, where the messages are accepted at once upon creation under the sender name "Moderator" unless overridden.
 
 -   Use All Tags {{moderator-use-tags}}; ROLE: [[ROLE:moderator]]; ENTITY: [[ENTITY:QuestionTag]]; OPERATIONS: Read;
     The moderator uses every tag of the event on questions, including the ones reserved for moderators.

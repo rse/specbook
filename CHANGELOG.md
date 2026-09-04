@@ -5,6 +5,10 @@ ChangeLog
 1.2.5 (2026-09-04)
 ------------------
 
+-   IMPROVEMENT [code, docs, othr]: Trace the State Transitions into the Use Case Scenarios
+    A `TRANSITION` now traces its `USE-CASES` down to the very scenarios triggering it, a reference
+    onto a descendant of a diagram node yields an edge onto it, and the sample closes its gaps.
+
 -   IMPROVEMENT [docs, othr]: First-Class `ROLE` Objects in the User Personas
     The roles move from the Authorization Model into the User Personas, where the personas embody
     them and the use cases, workflows, transitions, and context entities name them as actors.

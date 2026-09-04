@@ -157,16 +157,16 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
 /*  derive the reference edges of a diagram from the "[[...]]" references
     of the node objects (per the "links" selection, named with the
     property key when "labeled", and for a "deep" diagram also of their
-    descendants, with every target lifted to its nearest node and the
-    reference count as the arity)  */
+    descendants, with the reference count as the arity), with every
+    target lifted to its nearest node  */
 const deriveReferenceEdges = (diagram: SchemaDiagram, nodes: SpecObject[], nodeSet: Set<SpecObject>,
     index: LinkIndex, anchors: Map<SpecObject, string>,
     parents: Map<SpecObject, SpecObject | undefined>, parenProps: ParenProps): DiagramEdge[] => {
     const edges = new Array<DiagramEdge>()
 
     /*  lift an object to its nearest ancestor-or-self within the
-        node set, as a "deep" diagram attributes the references of
-        the descendants to their nearest node object  */
+        node set, as a reference onto a descendant of a node object
+        (like the scenario of a use case) is a reference onto the node  */
     const lift = (object: SpecObject | undefined): SpecObject | undefined => {
         while (object !== undefined && !nodeSet.has(object))
             object = parents.get(object)
@@ -198,9 +198,7 @@ const deriveReferenceEdges = (diagram: SchemaDiagram, nodes: SpecObject[], nodeS
             }
             for (const { text, name } of texts)
                 for (const m of text.matchAll(referenceRegex)) {
-                    let target = resolveUnique(index, m[1].trim(), object).target
-                    if (diagram.deep === true)
-                        target = lift(target)
+                    const target = lift(resolveUnique(index, m[1].trim(), object).target)
                     if (target !== undefined && target !== node && nodeSet.has(target)) {
                         const key   = `${anchors.get(target) ?? target.id}\u0000${name ?? ""}`
                         const entry = counts.get(key) ?? { target, name, count: 0 }

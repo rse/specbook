@@ -63,8 +63,8 @@ Exactly one [[TERM:Resource]] of a [[TERM:Channel]] MUST be active at any time, 
 -   PREMISES:   [[PREMISE:interaction-abuse]]
 
 When moderation is enabled for [[TERM:Chat]]s or [[TERM:Question]]s, a [[TERM:Message]] of that type sent by an
-[[TERM:Attendee]] MUST start in state pending and become visible only once accepted; when disabled, it MUST start in state
-accepted, BECAUSE organizers must control what the audience sees.
+[[TERM:Attendee]] MUST stay in state pending and become visible only once accepted; when disabled, it MUST be accepted at
+once upon creation, BECAUSE organizers must control what the audience sees.
 
 ##  RULE: Moderator Messages Auto-Accepted {{moderator-accept}}
 
@@ -73,8 +73,8 @@ accepted, BECAUSE organizers must control what the audience sees.
 -   GOVERNS:    [[TERM:message]], [[TERM:moderator]]
 -   CONSTRAINS: [[REQUIREMENT:moderator-messages]]
 
-A [[TERM:Message]] authored by a [[TERM:Moderator]] MUST be created in state accepted and carry the sender name "Moderator"
-unless overridden, BECAUSE [[TERM:Moderator]]-authored content is trusted and needs no further approval.
+A [[TERM:Message]] authored by a [[TERM:Moderator]] MUST be accepted at once upon creation and carry the sender name
+"Moderator" unless overridden, BECAUSE [[TERM:Moderator]]-authored content is trusted and needs no further approval.
 
 ##  RULE: Forwarded Messages Are Immutable {{forward-lock}}
 

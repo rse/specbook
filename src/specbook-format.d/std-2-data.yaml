@@ -292,9 +292,12 @@
                                 Comma-separated references to the USE-CASES objects whose
                                 scenarios trigger the transition, i.e. in which a scenario step
                                 causes the state change, tracing the transition into the use
-                                cases exercising it; omitted for a transition no use case
-                                triggers (e.g. one triggered by `Time` or by the system alone).
-                            value: list([[USE-CASE:*]])
+                                cases exercising it, or, where not every scenario of a use case
+                                triggers it, to the very `SCENARIO` objects doing so, tracing
+                                the transition into the step-by-step flows causing it; omitted
+                                for a transition no use case triggers (e.g. one triggered by
+                                `Time` or by the system alone).
+                            value: list([[USE-CASE:*]], [[SCENARIO:*]])
                             optional: true
 
 -   kind: DATA
