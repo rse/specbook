@@ -5,6 +5,10 @@ ChangeLog
 1.2.4 (2026-09-04)
 ------------------
 
+-   REFACTOR [code, docs, othr]: Rename Field `childs` to `children`
+    The field `childs` of the schema configuration objects and of the specification AST objects is
+    now named `children`, which breaks existing schema configurations and AST exports.
+
 -   BUGFIX [infr]: Resolve Peer Dependency Warning on Installation
     Chokidar is now pulled in under an NPM alias, as Nunjucks declares the unused Chokidar 3 as an
     optional peer dependency and SpecBook's Chokidar 5 caused a peer warning on every installation.

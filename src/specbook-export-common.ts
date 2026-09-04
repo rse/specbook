@@ -44,7 +44,7 @@ export const titleObject = (specification: Spec): SpecObject | undefined => {
         for (const object of objects) {
             if (isTitleObject(object))
                 return object
-            const found = search(object.childs)
+            const found = search(object.children)
             if (found !== undefined)
                 return found
         }

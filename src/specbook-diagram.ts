@@ -180,7 +180,7 @@ const deriveReferenceEdges = (diagram: SchemaDiagram, nodes: SpecObject[], nodeS
         const walk = (object: SpecObject) => {
             objects.push(object)
             if (diagram.deep === true)
-                for (const child of object.childs)
+                for (const child of object.children)
                     if (!nodeSet.has(child))
                         walk(child)
         }
@@ -409,7 +409,7 @@ const deriveCenter = (object: SpecObject, diagram: SchemaDiagram,
         /*  inject the synthetic center node into the node set, with a
             collision-free id ("@" never occurs in an anchor path)  */
         const center: SpecObject = { kind: centerCfg.kind ?? "",
-            id: `${anchors.get(object) ?? object.id}-@center`, name: label, properties: [], childs: [] }
+            id: `${anchors.get(object) ?? object.id}-@center`, name: label, properties: [], children: [] }
         nodes.unshift(center)
         nodeSet.add(center)
         return { center, centerUrl }
@@ -470,7 +470,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         nodes = new Array<SpecObject>()
         const walk = (o: SpecObject) => {
             nodes.push(o)
-            o.childs.forEach(walk)
+            o.children.forEach(walk)
         }
         walk(object)
     }

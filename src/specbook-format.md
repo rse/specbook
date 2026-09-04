@@ -78,7 +78,7 @@ type SchemaObject = {
     diagram?:          SchemaDiagram
     format?:           SchemaFormat
     props?:            SchemaProperty[]
-    childs?:           SchemaObject[]
+    children?:         SchemaObject[]
 }
 type SchemaAutomaton = {
     nodes:             string
@@ -251,7 +251,7 @@ type SchemaGradiaConfig = Partial<{
     properties allowed on objects of this kind,
     BECAUSE they carry the structured, machine-checkable content
 
--   `SchemaObject.childs?: SchemaObject[]`:
+-   `SchemaObject.children?: SchemaObject[]`:
     object kinds allowed one level below this object (RECURSION),
     BECAUSE the nesting defines and bounds the document structure
 
@@ -579,7 +579,7 @@ type SpecObject = {
     primary?:          boolean
     description?:      SpecDescription
     properties:        SpecProperty[]
-    childs:            SpecObject[]
+    children:          SpecObject[]
 }
 type SpecDescription = {
     description:       string
@@ -653,7 +653,7 @@ type SpecProperty = {
     key/value properties of the object, in canonical order,
     BECAUSE properties carry the structured, machine-checkable content
 
--   `SpecObject.childs: SpecObject[]`:
+-   `SpecObject.children: SpecObject[]`:
     child objects nested one level below this object (RECURSION),
     BECAUSE a specification is a tree, not a flat list of statements
 

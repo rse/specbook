@@ -32,7 +32,7 @@ export type SpecObject = {
     primary?:          boolean
     description?:      SpecDescription
     properties:        SpecProperty[]
-    childs:            SpecObject[]
+    children:          SpecObject[]
 }
 
 /*  the description of an object: statement, rationale, and the
@@ -54,7 +54,7 @@ export type SpecProperty = {
 /*  ==== Schema ====  */
 
 /*  the Valibot schemas mirroring the types above, with the object
-    schema referencing itself lazily for the nested childs  */
+    schema referencing itself lazily for the nested children  */
 const SpecProperty: v.GenericSchema<SpecProperty> = v.object({
     key:               v.string(),
     value:             v.string(),
@@ -74,7 +74,7 @@ const SpecObject: v.GenericSchema<SpecObject> = v.object({
     primary:           v.optional(v.boolean()),
     description:       v.optional(SpecDescription),
     properties:        v.array(SpecProperty),
-    childs:            v.array(v.lazy(() => SpecObject))
+    children:          v.array(v.lazy(() => SpecObject))
 })
 const SpecArtifact: v.GenericSchema<SpecArtifact> = v.object({
     created:           v.date(),

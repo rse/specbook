@@ -29,7 +29,7 @@ export type SchemaObject = {
     diagram?:          SchemaDiagram
     format?:           SchemaFormat
     props?:            SchemaProperty[]
-    childs?:           SchemaObject[]
+    children?:         SchemaObject[]
 }
 
 /*  the finite state machine the child objects of an object kind form:
@@ -134,7 +134,7 @@ const SchemaDiagramConfig: v.GenericSchema<Partial<GradiaConfig>> =
             "expected a map of Gradia rendering options"))
 
 /*  the Valibot schemas mirroring the types above, with the object
-    kind schema referencing itself lazily for the nested childs  */
+    kind schema referencing itself lazily for the nested children  */
 const SchemaProperty: v.GenericSchema<SchemaProperty> = v.strictObject({
     name:              v.string(),
     desc:              v.optional(v.string()),
@@ -204,7 +204,7 @@ const SchemaObject: v.GenericSchema<SchemaObject> = v.strictObject({
     diagram:           v.optional(SchemaDiagram),
     format:            v.optional(SchemaFormat),
     props:             v.optional(v.array(SchemaProperty)),
-    childs:            v.optional(v.array(v.lazy(() => SchemaObject)))
+    children:          v.optional(v.array(v.lazy(() => SchemaObject)))
 })
 export const Schema: v.GenericSchema<Schema> =
     v.pipe(v.array(SchemaObject), v.minLength(1))

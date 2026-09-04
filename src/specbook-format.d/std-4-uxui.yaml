@@ -32,7 +32,7 @@
             size-node-width-max: 440
             size-node-height-scale: 2
             grid-columns-max: 4
-    childs:
+    children:
         -   kind: PRINCIPLE
             desc: >
                 A single interaction principle, named with a short (2-5 word) summary (e.g.
@@ -113,7 +113,7 @@
             size-node-width-max: 440
             size-node-height-scale: 2
             grid-columns-max: 4
-    childs:
+    children:
         -   kind: CONVENTION
             desc: >
                 A single language convention, named with a short (2-5 word) summary (e.g. `Neutral
@@ -184,7 +184,7 @@
             size-node-width-max: 440
             size-node-height-scale: 2
             grid-columns-max: 4
-    childs:
+    children:
         -   kind: PATTERN
             desc: >
                 A single reusable dialog pattern, named with a short (2-5 word) summary (e.g.
@@ -278,7 +278,7 @@
             size-node-width-max: 440
             size-node-height-scale: 2
             grid-columns-max: 4
-    childs:
+    children:
         -   kind: STORYBOARD
             desc: >
                 A single depicted dialog flow, named with a short (3-8 word) summary of the flow and
@@ -310,7 +310,7 @@
                         interface, omitted for a storyboard of a flow no scenario covers.
                     value: "[[SCENARIO:*]]"
                     optional: true
-            childs:
+            children:
                 -   kind: FRAME
                     desc: >
                         A single frame of the storyboard, named with a short (2-5 word) label for
@@ -383,7 +383,7 @@
             size-node-width-max: 440
             size-node-height-scale: 2
             grid-columns-max: 4
-    childs:
+    children:
         -   kind: ELEMENT
             desc: >
                 A single visual design element, named with a short (2-5 word) summary (e.g. `Brand

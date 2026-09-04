@@ -21,7 +21,7 @@
         type: graph
         nodes: "[[DM.ENTITY:*]]"
         edges: "[[RELATION:*]]"
-    childs:
+    children:
         -   kind: ENTITY
             name: "[A-Z][a-zA-Z0-9]*"
             desc: >
@@ -50,7 +50,7 @@
                         is anchored in the ubiquitous language and every term shows its data.
                     value: list([[TERM:*]])
                     optional: true
-            childs:
+            children:
                 -   kind: ATTRIBUTE
                     name: "[a-z][a-zA-Z0-9]*"
                     desc: >
@@ -163,7 +163,7 @@
             size-node-width-max: 440
             size-node-height-scale: 2
             grid-columns-max: 5
-    childs:
+    children:
         -   kind: LIFECYCLE
             desc: >
                 The lifecycle of a single entity, named with the short (1-3 word) name of the
@@ -196,7 +196,7 @@
                         lifecycle per entity (an entity without a lifecycle has a trivial one).
                     value: "[[DM.ENTITY:*]]"
                     unique: true
-            childs:
+            children:
                 -   kind: STATE
                     name: "[A-Z][a-zA-Z0-9]*"
                     desc: >
@@ -314,7 +314,7 @@
         config:
             size-node-width-max: 440
             graph-channel-width-max: 340
-    childs:
+    children:
         -   kind: ROLE
             desc: >
                 A single role, named with the canonical name of the domain role it grants (e.g.
@@ -360,7 +360,7 @@
                     value: list([[ROLE:*]])
                     optional: true
                     acyclic: true
-            childs:
+            children:
                 -   kind: PERMISSION
                     desc: >
                         A single right of the role on a single entity, named with a short (2-5

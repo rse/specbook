@@ -47,7 +47,7 @@ const anchorPages = async (pdf: Uint8Array): Promise<Map<string, number>> => {
 
 /*  attach a hierarchical PDF outline (the "bookmarks" of the viewer
     side-bar) to a document, resolving the entry anchors against the
-    named destinations and hoisting the childs of an unresolvable entry  */
+    named destinations and hoisting the children of an unresolvable entry  */
 const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
     const { PDFName, PDFDict, PDFArray, PDFRef, PDFHexString } = await import("pdf-lib")
     const context = doc.context
@@ -68,13 +68,13 @@ const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
     }
 
     /*  resolve the outline entries against the live destinations,
-        hoisting the childs of an entry without a live destination  */
-    type OutlineItem = { title: string, dest: PDFArray, childs: OutlineItem[] }
+        hoisting the children of an entry without a live destination  */
+    type OutlineItem = { title: string, dest: PDFArray, children: OutlineItem[] }
     const resolve = (entries: OutlineEntry[]): OutlineItem[] =>
         entries.flatMap((entry) => {
             const dest   = targets.get(entry.anchor)
-            const childs = resolve(entry.childs)
-            return dest !== undefined ? [ { title: entry.title, dest, childs } ] : childs
+            const children = resolve(entry.children)
+            return dest !== undefined ? [ { title: entry.title, dest, children } ] : children
         })
     const items = resolve(entries)
     if (items.length === 0)
@@ -85,17 +85,17 @@ const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
     const materialize = (items: OutlineItem[], parent: PDFRef) => {
         const refs = items.map(() => context.nextRef())
         items.forEach((item, i) => {
-            const childs = item.childs.length > 0 ? materialize(item.childs, refs[i]) : undefined
+            const children = item.children.length > 0 ? materialize(item.children, refs[i]) : undefined
             context.assign(refs[i], context.obj({
                 Title:  PDFHexString.fromText(item.title),
                 Parent: parent,
                 Prev:   i > 0                ? refs[i - 1] : undefined,
                 Next:   i < refs.length - 1  ? refs[i + 1] : undefined,
-                First:  childs?.first,
-                Last:   childs?.last,
+                First:  children?.first,
+                Last:   children?.last,
 
                 /*  a negative count keeps the sub-tree initially collapsed  */
-                Count:  childs !== undefined ? -item.childs.length : undefined,
+                Count:  children !== undefined ? -item.children.length : undefined,
                 Dest:   item.dest
             }))
         })

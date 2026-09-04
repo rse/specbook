@@ -57,12 +57,12 @@ const nameSuffixMd = (object: SpecObject): string =>
     one carrying a ";", as only a ";"-free description stays a single
     segment on re-parsing instead of splitting off a spurious property  */
 const complexBelowMd = (object: SpecObject): boolean =>
-    object.childs.some((child) => child.name.includes(";")
+    object.children.some((child) => child.name.includes(";")
         || (child.description !== undefined
             && /[\n;]/.test(renderDescriptionMd(child.description))) || complexBelowMd(child))
 
 /*  render an object in the Concise Format as a list item of the
-    given nesting depth, with its childs as nested list items  */
+    given nesting depth, with its children as nested list items  */
 const renderConciseMd = (object: SpecObject, depth = 0): string => {
     const indent   = " ".repeat(depth * 4)
     const segments = [ `${object.kind}: ${object.name}${nameSuffixMd(object)}` ]
@@ -83,15 +83,15 @@ const renderConciseMd = (object: SpecObject, depth = 0): string => {
         `${indent}-   ${segments.join("; ").replace(/\.?$/, ".")}` :
         `${indent}-   ${segments.join("; ")};`
     return [ item, renderKeyValuesMd(wrapped, `${indent}    `),
-        ...object.childs.map((child) => renderConciseMd(child, depth + 1)) ]
+        ...object.children.map((child) => renderConciseMd(child, depth + 1)) ]
         .filter((part) => part !== "").join("\n")
 }
 
-/*  render an object in the Complex Format (levels 1-3), with childs from
+/*  render an object in the Complex Format (levels 1-3), with children from
     level 4 upwards in the Concise Format -- unless a descendant carries
-    a description no concise item can carry, so all childs (as siblings
+    a description no concise item can carry, so all children (as siblings
     have to share the format) stay in the Complex Format down to heading
-    level 6, the deepest one Markdown knows, below which the childs are
+    level 6, the deepest one Markdown knows, below which the children are
     concise regardless -- and the optionally derived Gradia diagram spec
     embedded as a "gradia" fenced code block below the heading  */
 const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecObject, string>): string => {
@@ -106,12 +106,12 @@ const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecOb
     if (object.description !== undefined)
         parts.push(renderDescriptionMd(object.description))
 
-    /*  the childs share one format, as a concise item following
+    /*  the children share one format, as a concise item following
         a heading would attach to the heading's object instead  */
     if (level >= 6 || (level >= 3 && !complexBelowMd(object)))
-        parts.push(object.childs.map((child) => renderConciseMd(child)).join("\n"))
+        parts.push(object.children.map((child) => renderConciseMd(child)).join("\n"))
     else
-        parts.push(...object.childs.map((child) => renderObjectMd(child, level + 1, diagrams)))
+        parts.push(...object.children.map((child) => renderObjectMd(child, level + 1, diagrams)))
     return parts.filter((part) => part !== "").join("\n\n")
 }
 

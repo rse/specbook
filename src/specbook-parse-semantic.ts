@@ -168,12 +168,12 @@ const parenProp = (object: SpecObject, props: SchemaProperty[]): SpecProperty | 
     values matching the regexp or enum expression of the flag), where
     a kind without any sibling fails a present flag, too, but only for
     an optional kind, as the missing-kind check reports a required one  */
-const checkSiblingFlags = (ctx: ParseContext, object: SpecObject, childs: SchemaObject[], meta: ObjectMeta) => {
+const checkSiblingFlags = (ctx: ParseContext, object: SpecObject, children: SchemaObject[], meta: ObjectMeta) => {
     const marker = (flag: boolean | string | undefined) =>
         flag === undefined || flag === false ? undefined :
             { filter: typeof flag === "string" ? compileValueExpr(flag) : undefined }
-    for (const child of childs) {
-        const siblings = object.childs.filter((c) => c.kind === child.kind)
+    for (const child of children) {
+        const siblings = object.children.filter((c) => c.kind === child.kind)
         for (const prop of child.props ?? []) {
             const unique  = marker(prop.unique)
             const present = marker(prop.present)
@@ -208,7 +208,7 @@ const checkSiblingFlags = (ctx: ParseContext, object: SpecObject, childs: Schema
     }
 }
 
-/*  validate a single object (and recursively its childs) against its schema  */
+/*  validate a single object (and recursively its children) against its schema  */
 const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObject, level: number) => {
     const meta  = ctx.metaOf(object)
     const props = schema.props ?? []
@@ -252,10 +252,10 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
                 `unknown property "${property.key}" on ${object.kind} "${object.name}"`)
 
     /*  check the configured child objects  */
-    const childs = schema.childs ?? []
-    for (const child of object.childs) {
+    const children = schema.children ?? []
+    for (const child of object.children) {
         const childMeta   = ctx.metaOf(child)
-        const childSchema = childs.find((c) => c.kind === child.kind)
+        const childSchema = children.find((c) => c.kind === child.kind)
         if (childSchema === undefined) {
             ctx.diagnose(childMeta.file, childMeta.line,
                 `unknown object kind "${child.kind}" below ${object.kind} "${object.name}"`)
@@ -265,23 +265,23 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
     }
 
     /*  check the sibling-scoped property flags of the child kinds  */
-    checkSiblingFlags(ctx, object, childs, meta)
+    checkSiblingFlags(ctx, object, children, meta)
 
     /*  report the configured child object kinds which are missing  */
-    for (const child of childs)
+    for (const child of children)
         if (child.optional !== true
-            && !object.childs.some((c) => c.kind === child.kind))
+            && !object.children.some((c) => c.kind === child.kind))
             ctx.diagnose(meta.file, meta.line,
                 `required object kind "${child.kind}" missing below ${object.kind} "${object.name}"`)
 
-    /*  order the childs and properties exactly along the schema
+    /*  order the children and properties exactly along the schema
         definition (the sort is stable, so objects of the same kind
         and unknown items keep their document order)  */
     const kindPos = (kind: string) => {
-        const i = childs.findIndex((c) => c.kind === kind)
-        return i >= 0 ? i : childs.length
+        const i = children.findIndex((c) => c.kind === kind)
+        return i >= 0 ? i : children.length
     }
-    object.childs.sort((a, b) => kindPos(a.kind) - kindPos(b.kind))
+    object.children.sort((a, b) => kindPos(a.kind) - kindPos(b.kind))
     const propPos = (key: string) => {
         const i = props.findIndex((p) => p.name === key)
         return i >= 0 ? i : props.length
@@ -305,8 +305,8 @@ export const collectSchemas = (specification: Spec,
     const schemas = new Map<SpecObject, SchemaObject>()
     const walk = (object: SpecObject, schema: SchemaObject) => {
         schemas.set(object, schema)
-        for (const child of object.childs) {
-            const childSchema = (schema.childs ?? []).find((c) => c.kind === child.kind)
+        for (const child of object.children) {
+            const childSchema = (schema.children ?? []).find((c) => c.kind === child.kind)
             if (childSchema !== undefined)
                 walk(child, childSchema)
         }
@@ -350,7 +350,7 @@ const checkIds = (ctx: ParseContext, objects: SpecObject[]) => {
             ctx.diagnose(meta.file, meta.line,
                 `id "${object.id}" of ${object.kind} "${object.name}" collides with preceding ${object.kind} "${first.name}"`)
         }
-        checkIds(ctx, object.childs)
+        checkIds(ctx, object.children)
     }
 }
 
@@ -385,7 +385,7 @@ const checkAutomata = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject>
         const automaton = schema.automaton
         if (automaton === undefined)
             continue
-        const nodes   = object.childs.filter((child) => child.kind === automaton.nodes)
+        const nodes   = object.children.filter((child) => child.kind === automaton.nodes)
         const nodeSet = new Set<SpecObject>(nodes)
         const flagged = (node: SpecObject, name: string) => {
             const property = findProp(ctx, node, name)
@@ -398,7 +398,7 @@ const checkAutomata = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject>
             the node set is skipped, as the property checks report it)  */
         const succs = new Map<SpecObject, Set<SpecObject>>(nodes.map((node) => [ node, new Set<SpecObject>() ]))
         const preds = new Map<SpecObject, Set<SpecObject>>(nodes.map((node) => [ node, new Set<SpecObject>() ]))
-        for (const edge of object.childs.filter((child) => child.kind === automaton.edges)) {
+        for (const edge of object.children.filter((child) => child.kind === automaton.edges)) {
             const source = referencedObjects(ctx, edge, automaton.source)[0]
             const target = referencedObjects(ctx, edge, automaton.target)[0]
             if (source !== undefined && target !== undefined && nodeSet.has(source) && nodeSet.has(target)) {
@@ -524,7 +524,7 @@ const checkReferenced = (ctx: ParseContext, specification: Spec, schemas: Map<Sp
                 if (target !== undefined && !chain.includes(target))
                     referrers.set(target, (referrers.get(target) ?? new Set<SpecObject>()).add(object))
             }
-        object.childs.forEach(walk)
+        object.children.forEach(walk)
     }
     for (const artifact of specification.artifacts)
         artifact.objects.forEach(walk)
@@ -575,7 +575,7 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
             references all over the corpus  */
         if (object.paren !== undefined && object.anchor === undefined && !ctx.parenProps.has(object))
             assignId(ctx.linkIndex, object, object.paren)
-        object.childs.forEach(promote)
+        object.children.forEach(promote)
     }
     for (const artifact of specification.artifacts)
         artifact.objects.forEach(promote)
@@ -645,7 +645,7 @@ export const validateReferences = (ctx: ParseContext, specification: Spec) => {
             if (object.description.rationale !== undefined)
                 check(object, object.description.rationale, meta.file, meta.line)
         }
-        object.childs.forEach(walk)
+        object.children.forEach(walk)
     }
     for (const artifact of specification.artifacts)
         artifact.objects.forEach(walk)

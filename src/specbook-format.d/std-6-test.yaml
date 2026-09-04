@@ -34,7 +34,7 @@
             size-node-width-max: 440
             size-node-height-scale: 2
             grid-columns-max: 4
-    childs:
+    children:
         -   kind: TEST-CASE
             desc: >
                 A single verifiable test case, named with a short (3-8 word) summary and defined by

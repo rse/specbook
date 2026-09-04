@@ -22,7 +22,7 @@ export type AstFormat = "json" | "json5" | "yaml" | "toon"
 
 /*  the plain JSON shape of the specification (as far as the
     diagram attachment below has to navigate it)  */
-interface PlainObject        { diagram?: string, childs: PlainObject[] }
+interface PlainObject        { diagram?: string, children: PlainObject[] }
 interface PlainSpecification { artifacts: { objects: PlainObject[] }[] }
 
 /*  render the specification AST into a serialization format  */
@@ -42,7 +42,7 @@ export const renderAst = (specification: Spec, format: AstFormat,
             const result = diagrams.get(object)
             if (result?.spec !== undefined && !isTitleObject(object))
                 node.diagram = result.spec
-            object.childs.forEach((child, i) => walk(child, node.childs[i]))
+            object.children.forEach((child, i) => walk(child, node.children[i]))
         }
         specification.artifacts.forEach((artifact, i) =>
             artifact.objects.forEach((object, j) =>

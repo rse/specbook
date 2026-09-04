@@ -100,7 +100,7 @@ export const buildLinkIndex = (specification: Spec): LinkIndex => {
     const walk = (object: SpecObject, parent?: LinkNode) => {
         const node: LinkNode = { object, parent, pos: index.length, name: plainText(object.name) }
         index.push(node)
-        for (const child of object.childs)
+        for (const child of object.children)
             walk(child, node)
     }
     for (const artifact of specification.artifacts)
@@ -239,7 +239,7 @@ export const resolveUnique = (index: LinkIndex, reference: string, from?: SpecOb
 
 /*  derive the fully-qualified anchor path of every object: the
     "<kind>-<id>" segments (whitespace in kinds dashed) of the ancestor
-    chain joined with "." (the index lists parents before childs)  */
+    chain joined with "." (the index lists parents before children)  */
 export const anchorPaths = (index: LinkIndex): Map<SpecObject, string> => {
     const paths = new Map<SpecObject, string>()
     for (const node of index) {

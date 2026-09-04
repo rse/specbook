@@ -93,7 +93,7 @@
             size-node-width-max: 440
             size-node-height-scale: 1.75
             grid-columns-max: 5
-    childs:
+    children:
         -   kind: PREMISE
             desc: >
                 A single premise, named with a short (3-8 word) summary phrased as the fact taken
@@ -168,7 +168,7 @@
         config:
             size-node-width-max: 440
             grid-columns-max: 4
-    childs:
+    children:
         -   kind: TERM
             name: "[A-Z][A-Za-z0-9-]*( [A-Z][A-Za-z0-9-]*)*"
             desc: >
@@ -260,7 +260,7 @@
         config:
             size-node-width-max: 440
             grid-columns-max: 4
-    childs:
+    children:
         -   kind: PERSONA
             desc: >
                 An archetypal user profile, named with a per-artifact unique first name of the
@@ -351,7 +351,7 @@
         nodes: "[[JOURNEY:*]]"
         properties:
             -   ACTORS
-    childs:
+    children:
         -   kind: JOURNEY
             desc: >
                 The end-to-end journey of a single persona (or of multiple personas sharing the same
@@ -362,7 +362,7 @@
                         Comma-separated references to the User Personas objects experiencing the
                         journey.
                     value: list([[PERSONA:*]])
-            childs:
+            children:
                 -   kind: STEP
                     desc: >
                         A single step of the journey, named with a 5-10 word summary of the step at
@@ -430,7 +430,7 @@
         config:
             size-node-width-max: 440
             grid-columns-max: 5
-    childs:
+    children:
         -   kind: REQUIREMENT
             desc: >
                 A single functional requirement, named with a short (3-8 word) summary and described
@@ -489,7 +489,7 @@
         config:
             size-node-width-max: 440
             grid-columns-max: 5
-    childs:
+    children:
         -   kind: REQUIREMENT
             desc: >
                 A single non-functional requirement, named with a short (3-8 word) summary and
@@ -564,7 +564,7 @@
         config:
             size-node-width-max: 440
             grid-columns-max: 5
-    childs:
+    children:
         -   kind: RULE
             desc: >
                 A single domain rule, named with a short (3-8 word) summary and described in a
@@ -667,7 +667,7 @@
             size-node-width-max: 440
             size-node-height-scale: 2
             grid-columns-max: 4
-    childs:
+    children:
         -   kind: WORKFLOW
             desc: >
                 A single workflow, named with a short (2-5 word) summary phrased as the outcome
@@ -742,7 +742,7 @@
                         checked at a single handoff is referenced from the handoff instead.
                     value: list([[RULE:*]])
                     optional: true
-            childs:
+            children:
                 -   kind: ACTIVITY
                     desc: >
                         A single unit of work within the workflow, performed by one party without a
@@ -835,7 +835,7 @@
         config:
             size-node-height-scale: 4
             grid-columns-max: 4
-    childs:
+    children:
         -   kind: USE-CASE
             desc: >
                 A discrete goal a user pursues with the solution, named with a short (3-8 word)
@@ -917,7 +917,7 @@
                     desc: >
                         The condition that holds after the use case completes successfully.
                     optional: true
-            childs:
+            children:
                 -   kind: SCENARIO
                     desc: >
                         A concrete step-by-step flow of the use case, named with a short (3-8 word)

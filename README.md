@@ -216,7 +216,7 @@ export type SpecObject = {
     primary?:      boolean
     description?:  SpecDescription
     properties:    SpecProperty[]
-    childs:        SpecObject[]
+    children:      SpecObject[]
 }
 export type SpecDescription = {
     description:   string
@@ -242,7 +242,7 @@ export type SchemaObject = {
     diagram?:      SchemaDiagram
     format?:       SchemaFormat
     props?:        SchemaProperty[]
-    childs?:       SchemaObject[]
+    children?:     SchemaObject[]
 }
 export type SchemaProperty = {
     name:          string

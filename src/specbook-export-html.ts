@@ -144,7 +144,7 @@ const templates = {
     "TocPanelEntries": textframe`
         <ul>
             {% for entry in Entries %}
-            <li><a href="#{{ entry.id }}"><span class="entry"><span class="object-kind"{% if entry.info %} data-info="{{ entry.info }}" data-info-path="{{ entry.infopath }}"{% endif %}>{{ entry.kind }}:</span> <span class="object-name"{% if entry.spec %} data-info-spec="{{ entry.spec }}" data-info-path="{{ entry.specpath }}"{% endif %}>{{ entry.name }}</span></span></a>{{ entry.childs }}</li>
+            <li><a href="#{{ entry.id }}"><span class="entry"><span class="object-kind"{% if entry.info %} data-info="{{ entry.info }}" data-info-path="{{ entry.infopath }}"{% endif %}>{{ entry.kind }}:</span> <span class="object-name"{% if entry.spec %} data-info-spec="{{ entry.spec }}" data-info-path="{{ entry.specpath }}"{% endif %}>{{ entry.name }}</span></span></a>{{ entry.children }}</li>
             {% endfor %}
         </ul>
     `,
@@ -171,7 +171,7 @@ const templates = {
             {{ Object.diagram }}
             {{ Object.properties }}
             {{ Object.description }}
-            {{ Object.childs }}
+            {{ Object.children }}
         </section>
     `,
 
@@ -863,7 +863,7 @@ const collectInfo = (nodes: SchemaObject[], prefix: string,
         }
         if (entry.d !== undefined || entry.p !== undefined)
             info[path] = entry
-        collectInfo(schema.childs ?? [], path, keys, info)
+        collectInfo(schema.children ?? [], path, keys, info)
     }
 }
 
@@ -970,7 +970,7 @@ const collectSpec = (objects: SpecObject[], spec: Record<string, string>) => {
         if (text !== "")
             spec[anchorOf(object)] = scoped(object, () =>
                 block(text, true).toString().trim())
-        collectSpec(object.childs, spec)
+        collectSpec(object.children, spec)
     }
 }
 
@@ -998,7 +998,7 @@ const collectMembers = (nodes: SchemaObject[], result: Map<string, ValueExpr>) =
                 /*  an invalid expression is the concern of lint  */
             }
         }
-        collectMembers(schema.childs ?? [], result)
+        collectMembers(schema.children ?? [], result)
     }
     return result
 }
@@ -1071,25 +1071,25 @@ const effectiveProperties = (object: SpecObject): SpecProperty[] => {
     order (unknown keys appended in occurrence order), with
     "withUnusedProps" injecting the defined but still unused schema
     properties as additional columns  */
-const tableShape = (childs: SpecObject[]) => {
-    const used   = [ ...new Set(childs.flatMap((child) =>
+const tableShape = (children: SpecObject[]) => {
+    const used   = [ ...new Set(children.flatMap((child) =>
         child.properties.map((property) => property.key))) ]
-    const schema = schemas?.get(childs[0])
+    const schema = schemas?.get(children[0])
     const names  = (schema?.props ?? []).map((prop) => prop.name)
     const known  = schema?.format?.withUnusedProps === true ?
         names : names.filter((name) => used.includes(name))
     const keys   = [ ...known, ...used.filter((key) => !names.includes(key)) ]
-    return { keys, desc: childs.some((child) =>
-        child.description !== undefined || child.childs.length > 0) }
+    return { keys, desc: children.some((child) =>
+        child.description !== undefined || child.children.length > 0) }
 }
 
-/*  provide the childs of an object taking part in the regular document
+/*  provide the children of an object taking part in the regular document
     flow: a nested title object leaves the flow, as it is rendered as the
     title page instead (a top-level one instead removes its whole artifact)  */
-const flowChilds = (object: SpecObject): SpecObject[] =>
-    object.childs.filter((child) => !isTitleObject(child))
+const flowChildren = (object: SpecObject): SpecObject[] =>
+    object.children.filter((child) => !isTitleObject(child))
 
-/*  decide whether a single-kind group of childs collapses into the
+/*  decide whether a single-kind group of children collapses into the
     concise (tabular) rendering: an explicit "format" type of the kind
     wins, "auto" collapses the deepest level only, and inside an already
     concise rendering context "auto" groups implicitly stay concise, too  */
@@ -1098,13 +1098,13 @@ const conciseGroup = (group: SpecObject[], schemaMap: Map<SpecObject, SchemaObje
     const type = schemaMap?.get(group[0])?.format?.type ?? "auto"
     if (type !== "auto")
         return type === "concise"
-    return concise || group.every((child) => child.childs.length === 0)
+    return concise || group.every((child) => child.children.length === 0)
 }
 
-/*  group the childs of an object by their kind, preserving order  */
-const groupChilds = (childs: SpecObject[]): SpecObject[][] => {
+/*  group the children of an object by their kind, preserving order  */
+const groupChildren = (children: SpecObject[]): SpecObject[][] => {
     const groups = new Map<string, SpecObject[]>()
-    for (const child of childs) {
+    for (const child of children) {
         const group = groups.get(child.kind)
         if (group === undefined)
             groups.set(child.kind, [ child ])
@@ -1114,23 +1114,23 @@ const groupChilds = (childs: SpecObject[]): SpecObject[][] => {
     return [ ...groups.values() ]
 }
 
-/*  render the childs of an object group-wise by kind: a concise group
+/*  render the children of an object group-wise by kind: a concise group
     as one compact table, a complex group as regular nested object
     renderings  */
-const renderChilds = (object: SpecObject, level: number, concise: boolean): string =>
-    groupChilds(flowChilds(object)).map((group) => conciseGroup(group, schemas, concise) ?
+const renderChildren = (object: SpecObject, level: number, concise: boolean): string =>
+    groupChildren(flowChildren(object)).map((group) => conciseGroup(group, schemas, concise) ?
         renderTable(group, maxColumnsOf(group[0])) :
         group.map((child) => renderObject(child, level, concise)).join("")).join("")
 
 /*  render the description cell of a table row: the description of the
-    object followed by its recursively rendered childs (implicitly or
+    object followed by its recursively rendered children (implicitly or
     explicitly concise groups as nested sub-tables, explicitly complex
     ones as regular nested object renderings pressed into the cell);
     a cell left without any content renders as the absent marker,
     exactly like a property cell of a not given property  */
 const renderCell = (child: SpecObject): string => {
     let html = child.description !== undefined ? renderDescription(child.description) : ""
-    html += renderChilds(child, 6, true)
+    html += renderChildren(child, 6, true)
     return html.trim() !== "" ? html : "<span class=\"value-absent\"></span>"
 }
 
@@ -1141,28 +1141,28 @@ const diagramOf = (object: SpecObject) => {
     return diagram !== undefined ? safe(`<div class="diagram">${diagram}</div>`) : ""
 }
 
-/*  render a single-kind group of childs into one compact table:
+/*  render a single-kind group of children into one compact table:
     the name first, then the property columns, then the description;
     a group wider than maxColumns, or carrying diagrams, instead chunks
     the property and description cells (and the leading diagram) of
     every object into an embedded per-object table, as a diagram is
     identifiable only under a header of its own, not under the column
     headers of a plain table  */
-const renderTable = (childs: SpecObject[], maxColumns: number): string => {
-    const { keys, desc } = tableShape(childs)
-    const diagrammed = childs.some((child) => diagramOf(child) !== "")
+const renderTable = (children: SpecObject[], maxColumns: number): string => {
+    const { keys, desc } = tableShape(children)
+    const diagrammed = children.some((child) => diagramOf(child) !== "")
     if (!diagrammed && 1 + keys.length + (desc ? 1 : 0) <= maxColumns)
         return render("Table", { Table: {
-            head:     childs[0].kind !== "" ? childs[0].kind : "Name",
-            info:     infoKeyOf(childs[0]),
-            infopath: infoPathOf(childs[0], false),
+            head:     children[0].kind !== "" ? children[0].kind : "Name",
+            info:     infoKeyOf(children[0]),
+            infopath: infoPathOf(children[0], false),
             keys,
             desc,
 
             /*  under the fixed table layout the description column claims
                 twice the share of a regular column, compressing the others  */
             width:    Math.round(200 / (keys.length + 3)),
-            rows:     childs.map((child, i) => scoped(child, () => ({
+            rows:     children.map((child, i) => scoped(child, () => ({
                 id:          anchorOf(child),
                 paren:       child.paren,
                 primary:     child.primary,
@@ -1181,11 +1181,11 @@ const renderTable = (childs: SpecObject[], maxColumns: number): string => {
         with the last cell spanning the leftover columns of the final row  */
     const size = Math.max(1, maxColumns - 1)
     return render("TableChunked", { Table: {
-        head:     childs[0].kind !== "" ? childs[0].kind : "Name",
-        info:     infoKeyOf(childs[0]),
-        infopath: infoPathOf(childs[0], false),
+        head:     children[0].kind !== "" ? children[0].kind : "Name",
+        info:     infoKeyOf(children[0]),
+        infopath: infoPathOf(children[0], false),
         width:    Math.round(100 / maxColumns),
-        rows:     childs.map((child, i) => scoped(child, () => {
+        rows:     children.map((child, i) => scoped(child, () => {
             const cells = keys.map((key) => ({ key, desc: false, span: 1,
                 value: inlineValue(child.kind, child.properties.find((property) => property.key === key)) }))
             if (desc)
@@ -1237,7 +1237,7 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
             safe(render("Properties", { Properties: inlineProperties(object, properties) })) : "",
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
-        childs:      safe(renderChilds(object, level + 1, concise))
+        children:    safe(renderChildren(object, level + 1, concise))
     } }))
 }
 
@@ -1289,11 +1289,11 @@ const renderArtifact = (artifact: SpecArtifact): string =>
         objects: safe(artifact.objects.map((object) => renderObject(object, 1, false)).join(""))
     } })
 
-/*  provide the childs of an object rendered with headings of their own
+/*  provide the children of an object rendered with headings of their own
     (skipping the child groups collapsing into compact tables), which
     are the ones taking part in the table of contents and its side panel  */
-const headingChilds = (object: SpecObject): SpecObject[] =>
-    groupChilds(flowChilds(object))
+const headingChildren = (object: SpecObject): SpecObject[] =>
+    groupChildren(flowChildren(object))
         .filter((group) => !conciseGroup(group, schemas, false))
         .flat()
 
@@ -1314,7 +1314,7 @@ const tocEntries = (objects: SpecObject[], pages?: Map<string, number>): TocEntr
                 info: infoKeyOf(object), infopath: infoPathOf(object, false),
                 spec: infoParents !== null ? id : undefined, specpath: infoPathOf(object),
                 name: inline(object.name), level: Math.min(level, 6), page: pages?.get(id) })
-            collect(headingChilds(object), level + 1)
+            collect(headingChildren(object), level + 1)
         }
     }
     collect(objects, 1)
@@ -1336,7 +1336,7 @@ const renderTocPanel = (objects: SpecObject[], title: boolean, doc: boolean): st
             spec:     infoParents !== null ? anchorOf(object) : undefined,
             specpath: infoPathOf(object),
             name:     inline(object.name),
-            childs:   safe(entries(headingChilds(object)))
+            children: safe(entries(headingChildren(object)))
         })) })
     return render("TocPanel", { TocPanel: { title, doc, entries: safe(entries(objects)) } })
 }
@@ -1344,7 +1344,7 @@ const renderTocPanel = (objects: SpecObject[], title: boolean, doc: boolean): st
 /*  ==== Outline ====  */
 
 /*  an entry of the hierarchical document outline  */
-export type OutlineEntry = { title: string, anchor: string, childs: OutlineEntry[] }
+export type OutlineEntry = { title: string, anchor: string, children: OutlineEntry[] }
 
 /*  derive the hierarchy of the rendered object headings, skipping the
     title page object and the child groups collapsing into compact tables  */
@@ -1355,7 +1355,7 @@ export const htmlOutline = (specification: Spec,
     const entry = (object: SpecObject): OutlineEntry => ({
         title:  (object.kind !== "" ? `${object.kind}: ` : "") + plainText(object.name),
         anchor: paths.get(object) ?? object.id,
-        childs: groupChilds(flowChilds(object))
+        children: groupChildren(flowChildren(object))
             .filter((group) => !conciseGroup(group, schemaMap, false))
             .flatMap((group) => group.map(entry))
     })

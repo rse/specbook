@@ -41,7 +41,7 @@ const identityOf = (item: unknown, list?: string): string => {
     const object = item as Record<string, unknown>
     if (list === "props")
         return String(object.name ?? "")
-    else if (list === "childs")
+    else if (list === "children")
         return String(object.kind ?? "")
     else
         return `${String(object.kind ?? "")}:${String(object.id ?? object.name ?? "")}`
@@ -187,7 +187,7 @@ const checkAutomaton = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) 
     if (object.automaton === undefined)
         return
     const automaton = object.automaton
-    const childOf   = (kind: string) => (object.childs ?? []).find((c) => c.kind === kind)
+    const childOf   = (kind: string) => (object.children ?? []).find((c) => c.kind === kind)
     const propOf    = (child: SchemaObject | undefined, name: string) =>
         (child?.props ?? []).find((p) => p.name === name)
     /*  an invalid value expression is reported on its own (see
@@ -245,7 +245,7 @@ const checkConstraints = (
         const seen = new Set<string>()
         for (const [ i, object ] of objects.entries()) {
             const at    = [ ...path, i ]
-            const ident = identityOf(object, depth > 1 ? "childs" : undefined)
+            const ident = identityOf(object, depth > 1 ? "children" : undefined)
             if (seen.has(ident))
                 diagnose([ ...at, "kind" ],
                     `object "${ident}" collides with a preceding sibling object (the later one is unreachable)`)
@@ -282,8 +282,8 @@ const checkConstraints = (
                             (err instanceof Error ? err.message : String(err)))
                 }
             }
-            if (object.childs !== undefined)
-                check(object.childs, [ ...at, "childs" ], depth + 1)
+            if (object.children !== undefined)
+                check(object.children, [ ...at, "children" ], depth + 1)
         }
     }
     check(config, [], 1)
@@ -302,7 +302,7 @@ export const configStatistics = (config: Schema): { objects: number, links: numb
         for (const prop of object.props ?? [])
             if (prop.value !== undefined && admitsReferences(compileValueExpr(prop.value)))
                 links++
-        for (const child of object.childs ?? [])
+        for (const child of object.children ?? [])
             walk(child)
     }
     for (const object of config)

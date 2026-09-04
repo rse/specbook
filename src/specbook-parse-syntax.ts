@@ -179,7 +179,7 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string) => {
         load(object.description, object.description.description, line)
     for (const property of object.properties)
         load(property, property.value, ctx.propMeta.get(property)?.line ?? line)
-    for (const child of object.childs)
+    for (const child of object.children)
         embed(ctx, child, file)
 }
 
@@ -266,7 +266,7 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
         id:         anchor ?? slugify(name),
         name,
         properties: [],
-        childs:     []
+        children:   []
     }
     if (anchor !== undefined)
         object.anchor = anchor
@@ -306,7 +306,7 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
             ctx.diagnose(file, subLine, `nested ordered list below ${kind} "${name}" ignored`)
         subLine += (sub.raw.match(/\n/g) ?? []).length
     }
-    parent.childs.push(object)
+    parent.children.push(object)
 }
 
 /*  the object nesting state tracked while walking the Markdown tokens  */
@@ -348,7 +348,7 @@ const parseHeading = (ctx: ParseContext, token: Tokens.Heading, state: WalkState
         id:         heading.id ?? (depth === 1 ? heading.paren : undefined) ?? slugify(heading.name),
         name:       heading.name,
         properties: [],
-        childs:     []
+        children:   []
     }
     if (heading.id !== undefined)
         object.anchor = heading.id
@@ -360,7 +360,7 @@ const parseHeading = (ctx: ParseContext, token: Tokens.Heading, state: WalkState
     if (parent === undefined)
         state.artifacts.push({ ...stamps, objects: [ object ] })
     else
-        parent.childs.push(object)
+        parent.children.push(object)
     state.stack.length     = depth - 1
     state.stack[depth - 1] = object
     state.current          = object

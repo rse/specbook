@@ -30,7 +30,7 @@
             graph-node-degree-max:   4
             graph-channel-width-max: 300
             graph-channel-width-min: 300
-    childs:
+    children:
         -   kind: ENTITY
             name: "[A-Z][a-zA-Z0-9]*"
             desc: >
@@ -44,7 +44,7 @@
                 edges: "[[SPEC:DM.ENTITY:*.RELATION:*]]"
                 config:
                     size-node-width-max: 440
-            childs:
+            children:
                 -   kind: ATTRIBUTE
                     name: "[a-z][a-zA-Z0-9]*"
                     desc: >
