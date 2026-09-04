@@ -5,6 +5,9 @@ ChangeLog
 1.2.3 (2026-09-04)
 ------------------
 
+-   CLEANUP [code]: Code Cleanups
+    Applied various code cleanups based on ASE Code Lint results.
+
 -   IMPROVEMENT [code]: Schema and Corpus Statistics in Verbose Output
     The verbose output now reports the object kinds and link relationships the schema
     configuration specifies and the objects and link relationships the specification defines.
