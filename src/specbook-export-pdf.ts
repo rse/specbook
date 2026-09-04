@@ -178,11 +178,34 @@ let browserOptions: Promise<LaunchOptions | undefined> | undefined
 const chromiumRemedy =
     `run "${literal("npx playwright install chromium")}" once to download the Playwright Chromium`
 
-/*  resolve the browser printing the PDF: the downloaded Playwright
-    Chromium is a plain file check, while a system-installed Google
-    Chrome is only detectable by launching it  */
+/*  resolve the browser printing the PDF: an explicitly configured one
+    wins, then the downloaded Playwright Chromium as a plain file check,
+    while a system-installed Google Chrome is only detectable by
+    launching it  */
 const resolveBrowser = async (verbose: Verbose): Promise<LaunchOptions | undefined> => {
     const { chromium } = await import("playwright")
+
+    /*  an explicitly configured browser is taken as an executable path
+        once it carries a path separator and as a Playwright channel
+        name otherwise, and it never falls back onto another browser, as
+        an explicit choice has to be either honored or reported  */
+    const configured = process.env.SPECBOOK_BROWSER ?? ""
+    if (configured !== "") {
+        const options: LaunchOptions = /[\\/]/.test(configured) ?
+            { executablePath: configured } : { channel: configured }
+        try {
+            const browser = await chromium.launch(options)
+            await browser.close()
+        }
+        catch (err: unknown) {
+            throw new Error(`the browser "${literal(configured)}" configured by ` +
+                `"${literal("SPECBOOK_BROWSER")}" failed to launch`, { cause: err })
+        }
+        verbose(`using the browser "${literal(configured)}" configured by ` +
+            `"${literal("SPECBOOK_BROWSER")}"`)
+        return options
+    }
+
     let executable = ""
     try {
         executable = chromium.executablePath()

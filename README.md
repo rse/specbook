@@ -273,6 +273,18 @@ explicitly supplied option always wins. As `-c|--config` is repeatable,
 `SPECBOOK_CONFIG` carries a list of patterns separated by the path
 delimiter of the platform (`:` on Unix, `;` on Windows).
 
+Beyond those, the option-less `SPECBOOK_BROWSER` selects the browser
+printing the PDF export: a value carrying a path separator is taken as
+an executable path and any other one as a Playwright channel name
+(`chromium`, `chromium-headless-shell`, `chrome`, `chrome-beta`,
+`chrome-dev`, `chrome-canary`, `msedge`, `msedge-beta`, `msedge-dev`,
+or `msedge-canary`). The variable itself has no default value: when it
+is unset, the downloaded Playwright Chromium is used (the equivalent of
+`chromium`) and only if that one is absent a system-installed *Google
+Chrome* (the equivalent of `chrome`). An explicitly configured browser
+failing to launch fails the export instead of falling back onto another
+browser.
+
 Example: Simple
 ---------------
 

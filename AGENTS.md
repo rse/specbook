@@ -258,9 +258,10 @@ color spreads, and `PAPER-SIZE` (A4, Letter, or Legal) sets up the PDF
 pagination and the print-time height cap of the diagrams. The subsetted
 stylesheets are memoized per charset.
 
-The PDF export prints the HTML through Playwright/Chromium (the
-downloaded Playwright Chromium, else a system-installed Google Chrome,
-with a missing browser failing the export before the specification is
+The PDF export prints the HTML through Playwright/Chromium (the browser
+explicitly configured by `SPECBOOK_BROWSER`, else the downloaded
+Playwright Chromium, else a system-installed Google Chrome, with a
+missing browser failing the export before the specification is
 even parsed) and post-processes it with `pdf-lib`: header/footer
 decoration, a vertical brand bar drawn onto the left edge of every page,
 and a hierarchical PDF outline. The page numbers of the table of
@@ -290,7 +291,17 @@ switches from the rendered Markdown onto the raw original file content
 `schema` only.
 
 The default value of every CLI option `--xxx` can be overridden by a
-corresponding `SPECBOOK_XXX` environment variable.
+corresponding `SPECBOOK_XXX` environment variable. Beyond those, the
+option-less `SPECBOOK_BROWSER` selects the browser of the PDF export: a
+value carrying a path separator is taken as an executable path and any
+other one as a Playwright channel name (`chromium`,
+`chromium-headless-shell`, `chrome`, `chrome-beta`, `chrome-dev`,
+`chrome-canary`, `msedge`, `msedge-beta`, `msedge-dev`, or
+`msedge-canary`). The variable itself has no default value: an unset one
+uses the downloaded Playwright Chromium (the equivalent of `chromium`)
+and, only if that one is absent, a system-installed Google Chrome (the
+equivalent of `chrome`). An explicitly configured browser failing to
+launch fails the export instead of falling back onto another browser.
 
 Every verbose message carries a level: `debug` for the regular
 processing information, which `-v`/`--verbose` gates, and `notice` for
