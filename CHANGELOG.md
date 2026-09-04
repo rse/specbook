@@ -5,6 +5,10 @@ ChangeLog
 1.2.2 (2026-09-04)
 ------------------
 
+-   IMPROVEMENT [code]: Link Index Invalidation on Id Promotion
+    The id promotion of a parenthesized name token now drops the lazily built lookup structures and
+    memoized resolutions of the link index, as those silently froze the ids as of their first use.
+
 -   BUGFIX [code]: Shared YAML Aliases on Configuration Merging
     Merging a configuration file into a base file sharing a node through a YAML anchor/alias no
     longer alters the other alias siblings, too, as the merge now works on unshared copies.

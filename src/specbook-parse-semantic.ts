@@ -8,7 +8,7 @@ import { type Spec, type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
 import { type Schema, type SchemaObject, type SchemaProperty }
     from "./specbook-format-schema.js"
-import { referenceRegex, resolveUnique, resolveSet, chainOf, plainText }
+import { referenceRegex, resolveUnique, resolveSet, chainOf, plainText, assignId }
     from "./specbook-link.js"
 import { compileValueExpr, splitItems, anchored, type ValueExpr }
     from "./specbook-parse-value.js"
@@ -574,7 +574,7 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
             unresolved heading no longer cascades into unresolvable
             references all over the corpus  */
         if (object.paren !== undefined && object.anchor === undefined && !ctx.parenProps.has(object))
-            object.id = object.paren
+            assignId(ctx.linkIndex, object, object.paren)
         object.childs.forEach(promote)
     }
     for (const artifact of specification.artifacts)

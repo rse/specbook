@@ -31,9 +31,10 @@ export type LinkIndex = LinkNode[]
     by plain name, and by kind (each in index order), plus the memoized
     resolutions, as the very same references are resolved over and over
     again (per property check, reference check, and diagram). They are
-    built lazily on the first use, as the implicit ids of the objects
-    are assigned after the index build (the index itself stays a plain
-    list and has to be complete and final by then)  */
+    built lazily on the first use and dropped by assignId(), as the
+    implicit ids of the objects are assigned after the index build (the
+    index itself stays a plain list and has to be complete and final by
+    then)  */
 interface LinkLookup {
     nodes:   Map<SpecObject, LinkNode>
     byKey:   Map<string, LinkNode[]>
@@ -68,6 +69,14 @@ const lookup = (index: LinkIndex): LinkLookup => {
         lookups.set(index, result)
     }
     return result
+}
+
+/*  assign the id of an indexed object, dropping the lookup structures
+    of its index (and with them the memoized resolutions), as they are
+    keyed on the ids as of their build and would freeze the old one  */
+export const assignId = (index: LinkIndex, object: SpecObject, id: string) => {
+    object.id = id
+    lookups.delete(index)
 }
 
 /*  the ancestor-or-self chain of an object, root first
