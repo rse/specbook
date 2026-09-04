@@ -2,6 +2,9 @@
 -   kind: META
     name: Title
     file: sample.md
+    desc: >
+        The top-level specification meta information.
+        Some of the information is rendered onto the title page.
     props:
         -   name: TITLE
             desc: The title of the specification.
@@ -13,12 +16,17 @@
     file: sample.md
     id: DM
     desc: >
-        The structure of named entities, with named attributes and directed relationships,
-        of the data the solution manages, defining how information is organized and connected.
+        The structure of named entities, with named attributes and directed relationships, of the
+        data the solution manages, defining how information is organized and connected.
+    refs: >
+        -   Chen: The Entity-Relationship Model -- Toward a Unified View of Data (1976),
+            https://dl.acm.org/doi/10.1145/320434.320440
+        -   OMG UML 2.5.1: Unified Modeling Language (2017),
+            https://www.omg.org/spec/UML/2.5.1
     diagram:
         type: graph
-        nodes: "[[SPEC:DM.ENTITY:*]]"
-        edges: "[[SPEC:DM.ENTITY:*.RELATION:*]]"
+        nodes: "[[ENTITY:*]]"
+        edges: "[[RELATION:*]]"
         config:
             size-node-height-scale:  8
             size-edge-port-gap:      60
@@ -30,13 +38,13 @@
             name: "[A-Z][a-zA-Z0-9]*"
             desc: >
                 A named entity of the data model, carrying a Pascal-cased, 1-3 word long,
-                per-artifact unique name, and described by a 1-sentence description ("what")
-                plus a 1-sentence rationale ("why").
+                per-artifact unique name, and described by a 1-sentence description ("what") plus a
+                1-sentence rationale ("why").
             diagram:
                 type: hub
                 center: self
-                nodes: "[[SPEC:DM.ENTITY:*]]"
-                edges: "[[SPEC:DM.ENTITY:*.RELATION:*]]"
+                nodes: "[[ENTITY:*]]"
+                edges: "[[RELATION:*]]"
                 config:
                     size-node-width-max: 440
             children:
@@ -46,6 +54,8 @@
                         A named attribute of the entity, carrying a camel-cased, 1-3 word long,
                         per-entity unique identifier, and described by a 1-sentence description
                         ("what") plus a 1-sentence rationale ("why").
+                    format:
+                        maxTableColumns: 6
                     props:
                         -   name: TYPE
                             desc: >
@@ -76,7 +86,7 @@
                     props:
                         -   name: TARGET
                             desc: Reference to the DATA-MODEL entity the directed relation targets.
-                            value: "[[SPEC:DM.ENTITY:*]]"
+                            value: "[[ENTITY:*]]"
                         -   name: ARITY
                             desc: >
                                 The arity (cardinality) of the relation at the target entity: `0..1`
