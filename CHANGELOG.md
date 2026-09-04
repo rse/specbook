@@ -5,6 +5,11 @@ ChangeLog
 1.2.2 (2026-09-04)
 ------------------
 
+-   BUGFIX [code, docs]: Self-Recovering Preview Placeholder
+    The "503" answer of "preview" before the first successful export is now a placeholder page
+    carrying the live preview client, as such a browser tab stayed on the error text until a
+    manual reload.
+
 -   BUGFIX [code, docs]: Presence Flag on Optional Object Kinds
     A property flagged "present" is now enforced on an optional child object kind without any
     object, too, as its constraint was silently unenforceable there before.

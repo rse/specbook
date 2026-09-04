@@ -8,6 +8,7 @@ import Fastify                   from "fastify"
 import fastifyWebsocket          from "@fastify/websocket"
 import type { WebSocket }        from "ws"
 
+import { renderPlaceholder }     from "./specbook-export-html.js"
 import { literal, type Verbose } from "./specbook-verbose.js"
 
 /*  the default listening address and port of the preview server  */
@@ -26,10 +27,16 @@ export interface PreviewServer {
     update: (html: Buffer) => void
 }
 
+/*  the placeholder page answering a GET before the first successful
+    export: it still carries the live preview client, so the browser
+    subscribes to the "RELOAD" command right away and replaces itself
+    with the document once the first export arrives  */
+const placeholder = renderPlaceholder("no specification export available yet")
+
 /*  serve the live HTML preview: a plain GET on "/" answers with the
-    most recent HTML export (or with 503 before the first successful
-    one), while a WebSocket upgrade on "/" subscribes the client to the
-    "RELOAD" command every fresh export broadcasts  */
+    most recent HTML export (or with the 503 placeholder page before the
+    first successful one), while a WebSocket upgrade on "/" subscribes
+    the client to the "RELOAD" command every fresh export broadcasts  */
 export const servePreview = async (options: PreviewOptions): Promise<PreviewServer> => {
     let html: Buffer | undefined
     const clients = new Set<WebSocket>()
@@ -42,8 +49,8 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
         url:    "/",
         handler: (_request, reply) => {
             if (html === undefined)
-                return reply.code(503).type("text/plain; charset=utf-8")
-                    .send("no specification export available yet\n")
+                return reply.code(503).type("text/html; charset=utf-8")
+                    .header("cache-control", "no-store").send(placeholder)
             return reply.type("text/html; charset=utf-8")
                 .header("cache-control", "no-store").send(html)
         },
@@ -73,7 +80,7 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
     options.verbose(`listening on ${literal(url)}`, "notice")
     return {
         update: (buffer: Buffer) => {
-            /*  the first export turns the 503 answers into the document  */
+            /*  the first export turns the 503 placeholder into the document  */
             if (html === undefined)
                 options.verbose(`serving ${literal(url)}`, "notice")
             html = buffer

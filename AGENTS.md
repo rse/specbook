@@ -135,7 +135,9 @@ Fastify on `http://<ip-addr>:<tcp-port>/` (`-a`/`--addr`, default
 `127.0.0.1`, and `-p`/`--port`, default `12345`): it observes the
 sources exactly like `export --watch`, keeps the HTML export in memory
 (a failed re-export keeps the previous one, and before the first
-successful export a GET answers `503`), and sends the string `RELOAD` to
+successful export a GET answers `503` with a placeholder page which
+carries the very same client-side script and hence replaces itself with
+the document once the first export arrives), and sends the string `RELOAD` to
 all connected WebSocket clients (on `/`, too) after every re-export. The
 served HTML is exported with the API-only `realtime` option of
 `export`/`watch`, which injects a client-side script connecting back to

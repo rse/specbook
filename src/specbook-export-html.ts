@@ -46,24 +46,7 @@ const templates = {
                     {{ Document.css }}
                 </style>
                 <script>
-                    (function () {
-                        let style = null
-                        try { style = localStorage.getItem("specbook-theme") }
-                        catch { /*  an inaccessible storage just means no stored choice  */ }
-                        if (style === null) {
-                            const m = document.documentElement.className.match(/theme-(light|dark)/)
-                            style = m !== null ? m[1] : null
-                        }
-                        if (style === null)
-                            style = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-                        document.documentElement.className = "theme-" + style
-                    })()
-                    function themeSwitch () {
-                        const style = document.documentElement.className === "theme-dark" ? "light" : "dark"
-                        document.documentElement.className = "theme-" + style
-                        try { localStorage.setItem("specbook-theme", style) }
-                        catch { /*  an inaccessible storage just loses the choice  */ }
-                    }
+                    {{ Document.themescript }}
                 </script>
             </head>
             <body>
@@ -86,6 +69,27 @@ const templates = {
                 {% if Document.tocpanel %}<script>{{ Document.tocscript }}</script>{% endif %}
                 {% if Document.info %}<script>{{ Document.info }}</script>{% endif %}
                 {% if Document.realtime %}<script class="realtime">{{ Document.realtime }}</script>{% endif %}
+            </body>
+        </html>
+    `,
+
+    /*  <Placeholder/>  */
+    "Placeholder": textframe`
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <title>{{ Placeholder.title }}</title>
+                <style>
+                    {{ Placeholder.css }}
+                </style>
+                <script>
+                    {{ Placeholder.themescript }}
+                </script>
+            </head>
+            <body>
+                <div class="placeholder">{{ Placeholder.message }}</div>
+                <script class="realtime">{{ Placeholder.realtime }}</script>
             </body>
         </html>
     `,
@@ -241,6 +245,43 @@ const templates = {
         </table>
     `
 }
+
+/*  the client-side script of the color theme: it applies the stored
+    choice (or, without one, the document default and finally the system
+    preference) before the first paint and toggles it on demand. The
+    live preview placeholder page carries it, too, as an in-place
+    document update never re-executes a head script  */
+const themeScript = textframe`
+    (function () {
+        let style = null
+        try { style = localStorage.getItem("specbook-theme") }
+        catch { /*  an inaccessible storage just means no stored choice  */ }
+        if (style === null) {
+            const m = document.documentElement.className.match(/theme-(light|dark)/)
+            style = m !== null ? m[1] : null
+        }
+        if (style === null)
+            style = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+        document.documentElement.className = "theme-" + style
+    })()
+    function themeSwitch () {
+        const style = document.documentElement.className === "theme-dark" ? "light" : "dark"
+        document.documentElement.className = "theme-" + style
+        try { localStorage.setItem("specbook-theme", style) }
+        catch { /*  an inaccessible storage just loses the choice  */ }
+    }
+`
+
+/*  the minimal stylesheet of the live preview placeholder page: it also
+    provides the <style> element the in-place document update swaps with
+    the real stylesheet, so it carries the centered message only  */
+const placeholderStylesheet = textframe`
+    html.theme-light body { color: #333333; background-color: #ffffff }
+    html.theme-dark  body { color: #cccccc; background-color: #1a1a1a }
+    body { font-family: sans-serif; margin: 0 }
+    div.placeholder { position: absolute; top: 50%; left: 0; right: 0;
+        transform: translateY(-50%); text-align: center; opacity: 0.6 }
+`
 
 /*  the client-side script of the live preview: it connects back to the
     own page over WebSocket (the URL scheme "http"/"https" replaced with
@@ -1324,6 +1365,21 @@ const makeLinker = (index: LinkIndex) => (text: string, compact: boolean): strin
             `<a href="#${escapeHtml(anchorOf(target))}" class="link-full">${full}</a>`
     })
 
+/*  render the placeholder page of the live preview, served instead of
+    the document before the first successful export: it carries the very
+    same client-side script as the regular export, so the page recovers
+    on its own -- as the usual in-place document update -- once the
+    specification becomes exportable, plus a <style> element and the
+    color theme script the update expects to find in the head  */
+export const renderPlaceholder = (message: string): string =>
+    render("Placeholder", { Placeholder: {
+        title:       "SpecBook",
+        css:         safe(placeholderStylesheet),
+        themescript: safe(themeScript),
+        realtime:    safe(realtimeScript),
+        message
+    } })
+
 /*  render the entire specification into a self-contained HTML document,
     with the build-time pre-assembled stylesheet embedded inline, the
     artifact timestamps aggregated into min(Created)/max(Modified),
@@ -1390,23 +1446,24 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         const objects = artifacts.flatMap((artifact) => artifact.objects)
         const entries = tocEntries(objects, tocPages)
         return render("Document", { Document: {
-            title:     documentTitle(specification).title,
+            title:       documentTitle(specification).title,
             lang,
-            theme:     documentThemeStyle(specification)?.toLowerCase(),
-            css:       safe(css ?? stylesheet()),
-            titlepage: title !== undefined ?
+            theme:       documentThemeStyle(specification)?.toLowerCase(),
+            css:         safe(css ?? stylesheet()),
+            themescript: safe(themeScript),
+            titlepage:   title !== undefined ?
                 safe(renderTitlePage(title,
                     formatDate(created), formatDate(modified))) : "",
-            search:    safe(searchScript()),
-            info:      info !== null ? safe(infoScript(info, spec ?? {})) : "",
-            realtime:  realtime ? safe(realtimeScript) : "",
-            toc:       entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
-            tocpanel:  entries.length > 0 ?
+            search:      safe(searchScript()),
+            info:        info !== null ? safe(infoScript(info, spec ?? {})) : "",
+            realtime:    realtime ? safe(realtimeScript) : "",
+            toc:         entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
+            tocpanel:    entries.length > 0 ?
                 safe(renderTocPanel(objects,
                     title !== undefined, doc !== undefined)) : "",
-            tocscript: entries.length > 0 ? safe(tocPanelScript) : "",
-            doc:       doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",
-            artifacts: safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
+            tocscript:   entries.length > 0 ? safe(tocPanelScript) : "",
+            doc:         doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",
+            artifacts:   safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
         } })
     }
     finally {
