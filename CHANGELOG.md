@@ -5,6 +5,10 @@ ChangeLog
 1.2.2 (2026-09-04)
 ------------------
 
+-   BUGFIX [code, docs]: Presence Flag on Optional Object Kinds
+    A property flagged "present" is now enforced on an optional child object kind without any
+    object, too, as its constraint was silently unenforceable there before.
+
 -   BUGFIX [code]: Parenthesized Name Tokens in Diagrams
     A property written as a parenthesized name token is now honored by the diagram derivation, too,
     as its annotations and edges silently vanished and a "centerEdges" one even failed the diagram.

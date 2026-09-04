@@ -164,9 +164,10 @@ const parenProp = (object: SpecObject, props: SchemaProperty[]): SpecProperty | 
 
 /*  check the property values flagged unique for distinctness among
     the sibling objects of the same kind and the ones flagged present
-    for occurring on at least one of the (existing) siblings (all
-    values, or only the values matching the regexp or enum expression
-    of the flag)  */
+    for occurring on at least one sibling (all values, or only the
+    values matching the regexp or enum expression of the flag), where
+    a kind without any sibling fails a present flag, too, but only for
+    an optional kind, as the missing-kind check reports a required one  */
 const checkSiblingFlags = (ctx: ParseContext, object: SpecObject, childs: SchemaObject[], meta: ObjectMeta) => {
     const marker = (flag: boolean | string | undefined) =>
         flag === undefined || flag === false ? undefined :
@@ -199,7 +200,7 @@ const checkSiblingFlags = (ctx: ParseContext, object: SpecObject, childs: Schema
                         `already used by preceding ${sibling.kind} "${first.name}"`)
                 }
             }
-            if (present !== undefined && siblings.length > 0 && !found)
+            if (present !== undefined && (siblings.length > 0 || child.optional === true) && !found)
                 ctx.diagnose(meta.file, meta.line,
                     `no ${child.kind} below ${object.kind} "${object.name}" carries property "${prop.name}"` +
                     (typeof prop.present === "string" ? ` with a value matching "${prop.present}"` : ""))

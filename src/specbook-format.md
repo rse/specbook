@@ -416,8 +416,9 @@ type SchemaGradiaConfig = Partial<{
 
 -   `SchemaProperty.present?: boolean | string`:
     whether some value (`true`) or a value matching a regexp or enum
-    expression has to occur on at least one of the (existing) sibling
-    objects of the kind, so that `unique` plus `present` demand exactly one,
+    expression has to occur on at least one sibling object of the kind,
+    so that `unique` plus `present` demand exactly one and `present` on
+    an optional kind demands at least one object of that kind,
     BECAUSE some markers, like an initial state, are not just single but indispensable
 
 -   `SchemaProperty.local?: boolean`:
