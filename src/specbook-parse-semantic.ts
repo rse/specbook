@@ -150,15 +150,16 @@ const checkPropValue = (ctx: ParseContext, object: SpecObject, prop: SchemaPrope
             `property "${prop.name}" value "${property.value}" does not match pattern "${prop.value}"`)
 }
 
-/*  find the configured property whose value the trailing parenthesized
-    name token of an object is accepted for: the first still missing
+/*  derive the synthetic property the trailing parenthesized name token
+    of an object is consumed as: the first still missing configured
     property whose pattern the token matches  */
-const parenProp = (object: SpecObject, props: SchemaProperty[]): SchemaProperty | undefined => {
+const parenProp = (object: SpecObject, props: SchemaProperty[]): SpecProperty | undefined => {
     const paren = object.paren
     if (paren === undefined)
         return undefined
-    return props.find((prop) => prop.value !== undefined && !object.properties.some((p) => p.key === prop.name)
-        && directMatches(compileValueExpr(prop.value), paren))
+    const prop = props.find((p) => p.value !== undefined && !object.properties.some((q) => q.key === p.name)
+        && directMatches(compileValueExpr(p.value), paren))
+    return prop !== undefined ? { key: prop.name, value: paren } : undefined
 }
 
 /*  check the property values flagged unique for distinctness among
@@ -317,6 +318,20 @@ export const collectSchemas = (specification: Spec,
         }
     }
     return schemas
+}
+
+/*  derive the synthetic properties supplied by the consumed parenthesized
+    name tokens of a schema mapping, so a consumer without a parsing
+    context -- the diagram derivation of an export -- sees exactly the
+    properties the validation sees  */
+export const collectParenProps = (schemas: Map<SpecObject, SchemaObject>): Map<SpecObject, SpecProperty> => {
+    const parenProps = new Map<SpecObject, SpecProperty>()
+    for (const [ object, schema ] of schemas) {
+        const property = parenProp(object, schema.props ?? [])
+        if (property !== undefined)
+            parenProps.set(object, property)
+    }
+    return parenProps
 }
 
 /*  report the objects colliding on kind and id among their siblings
@@ -549,19 +564,16 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
         precedence), which has to happen before any property check, as
         those resolve references by id across all artifacts  */
     const schemas = collectSchemas(specification, config)
+    for (const [ object, property ] of collectParenProps(schemas))
+        ctx.parenProps.set(object, property)
     const promote = (object: SpecObject) => {
         /*  an object below an unresolved artifact or an unknown kind
             carries no schema and hence no property able to consume the
             token, so the token still acts as the id and a single
             unresolved heading no longer cascades into unresolvable
             references all over the corpus  */
-        if (object.paren !== undefined) {
-            const prop = parenProp(object, schemas.get(object)?.props ?? [])
-            if (prop !== undefined)
-                ctx.parenProps.set(object, { key: prop.name, value: object.paren })
-            else if (object.anchor === undefined)
-                object.id = object.paren
-        }
+        if (object.paren !== undefined && object.anchor === undefined && !ctx.parenProps.has(object))
+            object.id = object.paren
         object.childs.forEach(promote)
     }
     for (const artifact of specification.artifacts)

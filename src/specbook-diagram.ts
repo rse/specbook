@@ -7,7 +7,7 @@
 import { Gradia }
     from "@rse/gradia"
 
-import type { Spec, SpecObject }
+import type { Spec, SpecObject, SpecProperty }
     from "./specbook-format-spec.js"
 import type { Schema, SchemaDiagram, SchemaDiagramCenterEdges }
     from "./specbook-format-schema.js"
@@ -16,7 +16,7 @@ import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths,
     from "./specbook-link.js"
 import type { ParseContext }
     from "./specbook-parse-common.js"
-import { collectSchemas }
+import { collectSchemas, collectParenProps }
     from "./specbook-parse-semantic.js"
 import { literal, type Verbose }
     from "./specbook-verbose.js"
@@ -83,6 +83,21 @@ interface DiagramEdge {
     arity?: string
 }
 
+/*  the synthetic properties supplied by the parenthesized name tokens
+    consumed as property values, which the AST does not carry, as the
+    tokens stay plain heading markers on export  */
+type ParenProps = Map<SpecObject, SpecProperty>
+
+/*  the properties of an object, the synthetic one included  */
+const propsOf = (parenProps: ParenProps, object: SpecObject): SpecProperty[] => {
+    const synthetic = parenProps.get(object)
+    return synthetic !== undefined ? [ ...object.properties, synthetic ] : object.properties
+}
+
+/*  the value of a single property of an object, by its key  */
+const propValue = (parenProps: ParenProps, object: SpecObject, key: string): string | undefined =>
+    propsOf(parenProps, object).find((property) => property.key === key)?.value
+
 /*  generate the Gradia spec text of a derived diagram, opened by a
     "#type" directive and the configured "#config" directives so every
     embedded spec is self-contained: one node statement per object (the
@@ -90,7 +105,7 @@ interface DiagramEdge {
     label) and one edge statement per derived edge  */
 const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
     centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[],
-    index: LinkIndex, anchors: Map<SpecObject, string>): string => {
+    index: LinkIndex, anchors: Map<SpecObject, string>, parenProps: ParenProps): string => {
     const lines  = [ `#type ${type}` ]
     const config = diagram.config ?? {}
     for (const [ key, value ] of Object.entries(config))
@@ -116,7 +131,7 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
             the node set can mix objects of different kinds), with every
             "[[...]]" reference stripped to its target object name  */
         for (const key of diagram.properties ?? []) {
-            const value = node.properties.find((property) => property.key === key)?.value
+            const value = propValue(parenProps, node, key)
             if (value !== undefined) {
                 const text = expandReferences(value, (reference) =>
                     resolveUnique(index, reference, node).target?.name ?? reference)
@@ -146,7 +161,7 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
     reference count as the arity)  */
 const deriveReferenceEdges = (diagram: SchemaDiagram, nodes: SpecObject[], nodeSet: Set<SpecObject>,
     index: LinkIndex, anchors: Map<SpecObject, string>,
-    parents: Map<SpecObject, SpecObject | undefined>): DiagramEdge[] => {
+    parents: Map<SpecObject, SpecObject | undefined>, parenProps: ParenProps): DiagramEdge[] => {
     const edges = new Array<DiagramEdge>()
 
     /*  lift an object to its nearest ancestor-or-self within the
@@ -172,7 +187,7 @@ const deriveReferenceEdges = (diagram: SchemaDiagram, nodes: SpecObject[], nodeS
         walk(node)
         const counts = new Map<string, { target: SpecObject, name?: string, count: number }>()
         for (const object of objects) {
-            const texts: { text: string, name?: string }[] = object.properties.map((property) => ({
+            const texts: { text: string, name?: string }[] = propsOf(parenProps, object).map((property) => ({
                 text: property.value,
                 name: diagram.labeled === true ? property.key.toLowerCase() : undefined
             }))
@@ -207,7 +222,7 @@ const deriveReferenceEdges = (diagram: SchemaDiagram, nodes: SpecObject[], nodeS
     overridable via "edgeSource"/"edgeTarget"/"edgeArity"  */
 const deriveObjectEdges = (diagram: SchemaDiagram, nodeSet: Set<SpecObject>, edgeObjects: SpecObject[],
     index: LinkIndex, parents: Map<SpecObject, SpecObject | undefined>,
-    errors: DiagramError[]): DiagramEdge[] => {
+    parenProps: ParenProps, errors: DiagramError[]): DiagramEdge[] => {
     const edges = new Array<DiagramEdge>()
 
     /*  resolve the node an edge object references through a named
@@ -215,8 +230,8 @@ const deriveObjectEdges = (diagram: SchemaDiagram, nodeSet: Set<SpecObject>, edg
         no name is configured (skipping the source property)  */
     const edgeNode = (edgeObject: SpecObject, key: string | undefined) => {
         const value = key !== undefined ?
-            edgeObject.properties.find((property) => property.key === key)?.value :
-            edgeObject.properties.filter((property) => property.key !== diagram.edgeSource)
+            propValue(parenProps, edgeObject, key) :
+            propsOf(parenProps, edgeObject).filter((property) => property.key !== diagram.edgeSource)
                 .map((property) => property.value).find((v) => referenceOnce.test(v))
         const reference = value?.match(referenceOnce)?.[1].trim()
         return reference !== undefined ? resolveUnique(index, reference, edgeObject).target : undefined
@@ -237,8 +252,7 @@ const deriveObjectEdges = (diagram: SchemaDiagram, nodeSet: Set<SpecObject>, edg
         }
         if (!nodeSet.has(source) || !nodeSet.has(target))
             continue
-        const arity = edgeObject.properties.find((property) =>
-            property.key === (diagram.edgeArity ?? "ARITY"))?.value
+        const arity = propValue(parenProps, edgeObject, diagram.edgeArity ?? "ARITY")
         edges.push({ source, target, name: plainText(edgeObject.name),
             arity: arity !== undefined ? plainText(arity) : undefined })
     }
@@ -252,11 +266,12 @@ const deriveObjectEdges = (diagram: SchemaDiagram, nodeSet: Set<SpecObject>, edg
 const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
     nodes: SpecObject[], nodeSet: Set<SpecObject>, edgeObjects: SpecObject[],
     index: LinkIndex, anchors: Map<SpecObject, string>,
-    parents: Map<SpecObject, SpecObject | undefined>, errors: DiagramError[]): DiagramEdge[] => {
+    parents: Map<SpecObject, SpecObject | undefined>, parenProps: ParenProps,
+    errors: DiagramError[]): DiagramEdge[] => {
     const edges = new Array<DiagramEdge>()
     if (type !== "grid") {
-        edges.push(...deriveReferenceEdges(diagram, nodes, nodeSet, index, anchors, parents))
-        edges.push(...deriveObjectEdges(diagram, nodeSet, edgeObjects, index, parents, errors))
+        edges.push(...deriveReferenceEdges(diagram, nodes, nodeSet, index, anchors, parents, parenProps))
+        edges.push(...deriveObjectEdges(diagram, nodeSet, edgeObjects, index, parents, parenProps, errors))
 
         /*  derive the containment edges from the object hierarchy, as
             the nesting of the objects carries no "[[...]]" reference  */
@@ -339,7 +354,8 @@ interface DiagramCenter {
     set (the center is absent whenever the configuration is invalid)  */
 const deriveCenter = (object: SpecObject, diagram: SchemaDiagram,
     nodes: SpecObject[], nodeSet: Set<SpecObject>, index: LinkIndex,
-    anchors: Map<SpecObject, string>, errors: DiagramError[]): DiagramCenter | undefined => {
+    anchors: Map<SpecObject, string>, parenProps: ParenProps,
+    errors: DiagramError[]): DiagramCenter | undefined => {
     if (typeof diagram.center === "string" && diagram.center !== "self") {
         const reference = diagram.center.match(referenceOnce)?.[1].trim()
         const resolved  = reference !== undefined ? resolveUnique(index, reference, object) : undefined
@@ -369,8 +385,7 @@ const deriveCenter = (object: SpecObject, diagram: SchemaDiagram,
             }
             centerUrl = `#${anchors.get(source) ?? source.id}`
             if (centerCfg.property !== undefined) {
-                const value = source.properties.find((property) =>
-                    property.key === centerCfg.property)?.value
+                const value = propValue(parenProps, source, centerCfg.property)
                 if (value === undefined) {
                     errors.push({ reason:
                         `diagram "center" source lacks the property "${centerCfg.property}"` })
@@ -404,12 +419,13 @@ const deriveCenter = (object: SpecObject, diagram: SchemaDiagram,
     center-to-node edge, and the "both" value onto both (which
     Gradia renders as an input node plus an output "ghost" node)  */
 const deriveCenterEdges = (cfg: SchemaDiagramCenterEdges, nodes: SpecObject[],
-    center: SpecObject, index: LinkIndex, errors: DiagramError[]): DiagramEdge[] => {
+    center: SpecObject, index: LinkIndex, parenProps: ParenProps,
+    errors: DiagramError[]): DiagramEdge[] => {
     const edges = new Array<DiagramEdge>()
     for (const node of nodes) {
         if (node === center)
             continue
-        const value    = node.properties.find((property) => property.key === cfg.property)?.value
+        const value    = propValue(parenProps, node, cfg.property)
         const inbound  = cfg.inbound  !== undefined && value === cfg.inbound
         const outbound = cfg.outbound !== undefined && value === cfg.outbound
         const both     = cfg.both     !== undefined && value === cfg.both
@@ -420,7 +436,7 @@ const deriveCenterEdges = (cfg: SchemaDiagramCenterEdges, nodes: SpecObject[],
             continue
         }
         const label = cfg.labeled !== undefined ?
-            node.properties.find((property) => property.key === cfg.labeled)?.value : undefined
+            propValue(parenProps, node, cfg.labeled) : undefined
         const name  = label !== undefined ? plainText(expandReferences(label, (reference) =>
             resolveUnique(index, reference, node).target?.name ?? reference)) : undefined
         if (inbound || both)
@@ -436,7 +452,7 @@ const deriveCenterEdges = (cfg: SchemaDiagramCenterEdges, nodes: SpecObject[],
     configured diagram situation is invalid)  */
 const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     index: LinkIndex, anchors: Map<SpecObject, string>,
-    parents: Map<SpecObject, SpecObject | undefined>): DiagramResult => {
+    parents: Map<SpecObject, SpecObject | undefined>, parenProps: ParenProps): DiagramResult => {
     const type   = diagram.type ?? "graph"
     const errors = new Array<DiagramError>()
 
@@ -460,7 +476,8 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     const nodeSet = new Set<SpecObject>(nodes)
 
     /*  derive the (deduplicated) edges of the diagram  */
-    let edges = deriveEdges(diagram, type, nodes, nodeSet, edgeObjects, index, anchors, parents, errors)
+    let edges = deriveEdges(diagram, type, nodes, nodeSet, edgeObjects, index, anchors, parents,
+        parenProps, errors)
 
     /*  determine the center of a "hub" diagram (the only shape
         carrying a center at all)  */
@@ -471,7 +488,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
             errors.push({ reason: `"${type}" diagram cannot carry a "centerEdges" configuration` })
     }
     const derived: DiagramCenter | undefined = type === "hub" ?
-        deriveCenter(object, diagram, nodes, nodeSet, index, anchors, errors) : { center: object }
+        deriveCenter(object, diagram, nodes, nodeSet, index, anchors, parenProps, errors) : { center: object }
     if (derived === undefined)
         return { errors }
     const { center, centerUrl } = derived
@@ -479,7 +496,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     /*  synthesize the center edges of a "hub" diagram, as the nodes
         carry no "[[...]]" reference to a synthetic center  */
     if (type === "hub" && diagram.centerEdges !== undefined)
-        edges.push(...deriveCenterEdges(diagram.centerEdges, nodes, center, index, errors))
+        edges.push(...deriveCenterEdges(diagram.centerEdges, nodes, center, index, parenProps, errors))
 
     /*  a "hub" diagram is the hub-projection onto its center object:
         only the edges incident to the center and only the nodes
@@ -525,11 +542,11 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         kind is absent, and the "collapse" handling (enabled by default)
         does the same for the degenerate diagram of a single node, as
         such a diagram carries no information beyond the object itself  */
-    if (nodes.length === 0 ||
-        (diagram.collapse !== false && nodes.length === 1 && edges.length === 0))
+    if (nodes.length === 0
+        || (diagram.collapse !== false && nodes.length === 1 && edges.length === 0))
         return { errors }
 
-    return { spec: renderSpec(diagram, type, center, centerUrl, nodes, edges, index, anchors),
+    return { spec: renderSpec(diagram, type, center, centerUrl, nodes, edges, index, anchors, parenProps),
         config: diagram.config, columns, errors }
 }
 
@@ -550,10 +567,16 @@ export const specDiagrams = (specification: Spec,
     const parents = new Map<SpecObject, SpecObject | undefined>()
     for (const node of index)
         parents.set(node.object, node.parent?.object)
+    const schemas = collectSchemas(specification, config)
+
+    /*  re-derive the synthetic properties of the consumed parenthesized
+        name tokens, as the derivation sees the AST alone, while the
+        parsing context holding them is long gone by export time  */
+    const parenProps = collectParenProps(schemas)
     const results = new Map<SpecObject, DiagramResult>()
-    for (const [ object, schema ] of collectSchemas(specification, config))
+    for (const [ object, schema ] of schemas)
         if (schema.diagram !== undefined)
-            results.set(object, deriveDiagram(object, schema.diagram, index, anchors, parents))
+            results.set(object, deriveDiagram(object, schema.diagram, index, anchors, parents, parenProps))
     derivations.set(specification, { config, results })
     return results
 }

@@ -5,6 +5,10 @@ ChangeLog
 1.2.2 (2026-09-04)
 ------------------
 
+-   BUGFIX [code]: Parenthesized Name Tokens in Diagrams
+    A property written as a parenthesized name token is now honored by the diagram derivation, too,
+    as its annotations and edges silently vanished and a "centerEdges" one even failed the diagram.
+
 -   BUGFIX [code]: Empty Diagram Node Sets
     A diagram yielding no nodes at all is now silently omitted instead of reported as an error, as a
     wildcard "nodes" pattern legitimately matches nothing when an optional artifact kind is absent.
