@@ -4,7 +4,10 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import { watch }                     from "chokidar"
+/*  Chokidar is aliased in "package.json", as Nunjucks declares the
+    (unused) Chokidar 3 as an optional peer dependency and the current
+    Chokidar under its plain name would raise a peer warning on install  */
+import { watch }                     from "chokidar5"
 import { minify }                    from "@swc/html"
 
 import type { Spec }                 from "./specbook-format-spec.js"

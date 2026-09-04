@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.2.4 (2026-09-04)
+------------------
+
+-   BUGFIX [infr]: Resolve Peer Dependency Warning on Installation
+    Chokidar is now pulled in under an NPM alias, as Nunjucks declares the unused Chokidar 3 as an
+    optional peer dependency and SpecBook's Chokidar 5 caused a peer warning on every installation.
+
 1.2.3 (2026-09-04)
 ------------------
 
