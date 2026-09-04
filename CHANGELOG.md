@@ -5,13 +5,21 @@ ChangeLog
 1.2.4 (2026-09-04)
 ------------------
 
--   REFACTOR [code, docs, othr]: Rename Field `childs` to `children`
-    The field `childs` of the schema configuration objects and of the specification AST objects is
-    now named `children`, which breaks existing schema configurations and AST exports.
+-   IMPROVEMENT [othr, infr]: Restructured Documentation and Screenshots
+    The `README.md` now leads with the CLI, carries more usage hints, corrected references, and
+    both sample corpora with their own screenshots, while `AGENTS.md` follows the implementation.
 
 -   BUGFIX [infr]: Resolve Peer Dependency Warning on Installation
     Chokidar is now pulled in under an NPM alias, as Nunjucks declares the unused Chokidar 3 as an
     optional peer dependency and SpecBook's Chokidar 5 caused a peer warning on every installation.
+
+-   CLEANUP [othr]: Reduced Sample Corpora
+    The standalone sample dropped the `refs` fields of its schema configuration and the broadcast
+    sample dropped its obsolete `ROSTER.txt` file.
+
+-   REFACTOR [code, docs, othr]: Rename Field `childs` to `children`
+    The field `childs` of the schema configuration objects and of the specification AST objects is
+    now named `children`, which breaks existing schema configurations and AST exports.
 
 1.2.3 (2026-09-04)
 ------------------
