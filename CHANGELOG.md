@@ -25,6 +25,10 @@ ChangeLog
     The bounded page-number fixpoint iteration of the PDF export now reports an unconverged
     exit, as the ToC otherwise silently carried the page numbers of a different pagination.
 
+-   BUGFIX [code]: Decorated Backquoted Grouped Format Names
+    A backquoted name of a Grouped Format item now may carry its trailing decorations, too, as the
+    entire item was dropped as unrecognized instead of honoring the marker contract of all formats.
+
 -   BUGFIX [code, docs]: Self-Feeding Watch Outputs
     The watch mode of "export" now also rejects an output file which is itself an observed source
     file, as its own write re-triggered the observation and hence fed an endless re-export loop.

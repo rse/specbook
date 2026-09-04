@@ -234,13 +234,16 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
     let   kind:  string
     let   name:  string
     if (group !== undefined) {
-        const nm = head.match(/^`([^`]+)`$|^([^`:]+)$/)
+        const nm = head.match(/^`([^`]+)`\s*([^`]*)$|^([^`:]+)$/)
         if (nm === null) {
             ctx.diagnose(file, line, `unrecognized ${group} item "${text}"`)
             return
         }
         kind = group
-        name = (nm[1] ?? nm[2]).trim()
+
+        /*  a backquoted name keeps its trailing decorations outside the
+            backquotes, so they are re-joined for the marker detection below  */
+        name = (nm[1] !== undefined ? `${nm[1]} ${nm[2]}` : nm[3]).trim()
     }
     else {
         const km = head.match(/^([^:]+):\s*(.*)$/)
