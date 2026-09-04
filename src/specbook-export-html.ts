@@ -60,6 +60,13 @@ const templates = {
                         <span class="search-clear" id="search-clear" title="clear search">&#x00D7;</span>
                     </div>
                 </div>
+                <div class="fold-switch">
+                    <div class="fold-toggle" title="toggle folding controls"><svg class="fold-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5l5 5 5-5"/><path d="M7 20.5l5-5 5 5"/></svg></div>
+                    <div class="fold-controls">
+                        <div class="fold-diagrams" title="fold/unfold all diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5.5" r="3"/><circle cx="18.5" cy="5.5" r="3"/><circle cx="12" cy="18.5" r="3"/><path d="M7.3 8.1 10.6 15.9"/><path d="M16.7 8.1 13.4 15.9"/></svg></div>
+                        <div class="fold-texts" title="fold/unfold all cell texts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7V4.5h15V7"/><path d="M12 4.5v15"/><path d="M8.5 19.5h7"/></svg></div>
+                    </div>
+                </div>
                 <div class="scroll-progress" title="scroll to top"><svg class="scroll-ring" viewBox="0 0 44 44" fill="none" stroke-width="2.5"><circle class="scroll-todo" cx="22" cy="22" r="20"/><circle class="scroll-done" cx="22" cy="22" r="20" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></svg><svg class="scroll-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></div>
                 {{ Document.tocpanel }}
                 {{ Document.titlepage }}
@@ -68,6 +75,7 @@ const templates = {
                 {{ Document.artifacts }}
                 {% if Document.search %}<script>{{ Document.search }}</script>{% endif %}
                 <script>{{ Document.progress }}</script>
+                <script>{{ Document.fold }}</script>
                 {% if Document.tocpanel %}<script>{{ Document.tocscript }}</script>{% endif %}
                 {% if Document.info %}<script>{{ Document.info }}</script>{% endif %}
                 {% if Document.realtime %}<script class="realtime">{{ Document.realtime }}</script>{% endif %}
@@ -177,7 +185,7 @@ const templates = {
 
     /*  <Properties/>  */
     "Properties": textframe`
-        <table class="props">
+        <table class="props"{% if Fold %} data-fold-height="{{ Fold }}"{% endif %}>
             {% for property in Properties %}
             <tr><td class="key property-name"><span{% if property.info %} data-info="{{ property.info }}" data-info-path="{{ property.infopath }}" data-info-prop="{{ property.key }}"{% endif %}>{{ property.key }}</span></td><td>{{ property.value }}</td></tr>
             {% endfor %}
@@ -200,7 +208,7 @@ const templates = {
 
     /*  <Table/>  */
     "Table": textframe`
-        <table class="objects">
+        <table class="objects"{% if Table.fold %} data-fold-height="{{ Table.fold }}"{% endif %}>
             <thead>
                 <tr>
                     <th class="object-kind"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}"{% endif %}>{{ Table.head }}</span></th>
@@ -222,7 +230,7 @@ const templates = {
 
     /*  <TableChunked/>  */
     "TableChunked": textframe`
-        <table class="objects">
+        <table class="objects"{% if Table.fold %} data-fold-height="{{ Table.fold }}"{% endif %}>
             <thead>
                 <tr>
                     <th class="object-kind" style="width: {{ Table.width }}%"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}"{% endif %}>{{ Table.head }}</span></th>
@@ -416,6 +424,256 @@ const scrollProgressScript = textframe`
     })()
 `
 
+/*  the client-side script of the folding: it wraps every diagram of the
+    content into a fold container carrying a chevron mark at its top
+    left corner, folds the
+    text of every table cell towering over the other cells of its row
+    behind a chevron mark of its own, and lets the two
+    controls of the fold tab fold and unfold all diagrams and all cell
+    texts at once, with their state persisted across page loads and
+    their icons (plus the tab icon) marked while anything of their kind
+    is folded. The script
+    runs at the end of the body, as the content it wraps has to exist
+    already, and a live preview body swap replaces the containers and
+    their listeners along with the body  */
+const foldScript = textframe`
+    (function () {
+        const tab = document.querySelector("div.fold-switch")
+        if (tab === null)
+            return
+        const controls = { diagram: tab.querySelector("div.fold-diagrams"),
+            text: tab.querySelector("div.fold-texts") }
+
+        /*  let the fold icon slide the two controls out of the tab (and
+            back in again), remembering the choice across page loads  */
+        try { if (localStorage.getItem("specbook-fold") === "open") tab.classList.add("open") }
+        catch { /*  an inaccessible storage just means no stored state  */ }
+        tab.querySelector("div.fold-toggle").addEventListener("click", () => {
+            tab.classList.toggle("open")
+            try { localStorage.setItem("specbook-fold", tab.classList.contains("open") ? "open" : "closed") }
+            catch { /*  an inaccessible storage just loses the state  */ }
+        })
+
+        /*  the default percentage by which the text of a table cell may
+            exceed the height of every other cell of its row before it
+            folds, overridden per object kind by the "data-fold-height"
+            attribute the schema configuration puts onto its table  */
+        const cellHeight = 40
+
+        /*  the chevron mark of a foldable element, rotated by the
+            stylesheet while the element is folded  */
+        const svgNS = "http://www.w3.org/2000/svg"
+        const mark = (name, title) => {
+            const span = document.createElement("span")
+            span.className = name
+            span.title = title
+            const svg = document.createElementNS(svgNS, "svg")
+            svg.setAttribute("viewBox", "0 0 24 24")
+            svg.setAttribute("fill", "none")
+            svg.setAttribute("stroke", "currentColor")
+            svg.setAttribute("stroke-width", "2.5")
+            svg.setAttribute("stroke-linecap", "round")
+            svg.setAttribute("stroke-linejoin", "round")
+            const path = document.createElementNS(svgNS, "path")
+            path.setAttribute("d", "M5 9l7 7 7-7")
+            svg.appendChild(path)
+            span.appendChild(svg)
+            return span
+        }
+
+        /*  wrap every diagram into its fold container, carrying the
+            chevron mark plus the muted placeholder the diagram leaves
+            behind while folded, which is the very icon of its tab
+            control  */
+        const folds = { diagram: [], text: [] }
+        document.querySelectorAll("article div.diagram, nav.doc div.diagram").forEach((el) => {
+            const fold = document.createElement("div")
+            fold.className = "fold"
+            el.parentNode.insertBefore(fold, el)
+            const chevron = mark("fold-mark", "fold/unfold this diagram")
+            const label   = document.createElement("span")
+            label.className = "fold-label"
+            label.appendChild(controls.diagram.querySelector("svg").cloneNode(true))
+            fold.append(chevron, label, el)
+            chevron.addEventListener("click", () => {
+                fold.classList.toggle("folded")
+                sync()
+            })
+            folds.diagram.push(fold)
+        })
+
+        /*  the rendered height of the content of a table cell, or of its
+            leading part up to a word position: a cell box itself always
+            spans the whole row, so only a range over the content
+            measures the text  */
+        const range = document.createRange()
+        const height = (cell, upto) => {
+            if (upto === undefined)
+                range.selectNodeContents(cell)
+            else {
+                range.setStart(cell, 0)
+                range.setEnd(upto.node, upto.offset)
+            }
+            return range.getBoundingClientRect().height
+        }
+
+        /*  the word positions of a table cell, each right behind one word  */
+        const positions = (cell) => {
+            const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT)
+            const list = []
+            let node
+            while ((node = walker.nextNode()) !== null) {
+                const regex = /\\S+/g
+                let m
+                while ((m = regex.exec(node.nodeValue ?? "")) !== null)
+                    list.push({ node, offset: m.index + m[0].length })
+            }
+            return list
+        }
+
+        /*  a cell taking part in the comparison of its row: one with
+            content of its own, i.e. neither empty (a not given property
+            draws its marker through the stylesheet alone) nor holding
+            further cells (a chunked or nested table, whose own cells are
+            compared instead) nor a diagram (which folds on its own and
+            whose SVG text cannot carry the wrapper of a hidden
+            remainder)  */
+        const candidate = (cell) =>
+            cell.querySelector("td") === null
+            && cell.querySelector("div.diagram") === null
+            && (cell.textContent.trim() !== "" || cell.querySelector("img") !== null)
+
+        /*  decide which table cells fold: one which is taller than the
+            configured percentage above every other cell of its row (the
+            leading name column of a compact table excluded, as it is no
+            text of its own). All rows are measured before the first cut,
+            as every cut shifts the layout of the ones still to come  */
+        const cuts = []
+        document.querySelectorAll("article table tr").forEach((row) => {
+            const table = row.closest("table")
+            let cells = Array.from(row.children).filter((el) => el.tagName === "TD")
+            if (!table.classList.contains("chunks"))
+                cells = cells.slice(1)
+            cells = cells.filter(candidate)
+            if (cells.length < 2)
+                return
+            const configured = row.closest("table[data-fold-height]")
+            const percent = Number(configured?.getAttribute("data-fold-height")) || cellHeight
+            const heights = cells.map((cell) => height(cell))
+            cells.forEach((cell, i) => {
+                const other = Math.max(...heights.filter((_, j) => j !== i))
+                const limit = other * (1 + percent / 100)
+                if (heights[i] > limit)
+                    cuts.push({ cell, limit, full: heights[i] })
+            })
+        })
+
+        /*  hide a node of the folded remainder of a table cell: an
+            element carries the class itself, a text node gets wrapped  */
+        const rest = (node) => {
+            if (node.nodeType === Node.ELEMENT_NODE)
+                node.classList.add("fold-rest")
+            else if (node.nodeType === Node.TEXT_NODE) {
+                const span = document.createElement("span")
+                span.className = "fold-rest"
+                node.parentNode.insertBefore(span, node)
+                span.appendChild(node)
+            }
+        }
+
+        /*  the minimum percentage of its own height a cell has to gain
+            by folding, as hiding less than that is no visible relief
+            and only costs the reader a chevron to click (measured after
+            the cut, as the chevron itself can claim a line of its own)  */
+        const cellGain = 25
+
+        /*  fold the decided cells back onto their height limit: the last
+            word position still fitting is found by a binary search over
+            the measured word positions, the text node is split there and
+            the chevron mark takes its place, followed by the remainder
+            hidden up the ancestor chain of the cell  */
+        for (const cut of cuts) {
+            const list = positions(cut.cell)
+            if (list.length === 0)
+                continue
+            let lo = 0
+            let hi = list.length - 1
+            while (lo < hi) {
+                const mid = Math.ceil((lo + hi) / 2)
+                if (height(cut.cell, list[mid]) <= cut.limit)
+                    lo = mid
+                else
+                    hi = mid - 1
+            }
+            const tail    = list[lo].node.splitText(list[lo].offset)
+            const chevron = mark("fold-more", "fold/unfold the remaining text")
+            tail.parentNode.insertBefore(chevron, tail)
+            let current = chevron
+            while (current !== cut.cell) {
+                let next = current.nextSibling
+                while (next !== null) {
+                    const following = next.nextSibling
+                    rest(next)
+                    next = following
+                }
+                current = current.parentNode
+            }
+            /*  the gain is measured on the applied fold, as only that
+                one tells the real one, and a fold gaining less than the
+                minimum share is taken back again, which the chevron
+                alone has to leave behind, as the hidden remainder stays
+                inert without the class -- which a kept fold sheds
+                again, too, as every cell starts out unfolded  */
+            cut.cell.classList.add("folded")
+            const gained = height(cut.cell) <= cut.full * (1 - cellGain / 100)
+            cut.cell.classList.remove("folded")
+            if (!gained) {
+                chevron.remove()
+                continue
+            }
+            folds.text.push(cut.cell)
+            chevron.addEventListener("click", (event) => {
+                /*  the cut can land inside a hyperlink, whose navigation
+                    the chevron has to suppress for its own click alone,
+                    so the remaining link text still follows the link  */
+                event.preventDefault()
+                cut.cell.classList.toggle("folded")
+                sync()
+            })
+        }
+
+        /*  mark the control of a kind while anything of that kind is
+            folded, and the tab itself while any kind at all is  */
+        const sync = () => {
+            let any = false
+            for (const kind of Object.keys(folds)) {
+                const folded = folds[kind].some((fold) => fold.classList.contains("folded"))
+                controls[kind].classList.toggle("folded", folded)
+                any ||= folded
+            }
+            tab.classList.toggle("folded", any)
+        }
+        for (const kind of Object.keys(folds)) {
+            /*  without a stored state the rendered one stands, which is
+                everything unfolded  */
+            let stored = null
+            try { stored = localStorage.getItem("specbook-fold-" + kind) }
+            catch { /*  an inaccessible storage just means no stored state  */ }
+            if (stored !== null)
+                folds[kind].forEach((fold) => { fold.classList.toggle("folded", stored === "folded") })
+            controls[kind].addEventListener("click", () => {
+                const all = !folds[kind].every((fold) => fold.classList.contains("folded"))
+                folds[kind].forEach((fold) => { fold.classList.toggle("folded", all) })
+                try { localStorage.setItem("specbook-fold-" + kind, all ? "folded" : "unfolded") }
+                catch { /*  an inaccessible storage just loses the state  */ }
+                sync()
+            })
+        }
+        sync()
+
+    })()
+`
+
 /*  the client-side script of the table of contents side panel: it
     slides the panel out of and back into the viewport edge (closing it
     also on a jump, on "Escape", and on a click outside), remembers the
@@ -504,6 +762,7 @@ const tocPanelScript = textframe`
                 && event.target.closest("div.search")          === null
                 && event.target.closest("div.theme-switch")    === null
                 && event.target.closest("div.info-switch")     === null
+                && event.target.closest("div.fold-switch")     === null
                 && event.target.closest("div.realtime-status") === null)
                 toggle(false)
         }
@@ -1158,6 +1417,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
             infopath: infoPathOf(children[0], false),
             keys,
             desc,
+            fold:     formatOf(children[0])?.maxCellHeight,
 
             /*  under the fixed table layout the description column claims
                 twice the share of a regular column, compressing the others  */
@@ -1184,6 +1444,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
         head:     children[0].kind !== "" ? children[0].kind : "Name",
         info:     infoKeyOf(children[0]),
         infopath: infoPathOf(children[0], false),
+        fold:     formatOf(children[0])?.maxCellHeight,
         width:    Math.round(100 / maxColumns),
         rows:     children.map((child, i) => scoped(child, () => {
             const cells = keys.map((key) => ({ key, desc: false, span: 1,
@@ -1234,7 +1495,8 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
         name:        inline(object.name),
         diagram:     diagramOf(object),
         properties:  properties.length > 0 ?
-            safe(render("Properties", { Properties: inlineProperties(object, properties) })) : "",
+            safe(render("Properties", { Properties: inlineProperties(object, properties),
+                Fold: formatOf(object)?.maxCellHeight })) : "",
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
         children:    safe(renderChildren(object, level + 1, concise))
@@ -1519,6 +1781,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
                     formatDate(created), formatDate(modified))) : "",
             search:      safe(searchScript()),
             progress:    safe(scrollProgressScript),
+            fold:        safe(foldScript),
             info:        info !== null ? safe(infoScript(info, spec ?? {})) : "",
             realtime:    realtime ? safe(realtimeScript) : "",
             toc:         entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",

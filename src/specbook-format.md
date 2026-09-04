@@ -123,6 +123,7 @@ type SchemaDiagram = {
 type SchemaFormat = {
     type?:             "auto" | "complex" | "concise"
     maxTableColumns?:  number
+    maxCellHeight?:    number
     withUnusedProps?:  boolean
 }
 type SchemaProperty = {
@@ -385,6 +386,10 @@ type SchemaGradiaConfig = Partial<{
     maximum column count of the table of the kind (default: `4`),
     BECAUSE the fixed print/PDF page width bounds the table width
 
+-   `SchemaFormat.maxCellHeight?: number`:
+    percent a table cell may tower over its row before it folds (default: `40`),
+    BECAUSE a cell of rich prose otherwise dwarfs the whole table
+
 -   `SchemaFormat.withUnusedProps?: boolean`:
     whether unused properties still render (default: `false`),
     BECAUSE empty entries are noise, unless the gap is the message
@@ -542,7 +547,10 @@ Inside a `concise` table, unconfigured child kinds implicitly stay
 an explicitly configured `type` is always honored, even a `complex`
 rendering pressed into a cell. `maxTableColumns` (default: `4`) bounds
 the columns of the compact table of the kind (a wider group chunks
-its properties into embedded per-object tables), and `withUnusedProps`
+its properties into embedded per-object tables), `maxCellHeight`
+(default: `40`) is the percentage a table cell of the kind may exceed
+the height of every other non-empty cell of its row before the HTML
+export folds its remaining text away, and `withUnusedProps`
 (default: `false`) unconditionally renders the defined but unused
 properties of that kind, as property table lines or table columns. In
 the HTML/PDF export, a property absent from an object shows an "empty

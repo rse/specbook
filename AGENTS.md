@@ -234,8 +234,9 @@ rendered from the `META: Title` object, the table of contents, and the
 very object) followed by the artifacts, with the title object itself
 leaving the regular document flow. The vertical brand bar at the left
 viewport edge carries, top down, the theme-switching tab, the
-description popup tab, the search tab, the table of contents side panel
-tab, and (in the live preview only) the connection status tab, all of
+description popup tab, the search tab, the folding tab, the table of
+contents side panel tab, and (in the live preview only) the connection
+status tab, all of
 which follow the bar when the side panel shifts it aside. The side panel
 remembers its open state, marks the active and the anchored entry, and
 closes on a jump, on `Escape`, and on an outside click. The search is a
@@ -246,6 +247,32 @@ table of contents is filtered along. The description popups (off by
 default, persisted) show the schema `desc` of an object kind or property
 and the corpus description of an object instance after the mouse rested
 400ms on it. The rendered HTML is finally minified with `@swc/html`.
+
+The HTML export (screen only, so print and hence PDF always show the
+full content) folds the content on two levels: every diagram sits in a
+container carrying a
+chevron mark in the muted anchor color at its top left corner (in the
+page margin beside the content, in the flow left of the diagram inside
+a table cell),
+and every table cell whose text is taller than the `maxCellHeight`
+percentage of its object kind (default: 40) above every other cell of
+its row -- the leading name column, the empty cells, the cells carrying
+a diagram, and the cells carrying further cells excluded -- gets a fold
+back onto
+that height, offered by its own chevron in a rounded grey box behind
+the last word still shown while folded -- unless that fold would hide
+less than 25% of the height of the cell, which is no visible relief. A
+folded diagram leaves the icon of its tab control behind in the muted
+color,
+and a running search unfolds
+everything, so no match hides inside. Everything starts out
+unfolded, while the folding tab slides
+out two controls (exactly as the search tab slides out its input
+field), which fold and unfold all diagrams and all cell texts at once
+and persist their own state across page loads, a stored state
+overriding the rendered default. A control carries the search filter
+mark colors while anything of its kind is folded, and the tab icon
+carries them while either control does.
 
 The `META: Title` object drives the document beyond the title page:
 `TITLE`/`SUBTITLE`/`AUTHOR`/`VERSION`/`LOGO` fill the title page (a

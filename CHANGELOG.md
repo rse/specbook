@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.2.5 (2026-09-04)
+------------------
+
+-   FEATURE [code, docs]: Folding of Diagrams and Table Cell Texts in HTML Export
+    The HTML export now folds every diagram and every over-long table cell text individually and,
+    for all of them at once, through the two controls of a new tab of the brand bar.
+
 1.2.4 (2026-09-04)
 ------------------
 

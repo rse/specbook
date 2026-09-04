@@ -360,6 +360,144 @@ div.info-popup.spec a.link-compact::before
     div.info-popup
         display: none
 
+/*  the folding tab (screen-only): the tab riding right of the brand
+    bar between the search tab and the table of contents tab (as wide
+    as those, fixed independent of the content scrolling), showing a
+    fold icon (drawn like the search icon), which slides the two
+    controls out to the right (and back in), where the tab follows the
+    bar when the table of contents panel shifts it aside; the controls
+    fold and unfold all diagrams and all over-long cell texts of the
+    content at once and carry, like the fold icon itself, the mark
+    colors in a rounded box while anything of their kind is folded  */
+div.fold-switch
+    position: fixed
+    top: 10.66rem
+    left: calc(0.6rem - 1px)
+    z-index: 30
+    display: flex
+    align-items: center
+    border-radius: 0 0.3rem 0.3rem 0
+    color: var(--theme-color-specbook-background)
+    background-color: var(--theme-color-specbook-accent)
+    transition: left 0.3s ease
+body:has(nav.toc-panel.open) div.fold-switch
+    left: calc(31rem - 1px)
+    box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
+div.fold-switch div.fold-toggle
+    padding: 0.65rem 0.1rem
+    line-height: 0
+    border-radius: 0 0.3rem 0.3rem 0
+    cursor: pointer
+div.fold-switch div.fold-toggle:hover
+    background-color: var(--theme-color-specbook-accent-soft)
+div.fold-switch svg.fold-icon
+    width: 1.1rem
+    height: 1.1rem
+    padding: 0.25rem
+    border-radius: 0.3rem
+    margin-right: 0.15rem
+div.fold-switch.folded svg.fold-icon
+    color: var(--theme-color-specbook-mark-text)
+    background-color: var(--theme-color-specbook-mark-back)
+div.fold-switch div.fold-controls
+    display: flex
+    align-items: center
+    gap: 0.3rem
+    overflow: hidden
+    max-width: 0
+    padding: 0
+    transition: max-width 0.3s ease, padding 0.3s ease
+div.fold-switch.open div.fold-controls
+    max-width: 6rem
+    padding: 0 0.5rem 0 0.2rem
+div.fold-switch div.fold-controls > div
+    padding: 0.25rem
+    line-height: 0
+    border-radius: 0.3rem
+    cursor: pointer
+    -webkit-user-select: none
+    user-select: none
+div.fold-switch div.fold-controls > div:hover
+    background-color: var(--theme-color-specbook-accent-soft)
+div.fold-switch div.fold-controls > div.folded
+    color: var(--theme-color-specbook-mark-text)
+    background-color: var(--theme-color-specbook-mark-back)
+div.fold-switch div.fold-controls svg
+    width: 1.1rem
+    height: 1.1rem
+@media print
+    div.fold-switch
+        display: none
+
+/*  the folding of the diagrams and the over-long table cells
+    (screen-only): a diagram sits in a fold container carrying a chevron
+    mark in the muted symbol color of the anchors at its top left corner
+    -- in the page margin beside the content, and in the flow left of
+    the diagram inside a table cell, where no margin is left -- while an
+    over-long cell carries its own chevron in a rounded grey box behind
+    the last still shown word; a folded diagram leaves the icon of its
+    tab control behind in the muted color, and a running search unfolds
+    everything, so no match hides inside  */
+div.fold
+    position: relative
+span.fold-mark,
+span.fold-more
+    color: var(--theme-color-specbook-symbol)
+    line-height: 0
+    cursor: pointer
+    -webkit-user-select: none
+    user-select: none
+span.fold-mark:hover,
+span.fold-more:hover
+    color: var(--theme-color-specbook-accent)
+span.fold-mark
+    position: absolute
+    top: 0.35rem
+    left: -1.15rem
+span.fold-more
+    display: inline-block
+    margin-left: 0.2rem
+    padding: 0.1rem 0.25rem
+    vertical-align: -0.05em
+    border: 1px solid var(--theme-color-specbook-border)
+    border-radius: 0.25rem
+span.fold-more:hover
+    border-color: var(--theme-color-specbook-accent)
+span.fold-mark svg,
+span.fold-more svg
+    width: 0.8rem
+    height: 0.8rem
+div.fold.folded > span.fold-mark svg,
+td.folded span.fold-more svg
+    transform: rotate(-90deg)
+span.fold-label
+    display: none
+    line-height: 0
+    margin-bottom: 1.0rem
+    color: var(--theme-color-specbook-muted)
+span.fold-label svg
+    width: 1.1rem
+    height: 1.1rem
+@media screen
+    td div.fold > span.fold-mark
+        position: static
+        display: inline-block
+        vertical-align: middle
+        margin-right: 0.3rem
+    body:not(.searching) div.fold.folded > span.fold-label
+        display: block
+    body:not(.searching) td div.fold.folded > span.fold-label
+        display: inline-block
+        vertical-align: middle
+        margin-bottom: 0
+    body:not(.searching) div.fold.folded > div.diagram,
+    body:not(.searching) td.folded .fold-rest
+        display: none
+@media print
+    span.fold-mark,
+    span.fold-more
+        display: none
+
 /*  the connection status tab of the live preview (screen-only): the
     bottommost tab riding right of the brand bar below the table of
     contents tab (sized like the search tab, fixed independent of the
@@ -371,7 +509,7 @@ div.info-popup.spec a.link-compact::before
     for 2s (toggling every 250ms) after a content reload  */
 div.realtime-status
     position: fixed
-    top: 13.89rem
+    top: 17.12rem
     left: calc(0.6rem - 2px)
     z-index: 30
     padding: 0.65rem 0.1rem
@@ -462,7 +600,7 @@ div.scroll-progress svg.scroll-icon
     left of the brand bar and to shift it aside when slid out, with its
     tab (a menu icon drawn like the search icon, as none of the bundled
     fonts carries the U+2630 glyph, and sized like the search tab)
-    riding right of the bar below the search tab  */
+    riding right of the bar below the folding tab  */
 nav.toc-panel
     position: fixed
     top: 0
@@ -488,7 +626,7 @@ nav.toc-panel.open div.toc-tab
     box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 nav.toc-panel div.toc-tab
     position: absolute
-    top: 10.66rem
+    top: 13.89rem
     left: calc(100% - 1px)
     padding: 0.9rem 0.35rem
     line-height: 0
@@ -913,8 +1051,8 @@ div.titlepage table.meta td
     text-align: left
 
 /*  the fuzzy search tab (screen-only): the middle tab riding right of
-    the brand bar between the info tab and the table of
-    contents tab (as wide as those, fixed independent of the content
+    the brand bar between the info tab and the folding
+    tab (as wide as those, fixed independent of the content
     scrolling), showing the search icon, which slides the input field
     and its clear symbol out to the right (and back in), where the tab
     follows the bar when the table of contents panel shifts it aside
