@@ -517,15 +517,16 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         }
         nodes = nodes.filter((node) => connected.has(node))
     }
-    if (nodes.length === 0)
-        errors.push({ reason: "diagram yields no nodes" })
     if (errors.length > 0)
         return { errors }
 
-    /*  the "collapse" handling (enabled by default) silently omits a
-        degenerate diagram, consisting of a single node only, as such a
-        diagram carries no information beyond the object itself  */
-    if (diagram.collapse !== false && nodes.length === 1 && edges.length === 0)
+    /*  an empty node set silently omits the diagram, as a wildcard
+        "nodes" pattern legitimately matches nothing when an optional
+        kind is absent, and the "collapse" handling (enabled by default)
+        does the same for the degenerate diagram of a single node, as
+        such a diagram carries no information beyond the object itself  */
+    if (nodes.length === 0 ||
+        (diagram.collapse !== false && nodes.length === 1 && edges.length === 0))
         return { errors }
 
     return { spec: renderSpec(diagram, type, center, centerUrl, nodes, edges, index, anchors),

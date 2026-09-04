@@ -5,6 +5,10 @@ ChangeLog
 1.2.2 (2026-09-04)
 ------------------
 
+-   BUGFIX [code]: Empty Diagram Node Sets
+    A diagram yielding no nodes at all is now silently omitted instead of reported as an error, as a
+    wildcard "nodes" pattern legitimately matches nothing when an optional artifact kind is absent.
+
 -   BUGFIX [code]: Empty Configuration Files
     A merged configuration file which is empty or holds comments only no longer discards the entire
     preceding configuration, as its "null" document now leaves the merge target intact.
