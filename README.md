@@ -273,226 +273,59 @@ explicitly supplied option always wins. As `-c|--config` is repeatable,
 `SPECBOOK_CONFIG` carries a list of patterns separated by the path
 delimiter of the platform (`:` on Unix, `;` on Windows).
 
-Example:
+Example: Simple
+---------------
+
+Check out the *simple* specification of simple
+example data model:
+
+### Sources
+
+-   [Specification](smp/sample/sample.md)
+-   [Schema](smp/sample/sample.yaml)
+
+### Generation
 
 ```bash
-$ specbook lint -v -b smp/broadcast
+$ specbook lint -v \
+    -b smp/sample \
+    -o smp/sample/sample.html \
+    -o smp/sample/sample.pdf
 ```
 
-### API
+### HTML Rendering
 
-```ts
-/*  the SpecBook API, providing all commands the CLI and MCP service expose  */
-export class SpecBook {
-    constructor (options?: SpecBookOptions)
+![screenshot-sample-light](etc/screenshot-sample-light.png)
+![screenshot-sample-dark](etc/screenshot-sample-dark.png)
 
-    /*  initialize the configured specification artifact files below the
-        base directory and return the list of the generated files  */
-    init (options: {
-        config?:  string[],        /*  YAML schema configuration files or glob patterns, merged
-                                       in order (default: bundled standard one, named "std")  */
-        basedir?: string           /*  base directory (default: ".")  */
-    }): Promise<string[]>
+Example: Complex
+----------------
 
-    /*  parse and validate the specification Markdown files below the base directory  */
-    lint (options: {
-        config?:  string[],
-        basedir?: string
-    }): Promise<LintResult>
+Check out the *complex* specification of the Broadcast
+application, based on **SpecBook**'s built-in "standard" schema:
 
-    /*  export the specification, parsing the input just once and
-        returning one buffer per requested format (strict: any error
-        diagnostic rejects the export with an "Error", while the warnings
-        are surfaced as "notice" verbose messages)  */
-    export (options: {
-        config?:  string[],
-        basedir?: string,
-        formats?: ExportFormat[],  /*  requested output formats (default: [ "json" ])  */
-        realtime?: boolean         /*  inject the live preview script into the HTML  */
-    }): Promise<Buffer[]>
+### Sources
 
-    /*  export the specification like "export" and then keep it in sync by
-        re-exporting it on every change of a specification file (a failed
-        re-export is reported and leaves the observe loop intact)  */
-    watch (options: {
-        config?:  string[],
-        basedir?: string,
-        formats?: ExportFormat[],
-        realtime?: boolean,
-        outputs?: string[],        /*  paths "onExport" writes, refused if observed  */
-        onExport: (buffers: Buffer[]) => void | Promise<void>
-    }): Promise<void>
+-   [Specification](smp/broadcast/)
+-   [Schema](src/specbook-format.d/)
 
-    /*  serve the HTML export as a live preview on "http://<addr>:<port>/",
-        kept in sync like "watch" and updated in the browser on every change  */
-    preview (options: {
-        config?:  string[],
-        basedir?: string,
-        addr?:    string,          /*  listening IP address (default: "127.0.0.1")  */
-        port?:    number           /*  listening TCP port (default: 12345)  */
-    }): Promise<void>
+### Generation
 
-    /*  describe the SpecBook models and formats, optionally pointing to
-        the artifacts of the particular project  */
-    describe (options: {
-        config?:  string[],
-        basedir?: string,
-        embed?:   boolean,         /*  embed the schema configuration instead of referencing it  */
-        compress?: CompressLevel,  /*  compression level of the schema configuration (default: 1)  */
-        format?:  DescribeFormat,  /*  output format (default: "md")  */
-        part?:    DescribePart     /*  document part (default: "all")  */
-    }): Promise<string>
-}
-
-/*  the constructor options and the sink of the verbose messages, receiving
-    the emitting command, the message, and its level ("debug" for the regular
-    processing information, "notice" for the environment problems, the
-    warning diagnostics, and the preview server events)  */
-export interface SpecBookOptions {
-    verbose?:      VerboseSink
-}
-export type VerboseSink   = (cmd: string, msg: string, level: VerboseLevel) => void
-export type VerboseLevel  = "debug" | "notice"
-
-/*  mark a literal value inside a verbose message and render a verbose
-    message by styling (or just unmarking) its marked literal values  */
-export function literal (value: string | number): string
-export function renderVerbose (msg: string, style?: (value: string) => string): string
-
-/*  the result of the "lint" command and its file- and line-precise diagnostics  */
-export interface LintResult {
-    specification: Spec
-    diagnostics:   Diagnostic[]
-    config?:       Schema
-    files:         string[]    /*  the artifact files plus their embedded assets  */
-}
-export interface Diagnostic {
-    file:          string
-    line:          number
-    column:        number
-    severity:      DiagnosticSeverity
-    message:       string
-}
-export type DiagnosticSeverity = "error" | "warning"
-
-/*  render a diagnostic as a single-line message or as a multi-line
-    message with the affected source snippet (optionally colorized)  */
-export function renderDiagnostic (diagnostic: Diagnostic): string
-export function renderDiagnosticVerbose (diagnostic: Diagnostic, colors?: boolean): string
-
-/*  the supported export formats and describe formats/parts/compression levels  */
-export const formats:         readonly [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ]
-export const describeFormats: readonly [ "md", "raw" ]
-export const describeParts:   readonly [ "all", "meta", "schema", "spec" ]
-export const compressLevels:  readonly [ 0, 1, 2, 3 ]
-export type  ExportFormat   = typeof formats[number]
-export type  DescribeFormat = typeof describeFormats[number]
-export type  DescribePart   = typeof describeParts[number]
-export type  CompressLevel  = typeof compressLevels[number]
-
-/*  parse an "[<format>:]<filename>" output specification, parse and
-    validate a describe format, part, or compression level  */
-export function parseOutputSpec (spec: string): { format: ExportFormat, output: string }
-export function parseDescribeFormat (value: string): DescribeFormat
-export function parseDescribePart (value: string): DescribePart
-export function parseCompressLevel (value: string | number | boolean): CompressLevel
-
-/*  the own version, the path of the bundled standard YAML schema
-    configuration, and the default listening address/port of "preview"  */
-export const version:        string
-export const standardConfig: string
-export const previewAddr:    string
-export const previewPort:    number
-
-/*  the Abstract Syntax Tree (AST) of a parsed specification  */
-export type Spec = {
-    artifacts:     SpecArtifact[]
-}
-export type SpecArtifact = {
-    created:       Date
-    modified:      Date
-    objects:       SpecObject[]
-}
-export type SpecObject = {
-    kind:          string
-    id:            string
-    anchor?:       string
-    paren?:        string
-    name:          string
-    primary?:      boolean
-    description?:  SpecDescription
-    properties:    SpecProperty[]
-    children:      SpecObject[]
-}
-export type SpecDescription = {
-    description:   string
-    rationale?:    string
-    embedding?:    string[]
-}
-export type SpecProperty = {
-    key:           string
-    value:         string
-    embedding?:    string[]
-}
-
-/*  the YAML schema configuration, where the nested "automaton", "diagram",
-    and "format" structures are detailed in the "describe" output  */
-export type Schema = SchemaObject[]
-export type SchemaObject = {
-    kind:          string
-    name?:         string
-    id?:           string
-    file?:         string
-    desc?:         string
-    refs?:         string      /*  the methodology sources of the object kind  */
-    optional?:     boolean
-    referenced?:   string[]    /*  the reference coverage every object has to receive  */
-    automaton?:    SchemaAutomaton
-    diagram?:      SchemaDiagram
-    format?:       SchemaFormat
-    props?:        SchemaProperty[]
-    children?:     SchemaObject[]
-}
-export type SchemaProperty = {
-    name:          string
-    desc?:         string
-    value?:        string      /*  regexp, reference, enum, tags, or list expression  */
-    optional?:     boolean
-    unique?:       boolean | string   /*  distinct among the sibling objects  */
-    present?:      boolean | string   /*  present among the sibling objects  */
-    local?:        boolean            /*  reference resolving below the same parent  */
-    symmetric?:    boolean            /*  reference answered back by the target  */
-    acyclic?:      boolean            /*  references forming no cycle  */
-}
+```bash
+$ specbook lint -v \
+    -b smp/broadcast \
+    -o smp/broadcast/broadcast.html \
+    -o smp/broadcast/broadcast.pdf
 ```
 
-Example:
+### HTML Rendering
 
-```ts
-import { SpecBook } from "@rse/specbook"
-
-const specbook = new SpecBook({
-    verbose: (cmd, msg, level) => console.error(`specbook: ${cmd}: ${level}: ${msg}`)
-})
-const result = await specbook.lint({
-    basedir: "smp/broadcast"
-})
-```
-
-Rendering Examples
-------------------
-
-### HTML Rendering (Light Theme)
-
-![screenshot-light](etc/screenshot-light.png)
-
-### HTML Rendering (Dark Theme)
-
-![screenshot-dark](etc/screenshot-dark.png)
+![screenshot-broadcast-light](etc/screenshot-broadcast-light.png)
+![screenshot-broadcast-dark](etc/screenshot-broadcast-dark.png)
 
 ### PDF Rendering
 
-![screenshot-print](etc/screenshot-print.png)
+![screenshot-broadcast-print](etc/screenshot-broadcast-print.png)
 
 See Also
 --------
