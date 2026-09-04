@@ -29,7 +29,7 @@ self-hosting satisfies GDPR and minimizes per-event cost versus public cloud.
 
 ##  TIER: Middleware {{middleware-tier}}
 
--   PART-OF:  [[DV.datacenter]]
+-   PART-OF:  [[TIER:datacenter]]
 -   STACK:    [[TS.Middleware]]
 
 The middleware tier terminates, balances, and relays the client connections between the Internet and the business
@@ -37,7 +37,7 @@ services, BECAUSE sustaining thousands of bidirectional connections is a concern
 
 ##  TIER: Server {{server-tier}}
 
--   PART-OF:  [[DV.datacenter]]
+-   PART-OF:  [[TIER:datacenter]]
 -   STACK:    [[TS.Server]]
 
 The server tier runs the business services and the orchestrator, BECAUSE the business logic must scale and change
@@ -45,7 +45,7 @@ independently of the connection handling and the persistence.
 
 ##  TIER: Database {{database-tier}}
 
--   PART-OF:  [[DV.datacenter]]
+-   PART-OF:  [[TIER:datacenter]]
 -   STACK:    [[TS.Database]]
 
 The database tier holds the authoritative persistent state, BECAUSE durable state must reside on a protected tier
@@ -54,12 +54,12 @@ reachable from the business services alone.
 ##  NODE: Client Device {{client-device}}
 
 -   KIND:        Device
--   TIER:        [[DV.client-tier]]
+-   TIER:        [[TIER:client-tier]]
 -   PLATFORM:    Browser (desktop, tablet, mobile)
--   HOSTS:       [[FV.client]], [[FV.client-nlp]]
+-   HOSTS:       [[COMPONENT:client]], [[COMPONENT:client-nlp]]
 -   INSTANCES:   1 per attendee or operator
--   CONNECTS-TO: [[DV.cdn]], [[DV.router]]
--   NETWORKS:    [[DV.internet]]
+-   CONNECTS-TO: [[NODE:cdn]], [[NODE:router]]
+-   NETWORKS:    [[NETWORK:internet]]
 
 The attendee and operator devices run the web client and local NLP entirely in the browser, BECAUSE the solution requires
 no installation and must run on both managed and unmanaged devices.
@@ -67,10 +67,10 @@ no installation and must run on both managed and unmanaged devices.
 ##  NODE: Cloudflare CDN {{cdn}}
 
 -   KIND:        Managed
--   TIER:        [[DV.edge-tier]]
+-   TIER:        [[TIER:edge-tier]]
 -   PLATFORM:    Cloudflare edge network
--   CONNECTS-TO: [[DV.router]]
--   NETWORKS:    [[DV.internet]]
+-   CONNECTS-TO: [[NODE:router]]
+-   NETWORKS:    [[NETWORK:internet]]
 
 A Cloudflare CDN edge distributes the static client bundle and static resources close to users, BECAUSE static content must
 be delivered quickly and stably to a large, distributed audience.
@@ -78,12 +78,12 @@ be delivered quickly and stably to a large, distributed audience.
 ##  NODE: Edge Router {{router}}
 
 -   KIND:        Server
--   TIER:        [[DV.middleware-tier]]
+-   TIER:        [[TIER:middleware-tier]]
 -   PLATFORM:    Linux x86-64
--   HOSTS:       [[CO.router]]
+-   HOSTS:       [[UNIT:router]]
 -   INSTANCES:   1 per data center entry point
--   CONNECTS-TO: [[DV.proxy]]
--   NETWORKS:    [[DV.internet]], [[DV.backend]]
+-   CONNECTS-TO: [[NODE:proxy]]
+-   NETWORKS:    [[NETWORK:internet]], [[NETWORK:backend]]
 
 The edge router terminates inbound HTTP and WebSocket traffic and round-robins it to per-environment proxies, BECAUSE a
 single hardened entry point must balance load and isolate environments.
@@ -91,12 +91,12 @@ single hardened entry point must balance load and isolate environments.
 ##  NODE: Proxy Servers {{proxy}}
 
 -   KIND:        Server
--   TIER:        [[DV.middleware-tier]]
+-   TIER:        [[TIER:middleware-tier]]
 -   PLATFORM:    Linux x86-64
--   HOSTS:       [[CO.proxy-pool]]
+-   HOSTS:       [[UNIT:proxy-pool]]
 -   INSTANCES:   0..n per environment
--   CONNECTS-TO: [[DV.relay]]
--   NETWORKS:    [[DV.backend]]
+-   CONNECTS-TO: [[NODE:relay]]
+-   NETWORKS:    [[NETWORK:backend]]
 
 The proxy servers run several reverse proxy instances per environment forwarding to the relay brokers, BECAUSE
 per-environment scaling of request handling needs multiple proxy instances.
@@ -104,11 +104,11 @@ per-environment scaling of request handling needs multiple proxy instances.
 ##  NODE: Relay Brokers {{relay}}
 
 -   KIND:        Server
--   TIER:        [[DV.middleware-tier]]
+-   TIER:        [[TIER:middleware-tier]]
 -   PLATFORM:    Linux x86-64
--   HOSTS:       [[CO.relay-pool]]
+-   HOSTS:       [[UNIT:relay-pool]]
 -   INSTANCES:   0..n per environment
--   NETWORKS:    [[DV.backend]]
+-   NETWORKS:    [[NETWORK:backend]]
 
 The relay brokers run several MQTT broker instances per environment holding the live WebSocket connections, BECAUSE
 sustaining thousands of bidirectional connections requires a dedicated, scalable messaging node.
@@ -116,12 +116,12 @@ sustaining thousands of bidirectional connections requires a dedicated, scalable
 ##  NODE: Service Containers {{service}}
 
 -   KIND:        Container
--   TIER:        [[DV.server-tier]]
+-   TIER:        [[TIER:server-tier]]
 -   PLATFORM:    OCI containers on Linux x86-64
--   HOSTS:       [[CO.service-loop]], [[FV.junction]]
+-   HOSTS:       [[UNIT:service-loop]], [[COMPONENT:junction]]
 -   INSTANCES:   0..n per environment
--   CONNECTS-TO: [[DV.relay]], [[DV.database]]
--   NETWORKS:    [[DV.backend]], [[DV.data]]
+-   CONNECTS-TO: [[NODE:relay]], [[NODE:database]]
+-   NETWORKS:    [[NETWORK:backend]], [[NETWORK:data]]
 
 The service containers run the Node.js business services and the Junction orchestrator per environment, BECAUSE
 containerized services give reproducible, independently scalable business logic.
@@ -129,11 +129,11 @@ containerized services give reproducible, independently scalable business logic.
 ##  NODE: Database Server {{database}}
 
 -   KIND:        Server
--   TIER:        [[DV.database-tier]]
+-   TIER:        [[TIER:database-tier]]
 -   PLATFORM:    Linux x86-64
--   HOSTS:       [[CO.database]]
+-   HOSTS:       [[UNIT:database]]
 -   INSTANCES:   1 primary per environment
--   NETWORKS:    [[DV.data]]
+-   NETWORKS:    [[NETWORK:data]]
 
 The database server runs PostgreSQL with filesystem asset storage as the authoritative persistence node, BECAUSE durable
 state must reside on a protected, non-public node.

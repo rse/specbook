@@ -5,9 +5,9 @@ ChangeLog
 1.2.3 (2026-09-04)
 ------------------
 
--   CLEANUP [spec]: Shortest Reference Form in Standard Schema
+-   CLEANUP [spec, othr]: Shortest Reference Form in Standard Schema and Sample
     The references of the standard schema configuration now use the plain `[[KIND:*]]` form for
-    the unique kinds and drop the top-level kind qualification everywhere else.
+    the unique kinds, and the sample corpus uses `[[KIND:name]]` instead of `[[XX.name]]` paths.
 
 1.2.2 (2026-09-04)
 ------------------

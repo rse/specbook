@@ -9,9 +9,9 @@ ARCH: Concurrency View (CO)
 ##  UNIT: Router Process {{router}}
 
 -   KIND:             Process
--   HOSTS:            [[FV.router]]
+-   HOSTS:            [[COMPONENT:router]]
 -   MULTIPLICITY:     1 per data center entry point
--   COORDINATES-WITH: [[CO.proxy-pool]]
+-   COORDINATES-WITH: [[UNIT:proxy-pool]]
 -   COORDINATION:     stateless round-robin distribution
 
 The router runs as a single front-door process per data center, distributing connections across environments and proxy
@@ -20,9 +20,9 @@ instances, BECAUSE a stateless balancer can spread load without holding per-conn
 ##  UNIT: Proxy Pool {{proxy-pool}}
 
 -   KIND:             Pool
--   HOSTS:            [[FV.proxy]]
+-   HOSTS:            [[COMPONENT:proxy]]
 -   MULTIPLICITY:     0..n instances per environment
--   COORDINATES-WITH: [[CO.relay-pool]], [[CO.service-loop]]
+-   COORDINATES-WITH: [[UNIT:relay-pool]], [[UNIT:service-loop]]
 -   COORDINATION:     shared-nothing behind the router
 
 The proxy layer runs as a pool of independent, stateless reverse-proxy instances per environment, BECAUSE request handling
@@ -31,9 +31,9 @@ must scale out horizontally to absorb connection spikes.
 ##  UNIT: Relay Pool {{relay-pool}}
 
 -   KIND:             Pool
--   HOSTS:            [[FV.relay]]
+-   HOSTS:            [[COMPONENT:relay]]
 -   MULTIPLICITY:     0..n MQTT broker instances per environment
--   COORDINATES-WITH: [[CO.service-loop]]
+-   COORDINATES-WITH: [[UNIT:service-loop]]
 -   COORDINATION:     MQTT topic subscriptions and broker bridging
 
 The relay layer runs as a pool of Mosquitto/MQTT-Plus broker instances, each maintaining thousands of WebSocket connections and
@@ -42,9 +42,9 @@ fanning out per-event topics, BECAUSE sustaining up to 10000 concurrent connecti
 ##  UNIT: Service Event Loop {{service-loop}}
 
 -   KIND:             EventLoop
--   HOSTS:            [[FV.service]], [[FV.auth]], [[FV.translation]]
+-   HOSTS:            [[COMPONENT:service]], [[COMPONENT:auth]], [[COMPONENT:translation]]
 -   MULTIPLICITY:     0..n Node.js instances per environment
--   COORDINATES-WITH: [[CO.database]]
+-   COORDINATES-WITH: [[UNIT:database]]
 -   COORDINATION:     MQTT message passing and database transactions
 
 The service runs as Node.js single-threaded event loops that react to MQTT messages and serialize state changes through
@@ -54,10 +54,10 @@ races.
 ##  UNIT: Statistics Scheduler {{stats-scheduler}}
 
 -   KIND:             Task
--   PART-OF:          [[CO.service-loop]]
--   HOSTS:            [[FV.statistics]]
+-   PART-OF:          [[UNIT:service-loop]]
+-   HOSTS:            [[COMPONENT:statistics]]
 -   MULTIPLICITY:     1 active per running event
--   COORDINATES-WITH: [[CO.database]]
+-   COORDINATES-WITH: [[UNIT:database]]
 -   COORDINATION:     timer-driven, writes via database transactions
 
 A scheduled task on the service event loop captures a statistics snapshot every five minutes for each running event, BECAUSE

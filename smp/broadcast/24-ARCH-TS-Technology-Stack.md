@@ -44,7 +44,7 @@ for HTML, and StyleLint for Stylus, BECAUSE multiple focused linters keep each l
 -   LICENSE:    MIT
 -   PHASE:      Run-Time
 -   COVERAGE:   Client Networking, Dialog Communication, Server Networking, Component Communication
--   USED-BY:    [[FV.client]], [[FV.relay]], [[FV.service]]
+-   USED-BY:    [[COMPONENT:client]], [[COMPONENT:relay]], [[COMPONENT:service]]
 
 MQTT-Plus handles the MQTT-over-WebSocket communication of the client with the relay layer and the MQTT messaging of the
 service and relay layers on top of the base MQTT.js functionality, BECAUSE MQTT is the messaging protocol for the
@@ -56,7 +56,7 @@ real-time relay layer and MQTT-Plus adds the needed request/response and event h
 -   LICENSE:  MIT
 -   PHASE:    Run-Time
 -   COVERAGE: Client Networking
--   USED-BY:  [[FV.client]], [[FV.auth]]
+-   USED-BY:  [[COMPONENT:client]], [[COMPONENT:auth]]
 
 OFetch provides the HTTP/REST request/response communication of the client and the call of the external GraphQL
 mail-sending API by the authentication service, BECAUSE REST calls complement the MQTT channel for request/response-style
@@ -68,7 +68,7 @@ interactions on both tiers.
 -   LICENSE:  MIT
 -   PHASE:    Run-Time
 -   COVERAGE: Execution Tracing
--   USED-BY:  [[FV.client]], [[FV.service]]
+-   USED-BY:  [[COMPONENT:client]], [[COMPONENT:service]]
 
 Pino provides the leveled, structured logging facility, wrapping the browser console on the client and rendered
 human-readably by pino-pretty on the server during development, BECAUSE a single logging library shared by client and
@@ -92,7 +92,7 @@ artifact, BECAUSE it provides a fast development server and an optimized product
 -   LICENSE:  MIT
 -   PHASE:    Build-Time, Run-Time
 -   COVERAGE: Build, Interface Theme, Interface Layouting, Interface Effects
--   USED-BY:  [[FV.client]]
+-   USED-BY:  [[COMPONENT:client]]
 
 Tailwind CSS generates the utility-first styling for theme, layout, and effects at build time, with Stylus as the
 preferred preprocessor for authoring custom CSS, BECAUSE utility-first styling speeds consistent UI work while Stylus
@@ -104,7 +104,7 @@ covers bespoke styling.
 -   LICENSE:  MIT
 -   PHASE:    Run-Time
 -   COVERAGE: Dialog Structure, Dialog Life-Cycle, Interface Mask, Data Binding
--   USED-BY:  [[FV.client]]
+-   USED-BY:  [[COMPONENT:client]]
 
 Vue.js provides the reactive, component-based UI framework rendering the panel, attendee, studio, moderator, and manager
 screens, BECAUSE a reactive component model is the natural fit for the browser-delivered, real-time experience.
@@ -115,7 +115,7 @@ screens, BECAUSE a reactive component model is the natural fit for the browser-d
 -   LICENSE:  MIT
 -   PHASE:    Run-Time
 -   COVERAGE: Interface Widgets, Interface States, Interface Interactions
--   USED-BY:  [[FV.client]]
+-   USED-BY:  [[COMPONENT:client]]
 
 Reka UI supplies the headless, unstyled widget primitives composed into the application's interface elements, BECAUSE
 headless widgets provide accessible interaction behavior while leaving the visual styling fully under design control.
@@ -126,7 +126,7 @@ headless widgets provide accessible interaction behavior while leaving the visua
 -   LICENSE:  OFL-1.1, Apache-2.0, MIT, CC0-1.0 (per font)
 -   PHASE:    Run-Time
 -   COVERAGE: Interface Theme
--   USED-BY:  [[FV.client]]
+-   USED-BY:  [[COMPONENT:client]]
 
 TypoPRO supplies the web typography and font assets for the client interface, BECAUSE consistent, self-hosted typography
 is needed across the branded UI.
@@ -137,7 +137,7 @@ is needed across the branded UI.
 -   LICENSE:  CC-BY-4.0, OFL-1.1, MIT (per asset)
 -   PHASE:    Run-Time
 -   COVERAGE: Interface Widgets
--   USED-BY:  [[FV.client]]
+-   USED-BY:  [[COMPONENT:client]]
 
 Fontawesome provides the icon set used throughout the client interface, BECAUSE a comprehensive icon library covers the
 UI's iconography needs out of the box.
@@ -148,7 +148,7 @@ UI's iconography needs out of the box.
 -   LICENSE:  MIT
 -   PHASE:    Run-Time
 -   COVERAGE: Data Conversion
--   USED-BY:  [[FV.client]]
+-   USED-BY:  [[COMPONENT:client]]
 
 Luxon handles date and time parsing, formatting, and localization across the client UI, BECAUSE robust, locale-aware
 date handling is required for event schedules and timestamps in German and English.
@@ -159,7 +159,7 @@ date handling is required for event schedules and timestamps in German and Engli
 -   LICENSE:  MIT
 -   PHASE:    Run-Time
 -   COVERAGE: Presentation Model
--   USED-BY:  [[FV.client-nlp]]
+-   USED-BY:  [[COMPONENT:client-nlp]]
 
 The natural, @nlpjs/core, and multilang-sentiment libraries perform local sentiment analysis on attendee input in the
 browser, BECAUSE filtering sentiment at the source reduces server load and can prevent improper submissions.
@@ -169,7 +169,7 @@ browser, BECAUSE filtering sentiment at the source reduces server load and can p
 -   PRODUCT:  tinyld + franc + lande
 -   PHASE:    Run-Time
 -   COVERAGE: Presentation Model
--   USED-BY:  [[FV.client-nlp]]
+-   USED-BY:  [[COMPONENT:client-nlp]]
 
 The tinyld, franc, and lande libraries perform local language identification on attendee input in the browser, BECAUSE
 detecting the message language client-side enables on-the-fly handling without an initial server round-trip.
@@ -182,7 +182,7 @@ detecting the message language client-side enables on-the-fly handling without a
 -   LICENSE:  GPL-2.0
 -   PHASE:    Run-Time
 -   COVERAGE: Request Routing, Load Balancing, Transport Security
--   USED-BY:  [[FV.router]], [[FV.proxy]]
+-   USED-BY:  [[COMPONENT:router]], [[COMPONENT:proxy]]
 
 HAProxy terminates the inbound HTTP and WebSocket traffic at the edge router, firewalled by NFTables, and forwards it
 per environment from the proxy instances to the relay layer, BECAUSE a single mature proxy covers both the hardened
@@ -194,7 +194,7 @@ entry point and the horizontally scaled per-environment forwarding.
 -   LICENSE:    EPL-2.0
 -   PHASE:      Run-Time
 -   COVERAGE:   Message Brokering
--   USED-BY:    [[FV.relay]]
+-   USED-BY:    [[COMPONENT:relay]]
 
 Mosquitto brokers the MQTT messages between the thousands of WebSocket connections of the clients and the service
 layer as a pool of instances per environment, BECAUSE a lightweight, proven MQTT broker sustains the connection count of
@@ -208,7 +208,7 @@ a large event without business logic of its own.
 -   LICENSE:  MIT
 -   PHASE:    Run-Time
 -   COVERAGE: Environment Detection, Process Management, Server Networking
--   USED-BY:  [[FV.service]], [[FV.junction]]
+-   USED-BY:  [[COMPONENT:service]], [[COMPONENT:junction]]
 
 Node.js executes the business services and the Junction orchestrator as single-threaded event loops in the service
 containers, BECAUSE the message-driven service logic is I/O-bound and an event loop handles it with the least
@@ -221,7 +221,7 @@ concurrency complexity.
 -   LICENSE:      Apache-2.0
 -   PHASE:        Run-Time
 -   COVERAGE:     Database Access, Database Connectivity, Database Schema
--   USED-BY:      [[FV.service]]
+-   USED-BY:      [[COMPONENT:service]]
 
 Drizzle provides the type-safe SQL query builder and schema definition layer between the server's TypeScript code and
 PostgreSQL, with its schema generated spec-first from the data model, BECAUSE a thin, zero-overhead typed layer
@@ -232,7 +232,7 @@ preserves end-to-end TypeScript type-safety and full PostgreSQL feature access w
 -   PRODUCT:  Junction
 -   PHASE:    Run-Time
 -   COVERAGE: Server Networking, Request Processing
--   USED-BY:  [[FV.junction]]
+-   USED-BY:  [[COMPONENT:junction]]
 
 Junction serves the static client content over MQTT+ from the backend, BECAUSE the client must be distributed alongside
 the same messaging infrastructure used for live data.
@@ -243,7 +243,7 @@ the same messaging infrastructure used for live data.
 -   LICENSE:  MIT
 -   PHASE:    Run-Time
 -   COVERAGE: Argument Parsing
--   USED-BY:  [[FV.service]]
+-   USED-BY:  [[COMPONENT:service]]
 
 Commander.js parses the server's command-line options and arguments to bootstrap application parameters, BECAUSE a
 mature CLI parser covers option handling at server startup without custom code.
@@ -254,7 +254,7 @@ mature CLI parser covers option handling at server startup without custom code.
 -   LICENSE:  BSD-3-Clause, ISC
 -   PHASE:    Run-Time, Operate-Time
 -   COVERAGE: Configuration Parsing, Configuration
--   USED-BY:  [[FV.service]]
+-   USED-BY:  [[COMPONENT:service]]
 
 dotenvx loads optional environment files into the process environment and the YAML library parses the optional
 configuration file, together feeding the layered configuration resolved from defaults, file, environment, and
@@ -267,7 +267,7 @@ command-line, BECAUSE the server's runtime parameters and secrets must be config
 -   LICENSE:  MIT
 -   PHASE:    Run-Time
 -   COVERAGE: Configuration Parsing
--   USED-BY:  [[FV.service]]
+-   USED-BY:  [[COMPONENT:service]]
 
 Valibot declares the canonical, strict configuration schema that validates and coerces the merged configuration at
 startup, BECAUSE a single schema as the source of truth gives fail-fast validation of secrets and a typed
@@ -279,7 +279,7 @@ configuration surface that catches misconfiguration before the service runs.
 -   LICENSE:  MIT
 -   PHASE:    Run-Time
 -   COVERAGE: Peer Information
--   USED-BY:  [[FV.service]]
+-   USED-BY:  [[COMPONENT:service]]
 
 nanoid generates the compact, collision-resistant unique identifiers for server-side peers and entities, BECAUSE short
 URL-safe identifiers are needed without the size and overhead of full UUIDs.
@@ -290,7 +290,7 @@ URL-safe identifiers are needed without the size and overhead of full UUIDs.
 -   LICENSE:  Apache-2.0
 -   PHASE:    Run-Time
 -   COVERAGE: Client Networking
--   USED-BY:  [[FV.translation]]
+-   USED-BY:  [[COMPONENT:translation]]
 
 The @ai-sdk library connects the translation service to an external AI/LLM service for on-the-fly translation of
 message texts, BECAUSE chat and questions must be made available in both German and English.

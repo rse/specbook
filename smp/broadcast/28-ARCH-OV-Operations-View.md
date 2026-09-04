@@ -10,9 +10,9 @@ ARCH: Operations View (OV)
 
 -   CATEGORY:  Upgrade
 -   TRIGGER:   on every release, outside running events
--   OPERATOR:  [[UP.administrator]]
--   ELEMENTS:  [[DV.service]]
--   TOOLS:     [[TS.Server.container-orchestration]]
+-   OPERATOR:  [[PERSONA:administrator]]
+-   ELEMENTS:  [[NODE:service]]
+-   TOOLS:     [[COMPONENT:container-orchestration]]
 
 A release is rolled out per environment by pulling the new service
 container images and recreating the service containers between events,
@@ -22,9 +22,9 @@ BECAUSE a running broadcast must never be interrupted by a rollout.
 
 -   CATEGORY:  Configuration
 -   TRIGGER:   before each event
--   OPERATOR:  [[UP.administrator]]
--   ELEMENTS:  [[FV.service]]
--   TOOLS:     [[TS.Server.configuration-loading]]
+-   OPERATOR:  [[PERSONA:administrator]]
+-   ELEMENTS:  [[COMPONENT:service]]
+-   TOOLS:     [[COMPONENT:configuration-loading]]
 
 Streaming providers, their parameters, admins, and broker URLs are
 provisioned through a `broadcast.yaml` configuration file read by the
@@ -35,9 +35,9 @@ concerns kept out of the database.
 
 -   CATEGORY:  Administration
 -   TRIGGER:   on event creation
--   OPERATOR:  [[UP.administrator]]
--   ADDRESSES: [[NR.privacy]]
--   ELEMENTS:  [[FV.auth]]
+-   OPERATOR:  [[PERSONA:administrator]]
+-   ADDRESSES: [[REQUIREMENT:privacy]]
+-   ELEMENTS:  [[COMPONENT:auth]]
 
 The first Manager of an event is assigned by the Software Administrator
 through configuration rather than a UI, BECAUSE permanent roles must be
@@ -47,9 +47,9 @@ controlled administratively to uphold privacy by design.
 
 -   CATEGORY:  Monitoring
 -   TRIGGER:   during each event
--   OPERATOR:  [[UP.administrator]]
--   ADDRESSES: [[NR.attendee-scale]]
--   ELEMENTS:  [[FV.statistics]], [[DV.proxy]], [[DV.relay]]
+-   OPERATOR:  [[PERSONA:administrator]]
+-   ADDRESSES: [[REQUIREMENT:attendee-scale]]
+-   ELEMENTS:  [[COMPONENT:statistics]], [[NODE:proxy]], [[NODE:relay]]
 
 During a broadcast the administrator watches the statistics dashboard
 for the attendee curve, the channel distribution, and the
@@ -60,9 +60,9 @@ be detected while the audience is still online.
 
 -   CATEGORY:  Incident
 -   TRIGGER:   on reported login failures
--   OPERATOR:  [[UP.administrator]]
--   ELEMENTS:  [[FV.auth]]
--   TOOLS:     [[TS.Common.logging]]
+-   OPERATOR:  [[PERSONA:administrator]]
+-   ELEMENTS:  [[COMPONENT:auth]]
+-   TOOLS:     [[COMPONENT:logging]]
 
 Reported attendee login failures are diagnosed from the recorded token
 states (issued, sent, used) and the server log, BECAUSE operators must
@@ -72,10 +72,10 @@ find out why an attendee fails to authenticate while the event runs.
 
 -   CATEGORY:  Capacity
 -   TRIGGER:   ahead of large events
--   OPERATOR:  [[UP.administrator]]
--   ADDRESSES: [[NR.scalability]], [[NR.attendee-scale]]
--   ELEMENTS:  [[DV.proxy]], [[DV.relay]], [[DV.service]]
--   TOOLS:     [[TS.Server.container-orchestration]]
+-   OPERATOR:  [[PERSONA:administrator]]
+-   ADDRESSES: [[REQUIREMENT:scalability]], [[REQUIREMENT:attendee-scale]]
+-   ELEMENTS:  [[NODE:proxy]], [[NODE:relay]], [[NODE:service]]
+-   TOOLS:     [[COMPONENT:container-orchestration]]
 
 Operators scale an environment by adding proxy, relay, and service
 instances ahead of large events, BECAUSE townhall-scale audiences of up
@@ -85,10 +85,10 @@ to 10000 require capacity provisioned per environment.
 
 -   CATEGORY:  Backup
 -   TRIGGER:   nightly and before each event
--   OPERATOR:  [[UP.administrator]]
--   ADDRESSES: [[NR.gdpr]]
--   ELEMENTS:  [[DV.database]], [[DM.Event]]
--   TOOLS:     [[TS.Database.database-backup]]
+-   OPERATOR:  [[PERSONA:administrator]]
+-   ADDRESSES: [[REQUIREMENT:gdpr]]
+-   ELEMENTS:  [[NODE:database]], [[ENTITY:Event]]
+-   TOOLS:     [[COMPONENT:database-backup]]
 
 The PostgreSQL database and the filesystem assets are dumped nightly and
 before each event onto the backup storage of the same data center,
@@ -99,9 +99,9 @@ EU hosting boundary.
 
 -   CATEGORY:  Recovery
 -   TRIGGER:   on database loss
--   OPERATOR:  [[UP.administrator]]
--   ELEMENTS:  [[DV.database]], [[DV.service]]
--   TOOLS:     [[TS.Database.database-backup]], [[TS.Server.container-orchestration]]
+-   OPERATOR:  [[PERSONA:administrator]]
+-   ELEMENTS:  [[NODE:database]], [[NODE:service]]
+-   TOOLS:     [[COMPONENT:database-backup]], [[COMPONENT:container-orchestration]]
 
 A lost database is rebuilt from the latest dump onto a fresh database
 server and the service containers are recreated against it, BECAUSE the

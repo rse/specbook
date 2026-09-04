@@ -9,9 +9,9 @@ ARCH: Design Decisions (DD)
 ##  DECISION: Use MQTT over WebSockets as the live transport {{mqtt-transport}}
 
 -   STATUS:       Accepted
--   DRIVEN-BY:    [[NR.attendee-scale]], [[NR.config-latency]], [[SP.websocket-passage]]
--   AFFECTS:      [[FV.relay]], [[FV.service]], [[CO.relay-pool]]
--   DECIDES:      [[QP.reactivity]], [[TS.Common.messaging]], [[TS.Middleware.message-broker]]
+-   DRIVEN-BY:    [[REQUIREMENT:attendee-scale]], [[REQUIREMENT:config-latency]], [[PREMISE:websocket-passage]]
+-   AFFECTS:      [[COMPONENT:relay]], [[COMPONENT:service]], [[UNIT:relay-pool]]
+-   DECIDES:      [[TACTIC:reactivity]], [[COMPONENT:messaging]], [[COMPONENT:message-broker]]
 -   ALTERNATIVES: REST polling, bespoke WebSocket protocol
 -   WHEN:
     A single event must push video state, configuration changes, chat, questions, and likes to between 2500 and 10000
@@ -30,8 +30,8 @@ ARCH: Design Decisions (DD)
 ##  DECISION: Self-host on Hetzner instead of public cloud {{self-host}}
 
 -   STATUS:       Accepted
--   DRIVEN-BY:    [[NR.gdpr]], [[NR.cost]], [[SP.eu-hosting]]
--   AFFECTS:      [[DV.datacenter]]
+-   DRIVEN-BY:    [[REQUIREMENT:gdpr]], [[REQUIREMENT:cost]], [[PREMISE:eu-hosting]]
+-   AFFECTS:      [[TIER:datacenter]]
 -   ALTERNATIVES: Azure, AWS
 -   WHEN:
     The solution must be GDPR-compliant with EU data residency, and a primary economic goal is to minimize recurring cost per
@@ -50,9 +50,9 @@ ARCH: Design Decisions (DD)
 ##  DECISION: Privacy by design with no permanent user accounts {{no-accounts}}
 
 -   STATUS:       Accepted
--   DRIVEN-BY:    [[NR.privacy]], [[NR.gdpr]], [[SP.message-personal-data]]
--   AFFECTS:      [[FV.auth]], [[FV.service]], [[ENTITY:User]], [[PRINCIPLE:privacy-identity]]
--   DECIDES:      [[QP.privacy]]
+-   DRIVEN-BY:    [[REQUIREMENT:privacy]], [[REQUIREMENT:gdpr]], [[PREMISE:message-personal-data]]
+-   AFFECTS:      [[COMPONENT:auth]], [[COMPONENT:service]], [[ENTITY:User]], [[PRINCIPLE:privacy-identity]]
+-   DECIDES:      [[TACTIC:privacy]]
 -   ALTERNATIVES: persistent user accounts
 -   WHEN:
     Events handle personal attendee data under GDPR, yet attendance is transient and the operator wants to carry as little
@@ -68,9 +68,9 @@ ARCH: Design Decisions (DD)
 ##  DECISION: Email one-time token as the authentication factor {{email-token}}
 
 -   STATUS:       Accepted
--   DRIVEN-BY:    [[NR.token-strength]], [[SP.email-at-hand]], [[SP.email-delivery]]
--   AFFECTS:      [[FV.auth]], [[PATTERN:two-factor-login]], [[PRINCIPLE:frictionless-join]]
--   DECIDES:      [[QP.access-security]]
+-   DRIVEN-BY:    [[REQUIREMENT:token-strength]], [[PREMISE:email-at-hand]], [[PREMISE:email-delivery]]
+-   AFFECTS:      [[COMPONENT:auth]], [[PATTERN:two-factor-login]], [[PRINCIPLE:frictionless-join]]
+-   DECIDES:      [[TACTIC:access-security]]
 -   ALTERNATIVES: password accounts, external identity providers
 -   WHEN:
     Access must be limited to invited attendees without permanent credentials, while also supporting frictionless and fully
@@ -86,9 +86,9 @@ ARCH: Design Decisions (DD)
 ##  DECISION: Decouple logical Channels from physical provider Resources {{channel-resource}}
 
 -   STATUS:       Accepted
--   DRIVEN-BY:    [[NR.failover]], [[SP.provider-delivery]], [[SP.two-languages]]
--   AFFECTS:      [[FV.service]], [[FV.client]], [[ENTITY:Channel]], [[ENTITY:Resource]]
--   DECIDES:      [[QP.failover]]
+-   DRIVEN-BY:    [[REQUIREMENT:failover]], [[PREMISE:provider-delivery]], [[PREMISE:two-languages]]
+-   AFFECTS:      [[COMPONENT:service]], [[COMPONENT:client]], [[ENTITY:Channel]], [[ENTITY:Resource]]
+-   DECIDES:      [[TACTIC:failover]]
 -   ALTERNATIVES: direct binding of clients to a single provider stream
 -   WHEN:
     Productions ship in multiple languages and resolutions and must survive a streaming-provider outage mid-event by switching

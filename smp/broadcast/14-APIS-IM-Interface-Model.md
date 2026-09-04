@@ -11,7 +11,7 @@ INTERFACE: Server Command Line {{server-cli}}
 
 -   KIND:      CLI
 -   LOCATION:  `broadcast`
--   CONSUMERS: [[UP.administrator]]
+-   CONSUMERS: [[PERSONA:administrator]]
 
 The command-line program starting the server process of the service
 layer, which resolves its runtime parameters from the layered

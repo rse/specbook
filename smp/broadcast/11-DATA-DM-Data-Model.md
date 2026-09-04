@@ -7,11 +7,11 @@ Modified: 2026-08-29 17:28
 
 ##  ENTITY: Event (*)
 
--   REQUIREMENTS: [[FR.individual-url]], [[FR.authentication]], [[FR.automatic-url]],
-    [[FR.user-consent]], [[FR.info-messages]], [[FR.name-appearance]], [[FR.chat]],
-    [[FR.replies]], [[FR.questions]], [[FR.moderation]], [[FR.client-sentiment]],
-    [[FR.server-sentiment]], [[FR.presenter-hints]], [[FR.manage-app]],
-    [[FR.config-propagation]], [[FR.event-portability]]
+-   REQUIREMENTS: [[REQUIREMENT:individual-url]], [[REQUIREMENT:authentication]], [[REQUIREMENT:automatic-url]],
+    [[REQUIREMENT:user-consent]], [[REQUIREMENT:info-messages]], [[REQUIREMENT:name-appearance]], [[REQUIREMENT:chat]],
+    [[REQUIREMENT:replies]], [[REQUIREMENT:questions]], [[REQUIREMENT:moderation]], [[REQUIREMENT:client-sentiment]],
+    [[REQUIREMENT:server-sentiment]], [[REQUIREMENT:presenter-hints]], [[REQUIREMENT:manage-app]],
+    [[REQUIREMENT:config-propagation]], [[REQUIREMENT:event-portability]]
 -   TERMS: [[TERM:event]]
 
 The master entity describing a single live broadcast event and all of its configuration,
@@ -203,7 +203,7 @@ BECAUSE the entire data model is event-centric and every other entity hangs off 
 
 ##  ENTITY: AgendaPoint
 
--   REQUIREMENTS: [[FR.question-tags]]
+-   REQUIREMENTS: [[REQUIREMENT:question-tags]]
 -   TERMS: [[TERM:agendapoint]]
 
 The textual description of a phase in an event,
@@ -227,7 +227,7 @@ BECAUSE attendees and moderators track which part of the event is currently acti
 
 ##  ENTITY: Channel
 
--   REQUIREMENTS: [[FR.multi-provider]], [[FR.provider-switch]], [[FR.channel-stats]]
+-   REQUIREMENTS: [[REQUIREMENT:multi-provider]], [[REQUIREMENT:provider-switch]], [[REQUIREMENT:channel-stats]]
 -   TERMS: [[TERM:channel]]
 
 A logical content delivery stream linking video streams to an event,
@@ -259,7 +259,7 @@ BECAUSE an event groups its streams by language and resolution into channels.
 
 ##  ENTITY: Resource
 
--   REQUIREMENTS: [[FR.multi-provider]], [[FR.provider-switch]], [[FR.resource-url]]
+-   REQUIREMENTS: [[REQUIREMENT:multi-provider]], [[REQUIREMENT:provider-switch]], [[REQUIREMENT:resource-url]]
 -   TERMS: [[TERM:resource]], [[TERM:provider]]
 
 A physical content delivery resource such as a provider stream or static website linked to a channel,
@@ -283,7 +283,7 @@ BECAUSE a channel must map to concrete provider endpoints to be playable.
 
 ##  ENTITY: ResourceProviderParam
 
--   REQUIREMENTS: [[FR.multi-provider]]
+-   REQUIREMENTS: [[REQUIREMENT:multi-provider]]
 -   TERMS: [[TERM:provider]]
 
 A key-value parameter belonging to exactly one resource and provider, defined in the event configuration file,
@@ -307,7 +307,7 @@ BECAUSE provider endpoints are parameterized by values an administrator supplies
 
 ##  ENTITY: Role
 
--   REQUIREMENTS: [[FR.moderation]], [[FR.forward-presenter]], [[FR.export-inputs]]
+-   REQUIREMENTS: [[REQUIREMENT:moderation]], [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:export-inputs]]
 -   TERMS: [[TERM:role]], [[TERM:manager]], [[TERM:moderator]], [[TERM:presenter]]
 
 A grant of special rights to a specific user within an event,
@@ -328,8 +328,8 @@ BECAUSE the application is role-based and rights are granted through roles.
 
 ##  ENTITY: User
 
--   REQUIREMENTS: [[FR.authentication]], [[FR.name-appearance]], [[FR.likes]],
-    [[FR.personalized-url]], [[FR.registration-import]]
+-   REQUIREMENTS: [[REQUIREMENT:authentication]], [[REQUIREMENT:name-appearance]], [[REQUIREMENT:likes]],
+    [[REQUIREMENT:personalized-url]], [[REQUIREMENT:registration-import]]
 -   TERMS: [[TERM:user]], [[TERM:attendee]], [[TERM:accesslist]]
 
 A helper entity enabling event-based logins for invited or pattern-matched attendees,
@@ -365,10 +365,10 @@ BECAUSE the system holds no permanent accounts yet must identify attendees per e
 
 ##  ENTITY: Message
 
--   REQUIREMENTS: [[FR.chat]], [[FR.questions]], [[FR.likes]], [[FR.replies]],
-    [[FR.moderation]], [[FR.forward-presenter]], [[FR.answer-inputs]],
-    [[FR.moderator-messages]], [[FR.message-editing]], [[FR.deleted-placeholder]],
-    [[FR.server-sentiment]], [[FR.sort-filter]], [[FR.question-tags]], [[FR.export-inputs]]
+-   REQUIREMENTS: [[REQUIREMENT:chat]], [[REQUIREMENT:questions]], [[REQUIREMENT:likes]], [[REQUIREMENT:replies]],
+    [[REQUIREMENT:moderation]], [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:answer-inputs]],
+    [[REQUIREMENT:moderator-messages]], [[REQUIREMENT:message-editing]], [[REQUIREMENT:deleted-placeholder]],
+    [[REQUIREMENT:server-sentiment]], [[REQUIREMENT:sort-filter]], [[REQUIREMENT:question-tags]], [[REQUIREMENT:export-inputs]]
 -   TERMS: [[TERM:message]], [[TERM:chat]], [[TERM:question]], [[TERM:support]], [[TERM:like]],
     [[TERM:sentiment]]
 
@@ -450,7 +450,7 @@ BECAUSE all event interaction is represented uniformly as messages with language
 
 ##  ENTITY: MessageText
 
--   REQUIREMENTS: [[FR.language-switch]], [[FR.export-inputs]]
+-   REQUIREMENTS: [[REQUIREMENT:language-switch]], [[REQUIREMENT:export-inputs]]
 -   TERMS: [[TERM:message]]
 
 A language-specific text of a message,
@@ -470,7 +470,7 @@ BECAUSE a message is translated into multiple languages while retaining one orig
 
 ##  ENTITY: QuestionTag
 
--   REQUIREMENTS: [[FR.question-tags]]
+-   REQUIREMENTS: [[REQUIREMENT:question-tags]]
 -   TERMS: [[TERM:questiontag]]
 
 A named tag attachable to question messages,
@@ -494,8 +494,8 @@ BECAUSE questions are categorized by topic or addressed person for routing and g
 
 ##  ENTITY: AuthorizationToken
 
--   REQUIREMENTS: [[FR.authentication]], [[FR.automatic-url]], [[FR.registration-import]],
-    [[FR.registration-export]], [[FR.debug-stats]]
+-   REQUIREMENTS: [[REQUIREMENT:authentication]], [[REQUIREMENT:automatic-url]], [[REQUIREMENT:registration-import]],
+    [[REQUIREMENT:registration-export]], [[REQUIREMENT:debug-stats]]
 -   TERMS: [[TERM:authtoken]]
 
 A one-time second factor proving an attendee controls the email address used as the first factor,
@@ -524,7 +524,7 @@ BECAUSE email-verified access is the core mechanism limiting the audience.
 
 ##  ENTITY: SessionToken
 
--   REQUIREMENTS: [[FR.authentication]], [[FR.parallel-access]], [[FR.event-stats]]
+-   REQUIREMENTS: [[REQUIREMENT:authentication]], [[REQUIREMENT:parallel-access]], [[REQUIREMENT:event-stats]]
 -   TERMS: [[TERM:sessiontoken]]
 
 The result of a successful login of a user to an event,
@@ -548,7 +548,7 @@ BECAUSE an active session must be tracked to enforce single concurrent access.
 
 ##  ENTITY: EventStatistic
 
--   REQUIREMENTS: [[FR.event-stats]], [[FR.debug-stats]]
+-   REQUIREMENTS: [[REQUIREMENT:event-stats]], [[REQUIREMENT:debug-stats]]
 
 A periodic cumulative snapshot of event-wide counts,
 BECAUSE trend visualization of audience size and authentication flow requires regular snapshots.
@@ -583,7 +583,7 @@ BECAUSE trend visualization of audience size and authentication flow requires re
 
 ##  ENTITY: ChannelStatistic
 
--   REQUIREMENTS: [[FR.channel-stats]]
+-   REQUIREMENTS: [[REQUIREMENT:channel-stats]]
 
 A periodic count of viewers for a channel,
 BECAUSE organizers need per-channel popularity over time.
@@ -602,7 +602,7 @@ BECAUSE organizers need per-channel popularity over time.
 
 ##  ENTITY: UserStatistic
 
--   REQUIREMENTS: [[FR.user-stats]]
+-   REQUIREMENTS: [[REQUIREMENT:user-stats]]
 
 Tracked viewer information about a user,
 BECAUSE audience composition informs reporting and default localization.

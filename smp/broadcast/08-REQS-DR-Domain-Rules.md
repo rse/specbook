@@ -10,7 +10,7 @@ Modified: 2026-08-29 14:05
 -   CATEGORY:   Constraint
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:user]], [[TERM:sessiontoken]], [[TERM:event]]
--   CONSTRAINS: [[FR.parallel-access]]
+-   CONSTRAINS: [[REQUIREMENT:parallel-access]]
 -   PREMISES:   [[PREMISE:url-leakage]]
 
 A [[TERM:User]] MUST have at most one active [[TERM:Session Token]] per [[TERM:Event]] at any time; a new login MUST delete
@@ -22,7 +22,7 @@ the invited [[TERM:Attendee]].
 -   CATEGORY:   Constraint
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:user]], [[TERM:event]], [[TERM:accesslist]]
--   CONSTRAINS: [[FR.authentication]]
+-   CONSTRAINS: [[REQUIREMENT:authentication]]
 -   PREMISES:   [[PREMISE:url-leakage]]
 
 A [[TERM:User]] MUST be granted access to an [[TERM:Event]] only according to the first matching case:
@@ -39,7 +39,7 @@ intends.
 -   CATEGORY:   Constraint
 -   SOURCE:     Domain
 -   GOVERNS:    [[TERM:channel]], [[TERM:event]]
--   CONSTRAINS: [[FR.provider-switch]]
+-   CONSTRAINS: [[REQUIREMENT:provider-switch]]
 
 Exactly one [[TERM:Channel]] of an [[TERM:Event]] MUST be active at any time, BECAUSE [[TERM:Attendee]]s follow one logical
 content stream that defines the current [[TERM:Event]] feed.
@@ -49,7 +49,7 @@ content stream that defines the current [[TERM:Event]] feed.
 -   CATEGORY:   Constraint
 -   SOURCE:     Domain
 -   GOVERNS:    [[TERM:resource]], [[TERM:channel]], [[TERM:provider]]
--   CONSTRAINS: [[FR.provider-switch]], [[FR.multi-provider]]
+-   CONSTRAINS: [[REQUIREMENT:provider-switch]], [[REQUIREMENT:multi-provider]]
 
 Exactly one [[TERM:Resource]] of a [[TERM:Channel]] MUST be active at any time, BECAUSE switching the active
 [[TERM:Resource]] is the mechanism by which the live [[TERM:Streaming Provider]] is changed.
@@ -59,7 +59,7 @@ Exactly one [[TERM:Resource]] of a [[TERM:Channel]] MUST be active at any time, 
 -   CATEGORY:   Action
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:message]], [[TERM:chat]], [[TERM:question]], [[TERM:attendee]]
--   CONSTRAINS: [[FR.moderation]], [[FR.chat]], [[FR.questions]]
+-   CONSTRAINS: [[REQUIREMENT:moderation]], [[REQUIREMENT:chat]], [[REQUIREMENT:questions]]
 -   PREMISES:   [[PREMISE:interaction-abuse]]
 
 When moderation is enabled for [[TERM:Chat]]s or [[TERM:Question]]s, a [[TERM:Message]] of that type sent by an
@@ -71,7 +71,7 @@ accepted, BECAUSE organizers must control what the audience sees.
 -   CATEGORY:   Action
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:message]], [[TERM:moderator]]
--   CONSTRAINS: [[FR.moderator-messages]]
+-   CONSTRAINS: [[REQUIREMENT:moderator-messages]]
 
 A [[TERM:Message]] authored by a [[TERM:Moderator]] MUST be created in state accepted and carry the sender name "Moderator"
 unless overridden, BECAUSE [[TERM:Moderator]]-authored content is trusted and needs no further approval.
@@ -81,7 +81,7 @@ unless overridden, BECAUSE [[TERM:Moderator]]-authored content is trusted and ne
 -   CATEGORY:   Constraint
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:message]], [[TERM:attendee]], [[TERM:presenter]]
--   CONSTRAINS: [[FR.message-editing]], [[FR.forward-presenter]]
+-   CONSTRAINS: [[REQUIREMENT:message-editing]], [[REQUIREMENT:forward-presenter]]
 
 Once a [[TERM:Message]] reaches state forwarded, the [[TERM:Attendee]] MUST NOT edit or delete it, BECAUSE the
 [[TERM:Presenter]] relies on the forwarded content remaining stable for live processing.
@@ -91,7 +91,7 @@ Once a [[TERM:Message]] reaches state forwarded, the [[TERM:Attendee]] MUST NOT 
 -   CATEGORY:   Constraint
 -   SOURCE:     Domain
 -   GOVERNS:    [[TERM:message]], [[TERM:question]], [[TERM:chat]], [[TERM:support]]
--   CONSTRAINS: [[FR.moderation]]
+-   CONSTRAINS: [[REQUIREMENT:moderation]]
 
 A [[TERM:Message]] MUST use only the states its type permits:
 
@@ -107,7 +107,7 @@ interaction lifecycle.
 -   CATEGORY:   Derivation
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:sentiment]], [[TERM:message]]
--   CONSTRAINS: [[FR.server-sentiment]]
+-   CONSTRAINS: [[REQUIREMENT:server-sentiment]]
 
 When server-side [[TERM:Sentiment Analysis]] is enabled, a sentiment score of a [[TERM:Message]] below -0.1 MUST be treated
 as improper and a score at or above it as proper for auto-accept and auto-reject decisions, BECAUSE a defined threshold
@@ -120,7 +120,7 @@ makes automated moderation predictable.
 -   GOVERNS:    [[TERM:anonymization]], [[TERM:event]], [[TERM:message]], [[TERM:chat]], [[TERM:question]],
                 [[TERM:like]], [[TERM:authtoken]], [[TERM:sessiontoken]], [[TERM:accesslist]], [[TERM:user]],
                 [[TERM:role]], [[TERM:moderator]], [[TERM:manager]]
--   CONSTRAINS: [[FR.user-consent]], [[FR.gdpr-eu]]
+-   CONSTRAINS: [[REQUIREMENT:user-consent]], [[REQUIREMENT:gdpr-eu]]
 -   PREMISES:   [[PREMISE:message-personal-data]]
 
 When an [[TERM:Event]] finishes, its [[TERM:Anonymization]] MUST reduce its [[TERM:Message]]s to a bare [[TERM:Like]] count
@@ -134,7 +134,7 @@ BECAUSE personal data must not be retained beyond the [[TERM:Event]] (GDPR Art. 
 -   CATEGORY:   Action
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:like]], [[TERM:message]], [[TERM:event]], [[TERM:anonymization]]
--   CONSTRAINS: [[FR.likes]], [[FR.export-inputs]]
+-   CONSTRAINS: [[REQUIREMENT:likes]], [[REQUIREMENT:export-inputs]]
 
 When an [[TERM:Event]] finishes, the number of [[TERM:Like]]s of each [[TERM:Message]] MUST be computed and stored as its
 bare [[TERM:Like]] count before the liker relations are removed, BECAUSE [[TERM:Like]] totals must survive the
@@ -145,7 +145,7 @@ bare [[TERM:Like]] count before the liker relations are removed, BECAUSE [[TERM:
 -   CATEGORY:   Constraint
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:authtoken]], [[TERM:event]], [[TERM:registration-system]]
--   CONSTRAINS: [[FR.registration-export]], [[FR.automatic-url]]
+-   CONSTRAINS: [[REQUIREMENT:registration-export]], [[REQUIREMENT:automatic-url]]
 -   PREMISES:   [[PREMISE:email-at-hand]], [[PREMISE:email-delivery]]
 
 An [[TERM:Authorization Token]] MUST be formatted as six digits "NNN-NNN"; a normal login token MUST expire within 5 minutes
@@ -168,7 +168,7 @@ the [[TERM:Access List]] of an [[TERM:Event]], or joining via a matching access 
 -   CATEGORY:   Constraint
 -   SOURCE:     Business
 -   GOVERNS:    [[TERM:role]], [[TERM:manager]], [[TERM:event]], [[TERM:anonymization]]
--   CONSTRAINS: [[FR.export-inputs]]
+-   CONSTRAINS: [[REQUIREMENT:export-inputs]]
 
 A [[TERM:Manager]] [[TERM:Role]] MUST be retained after an [[TERM:Event]] finishes until the [[TERM:Event]] is deleted
 entirely, BECAUSE [[TERM:Manager]]s must still export the [[TERM:Event]] data left by the [[TERM:Anonymization]].

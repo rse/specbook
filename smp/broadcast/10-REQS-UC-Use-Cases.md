@@ -12,7 +12,7 @@ USE-CASE: Join Event and Watch Stream {{join-event}}
 -   ACTOR:          [[PERSONA:attendee]]
 -   JOURNEYS:       [[STEP:arrival]], [[STEP:participate]]
 -   ACTIVITIES:     [[ACTIVITY:attend-event]]
--   REQUIREMENTS:   [[FR.individual-url]], [[FR.authentication]], [[FR.browser-access]], [[FR.resource-url]], [[FR.mobile]], [[FR.language-switch]], [[FR.theme-toggle]]
+-   REQUIREMENTS:   [[REQUIREMENT:individual-url]], [[REQUIREMENT:authentication]], [[REQUIREMENT:browser-access]], [[REQUIREMENT:resource-url]], [[REQUIREMENT:mobile]], [[REQUIREMENT:language-switch]], [[REQUIREMENT:theme-toggle]]
 -   INCLUDES:       [[USE-CASE:authenticate]]
 -   PRE-CONDITION:  The attendee holds an event URL and their email is granted access.
 -   TRIGGER:        The attendee opens the individual event URL received by invitation.
@@ -82,7 +82,7 @@ USE-CASE: Authenticate via Email Token {{authenticate}}
 -   ACTOR:          [[PERSONA:attendee]]
 -   JOURNEYS:       [[STEP:authenticate]]
 -   ACTIVITIES:     [[ACTIVITY:attend-event]]
--   REQUIREMENTS:   [[FR.authentication]], [[FR.user-consent]], [[FR.parallel-access]], [[FR.personalized-url]], [[FR.automatic-url]], [[FR.info-messages]], [[FR.gdpr-eu]]
+-   REQUIREMENTS:   [[REQUIREMENT:authentication]], [[REQUIREMENT:user-consent]], [[REQUIREMENT:parallel-access]], [[REQUIREMENT:personalized-url]], [[REQUIREMENT:automatic-url]], [[REQUIREMENT:info-messages]], [[REQUIREMENT:gdpr-eu]]
 -   RULES:          [[RULE:access-grant]], [[RULE:single-session]], [[RULE:token-format]]
 -   PRE-CONDITION:  The attendee's email is granted access to the event.
 -   TRIGGER:        The attendee requests access to an event without holding an active session.
@@ -141,7 +141,7 @@ USE-CASE: Ask a Question {{ask-question}}
 -   ACTOR:          [[PERSONA:attendee]]
 -   JOURNEYS:       [[STEP:participate]]
 -   ACTIVITIES:     [[ACTIVITY:attend-event]]
--   REQUIREMENTS:   [[FR.questions]], [[FR.question-tags]], [[FR.moderation]], [[FR.server-sentiment]], [[FR.client-sentiment]]
+-   REQUIREMENTS:   [[REQUIREMENT:questions]], [[REQUIREMENT:question-tags]], [[REQUIREMENT:moderation]], [[REQUIREMENT:server-sentiment]], [[REQUIREMENT:client-sentiment]]
 -   RULES:          [[RULE:moderation-gate]], [[RULE:type-states]], [[RULE:sentiment-threshold]]
 -   PRE-CONDITION:  The attendee has an active session and questions are enabled.
 -   TRIGGER:        The attendee decides to raise a question during the running event.
@@ -198,7 +198,7 @@ USE-CASE: Chat During the Event {{chat-during-event}}
 -   ACTOR:          [[PERSONA:attendee]]
 -   JOURNEYS:       [[STEP:participate]]
 -   ACTIVITIES:     [[ACTIVITY:attend-event]]
--   REQUIREMENTS:   [[FR.chat]], [[FR.likes]], [[FR.replies]], [[FR.message-editing]], [[FR.deleted-placeholder]], [[FR.display-options]], [[FR.name-appearance]], [[FR.mc-feedback]]
+-   REQUIREMENTS:   [[REQUIREMENT:chat]], [[REQUIREMENT:likes]], [[REQUIREMENT:replies]], [[REQUIREMENT:message-editing]], [[REQUIREMENT:deleted-placeholder]], [[REQUIREMENT:display-options]], [[REQUIREMENT:name-appearance]], [[REQUIREMENT:mc-feedback]]
 -   RULES:          [[RULE:moderation-gate]], [[RULE:type-states]], [[RULE:forward-lock]]
 -   PRE-CONDITION:  The attendee has an active session and chat is enabled for the event.
 -   TRIGGER:        The attendee wants to comment on the running event.
@@ -299,7 +299,7 @@ USE-CASE: Moderate and Forward Messages {{moderate}}
 -   ACTOR:          [[PERSONA:moderator-qa]]
 -   JOURNEYS:       [[STEP:support]]
 -   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:moderate-interaction]]
--   REQUIREMENTS:   [[FR.moderation]], [[FR.forward-presenter]], [[FR.sort-filter]], [[FR.presenter-hints]]
+-   REQUIREMENTS:   [[REQUIREMENT:moderation]], [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:sort-filter]], [[REQUIREMENT:presenter-hints]]
 -   RULES:          [[RULE:type-states]], [[RULE:forward-lock]]
 -   PRE-CONDITION:  The event is running and the moderator has the Moderator role.
 -   TRIGGER:        An attendee message arrives in state pending for moderation.
@@ -335,7 +335,7 @@ USE-CASE: Moderate the Chat Conversation {{moderate-chat}}
 -   ACTOR:          [[PERSONA:moderator-chat]]
 -   JOURNEYS:       [[STEP:support]]
 -   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:moderate-interaction]]
--   REQUIREMENTS:   [[FR.answer-inputs]], [[FR.moderator-messages]], [[FR.manage-app]]
+-   REQUIREMENTS:   [[REQUIREMENT:answer-inputs]], [[REQUIREMENT:moderator-messages]], [[REQUIREMENT:manage-app]]
 -   RULES:          [[RULE:moderator-accept]], [[RULE:moderation-gate]]
 -   PRE-CONDITION:  The event runs with chat enabled and the moderator has the Moderator role.
 -   TRIGGER:        Attendee chat messages arrive which need an answer, a steer, or a seed from the moderator.
@@ -384,7 +384,7 @@ USE-CASE: Switch Streaming Provider {{switch-provider}}
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEYS:       [[STEP:configure]]
 -   ACTIVITIES:     [[ACTIVITY:go-live]]
--   REQUIREMENTS:   [[FR.multi-provider]], [[FR.provider-switch]], [[FR.config-propagation]]
+-   REQUIREMENTS:   [[REQUIREMENT:multi-provider]], [[REQUIREMENT:provider-switch]], [[REQUIREMENT:config-propagation]]
 -   RULES:          [[RULE:single-channel]], [[RULE:single-resource]]
 -   PRE-CONDITION:  The event runs and the channel has multiple configured resources.
 -   TRIGGER:        The active streaming resource shows problems during a running event.
@@ -410,7 +410,7 @@ USE-CASE: Create Event from Registration Import {{create-event}}
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEYS:       [[STEP:configure]]
 -   ACTIVITIES:     [[ACTIVITY:plan-event]]
--   REQUIREMENTS:   [[FR.registration-import]], [[FR.registration-export]], [[FR.event-portability]]
+-   REQUIREMENTS:   [[REQUIREMENT:registration-import]], [[REQUIREMENT:registration-export]], [[REQUIREMENT:event-portability]]
 -   RULES:          [[RULE:token-format]], [[RULE:no-accounts]]
 -   PRE-CONDITION:  The manager has an Excel sheet of the Event Registration System and an event to populate.
 -   TRIGGER:        The Event Registration System delivers the Excel sheet of the attendees of an upcoming event.
@@ -472,7 +472,7 @@ USE-CASE: Export Anonymized Event Data {{export-data}}
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEYS:       [[STEP:export]]
 -   ACTIVITIES:     [[ACTIVITY:archive-results]]
--   REQUIREMENTS:   [[FR.export-inputs]], [[FR.event-stats]], [[FR.channel-stats]], [[FR.user-stats]], [[FR.debug-stats]]
+-   REQUIREMENTS:   [[REQUIREMENT:export-inputs]], [[REQUIREMENT:event-stats]], [[REQUIREMENT:channel-stats]], [[REQUIREMENT:user-stats]], [[REQUIREMENT:debug-stats]]
 -   RULES:          [[RULE:anonymize]], [[RULE:like-count]], [[RULE:manager-retained]]
 -   PRE-CONDITION:  The event has finished and the manager retains the Manager role.
 -   TRIGGER:        The manager is asked to hand over the recorded interaction of a finished event.
@@ -508,7 +508,7 @@ USE-CASE: Present Forwarded Questions {{present}}
 
 -   ACTOR:          [[PERSONA:presenter]]
 -   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:present-talk]]
--   REQUIREMENTS:   [[FR.forward-presenter]], [[FR.presenter-dashboard]], [[FR.presenter-hints]]
+-   REQUIREMENTS:   [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:presenter-dashboard]], [[REQUIREMENT:presenter-hints]]
 -   PRE-CONDITION:  The event is running and questions have been forwarded.
 -   TRIGGER:        The moderator forwards a question to the presenter.
 -   POST-CONDITION: Processed questions are marked answered or suspended.

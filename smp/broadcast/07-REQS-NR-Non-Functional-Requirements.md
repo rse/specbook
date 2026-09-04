@@ -34,7 +34,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Provider Failover Continuity {{failover}};
     PRIORITY: MUST; CATEGORY: Reliability;
-    QUALIFIES: [[FR.provider-switch]];
+    QUALIFIES: [[REQUIREMENT:provider-switch]];
     PREMISES: [[PREMISE:provider-delivery]];
     METRIC: all attendee clients on the fallback provider within 10 seconds;
     The system MUST switch to a fallback streaming provider during a
@@ -44,7 +44,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Cross-Browser Compatibility {{browser-compat}};
     PRIORITY: MUST; CATEGORY: Compatibility;
-    QUALIFIES: [[FR.browser-access]];
+    QUALIFIES: [[REQUIREMENT:browser-access]];
     PREMISES: [[PREMISE:websocket-passage]];
     METRIC: the last 2 major versions of Chrome, Edge, Firefox, and Safari;
     The system MUST run in any reasonably recent version of the major
@@ -53,7 +53,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: GDPR Compliance {{gdpr}};
     PRIORITY: MUST; CATEGORY: Compliance;
-    QUALIFIES: [[FR.gdpr-eu]];
+    QUALIFIES: [[REQUIREMENT:gdpr-eu]];
     PREMISES: [[PREMISE:eu-hosting]], [[PREMISE:message-personal-data]];
     METRIC: 100 % of personal data processed and hosted within the EU;
     The system MUST process all personal data in compliance with GDPR
@@ -72,7 +72,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Unguessable Access Tokens {{token-strength}};
     PRIORITY: MUST; CATEGORY: Security;
-    QUALIFIES: [[FR.individual-url]], [[FR.automatic-url]];
+    QUALIFIES: [[REQUIREMENT:individual-url]], [[REQUIREMENT:automatic-url]];
     PREMISES: [[PREMISE:email-at-hand]], [[PREMISE:email-delivery]], [[PREMISE:url-leakage]];
     METRIC: token expiry <= 5 minutes by default;
     The system MUST use unguessable event URLs and time-limited
@@ -82,7 +82,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Live Configuration Latency {{config-latency}};
     PRIORITY: SHOULD; CATEGORY: Performance;
-    QUALIFIES: [[FR.config-propagation]];
+    QUALIFIES: [[REQUIREMENT:config-propagation]];
     METRIC: propagation to all connected clients <= 2 seconds;
     The system SHOULD propagate an event configuration change to all
     connected clients within 2 seconds, BECAUSE operators expect toggles
@@ -101,7 +101,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Interaction Abuse Throttling {{throttling}};
     PRIORITY: SHOULD; CATEGORY: Security;
-    QUALIFIES: [[FR.chat]], [[FR.questions]];
+    QUALIFIES: [[REQUIREMENT:chat]], [[REQUIREMENT:questions]];
     PREMISES: [[PREMISE:interaction-abuse]];
     METRIC: <= 10 submissions per user per minute by default, configurable per event;
     The system SHOULD throttle chat and question submissions to a
@@ -110,7 +110,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Mobile Usability {{mobile-usability}};
     PRIORITY: COULD; CATEGORY: Usability;
-    QUALIFIES: [[FR.mobile]];
+    QUALIFIES: [[REQUIREMENT:mobile]];
     METRIC: attendee screens fully usable at 360 px viewport width in portrait and landscape;
     The system COULD render the attendee experience responsively for
     mobile phones in landscape and portrait orientation, BECAUSE a
