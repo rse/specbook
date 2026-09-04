@@ -72,6 +72,10 @@
         resting on a premise are known and revisited once it turns out to be false. The
         artifact complements the Solution Vision: the vision states what the solution aims
         for, the premises state what it takes as given on the way there.
+
+        The premises are not constraints: a constraint is imposed on the solution and belongs
+        to the Non-Functional Requirements or the Domain Rules, whereas a premise lies outside
+        the control of the solution.
     optional: true
     refs: >
         -   ISO/IEC/IEEE 29148:2018: Systems and software engineering -- Life cycle processes -- Requirements engineering (2018),
