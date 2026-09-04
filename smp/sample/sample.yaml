@@ -15,11 +15,6 @@
     desc: >
         The structure of named entities, with named attributes and directed relationships,
         of the data the solution manages, defining how information is organized and connected.
-    refs: >
-        -   Chen: The Entity-Relationship Model -- Toward a Unified View of Data (1976),
-            https://dl.acm.org/doi/10.1145/320434.320440
-        -   OMG UML 2.5.1: Unified Modeling Language (2017),
-            https://www.omg.org/spec/UML/2.5.1
     diagram:
         type: graph
         nodes: "[[SPEC:DM.ENTITY:*]]"
