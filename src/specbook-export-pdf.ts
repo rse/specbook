@@ -209,6 +209,11 @@ export const requireBrowser = async (verbose: Verbose): Promise<LaunchOptions> =
     return options
 }
 
+/*  the bound of the ToC page number fixpoint iteration, as the page
+    number column itself shifts the pagination and hence the iteration
+    can oscillate instead of ever reaching a stable rendering  */
+const tocPasses = 3
+
 /*  render a self-contained HTML document into a PDF via Playwright,
     re-rendering the HTML with the discovered ToC page numbers  */
 export const htmlToPdf = async (
@@ -252,19 +257,28 @@ export const htmlToPdf = async (
 
         /*  determine the ToC page numbers via a fixpoint iteration:
             paginate undecorated, extract the per-anchor pages, and
-            re-render until the HTML is stable (bounded to three
+            re-render until the HTML is stable (bounded to "tocPasses"
             passes), as the ToC page number column itself can shift
             the pagination  */
         verbose("determining ToC page numbers")
-        let html  = await renderHtmlPass()
-        let plain = await renderPdf(html)
-        for (let i = 0; i < 3; i++) {
+        let html   = await renderHtmlPass()
+        let plain  = await renderPdf(html)
+        let stable = false
+        for (let i = 0; i < tocPasses && !stable; i++) {
             const next = await renderHtmlPass(await anchorPages(plain))
-            if (next === html)
-                break
-            html  = next
-            plain = await renderPdf(html)
+            stable = next === html
+            if (!stable) {
+                html  = next
+                plain = await renderPdf(html)
+            }
         }
+
+        /*  report an unconverged iteration, as the ToC then carries the
+            page numbers of a pagination other than the final one and
+            would otherwise ship silently wrong page numbers  */
+        if (!stable)
+            verbose(`the ToC page numbers did not stabilize within ${literal(tocPasses)} ` +
+                "passes -- they can be off by a page", "notice")
 
         /*  render the final document, decorated with header/footer  */
         const decorated = await renderPdf(html, {

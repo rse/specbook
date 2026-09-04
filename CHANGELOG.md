@@ -17,6 +17,10 @@ ChangeLog
     A merged configuration file which is empty or holds comments only no longer discards the entire
     preceding configuration, as its "null" document now leaves the merge target intact.
 
+-   BUGFIX [code]: Unconverged ToC Page Numbers
+    The bounded page-number fixpoint iteration of the PDF export now reports an unconverged
+    exit, as the ToC otherwise silently carried the page numbers of a different pagination.
+
 -   BUGFIX [code, docs]: Self-Feeding Watch Outputs
     The watch mode of "export" now also rejects an output file which is itself an observed source
     file, as its own write re-triggered the observation and hence fed an endless re-export loop.
