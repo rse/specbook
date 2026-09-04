@@ -72,6 +72,13 @@
 # -     All artifacts have a unique 2-word name (e.g. "Context View") and a
 #       corresponding unique 2-letter identifier.
 #
+#   -   All artifacts are ordered coarse to fine, i.e., from the broad
+#       context down to the fine detail, so a whole is read before its
+#       parts and the object references below can stay backwards. E.g.
+#       the Domain Workflows (summary level: many actors, many sittings)
+#       precede the Use Cases (user-goal level: one actor, one sitting),
+#       which reference back into the workflow activities.
+#
 #   -   All object references are strictly back-references, i.e., later
 #       objects reference earlier ones. Only the "referenced" coverage
 #       constraints and the diagram node sets (e.g. the inputs of a "hub"

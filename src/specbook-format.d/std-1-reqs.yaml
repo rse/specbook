@@ -684,6 +684,10 @@
                 The workflow is at summary level, above the user-goal level of the Use Cases: it
                 spans several actors and several sittings, and its activities leave the
                 step-by-step interaction with the solution to the use cases referencing them.
+                An activity and a use case relate n:m -- an activity is covered by several use
+                cases, a use case spans several activities, and an activity performed outside the
+                solution is covered by none at all -- so the workflow is no mere sequence of use
+                cases and cannot be assembled from them.
             automaton:
                 nodes: ACTIVITY
                 edges: HANDOFF
@@ -849,7 +853,10 @@
                 The use case is at user-goal level: a goal the actor completes in one sitting,
                 neither a summary of many sittings and actors (which belongs to a Domain Workflow
                 as a whole, or to a User Journey when seen by a single persona) nor a single
-                interaction (which belongs to a scenario as one of its steps).
+                interaction (which belongs to a scenario as one of its steps). Its `ACTIVITIES`
+                relate it n:m to the Domain Workflow activities -- a use case spans several
+                activities and an activity is covered by several use cases -- so the two decompose
+                the same domain independently instead of nesting into each other.
             diagram:
                 type: hub
                 center: self

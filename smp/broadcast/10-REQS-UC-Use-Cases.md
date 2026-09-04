@@ -430,8 +430,8 @@ invitations on repeated imports, BECAUSE provisioning hundreds of attendees by h
 4.  The system composes each user's personal access URL with event, user, and token.
 5.  The system returns an Excel sheet with the URL column filled to the Event Registration System.
 
-USE-CASE: Run the Event {{run-event}}
------------------------
+USE-CASE: Publish, Start, and Finish Event {{publish-start-finish}}
+------------------------------------------
 
 -   ACTOR:          [[PERSONA:manager]]
 -   JOURNEYS:       [[STEP:configure]]
@@ -445,7 +445,7 @@ The manager publishes the configured event to make it visible to the invited att
 on air, and finishes it afterwards, BECAUSE the visibility, the live interaction, and the anonymization of an event are
 deliberate decisions of the manager, not side effects of the clock.
 
-### SCENARIO: Publish, Start, and Finish {{run-event-main}}
+### SCENARIO: Publish, Start, and Finish {{publish-start-finish-main}}
 
 -   TYPE: Main
 
@@ -456,7 +456,7 @@ deliberate decisions of the manager, not side effects of the clock.
 5.  The manager finishes the event after the live stream has ended.
 6.  The system closes the access and anonymizes the personal data of the event.
 
-### SCENARIO: Start Without Publishing {{run-event-unpublished}}
+### SCENARIO: Start Without Publishing {{publish-start-finish-unpublished}}
 
 -   TYPE:         Alternative
 -   RESULT:       Resume

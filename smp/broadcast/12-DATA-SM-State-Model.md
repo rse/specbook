@@ -29,20 +29,20 @@ LIFECYCLE: Event {{event}}
 
 -   publish; FROM: [[STATE:Planning]]; TO: [[STATE:Published]]; ACTOR: [[PERSONA:manager]];
     GUARD: The event is fully configured.;
-    USE-CASES: [[USE-CASE:run-event]];
+    USE-CASES: [[USE-CASE:publish-start-finish]];
     The event becomes visible to invited attendees.
 
 -   start; FROM: [[STATE:Published]]; TO: [[STATE:Running]]; ACTOR: [[PERSONA:manager]];
-    USE-CASES: [[USE-CASE:run-event]];
+    USE-CASES: [[USE-CASE:publish-start-finish]];
     The live stream and interaction channels open for attendees.
 
 -   start {{start-unpublished}}; FROM: [[STATE:Planning]]; TO: [[STATE:Running]]; ACTOR: [[PERSONA:manager]];
-    USE-CASES: [[USE-CASE:run-event]];
+    USE-CASES: [[USE-CASE:publish-start-finish]];
     The event goes live directly from planning, without ever having been visible beforehand.
 
 -   finish; FROM: [[STATE:Running]]; TO: [[STATE:Finished]]; ACTOR: [[PERSONA:manager]];
     RULES: [[RULE:anonymize]];
-    USE-CASES: [[USE-CASE:run-event]];
+    USE-CASES: [[USE-CASE:publish-start-finish]];
     The anonymization procedure runs and access is closed.
 
 LIFECYCLE: Message {{message}}

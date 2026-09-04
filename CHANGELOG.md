@@ -5,6 +5,10 @@ ChangeLog
 1.2.5 (2026-09-04)
 ------------------
 
+-   IMPROVEMENT [docs, othr]: Document the Coarse-to-Fine Artifact Order and Resolve a Name Clash
+    The modeling decisions now state that the artifacts run from the broad context to the fine
+    detail, and the broadcast sample no longer names a use case almost like its workflow.
+
 -   IMPROVEMENT [docs, othr]: Rename `PREMISE` Properties to `FAILURE-LIKELIHOOD`/`FAILURE-IMPACT`
     The properties `LIKELIHOOD` and `IMPACT` of a `PREMISE` were misread as rating the premise
     itself instead of its failure, so both now carry the `FAILURE-` prefix.
