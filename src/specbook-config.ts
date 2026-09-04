@@ -52,7 +52,11 @@ const identityOf = (item: unknown, list?: string): string => {
     matched by their identity, so a matching element is merged into its
     counterpart and an unmatched one is appended  */
 const mergeConfig = (target: unknown, source: unknown, list?: string): unknown => {
-    if (Array.isArray(target) && Array.isArray(source)) {
+    /*  an empty or comment-only YAML document carries no content at
+        all, so it leaves the target intact instead of discarding it  */
+    if (source === null || source === undefined)
+        return target
+    else if (Array.isArray(target) && Array.isArray(source)) {
         for (const item of source as unknown[]) {
             const i = (target as unknown[]).findIndex((existing) =>
                 identityOf(existing, list) === identityOf(item, list))
