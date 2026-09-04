@@ -101,6 +101,160 @@ $ npm install -g @rse/specbook
 Usage
 -----
 
+### CLI
+
+Commands:
+
+```bash
+$ specbook init \
+  [-v|--verbose] \
+  [-c|--config <schema-yaml-file>] \
+  [-b|--basedir <spec-md-file-basedir>]
+
+$ specbook lint \
+  [-v|--verbose] \
+  [-c|--config <schema-yaml-file>] \
+  [-b|--basedir <spec-md-file-basedir>]
+
+$ specbook export \
+  [-v|--verbose] \
+  [-c|--config <schema-yaml-file>] \
+  [-b|--basedir <spec-md-file-basedir>] \
+  [-o|--output [<format>:]<output-file>] \
+  [-w|--watch] \
+  [...]
+
+$ specbook preview \
+  [-v|--verbose] \
+  [-c|--config <schema-yaml-file>] \
+  [-b|--basedir <spec-md-file-basedir>] \
+  [-a|--addr <ip-addr>] \
+  [-p|--port <tcp-port>]
+
+$ specbook describe \
+  [-v|--verbose] \
+  [-c|--config <schema-yaml-file>] \
+  [-b|--basedir <spec-md-file-basedir>] \
+  [-e|--embed] \
+  [-z|--compress [<level>]] \
+  [-f|--format <format>] \
+  [-p|--part <part>] \
+  [-o|--output <output-file>]
+
+$ specbook mcp \
+  [-v|--verbose]
+```
+
+Options:
+
+-   `-v|--verbose`:
+    Enable verbose logging of processing information to `stderr`.
+
+-   `-c|--config <schema-yaml-file>`:
+    The YAML schema configuration (default: the bundled standard schema
+    configuration `specbook-format.yaml`) determines the specification:
+    exactly the artifact files its `file` fields reference are loaded and
+    parsed; all other Markdown files below the base directory are ignored.
+    A referenced file which is absent is reported, unless all of its
+    artifacts are `optional`, and so is an artifact absent from its present
+    file, unless it is `optional` itself. Both `lint` and `export` report
+    all diagnostics and fail on any error among them (a warning, like a
+    lapse of the reference coverage a `referenced` object kind demands,
+    is reported only), so a partial or invalid specification is never
+    exported.
+    The option accepts glob patterns and can be given multiple times: the
+    matching files (in the order of the patterns and alphabetically within
+    a pattern, where the literal `std` names the bundled standard schema
+    configuration, and where a pattern matching no file is an error) are
+    merged in order into one effective schema configuration, the later
+    files into the earlier ones. The objects merge deeply, while the
+    elements of the lists are matched by identity (artifacts by `kind`
+    plus `id`/`name`, nested objects by `kind`, properties by `name`, and
+    scalar entries by value): a matching element is merged into its
+    counterpart, an unmatched one is appended. Every file has to be valid
+    YAML on its own, while the merged result alone is validated against
+    the schema of the configuration.
+
+-   `-b|--basedir <spec-md-file-basedir>`:
+    The base directory (default: `.`) is the directory the referenced
+    artifact files are resolved against, and generated specification
+    Markdown files are placed inside it, too.
+
+-   `-o|--output [<format>:]<output-file>` (`export` only):
+    The output file (default: `-` for stdout) can be given multiple times.
+    The format (`json`, `json5`, `yaml`, `toon`, `html`, `pdf`, or `md`)
+    is inferred from the filename extension, unless it is explicitly given
+    as a `<format>:` prefix, and plain `-` (stdout) defaults to JSON.
+    The `md` export format normalizes the entire corpus into a *single*
+    Markdown document.
+
+-   `-w|--watch` (`export` only):
+    Keep the outputs in sync with their sources: after the regular export,
+    the referenced artifact files and all assets they embed are observed,
+    and every change re-exports the specification once the sources stayed
+    silent for one second. A failed re-export is reported and leaves the
+    observe loop intact, so a transiently invalid specification does not
+    end the watch. The outputs have to be regular files, as `-` (stdout)
+    cannot receive a repeated export, and none of them may be an observed
+    source file itself, as its own write would re-trigger the observation
+    endlessly.
+
+-   `-a|--addr <ip-addr>`, `-p|--port <tcp-port>` (`preview` only):
+    The IP address (default: `127.0.0.1`) and TCP port (default: `12345`)
+    the live preview listens on. The HTML export is served on
+    `http://<ip-addr>:<tcp-port>/`, kept in sync with its sources exactly
+    like `export --watch`, and updated in the browser after every change
+    through a WebSocket connection the served page keeps open, where the
+    document is replaced in place, so the scroll position survives (a
+    failed re-export keeps the previous HTML in place). A status icon
+    left of the theme switcher shows the connection state: grey while
+    connected, in the search highlight color while disconnected, and
+    blinking for 2s after every update.
+
+-   `-o|--output <output-file>` (`describe` only):
+    The output file (default: `-` for stdout) receives the described
+    Markdown document.
+
+-   `-e|--embed` (`describe` only):
+    Embed the given YAML schema configuration itself instead of just
+    referencing it, so the resulting document describes the specification
+    format entirely on its own.
+
+-   `-z|--compress [<level>]` (`describe` only):
+    The compression level (default and bare flag: `1`) of the YAML
+    schema configuration (embedded into the Markdown or emitted as the
+    raw file content), so the configuration costs fewer tokens: `0`
+    emits it verbatim, `1` re-emits it with 2-space indentation, unwrapped
+    lines, and without comments, `2` additionally leaves out its `refs` fields, and
+    `3` additionally leaves out its `desc` fields of objects and properties.
+
+-   `-f|--format <format>` (`describe` only):
+    The output format (default: `md`) switches from the rendered Markdown
+    onto the raw original file content (the `schema` one compressed by the
+    `-z|--compress` level) with `raw`, which is available for
+    the file-backed parts `meta` and `schema` only.
+
+-   `-p|--part <part>` (`describe` only):
+    The document part (default: `all`) reduces the output to a single part:
+    `meta` for the description of the generic SpecBook models and formats,
+    `schema` for the YAML schema configuration (the given one, referenced
+    or embedded with `-e|--embed`, else the bundled standard one,
+    embedded), or `spec` for the reference to the base directory.
+
+The default value of every CLI option `--xxx` can be overridden
+by a corresponding `SPECBOOK_XXX` environment variable (e.g.
+`SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_OUTPUT`,
+`SPECBOOK_VERBOSE`, `SPECBOOK_ADDR`, `SPECBOOK_PORT`), while an
+explicitly supplied option always wins. As `-c|--config` is repeatable,
+`SPECBOOK_CONFIG` carries a list of patterns separated by the path
+delimiter of the platform (`:` on Unix, `;` on Windows).
+
+Example:
+
+```bash
+$ specbook lint -v -b smp/broadcast
+```
+
 ### API
 
 ```ts
@@ -263,160 +417,6 @@ const specbook = new SpecBook({
 const result = await specbook.lint({
     basedir: "smp/broadcast"
 })
-```
-
-### CLI
-
-Commands:
-
-```bash
-$ specbook init \
-  [-v|--verbose] \
-  [-c|--config <schema-yaml-file>] \
-  [-b|--basedir <spec-md-file-basedir>]
-
-$ specbook lint \
-  [-v|--verbose] \
-  [-c|--config <schema-yaml-file>] \
-  [-b|--basedir <spec-md-file-basedir>]
-
-$ specbook export \
-  [-v|--verbose] \
-  [-c|--config <schema-yaml-file>] \
-  [-b|--basedir <spec-md-file-basedir>] \
-  [-o|--output [<format>:]<output-file>] \
-  [-w|--watch] \
-  [...]
-
-$ specbook preview \
-  [-v|--verbose] \
-  [-c|--config <schema-yaml-file>] \
-  [-b|--basedir <spec-md-file-basedir>] \
-  [-a|--addr <ip-addr>] \
-  [-p|--port <tcp-port>]
-
-$ specbook describe \
-  [-v|--verbose] \
-  [-c|--config <schema-yaml-file>] \
-  [-b|--basedir <spec-md-file-basedir>] \
-  [-e|--embed] \
-  [-z|--compress [<level>]] \
-  [-f|--format <format>] \
-  [-p|--part <part>] \
-  [-o|--output <output-file>]
-
-$ specbook mcp \
-  [-v|--verbose]
-```
-
-Options:
-
--   `-v|--verbose`:
-    Enable verbose logging of processing information to `stderr`.
-
--   `-c|--config <schema-yaml-file>`:
-    The YAML schema configuration (default: the bundled standard schema
-    configuration `specbook-format.yaml`) determines the specification:
-    exactly the artifact files its `file` fields reference are loaded and
-    parsed; all other Markdown files below the base directory are ignored.
-    A referenced file which is absent is reported, unless all of its
-    artifacts are `optional`, and so is an artifact absent from its present
-    file, unless it is `optional` itself. Both `lint` and `export` report
-    all diagnostics and fail on any error among them (a warning, like a
-    lapse of the reference coverage a `referenced` object kind demands,
-    is reported only), so a partial or invalid specification is never
-    exported.
-    The option accepts glob patterns and can be given multiple times: the
-    matching files (in the order of the patterns and alphabetically within
-    a pattern, where the literal `std` names the bundled standard schema
-    configuration, and where a pattern matching no file is an error) are
-    merged in order into one effective schema configuration, the later
-    files into the earlier ones. The objects merge deeply, while the
-    elements of the lists are matched by identity (artifacts by `kind`
-    plus `id`/`name`, nested objects by `kind`, properties by `name`, and
-    scalar entries by value): a matching element is merged into its
-    counterpart, an unmatched one is appended. Every file has to be valid
-    YAML on its own, while the merged result alone is validated against
-    the schema of the configuration.
-
--   `-b|--basedir <spec-md-file-basedir>`:
-    The base directory (default: `.`) is the directory the referenced
-    artifact files are resolved against, and generated specification
-    Markdown files are placed inside it, too.
-
--   `-o|--output [<format>:]<output-file>` (`export` only):
-    The output file (default: `-` for stdout) can be given multiple times.
-    The format (`json`, `json5`, `yaml`, `toon`, `html`, `pdf`, or `md`)
-    is inferred from the filename extension, unless it is explicitly given
-    as a `<format>:` prefix, and plain `-` (stdout) defaults to JSON.
-    The `md` export format normalizes the entire corpus into a *single*
-    Markdown document.
-
--   `-w|--watch` (`export` only):
-    Keep the outputs in sync with their sources: after the regular export,
-    the referenced artifact files and all assets they embed are observed,
-    and every change re-exports the specification once the sources stayed
-    silent for one second. A failed re-export is reported and leaves the
-    observe loop intact, so a transiently invalid specification does not
-    end the watch. The outputs have to be regular files, as `-` (stdout)
-    cannot receive a repeated export, and none of them may be an observed
-    source file itself, as its own write would re-trigger the observation
-    endlessly.
-
--   `-a|--addr <ip-addr>`, `-p|--port <tcp-port>` (`preview` only):
-    The IP address (default: `127.0.0.1`) and TCP port (default: `12345`)
-    the live preview listens on. The HTML export is served on
-    `http://<ip-addr>:<tcp-port>/`, kept in sync with its sources exactly
-    like `export --watch`, and updated in the browser after every change
-    through a WebSocket connection the served page keeps open, where the
-    document is replaced in place, so the scroll position survives (a
-    failed re-export keeps the previous HTML in place). A status icon
-    left of the theme switcher shows the connection state: grey while
-    connected, in the search highlight color while disconnected, and
-    blinking for 2s after every update.
-
--   `-o|--output <output-file>` (`describe` only):
-    The output file (default: `-` for stdout) receives the described
-    Markdown document.
-
--   `-e|--embed` (`describe` only):
-    Embed the given YAML schema configuration itself instead of just
-    referencing it, so the resulting document describes the specification
-    format entirely on its own.
-
--   `-z|--compress [<level>]` (`describe` only):
-    The compression level (default and bare flag: `1`) of the YAML
-    schema configuration (embedded into the Markdown or emitted as the
-    raw file content), so the configuration costs fewer tokens: `0`
-    emits it verbatim, `1` re-emits it with 2-space indentation, unwrapped
-    lines, and without comments, `2` additionally leaves out its `refs` fields, and
-    `3` additionally leaves out its `desc` fields of objects and properties.
-
--   `-f|--format <format>` (`describe` only):
-    The output format (default: `md`) switches from the rendered Markdown
-    onto the raw original file content (the `schema` one compressed by the
-    `-z|--compress` level) with `raw`, which is available for
-    the file-backed parts `meta` and `schema` only.
-
--   `-p|--part <part>` (`describe` only):
-    The document part (default: `all`) reduces the output to a single part:
-    `meta` for the description of the generic SpecBook models and formats,
-    `schema` for the YAML schema configuration (the given one, referenced
-    or embedded with `-e|--embed`, else the bundled standard one,
-    embedded), or `spec` for the reference to the base directory.
-
-The default value of every CLI option `--xxx` can be overridden
-by a corresponding `SPECBOOK_XXX` environment variable (e.g.
-`SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_OUTPUT`,
-`SPECBOOK_VERBOSE`, `SPECBOOK_ADDR`, `SPECBOOK_PORT`), while an
-explicitly supplied option always wins. As `-c|--config` is repeatable,
-`SPECBOOK_CONFIG` carries a list of patterns separated by the path
-delimiter of the platform (`:` on Unix, `;` on Windows).
-
-Example:
-
-```bash
-$ specbook lint -v -b smp/broadcast
 ```
 
 Rendering Examples
