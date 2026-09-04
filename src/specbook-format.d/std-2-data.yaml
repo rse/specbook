@@ -253,11 +253,12 @@
                             local: true
                         -   name: ACTOR
                             desc: >
-                                Comma-separated references to the PERSONAS objects able to trigger
-                                the transition, and/or `System` for a transition the solution
-                                triggers on its own or `Time` for one triggered by the passing of
-                                time (e.g. an expiry); omitted when the trigger is irrelevant.
-                            value: list([[PERSONA:*]], enum(System,Time))
+                                Comma-separated references to the User Personas ROLE objects able
+                                to trigger the transition, and/or `System` for a transition the
+                                solution triggers on its own or `Time` for one triggered by the
+                                passing of time (e.g. an expiry); omitted when the trigger is
+                                irrelevant.
+                            value: list([[ROLE:*]], enum(System,Time))
                             optional: true
                         -   name: GUARD
                             desc: >
@@ -287,13 +288,13 @@
     id: AM
     file: 13-DATA-AM-Authorization-Model.md
     desc: >
-        The access rights of the solution, bundled into the roles a person acts in and stating for
-        each role the operations it may perform on each entity, confined to the lifecycle states
-        of the entity and to a further condition where necessary, so that "who may do what on
-        which entity in which state" is answered in one place instead of being scattered over the
-        actors of the state transitions, the actors of the use cases, and the prose of the domain
-        rules. The model is closed: an operation not granted to a role is forbidden, exactly like
-        a move not listed as a state transition.
+        The access rights of the solution, granted to the roles of the User Personas and stating
+        for each role the operations it may perform on each entity, confined to the lifecycle
+        states of the entity and to a further condition where necessary, so that "who may do what
+        on which entity in which state" is answered in one place instead of being scattered over
+        the actors of the state transitions, the actors of the use cases, and the prose of the
+        domain rules. The model is closed: an operation not granted to a role is forbidden,
+        exactly like a move not listed as a state transition.
     optional: true
     refs: >
         -   Ferraiolo/Kuhn: Role-Based Access Controls, 15th National Computer Security Conference (1992),
@@ -308,6 +309,7 @@
         type: graph
         nodes: "[[ROLE:*]], [[DM.ENTITY:*]]"
         edges: "[[PERMISSION:*]]"
+        edgeSource: ROLE
         edgeTarget: ENTITY
         onlyConnected: true
         qualified: true
@@ -315,101 +317,59 @@
             size-node-width-max: 440
             graph-channel-width-max: 340
     children:
-        -   kind: ROLE
+        -   kind: PERMISSION
             desc: >
-                A single role, named with the canonical name of the domain role it grants (e.g.
-                `Moderator`, matching its GLOSSARY term of type `Actor`) and described in a concise
-                (1-2 sentence) paragraph by the responsibility the role carries, plus a 1-sentence
-                rationale ("why") stating why the rights are bundled this way. A role is the unit
-                in which rights are granted to a person: the personas embodying it hold exactly
-                its `PERMISSION` objects (plus those of the roles it `INHERITS`), while a persona
-                holding several roles holds the union of their permissions.
-            diagram:
-                type: hub
-                center: self
-                deep: true
-                nodes: "[[ROLE:*]], [[PERSONA:*]], [[TERM:*]], [[DM.ENTITY:*]], [[RULE:*]]"
-                labeled: true
-                qualified: true
-                config:
-                    size-node-width-max: 440
-                    size-node-height-scale: 1.75
+                A single right of a role on a single entity, named with a short (2-5 word) verb
+                phrase of what the role may do (e.g. `Decide Pending Messages`) and described by
+                a 1-sentence description of the right, in particular of the reach of its
+                `CONDITION`. One permission covers one entity: the operations it grants, the
+                states of the entity in which they are granted, and the condition under which
+                they are granted, so that the permissions of all roles form the access matrix of
+                roles against entities. Any operation, state, or condition not covered by a
+                permission of the role (or of a role it `INHERITS`) is forbidden.
+            format:
+                maxTableColumns: 8
             props:
-                -   name: ACTORS
+                -   name: ROLE
                     desc: >
-                        Comma-separated references to the User Personas objects embodying the
-                        role, i.e. the personas acting with exactly its rights, so that every
-                        persona holds at least one role and its rights are stated here rather than
-                        implied by its `ROLE` description, and/or to the GLOSSARY terms of type
-                        `Actor` denoting the external systems holding the role (e.g. a registration
-                        system calling the machine-facing interface), as an external system is no
-                        persona.
-                    value: list([[PERSONA:*]], [[TERM:*]])
-                -   name: TERM
+                        Reference to the User Personas ROLE object the permission is granted to,
+                        so that the permissions of a role are found by its references.
+                    value: "[[ROLE:*]]"
+                -   name: ENTITY
+                    desc: Reference to the DATA-MODEL entity the permission is granted on.
+                    value: "[[DM.ENTITY:*]]"
+                -   name: OPERATIONS
                     desc: >
-                        Reference to the GLOSSARY term of type `Actor` the role grants, anchoring
-                        the role in the ubiquitous language.
-                    value: "[[TERM:*]]"
+                        Comma-separated operations the role may perform on the entity: the
+                        generic `Create`, `Read`, `Update`, and `Delete`, and/or references to
+                        the STATE-MODEL transitions of the entity the role may trigger (a state
+                        change is not an `Update`: it is granted by its transition only), where
+                        every role named as `ACTOR` of a transition holds a permission granting
+                        it.
+                    value: list(enum(Create,Read,Update,Delete), [[TRANSITION:*]])
+                -   name: STATES
+                    desc: >
+                        Comma-separated references to the STATE-MODEL states of the entity in
+                        which the operations are granted (`Create` needs none, as a creation
+                        enters the initial state); omitted when granted in every state or when
+                        the entity has no lifecycle.
+                    value: list([[STATE:*]])
                     optional: true
-                -   name: INHERITS
+                -   name: CONDITION
                     desc: >
-                        Comma-separated references to the other ROLE objects whose permissions
-                        this role holds in addition to its own (a role hierarchy, e.g. a manager
-                        inheriting the rights of a moderator), where an inherited permission is
-                        not restated.
-                    value: list([[ROLE:*]])
+                        The condition which, beyond the role and the `STATES`, has to hold for
+                        the operations to be granted, stated as a 1-sentence statement of what
+                        has to hold, typically the ownership of the instance (e.g. `The attendee
+                        is the sender of the message.`), a confinement to certain attributes
+                        (e.g. `The update is confined to the presenter alert.`), or a
+                        configuration of the surrounding entity; omitted when the role and the
+                        states alone grant the operations.
                     optional: true
-                    acyclic: true
-            children:
-                -   kind: PERMISSION
+                -   name: RULES
                     desc: >
-                        A single right of the role on a single entity, named with a short (2-5
-                        word) verb phrase of what the role may do (e.g. `Decide Pending Messages`)
-                        and described by a 1-sentence description of the right, in particular of
-                        the reach of its `CONDITION`. One permission covers one entity: the
-                        operations it grants, the states of the entity in which they are granted,
-                        and the condition under which they are granted, so that the permissions
-                        of all roles form the access matrix of roles against entities. Any
-                        operation, state, or condition not covered by a permission of the role (or
-                        of an inherited one) is forbidden.
-                    format:
-                        maxTableColumns: 7
-                    props:
-                        -   name: ENTITY
-                            desc: Reference to the DATA-MODEL entity the permission is granted on.
-                            value: "[[DM.ENTITY:*]]"
-                        -   name: OPERATIONS
-                            desc: >
-                                Comma-separated operations the role may perform on the entity: the
-                                generic `Create`, `Read`, `Update`, and `Delete`, and/or references
-                                to the STATE-MODEL transitions of the entity the role may trigger
-                                (a state change is not an `Update`: it is granted by its transition
-                                only), where every persona named as `ACTOR` of a transition holds
-                                a role granting it.
-                            value: list(enum(Create,Read,Update,Delete), [[TRANSITION:*]])
-                        -   name: STATES
-                            desc: >
-                                Comma-separated references to the STATE-MODEL states of the entity
-                                in which the operations are granted (`Create` needs none, as a
-                                creation enters the initial state); omitted when granted in every
-                                state or when the entity has no lifecycle.
-                            value: list([[STATE:*]])
-                            optional: true
-                        -   name: CONDITION
-                            desc: >
-                                The condition which, beyond the role and the `STATES`, has to hold
-                                for the operations to be granted, stated as a 1-sentence statement
-                                of what has to hold, typically the ownership of the instance (e.g.
-                                `The attendee is the sender of the message.`), a confinement to
-                                certain attributes (e.g. `The update is confined to the presenter
-                                alert.`), or a configuration of the surrounding entity; omitted
-                                when the role and the states alone grant the operations.
-                            optional: true
-                        -   name: RULES
-                            desc: >
-                                Comma-separated references to the DOMAIN-RULES objects justifying
-                                or bounding the permission, i.e. the rules whose statement grants
-                                or limits the right.
-                            value: list([[RULE:*]])
-                            optional: true
+                        Comma-separated references to the DOMAIN-RULES objects justifying or
+                        bounding the permission, i.e. the rules whose statement grants or limits
+                        the right.
+                    value: list([[RULE:*]])
+                    optional: true
 

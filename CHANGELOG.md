@@ -5,6 +5,14 @@ ChangeLog
 1.2.5 (2026-09-04)
 ------------------
 
+-   IMPROVEMENT [docs, othr]: First-Class `ROLE` Objects in the User Personas
+    The roles move from the Authorization Model into the User Personas, where the personas embody
+    them and the use cases, workflows, transitions, and context entities name them as actors.
+
+-   IMPROVEMENT [docs]: Delimit the Solution Premises from Constraints
+    The artifact description now states that a premise lies outside the control of the solution,
+    whereas a constraint is imposed on it and belongs to the requirements or the domain rules.
+
 -   IMPROVEMENT [docs, othr]: Document the Coarse-to-Fine Artifact Order and Resolve a Name Clash
     The modeling decisions now state that the artifacts run from the broad context to the fine
     detail, and the broadcast sample no longer names a use case almost like its workflow.

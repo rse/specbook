@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-30 00:49
+Modified: 2026-09-05 00:30
 ---
 
 ARCH: Context View (CV)
@@ -11,7 +11,7 @@ ARCH: Context View (CV)
 -   KIND:      Person
 -   DIRECTION: Bidirectional
 -   TERMS:     [[TERM:attendee]]
--   ACTORS:    [[PERSONA:attendee]]
+-   ACTORS:    [[ROLE:attendee]]
 -   PREMISES:  [[PREMISE:websocket-passage]]
 -   DATA:      Login credentials, video playback, chat, questions, likes
 
@@ -24,7 +24,7 @@ browser-delivered solution serving thousands of concurrent attendees.
 -   KIND:      Person
 -   DIRECTION: Bidirectional
 -   TERMS:     [[TERM:manager]], [[TERM:moderator]], [[TERM:presenter]]
--   ACTORS:    [[PERSONA:moderator-chat]], [[PERSONA:moderator-qa]], [[PERSONA:presenter]], [[PERSONA:manager]]
+-   ACTORS:    [[ROLE:moderator]], [[ROLE:presenter]], [[ROLE:manager]]
 -   DATA:      Event configuration, moderation actions, statistics, exports
 
 Managers, moderators, and presenters use their browsers to configure

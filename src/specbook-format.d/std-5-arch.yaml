@@ -92,13 +92,12 @@
                     optional: true
                 -   name: ACTORS
                     desc: >
-                        Comma-separated references to the User Personas objects acting behind the
-                        entity: a `Person` entity is the boundary-level role class and the referenced
-                        personas are its archetypes, while an `Organization` entity may reference
-                        the `Stakeholder` personas representing it, so the entity aggregates the
-                        personas instead of re-stating them; omitted when no persona stands behind
-                        the entity.
-                    value: list([[PERSONA:*]])
+                        Comma-separated references to the User Personas ROLE objects acting
+                        behind the entity: a `Person` entity is the boundary-level class of the
+                        `Person` roles acting through it, while a `System` entity may reference
+                        the `System` role it plays, so the entity aggregates the roles instead of
+                        re-stating them; omitted when no modeled role stands behind the entity.
+                    value: list([[ROLE:*]])
                     optional: true
                 -   name: PREMISES
                     desc: >

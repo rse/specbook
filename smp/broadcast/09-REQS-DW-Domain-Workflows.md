@@ -1,6 +1,6 @@
 ---
 Created:  2026-08-30 10:00
-Modified: 2026-08-30 10:00
+Modified: 2026-09-05 00:30
 ---
 
 REQS: Domain Workflows (DW)
@@ -9,7 +9,7 @@ REQS: Domain Workflows (DW)
 WORKFLOW: Run Broadcast Event {{run-broadcast-event}}
 -----------------------------
 
--   ACTORS:   [[PERSONA:manager]], [[PERSONA:presenter]], [[PERSONA:moderator-qa]], [[PERSONA:moderator-chat]], [[PERSONA:attendee]]
+-   ACTORS:   [[ROLE:manager]], [[ROLE:presenter]], [[ROLE:moderator]], [[ROLE:attendee]]
 -   TRIGGER:  The Event Registration System delivers the attendee list of an upcoming event.
 -   OUTCOME:  The event took place, its personal data is anonymized, and its interaction results are exported.
 -   JOURNEYS: [[JOURNEY:attend]], [[JOURNEY:operate]], [[JOURNEY:moderate]]
@@ -23,41 +23,41 @@ part.
 
 ### ACTIVITY
 
--   Plan Event {{plan-event}}; ACTOR: [[PERSONA:manager]]; INITIAL: true;
+-   Plan Event {{plan-event}}; ACTOR: [[ROLE:manager]]; INITIAL: true;
     The manager configures the event and its channel and imports the
     attendee list of the Event Registration System, which yields the
     individual access URLs.
 
--   Invite Attendees {{invite-attendees}}; ACTOR: [[PERSONA:manager]];
+-   Invite Attendees {{invite-attendees}}; ACTOR: [[ROLE:manager]];
     The manager hands the individual access URLs back to the Event
     Registration System, which sends the invitation emails (outside the
     solution).
 
--   Rehearse Event {{rehearse-event}}; ACTOR: [[PERSONA:presenter]], [[PERSONA:moderator-qa]], [[PERSONA:moderator-chat]];
+-   Rehearse Event {{rehearse-event}}; ACTOR: [[ROLE:presenter]], [[ROLE:moderator]];
     The presenter and the moderators walk through the unpublished event
     together, checking the stream, the question flow, and the chat.
 
--   Start Event {{go-live}}; ACTOR: [[PERSONA:manager]];
+-   Start Event {{go-live}}; ACTOR: [[ROLE:manager]];
     The manager publishes and starts the event when the stream goes on
     air and keeps the streaming resource healthy.
 
--   Attend Event {{attend-event}}; ACTOR: [[PERSONA:attendee]];
+-   Attend Event {{attend-event}}; ACTOR: [[ROLE:attendee]];
     The attendees join via their individual URLs, watch the stream, and
     raise questions and chat messages.
 
--   Moderate Interaction {{moderate-interaction}}; ACTOR: [[PERSONA:moderator-qa]], [[PERSONA:moderator-chat]];
+-   Moderate Interaction {{moderate-interaction}}; ACTOR: [[ROLE:moderator]];
     The moderators accept, reject, answer, and forward the incoming
     messages throughout the live event.
 
--   Present and Answer {{present-talk}}; ACTOR: [[PERSONA:presenter]];
+-   Present and Answer {{present-talk}}; ACTOR: [[ROLE:presenter]];
     The presenter delivers the talk and answers the forwarded questions
     on air.
 
--   Finish Event {{finish-event}}; ACTOR: [[PERSONA:manager]];
+-   Finish Event {{finish-event}}; ACTOR: [[ROLE:manager]];
     The manager finishes the event once the stream is off air, which
     closes the access and anonymizes the personal data.
 
--   Archive Results {{archive-results}}; ACTOR: [[PERSONA:manager]]; FINAL: true;
+-   Archive Results {{archive-results}}; ACTOR: [[ROLE:manager]]; FINAL: true;
     The manager exports the anonymized messages and statistics and hands
     them over to the organizer.
 

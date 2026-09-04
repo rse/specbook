@@ -193,7 +193,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[TERM:*]], [[PREMISE:*]], [[RULE:*]], [[DM.ENTITY:*]], [[PERSONA:*]]"
+                nodes: "[[TERM:*]], [[PREMISE:*]], [[RULE:*]], [[DM.ENTITY:*]], [[ROLE:*]], [[PERSONA:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -204,8 +204,9 @@
                     desc: >
                         The kind of concept the term denotes: `Entity` (a thing of the domain,
                         usually materialized by a DATA-MODEL entity), `Actor` (a party acting in
-                        the domain, be it a human role usually embodied by a PERSONA or an external
-                        system), or `Activity` (a process or procedure of the domain).
+                        the domain, be it a human role or an external system, usually played as a
+                        ROLE of the User Personas), or `Activity` (a process or procedure of the
+                        domain).
                     value: enum(Entity,Actor,Activity)
                 -   name: SYNONYMS
                     desc: >
@@ -245,11 +246,16 @@
     id: UP
     file: 04-REQS-UP-User-Personas.md
     desc: >
-        The *archetypal* user profiles representing distinct user groups, capturing their goals,
-        needs, behaviors, and context, complemented by the non-user stakeholders whose interests
-        the solution has to serve.
+        The roles the parties play towards the solution and the *archetypal* user profiles
+        embodying them: a role names the part played (by a human or by an external system) and
+        is the actor of the Use Cases and the Domain Workflows and the unit in which the
+        Authorization Model grants rights, while a persona represents a distinct user group
+        holding one or more roles, capturing its goals, needs, behaviors, and context,
+        complemented by the non-user stakeholders whose interests the solution has to serve.
     optional: true
     refs: >
+        -   Cockburn: Writing Effective Use Cases (2001),
+            https://www.informit.com/store/writing-effective-use-cases-9780201702255
         -   Cooper: The Inmates Are Running the Asylum, 2nd ed. (2004),
             https://www.informit.com/store/inmates-are-running-the-asylum-why-high-tech-products-9780672326141
         -   Cooper et al.: About Face: The Essentials of Interaction Design, 4th ed. (2014),
@@ -257,15 +263,60 @@
         -   Pruitt/Adlin: The Persona Lifecycle: Keeping People in Mind Throughout Product Design (2006),
             https://www.sciencedirect.com/book/9780125662512/the-persona-lifecycle
     diagram:
-        type: grid
-        nodes: "[[PERSONA:*]]"
-        properties:
-            -   TYPE
-            -   ROLE
+        type: graph
+        nodes: "[[ROLE:*]], [[PERSONA:*]]"
+        labeled: true
+        qualified: true
         config:
             size-node-width-max: 440
-            grid-columns-max: 4
     children:
+        -   kind: ROLE
+            desc: >
+                A single role, named with the canonical name of the part a party plays towards
+                the solution (e.g. `Moderator`, matching its GLOSSARY term of type `Actor`) and
+                described in a concise (1-2 sentence) paragraph by the responsibility the role
+                carries, plus a 1-sentence rationale ("why") stating why the part is cut this way.
+                A role is the name of a part and not of a person: the personas embodying it act in
+                exactly this part and hold exactly the rights the Authorization Model grants to it
+                (plus those of the roles it `INHERITS`), while a persona holding several roles
+                holds the union of them.
+            format:
+                maxTableColumns: 5
+            referenced:
+                -   "[[*]]"
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ROLE:*]], [[TERM:*]], [[PERSONA:*]], [[ACTIVITY:*]], [[USE-CASE:*]],
+                    [[CV.ENTITY:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
+            props:
+                -   name: TYPE
+                    desc: >
+                        Whether the role is played by a `Person`, i.e. a human part embodied by at
+                        least one persona, or by a `System`, i.e. an external system acting towards
+                        the solution (e.g. a registration system calling the machine-facing
+                        interface), which no persona embodies.
+                    value: enum(Person,System)
+                -   name: TERM
+                    desc: >
+                        Reference to the GLOSSARY term of type `Actor` the role plays, anchoring
+                        the role in the ubiquitous language.
+                    value: "[[TERM:*]]"
+                    optional: true
+                -   name: INHERITS
+                    desc: >
+                        Comma-separated references to the other ROLE objects this role holds in
+                        addition to its own (a role hierarchy, e.g. a manager inheriting the
+                        rights of a moderator), where an inherited permission is not restated in
+                        the Authorization Model.
+                    value: list([[ROLE:*]])
+                    optional: true
+                    acyclic: true
         -   kind: PERSONA
             desc: >
                 An archetypal user profile, named with a per-artifact unique first name of the
@@ -275,8 +326,6 @@
                 line. Non-user stakeholders are modeled as personas of type `Stakeholder`.
             format:
                 maxTableColumns: 5
-            referenced:
-                -   "[[ROLE:*]]"
             props:
                 -   name: TYPE
                     desc: >
@@ -299,9 +348,14 @@
                         The age in years of the persona.
                     value: /^[0-9]+$/
                     optional: true
-                -   name: ROLE
+                -   name: ROLES
                     desc: >
-                        The role of the persona.
+                        Comma-separated references to the ROLE objects the persona embodies, i.e.
+                        the parts it plays towards the solution and hence the rights it acts with,
+                        so that every `User` persona holds at least one role; omitted for a
+                        `Stakeholder` persona playing no part towards the solution itself.
+                    value: list([[ROLE:*]])
+                    optional: true
                 -   name: TERMS
                     desc: >
                         Comma-separated references to the GLOSSARY terms the persona embodies, i.e.
@@ -712,10 +766,10 @@
             props:
                 -   name: ACTORS
                     desc: >
-                        Comma-separated references to the User Personas objects taking part in the
-                        workflow, in the order of their first appearance, so that every `ACTOR` of
-                        an activity is listed here.
-                    value: list([[PERSONA:*]])
+                        Comma-separated references to the User Personas ROLE objects taking part
+                        in the workflow, in the order of their first appearance, so that every
+                        `ACTOR` of an activity is listed here.
+                    value: list([[ROLE:*]])
                 -   name: OWNER
                     desc: >
                         Reference to the User Personas object (usually a `Stakeholder`) accountable
@@ -765,12 +819,12 @@
                     props:
                         -   name: ACTOR
                             desc: >
-                                Reference to the User Personas object performing the activity, or
-                                `System` for an activity the solution performs on its own (e.g.
+                                Reference to the User Personas ROLE object performing the activity,
+                                or `System` for an activity the solution performs on its own (e.g.
                                 sending the invitations) or `Time` for a waiting period ending with
                                 a deadline; several parties are given only for an activity they
                                 perform jointly, as a change of the acting party is a handoff.
-                            value: list([[PERSONA:*]], enum(System,Time))
+                            value: list([[ROLE:*]], enum(System,Time))
                         -   name: INITIAL
                             desc: >
                                 Whether the activity is the initial one, i.e. the single activity
@@ -839,11 +893,13 @@
         -   Jacobson/Spence/Bittner: Use-Case 2.0: The Guide to Succeeding with Use Cases (2011),
             https://www.ivarjacobson.com/publications/white-papers/use-case-20-e-book
     diagram:
-        type: grid
-        nodes: "[[USE-CASE:*]]"
+        type: graph
+        nodes: "[[USE-CASE:*]], [[ROLE:*]]"
+        labeled: true
+        qualified: true
+        onlyConnected: true
         config:
-            size-node-height-scale: 4
-            grid-columns-max: 4
+            size-node-width-max: 440
     children:
         -   kind: USE-CASE
             desc: >
@@ -864,7 +920,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[USE-CASE:*]], [[PERSONA:*]], [[STEP:*]], [[ACTIVITY:*]],
+                nodes: "[[USE-CASE:*]], [[ROLE:*]], [[PERSONA:*]], [[STEP:*]], [[ACTIVITY:*]],
                     [[FR.REQUIREMENT:*]], [[RULE:*]], [[TRANSITION:*]]"
                 labeled: true
                 qualified: true
@@ -874,9 +930,18 @@
             props:
                 -   name: ACTOR
                     desc: >
-                        Reference to the PERSONAS object denoting the primary actor pursuing the
-                        goal.
-                    value: "[[PERSONA:*]]"
+                        Reference to the User Personas ROLE object denoting the primary actor
+                        pursuing the goal, i.e. the part played and not the person playing it, so
+                        that a use case is written once per role and not once per persona.
+                    value: "[[ROLE:*]]"
+                -   name: PERSONAS
+                    desc: >
+                        Comma-separated references to the User Personas objects taking the
+                        `ACTOR` role in this use case, i.e. the archetypes for which its flow is
+                        worked out in the Dialog Storyboard and the Test Cases; omitted when every
+                        persona holding the role pursues the goal alike.
+                    value: list([[PERSONA:*]])
+                    optional: true
                 -   name: JOURNEYS
                     desc: >
                         Comma-separated references to the User Journey STEP objects the use case

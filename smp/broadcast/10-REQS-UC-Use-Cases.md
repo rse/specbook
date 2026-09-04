@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 15:05
+Modified: 2026-09-05 00:30
 ---
 
 REQS: Use Cases (UC)
@@ -9,7 +9,7 @@ REQS: Use Cases (UC)
 USE-CASE: Join Event and Watch Stream {{join-event}}
 -------------------------------------
 
--   ACTOR:          [[PERSONA:attendee]]
+-   ACTOR:          [[ROLE:attendee]]
 -   JOURNEYS:       [[STEP:arrival]], [[STEP:participate]]
 -   ACTIVITIES:     [[ACTIVITY:attend-event]]
 -   REQUIREMENTS:   [[REQUIREMENT:individual-url]], [[REQUIREMENT:authentication]], [[REQUIREMENT:browser-access]], [[REQUIREMENT:resource-url]], [[REQUIREMENT:mobile]], [[REQUIREMENT:language-switch]], [[REQUIREMENT:theme-toggle]]
@@ -79,7 +79,7 @@ attendee was invited.
 USE-CASE: Authenticate via Email Token {{authenticate}}
 --------------------------------------
 
--   ACTOR:          [[PERSONA:attendee]]
+-   ACTOR:          [[ROLE:attendee]]
 -   JOURNEYS:       [[STEP:authenticate]]
 -   ACTIVITIES:     [[ACTIVITY:attend-event]]
 -   REQUIREMENTS:   [[REQUIREMENT:authentication]], [[REQUIREMENT:user-consent]], [[REQUIREMENT:parallel-access]], [[REQUIREMENT:personalized-url]], [[REQUIREMENT:automatic-url]], [[REQUIREMENT:info-messages]], [[REQUIREMENT:gdpr-eu]]
@@ -138,7 +138,7 @@ entitles the attendee to the event they were invited to.
 USE-CASE: Ask a Question {{ask-question}}
 ------------------------
 
--   ACTOR:          [[PERSONA:attendee]]
+-   ACTOR:          [[ROLE:attendee]]
 -   JOURNEYS:       [[STEP:participate]]
 -   ACTIVITIES:     [[ACTIVITY:attend-event]]
 -   REQUIREMENTS:   [[REQUIREMENT:questions]], [[REQUIREMENT:question-tags]], [[REQUIREMENT:moderation]], [[REQUIREMENT:server-sentiment]], [[REQUIREMENT:client-sentiment]]
@@ -195,7 +195,7 @@ passive viewer into a participant.
 USE-CASE: Chat During the Event {{chat-during-event}}
 -------------------------------
 
--   ACTOR:          [[PERSONA:attendee]]
+-   ACTOR:          [[ROLE:attendee]]
 -   JOURNEYS:       [[STEP:participate]]
 -   ACTIVITIES:     [[ACTIVITY:attend-event]]
 -   REQUIREMENTS:   [[REQUIREMENT:chat]], [[REQUIREMENT:likes]], [[REQUIREMENT:replies]], [[REQUIREMENT:message-editing]], [[REQUIREMENT:deleted-placeholder]], [[REQUIREMENT:display-options]], [[REQUIREMENT:name-appearance]], [[REQUIREMENT:mc-feedback]]
@@ -296,7 +296,8 @@ from silent viewers into an engaged community.
 USE-CASE: Moderate and Forward Messages {{moderate}}
 ---------------------------------------
 
--   ACTOR:          [[PERSONA:moderator-qa]]
+-   ACTOR:          [[ROLE:moderator]]
+-   PERSONAS:       [[PERSONA:moderator-qa]]
 -   JOURNEYS:       [[STEP:support]]
 -   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:moderate-interaction]]
 -   REQUIREMENTS:   [[REQUIREMENT:moderation]], [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:sort-filter]], [[REQUIREMENT:presenter-hints]]
@@ -332,7 +333,8 @@ curated, ordered selection of the audience input while on stage.
 USE-CASE: Moderate the Chat Conversation {{moderate-chat}}
 ----------------------------------------
 
--   ACTOR:          [[PERSONA:moderator-chat]]
+-   ACTOR:          [[ROLE:moderator]]
+-   PERSONAS:       [[PERSONA:moderator-chat]]
 -   JOURNEYS:       [[STEP:support]]
 -   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:moderate-interaction]]
 -   REQUIREMENTS:   [[REQUIREMENT:answer-inputs]], [[REQUIREMENT:moderator-messages]], [[REQUIREMENT:manage-app]]
@@ -381,7 +383,7 @@ an unattended chat drowns in spam and off-topic noise.
 USE-CASE: Switch Streaming Provider {{switch-provider}}
 -----------------------------------
 
--   ACTOR:          [[PERSONA:manager]]
+-   ACTOR:          [[ROLE:manager]]
 -   JOURNEYS:       [[STEP:configure]]
 -   ACTIVITIES:     [[ACTIVITY:go-live]]
 -   REQUIREMENTS:   [[REQUIREMENT:multi-provider]], [[REQUIREMENT:provider-switch]], [[REQUIREMENT:config-propagation]]
@@ -407,7 +409,7 @@ provider recovers.
 USE-CASE: Create Event from Registration Import {{create-event}}
 -----------------------------------------------
 
--   ACTOR:          [[PERSONA:manager]]
+-   ACTOR:          [[ROLE:manager]]
 -   JOURNEYS:       [[STEP:configure]]
 -   ACTIVITIES:     [[ACTIVITY:plan-event]]
 -   REQUIREMENTS:   [[REQUIREMENT:registration-import]], [[REQUIREMENT:registration-export]], [[REQUIREMENT:event-portability]]
@@ -433,7 +435,7 @@ invitations on repeated imports, BECAUSE provisioning hundreds of attendees by h
 USE-CASE: Publish, Start, and Finish Event {{publish-start-finish}}
 ------------------------------------------
 
--   ACTOR:          [[PERSONA:manager]]
+-   ACTOR:          [[ROLE:manager]]
 -   JOURNEYS:       [[STEP:configure]]
 -   ACTIVITIES:     [[ACTIVITY:go-live]], [[ACTIVITY:finish-event]]
 -   RULES:          [[RULE:anonymize]]
@@ -469,7 +471,7 @@ deliberate decisions of the manager, not side effects of the clock.
 USE-CASE: Export Anonymized Event Data {{export-data}}
 --------------------------------------
 
--   ACTOR:          [[PERSONA:manager]]
+-   ACTOR:          [[ROLE:manager]]
 -   JOURNEYS:       [[STEP:export]]
 -   ACTIVITIES:     [[ACTIVITY:archive-results]]
 -   REQUIREMENTS:   [[REQUIREMENT:export-inputs]], [[REQUIREMENT:event-stats]], [[REQUIREMENT:channel-stats]], [[REQUIREMENT:user-stats]], [[REQUIREMENT:debug-stats]]
@@ -506,7 +508,7 @@ questions afterwards from this record.
 USE-CASE: Present Forwarded Questions {{present}}
 -------------------------------------
 
--   ACTOR:          [[PERSONA:presenter]]
+-   ACTOR:          [[ROLE:presenter]]
 -   ACTIVITIES:     [[ACTIVITY:rehearse-event]], [[ACTIVITY:present-talk]]
 -   REQUIREMENTS:   [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:presenter-dashboard]], [[REQUIREMENT:presenter-hints]]
 -   PRE-CONDITION:  The event is running and questions have been forwarded.
