@@ -133,6 +133,8 @@ const SchemaDiagramConfig: v.GenericSchema<Partial<GradiaConfig>> =
         issue.expected === "never" ? "unknown Gradia rendering option" :
             "expected a map of Gradia rendering options"))
 
+/*  the Valibot schemas mirroring the types above, with the object
+    kind schema referencing itself lazily for the nested childs  */
 const SchemaProperty: v.GenericSchema<SchemaProperty> = v.strictObject({
     name:              v.string(),
     desc:              v.optional(v.string()),

@@ -328,17 +328,18 @@ const parseHeading = (ctx: ParseContext, token: Tokens.Heading, state: WalkState
     state.group = null
     if (heading.malformed !== undefined)
         ctx.diagnose(file, line, `malformed anchor "${heading.malformed}" in heading`)
-    if (heading.name === "" && depth > 1) {
-        const parent = state.stack[depth - 2]
-        if (parent === undefined) {
-            ctx.diagnose(file, line, `heading level ${depth} without parent object`)
-            state.current = null
-        }
-        else {
-            state.group        = { parent, kind: heading.kind }
-            state.current      = parent
-            state.stack.length = depth - 1
-        }
+
+    /*  a nested heading requires the enclosing object one level above  */
+    const parent = depth > 1 ? state.stack[depth - 2] : undefined
+    if (depth > 1 && parent === undefined) {
+        ctx.diagnose(file, line, `heading level ${depth} without parent object`)
+        state.current = null
+        return
+    }
+    if (parent !== undefined && heading.name === "") {
+        state.group        = { parent, kind: heading.kind }
+        state.current      = parent
+        state.stack.length = depth - 1
         return
     }
     const object: SpecObject = {
@@ -355,17 +356,10 @@ const parseHeading = (ctx: ParseContext, token: Tokens.Heading, state: WalkState
     if (heading.primary)
         object.primary = true
     ctx.objectMeta.set(object, { file, line })
-    if (depth === 1)
+    if (parent === undefined)
         state.artifacts.push({ ...stamps, objects: [ object ] })
-    else {
-        const parent = state.stack[depth - 2]
-        if (parent === undefined) {
-            ctx.diagnose(file, line, `heading level ${depth} without parent object`)
-            state.current = null
-            return
-        }
+    else
         parent.childs.push(object)
-    }
     state.stack.length     = depth - 1
     state.stack[depth - 1] = object
     state.current          = object
@@ -415,7 +409,10 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
     const flush = () => {
         const current = state.current
         if (current !== null && parts.length > 0) {
-            if (current.description === undefined)
+            if (state.group !== null)
+                ctx.diagnose(source.file, partsLine,
+                    `content ignored below ${state.group.kind} container of ${current.kind} "${current.name}"`)
+            else if (current.description === undefined)
                 current.description = splitDescription(parts.join("\n\n").trim())
             else
                 ctx.diagnose(source.file, partsLine,

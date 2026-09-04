@@ -27,12 +27,6 @@ export interface PreviewServer {
     update: (html: Buffer) => void
 }
 
-/*  the placeholder page answering a GET before the first successful
-    export: it still carries the live preview client, so the browser
-    subscribes to the "RELOAD" command right away and replaces itself
-    with the document once the first export arrives  */
-const placeholder = renderPlaceholder("no specification export available yet")
-
 /*  serve the live HTML preview: a plain GET on "/" answers with the
     most recent HTML export (or with the 503 placeholder page before the
     first successful one), while a WebSocket upgrade on "/" subscribes
@@ -42,6 +36,12 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
     const clients = new Set<WebSocket>()
     const fastify = Fastify()
     await fastify.register(fastifyWebsocket)
+
+    /*  the placeholder page answering a GET before the first successful
+        export: it still carries the live preview client, so the browser
+        subscribes to the "RELOAD" command right away and replaces itself
+        with the document once the first export arrives  */
+    const placeholder = renderPlaceholder("no specification export available yet")
 
     /*  answer a plain GET with the document and subscribe a WebSocket upgrade  */
     fastify.route({

@@ -155,9 +155,9 @@ export class SpecBook {
         if (requested.includes("pdf"))
             await requireBrowser(verbose)
 
-        return this.renderFormats(lint({ config: await this.configFiles(options.config),
-            basedir: options.basedir ?? ".", verbose }), requested, verbose,
-        options.realtime === true)
+        const result = lint({ config: await this.configFiles(options.config),
+            basedir: options.basedir ?? ".", verbose })
+        return this.renderFormats(result, requested, verbose, options.realtime === true)
     }
 
     /*  keep an export in sync with its sources (the shared core of

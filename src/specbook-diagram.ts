@@ -295,9 +295,13 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
             errors.push({ reason: "\"grid\" diagram cannot carry an \"onlyConnected\" configuration" })
     }
 
-    /*  deduplicate the edges (a containment or object edge can coincide
-        with a reference edge, and several edge objects can describe
-        the very same edge)  */
+    return edges
+}
+
+/*  deduplicate the edges (a containment, object, or center edge can
+    coincide with a reference edge, and several edge objects can
+    describe the very same edge)  */
+const dedupEdges = (edges: DiagramEdge[], anchors: Map<SpecObject, string>): DiagramEdge[] => {
     const seenEdges = new Set<string>()
     return edges.filter((edge) => {
         const key = `${anchors.get(edge.source) ?? edge.source.id}` +
@@ -475,7 +479,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     nodes = nodes.filter((node) => !edgeSet.has(node))
     const nodeSet = new Set<SpecObject>(nodes)
 
-    /*  derive the (deduplicated) edges of the diagram  */
+    /*  derive the edges of the diagram  */
     let edges = deriveEdges(diagram, type, nodes, nodeSet, edgeObjects, index, anchors, parents,
         parenProps, errors)
 
@@ -494,9 +498,12 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
     const { center, centerUrl } = derived
 
     /*  synthesize the center edges of a "hub" diagram, as the nodes
-        carry no "[[...]]" reference to a synthetic center  */
+        carry no "[[...]]" reference to a synthetic center, and only
+        then deduplicate all edges, as a center edge of a real center
+        can coincide with a reference edge of a node onto it  */
     if (type === "hub" && diagram.centerEdges !== undefined)
         edges.push(...deriveCenterEdges(diagram.centerEdges, nodes, center, index, parenProps, errors))
+    edges = dedupEdges(edges, anchors)
 
     /*  a "hub" diagram is the hub-projection onto its center object:
         only the edges incident to the center and only the nodes

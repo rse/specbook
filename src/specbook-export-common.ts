@@ -177,25 +177,17 @@ const typographyGlyphs = [
     0x00A0, 0x00AB, 0x00BB, 0x2013, 0x2014, 0x2018, 0x2019,
     0x201A, 0x201C, 0x201D, 0x201E, 0x2022, 0x2026, 0x2039, 0x203A ]
 
-/*  the memoized subsetted stylesheets, keyed by the (shared) codepoint
-    set of the charset, as the font subsetting is expensive and the
-    formats of a single export, the watch and preview re-exports, and
-    the MCP service request the very same subset over and over again  */
-const subsetCache = new Map<number[], string>()
+/*  the memoized subsetted stylesheets (as pending or settled promises,
+    so concurrent requests share a single subsetting), keyed by the
+    (shared) codepoint set of the charset, as the font subsetting is
+    expensive and the formats of a single export, the watch and preview
+    re-exports, and the MCP service request the very same subset over
+    and over again  */
+const subsetCache = new Map<number[], Promise<string>>()
 
-/*  provide the stylesheet with its embedded fonts subsetted to the
-    codepoints of a charset plus the always-used symbol and typography
-    glyphs (no charset or a full Unicode charset keeps the fonts complete)  */
-export const subsetStylesheet = async (charset?: string): Promise<string> => {
-    const codepoints = charset !== undefined ? charsetCodepoints(charset) : undefined
-    if (codepoints === undefined)
-        return stylesheet()
-    const cached = subsetCache.get(codepoints)
-    if (cached !== undefined)
-        return cached
-    const css = stylesheet()
+/*  subset the embedded fonts of a stylesheet to the glyphs of a text  */
+const subsetFonts = async (css: string, text: string): Promise<string> => {
     const { default: subsetFont } = await import("subset-font")
-    const text = String.fromCodePoint(...codepoints, ...symbolGlyphs, ...typographyGlyphs)
     let result = ""
     let last   = 0
     for (const m of css.matchAll(/url\("data:font\/woff2;base64,([^"]+)"\)/g)) {
@@ -204,8 +196,24 @@ export const subsetStylesheet = async (charset?: string): Promise<string> => {
             `url("data:font/woff2;base64,${subset.toString("base64")}")`
         last = m.index + m[0].length
     }
-    const subsetted = result + css.slice(last)
-    subsetCache.set(codepoints, subsetted)
+    return result + css.slice(last)
+}
+
+/*  provide the stylesheet with its embedded fonts subsetted to the
+    codepoints of a charset plus the always-used symbol and typography
+    glyphs (no charset or a full Unicode charset keeps the fonts complete),
+    where a failed subsetting leaves the cache, so the next request retries  */
+export const subsetStylesheet = async (charset?: string): Promise<string> => {
+    const codepoints = charset !== undefined ? charsetCodepoints(charset) : undefined
+    if (codepoints === undefined)
+        return stylesheet()
+    let subsetted = subsetCache.get(codepoints)
+    if (subsetted === undefined) {
+        const text = String.fromCodePoint(...codepoints, ...symbolGlyphs, ...typographyGlyphs)
+        subsetted  = subsetFonts(stylesheet(), text)
+        subsetted.catch(() => { subsetCache.delete(codepoints) })
+        subsetCache.set(codepoints, subsetted)
+    }
     return subsetted
 }
 

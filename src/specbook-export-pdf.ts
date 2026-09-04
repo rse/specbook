@@ -59,8 +59,10 @@ const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
     if (dests !== undefined) {
         for (const [ name ] of dests.entries()) {
             const dest = dests.lookup(name)
-            const page = dest instanceof PDFArray ? dest.get(0) : undefined
-            if (dest instanceof PDFArray && page instanceof PDFRef && live.has(page.toString()))
+            if (!(dest instanceof PDFArray))
+                continue
+            const page = dest.get(0)
+            if (page instanceof PDFRef && live.has(page.toString()))
                 targets.set(name.decodeText(), dest)
         }
     }

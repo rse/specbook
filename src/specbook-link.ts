@@ -197,17 +197,17 @@ export const resolveSet = (index: LinkIndex, reference: string): SpecObject[] =>
     scoping rule: a match within the same parent beats one in a sibling
     subtree, which beats one in another artifact)  */
 const nearest = (index: LinkIndex, matches: SpecObject[], from: SpecObject): SpecObject[] => {
-    const chain    = chainOf(index, from)
-    const distance = (object: SpecObject): number => {
+    const chain     = chainOf(index, from)
+    const proximity = (object: SpecObject): number => {
         const other = chainOf(index, object)
         let i = 0
         while (i < chain.length && i < other.length && chain[i] === other[i])
             i++
         return i
     }
-    const distances = matches.map((object) => distance(object))
-    const best      = Math.max(...distances)
-    return matches.filter((_, i) => distances[i] === best)
+    const proximities = matches.map((object) => proximity(object))
+    const best        = Math.max(...proximities)
+    return matches.filter((_, i) => proximities[i] === best)
 }
 
 /*  resolve a reference into a unique target: a single segment tries the

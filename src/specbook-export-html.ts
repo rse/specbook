@@ -701,9 +701,20 @@ nunjucksAddons(env)
 const safe = (html: string) =>
     new nunjucks.runtime.SafeString(html)
 
+/*  the built-in Nunjucks templates compiled on first use, as
+    renderString() would re-compile a template on every single call
+    (i.e. for every rendered object, property table, and description)  */
+const compiled = new Map<keyof typeof templates, nunjucks.Template>()
+
 /*  render one of the built-in Nunjucks templates with a context  */
-const render = (name: keyof typeof templates, context: object): string =>
-    env.renderString(templates[name], context)
+const render = (name: keyof typeof templates, context: object): string => {
+    let template = compiled.get(name)
+    if (template === undefined) {
+        template = new nunjucks.Template(templates[name], env, undefined, true)
+        compiled.set(name, template)
+    }
+    return template.render(context)
+}
 
 /*  the active per-document reference expander, fully-qualified
     anchor paths, member-carrying property value constraints, object
@@ -1088,8 +1099,8 @@ const diagramOf = (object: SpecObject) => {
     headers of a plain table  */
 const renderTable = (childs: SpecObject[], maxColumns: number): string => {
     const { keys, desc } = tableShape(childs)
-    const diagrams = childs.some((child) => diagramOf(child) !== "")
-    if (!diagrams && 1 + keys.length + (desc ? 1 : 0) <= maxColumns)
+    const diagrammed = childs.some((child) => diagramOf(child) !== "")
+    if (!diagrammed && 1 + keys.length + (desc ? 1 : 0) <= maxColumns)
         return render("Table", { Table: {
             head:     childs[0].kind !== "" ? childs[0].kind : "Name",
             info:     infoKeyOf(childs[0]),
@@ -1396,53 +1407,54 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     const lang = documentLang(specification)
     quotes = quoteStyles[lang?.toLowerCase().split(/[-_]/)[0] ?? "en"] ?? quoteStyles.en
 
-    /*  establish the per-document rendering state  */
+    /*  establish the per-document rendering state (released again
+        below, also on a failure of the collecting or rendering)  */
     const index = buildLinkIndex(specification)
-    anchors  = anchorPaths(index)
-    members  = config !== undefined ? collectMembers(config, new Map()) : null
-    schemas  = config !== undefined ? collectSchemas(specification, config) : null
-    diagrams = rendered
-
-    /*  collect the schema descriptions for the description popups,
-        plus the object parents composing their title paths  */
-    let info: Record<string, InfoEntry> | null = null
-    if (config !== undefined) {
-        infoKeys = new Map<SchemaObject, string>()
-        info     = {}
-        collectInfo(config, "", infoKeys, info)
-        const parents = new Map<SpecObject, SpecObject>()
-        for (const node of index)
-            if (node.parent !== undefined)
-                parents.set(node.object, node.parent.object)
-        infoParents = parents
-    }
-    linker   = makeLinker(index)
-
-    /*  collect the corpus descriptions of the object instances for the
-        description popups (after the linker is in place, as the
-        pre-rendered descriptions expand their references, too)  */
-    let spec: Record<string, string> | null = null
-    if (info !== null) {
-        spec = {}
-        for (const artifact of specification.artifacts)
-            collectSpec(artifact.objects, spec)
-    }
-
-    /*  the artifact timestamps aggregate into the earliest creation
-        and the latest modification timestamp of the document  */
-    const created  = new Date(Math.min(
-        ...specification.artifacts.map((artifact) => artifact.created.getTime())))
-    const modified = new Date(Math.max(
-        ...specification.artifacts.map((artifact) => artifact.modified.getTime())))
-
-    /*  a "META: Title" object becomes the title page and leaves the regular
-        flow, while its diagram becomes the "Diagram of Contents" page  */
-    const title     = titlePageObject(specification)
-    const artifacts = specification.artifacts
-        .filter((artifact) => !artifact.objects.some(isTitleObject))
-    const meta      = titleObject(specification)
-    const doc       = meta !== undefined ? rendered?.get(meta) : undefined
     try {
+        anchors  = anchorPaths(index)
+        members  = config !== undefined ? collectMembers(config, new Map()) : null
+        schemas  = config !== undefined ? collectSchemas(specification, config) : null
+        diagrams = rendered
+
+        /*  collect the schema descriptions for the description popups,
+            plus the object parents composing their title paths  */
+        let info: Record<string, InfoEntry> | null = null
+        if (config !== undefined) {
+            infoKeys = new Map<SchemaObject, string>()
+            info     = {}
+            collectInfo(config, "", infoKeys, info)
+            const parents = new Map<SpecObject, SpecObject>()
+            for (const node of index)
+                if (node.parent !== undefined)
+                    parents.set(node.object, node.parent.object)
+            infoParents = parents
+        }
+        linker   = makeLinker(index)
+
+        /*  collect the corpus descriptions of the object instances for the
+            description popups (after the linker is in place, as the
+            pre-rendered descriptions expand their references, too)  */
+        let spec: Record<string, string> | null = null
+        if (info !== null) {
+            spec = {}
+            for (const artifact of specification.artifacts)
+                collectSpec(artifact.objects, spec)
+        }
+
+        /*  the artifact timestamps aggregate into the earliest creation
+            and the latest modification timestamp of the document  */
+        const created  = new Date(Math.min(
+            ...specification.artifacts.map((artifact) => artifact.created.getTime())))
+        const modified = new Date(Math.max(
+            ...specification.artifacts.map((artifact) => artifact.modified.getTime())))
+
+        /*  a "META: Title" object becomes the title page and leaves the regular
+            flow, while its diagram becomes the "Diagram of Contents" page  */
+        const title     = titlePageObject(specification)
+        const artifacts = specification.artifacts
+            .filter((artifact) => !artifact.objects.some(isTitleObject))
+        const meta      = titleObject(specification)
+        const doc       = meta !== undefined ? rendered?.get(meta) : undefined
         const objects = artifacts.flatMap((artifact) => artifact.objects)
         const entries = tocEntries(objects, tocPages)
         return render("Document", { Document: {

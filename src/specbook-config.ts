@@ -108,7 +108,10 @@ const posOfMergedPath = (docs: ConfigDoc[], merged: unknown, path: YamlPath) => 
         for (const segment of path) {
             const key = typeof segment === "number" && Array.isArray(own) ?
                 own.findIndex((item: unknown) => identityOf(item, list) === identityOf(at(node, segment), list)) : segment
-            if (typeof key === "number" ? !Array.isArray(own) || key < 0 : !isPlainObject(own) || !(key in own))
+            const reaches = typeof key === "number" ?
+                Array.isArray(own) && key >= 0 :
+                isPlainObject(own) && key in own
+            if (!reaches)
                 break
             translated.push(key)
             node = at(node, segment)
@@ -349,10 +352,10 @@ export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Dia
     if (diagnostics.length > 0)
         return { diagnostics }
 
-    /*  merge the documents in order, out of fresh and unshared
-        conversions, as the merge mutates its target while the raw ones
-        have to stay intact for the path translation  */
-    const merged = docs.map(({ doc }) => unshared(doc.toJS()))
+    /*  merge the documents in order, out of unshared deep copies of
+        the conversions, as the merge mutates its target while the raw
+        ones have to stay intact for the path translation  */
+    const merged = docs.map(({ raw }) => unshared(raw))
         .reduce((target, source) => mergeConfig(target, source))
 
     /*  semantically validate the merged result against the schema of the configuration  */
