@@ -70,7 +70,8 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 -   **HTML Export for Developers**:
     The HTML export is a self-contained single document with a
     table-of-contents (also as a slide-in side panel for quick navigation),
-    full-text search, embedded images, and a light/dark
+    full-text search, embedded images, a scroll progress meter (which
+    also scrolls back to the top on click), and a light/dark
     theme toggle. It is intended for the day-to-day online reading during
     development. The HTML export can map all object kinds to nested
     sections or compact tables, or an automatic mixture which collapses

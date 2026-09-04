@@ -5,6 +5,10 @@ ChangeLog
 1.2.3 (2026-09-04)
 ------------------
 
+-   FEATURE [code, docs]: Scroll Progress Meter in HTML Export
+    The HTML export now carries a screen-only ring at the bottom right corner showing the scrolled
+    fraction of the document, which scrolls back to the top on click.
+
 -   IMPROVEMENT [code]: Schema and Corpus Statistics in Verbose Output
     The verbose output now reports the object kinds and link relationships the schema
     configuration specifies and the objects and link relationships the specification defines.

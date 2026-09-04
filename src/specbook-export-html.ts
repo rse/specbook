@@ -60,12 +60,14 @@ const templates = {
                         <span class="search-clear" id="search-clear" title="clear search">&#x00D7;</span>
                     </div>
                 </div>
+                <div class="scroll-progress" title="scroll to top"><svg class="scroll-ring" viewBox="0 0 44 44" fill="none" stroke-width="2.5"><circle class="scroll-todo" cx="22" cy="22" r="20"/><circle class="scroll-done" cx="22" cy="22" r="20" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></svg><svg class="scroll-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></div>
                 {{ Document.tocpanel }}
                 {{ Document.titlepage }}
                 {{ Document.toc }}
                 {{ Document.doc }}
                 {{ Document.artifacts }}
                 {% if Document.search %}<script>{{ Document.search }}</script>{% endif %}
+                <script>{{ Document.progress }}</script>
                 {% if Document.tocpanel %}<script>{{ Document.tocscript }}</script>{% endif %}
                 {% if Document.info %}<script>{{ Document.info }}</script>{% endif %}
                 {% if Document.realtime %}<script class="realtime">{{ Document.realtime }}</script>{% endif %}
@@ -369,6 +371,48 @@ const realtimeScript = textframe`
             }
         }
         connect()
+    })()
+`
+
+/*  the client-side script of the scroll progress meter: it drives the
+    DONE arc of the ring (through the dash offset of its unit-length
+    circle) with the scrolled fraction of the document, shows the meter
+    once the page is scrolled beyond 400px, and scrolls the page back
+    to the top on a click (stripping the URL hash, so a later reload
+    stays at the top). The updates are throttled onto animation frames,
+    and the window-bound listeners retire themselves once a live preview
+    body swap replaced the meter (whose fresh script re-attaches)  */
+const scrollProgressScript = textframe`
+    (function () {
+        const meter = document.querySelector("div.scroll-progress")
+        const ring  = meter.querySelector("circle.scroll-done")
+        let ticking = false
+        const update = () => {
+            ticking = false
+            if (!meter.isConnected) {
+                window.removeEventListener("scroll", schedule)
+                window.removeEventListener("resize", schedule)
+                return
+            }
+            const doc = document.documentElement
+            const max = doc.scrollHeight - doc.clientHeight
+            ring.setAttribute("stroke-dashoffset", String(1 - (max > 0 ? doc.scrollTop / max : 0)))
+            meter.classList.toggle("shown", doc.scrollTop > 400)
+        }
+        const schedule = () => {
+            if (!ticking) {
+                ticking = true
+                requestAnimationFrame(update)
+            }
+        }
+        meter.addEventListener("click", () => {
+            window.scrollTo({ top: 0, behavior: "smooth" })
+            if (window.location.hash)
+                history.replaceState(null, "", window.location.pathname + window.location.search)
+        })
+        window.addEventListener("scroll", schedule, { passive: true })
+        window.addEventListener("resize", schedule)
+        update()
     })()
 `
 
@@ -1474,6 +1518,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
                 safe(renderTitlePage(title,
                     formatDate(created), formatDate(modified))) : "",
             search:      safe(searchScript()),
+            progress:    safe(scrollProgressScript),
             info:        info !== null ? safe(infoScript(info, spec ?? {})) : "",
             realtime:    realtime ? safe(realtimeScript) : "",
             toc:         entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",

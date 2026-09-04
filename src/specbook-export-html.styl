@@ -81,6 +81,8 @@ html.theme-light
     --theme-color-specbook-popup-schema-desc: var(--theme-color-base-32)
     --theme-color-specbook-popup-spec-path:   var(--theme-color-accent-12)
     --theme-color-specbook-popup-spec-desc:   var(--theme-color-base-5)
+    --theme-color-specbook-progress-done:     var(--theme-color-accent-12)
+    --theme-color-specbook-progress-todo:     var(--theme-color-accent-31)
     --gradia-font-family:                     "Source Sans 3"
     --gradia-color-node-regular-name:         var(--theme-color-accent-12)
     --gradia-color-node-regular-box:          var(--theme-color-accent-30)
@@ -122,6 +124,8 @@ html.theme-light
         --theme-color-specbook-popup-schema-desc: var(--theme-color-base-7)
         --theme-color-specbook-popup-spec-path:   var(--theme-color-accent-24)
         --theme-color-specbook-popup-spec-desc:   var(--theme-color-base-29)
+        --theme-color-specbook-progress-done:     var(--theme-color-accent-24)
+        --theme-color-specbook-progress-todo:     var(--theme-color-accent-4)
         --gradia-color-node-regular-name:         var(--theme-color-accent-21)
         --gradia-color-node-regular-box:          var(--theme-color-accent-3)
         --gradia-color-node-regular-border:       var(--theme-color-accent-7)
@@ -399,6 +403,56 @@ div.realtime-status.reloaded svg.realtime-icon
         background-color: transparent
 @media print
     div.realtime-status
+        display: none
+
+/*  the scroll progress meter (screen-only): a ring at the bottom right
+    corner of the viewport (fixed independent of the content scrolling),
+    whose DONE part (the arc drawn clockwise from the top, together with
+    the upward arrow in its center, drawn like the tab icons) reflects
+    the scrolled fraction of the document over the TODO part (the full
+    circle in the lighter progress color beneath), which stays hidden
+    while the page is scrolled near the top (fading in once scrolled
+    beyond 400px) and scrolls the page back to the top on click, where
+    the DONE part and the arrow brighten on hover like the tabs  */
+div.scroll-progress
+    position: fixed
+    right: 1.5rem
+    bottom: 1.5rem
+    z-index: 30
+    width: 3rem
+    height: 3rem
+    line-height: 0
+    color: var(--theme-color-specbook-progress-done)
+    opacity: 0
+    pointer-events: none
+    transition: opacity 0.3s ease
+    cursor: pointer
+    -webkit-user-select: none
+    user-select: none
+div.scroll-progress.shown
+    opacity: 1
+    pointer-events: auto
+div.scroll-progress:hover
+    color: var(--theme-color-specbook-accent-soft)
+div.scroll-progress svg.scroll-ring
+    position: absolute
+    inset: 0
+    width: 100%
+    height: 100%
+    transform: rotate(-90deg)
+div.scroll-progress svg.scroll-ring circle.scroll-todo
+    stroke: var(--theme-color-specbook-progress-todo)
+div.scroll-progress svg.scroll-ring circle.scroll-done
+    stroke: currentColor
+div.scroll-progress svg.scroll-icon
+    position: absolute
+    top: 50%
+    left: 50%
+    width: 1.1rem
+    height: 1.1rem
+    transform: translate(-50%, -50%)
+@media print
+    div.scroll-progress
         display: none
 
 /*  the side panel of the table of contents (screen-only): a fixed

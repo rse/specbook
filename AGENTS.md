@@ -98,6 +98,7 @@ The YAML schema configuration of `init`, `lint`, `export`, and `preview` falls b
 onto the bundled standard one (assembled from `src/specbook-format.d/` into
 `dst/` at build time), while `describe` references the given one only
 and falls back onto the standard one by embedding it.
+
 The option `-c`/`--config` accepts glob patterns (expanded via `glob`)
 and can occur multiple times: the matching files (in pattern order,
 alphabetically within a pattern, with the literal `std` naming the
@@ -107,29 +108,37 @@ into the earlier ones, via `mergeWith` of `es-toolkit`), where the
 objects merge deeply and the list elements are matched by identity
 (artifacts by `kind` plus `id`/`name`, nested objects by `kind`,
 properties by `name`): every file has to be valid YAML on its own, while
-the merged result alone is validated. The API methods and MCP tools take
+the merged result alone is validated.
+
+The API methods and MCP tools take
 the patterns as `string[]`, and `SPECBOOK_CONFIG` carries a
 `path.delimiter`-separated list of patterns. With several files,
 `describe` references each of them, and embeds (or emits raw) the merged
 configuration re-emitted as YAML instead of a verbatim file.
+
 Exactly the artifact files referenced by its `file` fields are loaded and parsed,
 resolved against the base directory, in which generated specification
 Markdown files are placed, too. All other Markdown files below the base
 directory are ignored, while a referenced but absent file is reported
 unless all of its artifacts are optional.
+
 The export output option `-o`/`--output` (default: `-` for stdout) can
 occur multiple times; the format is inferred from the filename extension,
 unless explicitly given as a `<format>:` prefix, and plain `-` (stdout)
 defaults to JSON.
+
 The export option `-w`/`--watch` performs the regular export and then
 observes the referenced artifact files and their embedded assets,
 re-exporting once a change burst stayed silent for one second, where a
 failed re-export is reported but leaves the observe loop intact and where
 `-` (stdout) and an output which is itself an observed source file are
-rejected as an output. The rendered diagram SVGs are
+rejected as an output.
+
+The rendered diagram SVGs are
 cached in memory per Gradia spec and swept to the diagrams of the
 latest rendering, so the repeated renderings of a process (watch,
 preview, MCP, and the passes and formats of a single export) reuse them.
+
 The `preview` command serves the HTML export as a live preview through
 Fastify on `http://<ip-addr>:<tcp-port>/` (`-a`/`--addr`, default
 `127.0.0.1`, and `-p`/`--port`, default `12345`): it observes the
@@ -138,31 +147,46 @@ sources exactly like `export --watch`, keeps the HTML export in memory
 successful export a GET answers `503` with a placeholder page which
 carries the very same client-side script and hence replaces itself with
 the document once the first export arrives), and sends the string `RELOAD` to
-all connected WebSocket clients (on `/`, too) after every re-export. The
-served HTML is exported with the API-only `realtime` option of
+all connected WebSocket clients (on `/`, too) after every re-export.
+
+The served HTML is exported with the API-only `realtime` option of
 `export`/`watch`, which injects a client-side script connecting back to
 the page URL with the scheme `http`/`https` replaced by `ws`/`wss`,
 re-connecting every second after a lost connection, and updating the
 page on `RELOAD` and on every re-established connection: the fresh page
 is fetched and the document replaced in place (title, changed
 stylesheet, body, with the body scripts re-executed), so the scroll
-position and the theme choice survive the update. A status tab at the
+position and the theme choice survive the update.
+
+A status tab at the
 accent bar below the table of contents tab shows the connection state:
 its plug icon carries the search filter mark colors while disconnected
 (also before the first connection) and blinks in a soft accent box for
 2s after every update. There is no
 `preview` MCP tool, as it is a long-running server.
+
+The HTML export (screen only, hidden for print and hence PDF) carries a
+scroll progress meter at the bottom right corner of the viewport: a ring
+whose done arc and upward arrow (colored `--theme-color-specbook-progress-done`,
+by default the accent color) grow over the remaining circle (colored
+`--theme-color-specbook-progress-todo`, by default a lighter accent
+spread index) with the scrolled fraction of the document, which fades in
+once the page is scrolled beyond 400px and scrolls the page back to the
+top (stripping the URL hash) on click.
+
 The `describe` command outputs `src/specbook-format.md` verbatim,
 followed by a "SpecBook Project Instantiation" section pointing to the
 YAML schema configuration (`-c`, falling back onto the embedded standard
-one) and the base directory (`-b`) whenever one of them is present, where
-`-e`/`--embed` embeds the given YAML schema configuration itself instead
-of just referencing it, and `-z`/`--compress [<level>]` (default and
+one) and the base directory (`-b`) whenever one of them is present.
+
+There, `-e`/`--embed` embeds the given YAML schema configuration itself
+instead of just referencing it, and `-z`/`--compress [<level>]` (default and
 bare flag `1`) emits the YAML schema configuration (embedded into the
 Markdown or as the `raw` file content) compressed instead of verbatim:
 level `1` re-emits it with 2-space indentation, unwrapped lines, and
 without comments, level `2` additionally drops its `refs` fields, and level `3`
 additionally drops its `desc` fields of objects and properties.
+
 The `describe` option `-p`/`--part` (default: `all`) reduces the output
 to the generic description alone (`meta`), the YAML schema configuration
 alone (`schema`, falling back onto the embedded standard one), or the base
@@ -171,6 +195,7 @@ switches from the rendered Markdown onto the raw original file content
 (the `schema` one compressed by the `--compress` level)
 (`raw`), which is available for the file-backed parts `meta` and
 `schema` only.
+
 The default value of every CLI option `--xxx` can be overridden by a
 corresponding `SPECBOOK_XXX` environment variable.
 
