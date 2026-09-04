@@ -6,6 +6,9 @@ SpecBook
 
 **Markdown-based Specification Format**
 
+[![github (author stars)](https://img.shields.io/github/stars/rse?logo=github&label=author%20stars&color=%233377aa)](https://github.com/rse)
+[![github (author followers)](https://img.shields.io/github/followers/rse?label=author%20followers&logo=github&color=%234477aa)](https://github.com/rse)
+
 About
 -----
 
@@ -433,6 +436,20 @@ Rendering Examples
 ### PDF Rendering
 
 ![screenshot-print](etc/screenshot-print.png)
+
+See Also
+--------
+
+- [ASE](https://ase.tools)(Agentic Software Engineering)
+
+Support
+-------
+
+**SpecBook** is developed in the experience context of industrial Software
+Engineering at the [*msg group*](https://www.msg.group) and in the
+educational context of the *Software Engineering Academy (SEA)*. **SpecBook**
+development is supported by *msg Research* and *Software Engineering
+Academy (SEA)*.
 
 License
 -------
