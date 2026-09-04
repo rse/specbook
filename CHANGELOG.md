@@ -5,6 +5,10 @@ ChangeLog
 1.2.2 (2026-09-04)
 ------------------
 
+-   BUGFIX [code]: Shared YAML Aliases on Configuration Merging
+    Merging a configuration file into a base file sharing a node through a YAML anchor/alias no
+    longer alters the other alias siblings, too, as the merge now works on unshared copies.
+
 -   BUGFIX [code, docs]: Self-Recovering Preview Placeholder
     The "503" answer of "preview" before the first successful export is now a placeholder page
     carrying the live preview client, as such a browser tab stayed on the error text until a

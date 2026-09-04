@@ -74,6 +74,18 @@ const mergeConfig = (target: unknown, source: unknown, list?: string): unknown =
         return source
 }
 
+/*  deep copy a converted YAML document, as the conversion resolves all
+    aliases of an anchor onto one shared object, which the in-place
+    merge otherwise would alter through every alias at once  */
+const unshared = (value: unknown): unknown => {
+    if (Array.isArray(value))
+        return value.map((item) => unshared(item))
+    else if (isPlainObject(value))
+        return Object.fromEntries(Object.entries(value).map(([ key, val ]) => [ key, unshared(val) ]))
+    else
+        return value
+}
+
 /*  a parsed configuration file: its document (with the line positions
     for the diagnostics) and its raw content for the path translation  */
 type ConfigDoc = { file: string, doc: Document, lines: LineCounter, raw: unknown }
@@ -317,10 +329,10 @@ export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Dia
     if (diagnostics.length > 0)
         return { diagnostics }
 
-    /*  merge the documents in order, out of fresh conversions, as the
-        merge mutates its target while the raw ones have to stay intact
-        for the path translation  */
-    const merged = docs.map(({ doc }) => doc.toJS() as unknown)
+    /*  merge the documents in order, out of fresh and unshared
+        conversions, as the merge mutates its target while the raw ones
+        have to stay intact for the path translation  */
+    const merged = docs.map(({ doc }) => unshared(doc.toJS()))
         .reduce((target, source) => mergeConfig(target, source))
 
     /*  semantically validate the merged result against the schema of the configuration  */
