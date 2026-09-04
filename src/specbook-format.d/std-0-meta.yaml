@@ -72,12 +72,14 @@
 # -     All artifacts have a unique 2-word name (e.g. "Context View") and a
 #       corresponding unique 2-letter identifier.
 #
-#   -   All artifacts are ordered coarse to fine, i.e., from the broad
-#       context down to the fine detail, so a whole is read before its
-#       parts and the object references below can stay backwards. E.g.
-#       the Domain Workflows (summary level: many actors, many sittings)
-#       precede the Use Cases (user-goal level: one actor, one sitting),
-#       which reference back into the workflow activities.
+#   -   The artifacts are ordered coarse to fine wherever a granularity
+#       relation exists (REQS from the Solution Vision down to the Use
+#       Cases, UXUI from the Interaction Concept down to the Visual
+#       Design) and by concern otherwise (DATA structure/behavior/access,
+#       the ARCH viewpoints), while the back-reference rule below settles
+#       the rest. E.g. the Domain Workflows (summary level: many actors,
+#       many sittings) precede the Use Cases (user-goal level: one actor,
+#       one sitting), which reference back into the workflow activities.
 #
 #   -   All object references are strictly back-references, i.e., later
 #       objects reference earlier ones. Only the "referenced" coverage
