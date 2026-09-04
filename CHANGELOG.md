@@ -5,6 +5,10 @@ ChangeLog
 1.2.5 (2026-09-04)
 ------------------
 
+-   IMPROVEMENT [docs, othr]: Rename `PREMISE` Properties to `FAILURE-LIKELIHOOD`/`FAILURE-IMPACT`
+    The properties `LIKELIHOOD` and `IMPACT` of a `PREMISE` were misread as rating the premise
+    itself instead of its failure, so both now carry the `FAILURE-` prefix.
+
 -   FEATURE [code, docs]: Folding of Diagrams and Table Cell Texts in HTML Export
     The HTML export now folds every diagram and every over-long table cell text individually and,
     for all of them at once, through the two controls of a new tab of the brand bar.

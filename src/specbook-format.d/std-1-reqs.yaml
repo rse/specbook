@@ -87,8 +87,8 @@
         nodes: "[[PREMISE:*]]"
         properties:
             -   TYPE
-            -   LIKELIHOOD
-            -   IMPACT
+            -   FAILURE-LIKELIHOOD
+            -   FAILURE-IMPACT
         config:
             size-node-width-max: 440
             size-node-height-scale: 1.75
@@ -120,23 +120,24 @@
                         behave as agreed), or `Risk` (an uncertain event which, if it occurs,
                         harms the achievement of the vision).
                     value: enum(Assumption,Dependency,Risk)
-                -   name: LIKELIHOOD
+                -   name: FAILURE-LIKELIHOOD
                     desc: >
                         The likelihood that the premise fails, i.e. that the assumption turns out
                         to be false, the dependency is not honored, or the risk occurs: `Low`,
-                        `Medium`, or `High`.
+                        `Medium`, or `High`. It rates the failure and not the premise itself, so
+                        `Low` says that the premise most probably holds.
                     value: enum(Low,Medium,High)
-                -   name: IMPACT
+                -   name: FAILURE-IMPACT
                     desc: >
                         The severity of the `CONSEQUENCE` for the solution once the premise fails:
-                        `Low`, `Medium`, or `High`, so that the product of likelihood and impact
-                        ranks the premises by the attention they need.
+                        `Low`, `Medium`, or `High`, so that the product of the failure likelihood
+                        and the failure impact ranks the premises by the attention they need.
                     value: enum(Low,Medium,High)
                 -   name: CONSEQUENCE
                     desc: >
                         What concretely follows for the solution if the premise fails, stated
                         as a 1-2 sentence description of the harm (e.g. `attendees cannot enter
-                        the event`), justifying the `IMPACT` rating.
+                        the event`), justifying the `FAILURE-IMPACT` rating.
                 -   name: MITIGATION
                     desc: >
                         What is done to lower the likelihood or the impact of the failure or to
