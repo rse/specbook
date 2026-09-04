@@ -84,7 +84,7 @@
             https://doi.org/10.1109/52.62930
     diagram:
         type: grid
-        nodes: "[[REQS:SP.PREMISE:*]]"
+        nodes: "[[PREMISE:*]]"
         properties:
             -   TYPE
             -   LIKELIHOOD
@@ -162,7 +162,7 @@
             https://www.domainlanguage.com/ddd/
     diagram:
         type: grid
-        nodes: "[[REQS:DG.TERM:*]]"
+        nodes: "[[TERM:*]]"
         properties:
             -   TYPE
         config:
@@ -188,8 +188,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[REQS:DG.TERM:*]], [[REQS:SP.PREMISE:*]], [[REQS:DR.RULE:*]], [[DATA:DM.ENTITY:*]],
-                    [[REQS:UP.PERSONA:*]]"
+                nodes: "[[TERM:*]], [[PREMISE:*]], [[RULE:*]], [[DM.ENTITY:*]], [[PERSONA:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -216,7 +215,7 @@
                         that the terms form a hierarchy in which a rule governing the broader term
                         covers the narrower ones, too; at most one broader term, keeping the
                         hierarchy a tree.
-                    value: "[[REQS:DG.TERM:*]]"
+                    value: "[[TERM:*]]"
                     optional: true
                     acyclic: true
                 -   name: DISTINCT-FROM
@@ -224,7 +223,7 @@
                         Comma-separated references to the GLOSSARY terms easily confused with this
                         one but deliberately *not* synonymous, listed on both terms of each pair,
                         with the distinction stated in the definitions.
-                    value: list([[REQS:DG.TERM:*]])
+                    value: list([[TERM:*]])
                     optional: true
                     symmetric: true
                 -   name: PREMISES
@@ -233,7 +232,7 @@
                         term, i.e. the assumptions, dependencies, and risks concerning the thing
                         or party it denotes (e.g. the dependency on the external system an
                         `Actor` term names), anchoring every premise in the ubiquitous language.
-                    value: list([[REQS:SP.PREMISE:*]])
+                    value: list([[PREMISE:*]])
                     optional: true
 
 -   kind: REQS
@@ -254,7 +253,7 @@
             https://www.sciencedirect.com/book/9780125662512/the-persona-lifecycle
     diagram:
         type: grid
-        nodes: "[[REQS:UP.PERSONA:*]]"
+        nodes: "[[PERSONA:*]]"
         properties:
             -   TYPE
             -   ROLE
@@ -272,7 +271,7 @@
             format:
                 maxTableColumns: 5
             referenced:
-                -   "[[DATA:AM.ROLE:*]]"
+                -   "[[ROLE:*]]"
             props:
                 -   name: TYPE
                     desc: >
@@ -303,7 +302,7 @@
                         Comma-separated references to the GLOSSARY terms the persona embodies, i.e.
                         the domain roles it acts in and the domain concepts it primarily deals
                         with, so that every persona is anchored in the ubiquitous language.
-                    value: list([[REQS:DG.TERM:*]])
+                    value: list([[TERM:*]])
                     optional: true
                 -   name: PROFICIENCY
                     desc: >
@@ -327,7 +326,7 @@
                         (usually a `Stakeholder`) vouches for, i.e. whose assumption it confirms,
                         whose dependency agreement it holds, or whose risk mitigation it owns;
                         omitted when the persona is accountable for no premise.
-                    value: list([[REQS:SP.PREMISE:*]])
+                    value: list([[PREMISE:*]])
                     optional: true
 
 -   kind: REQS
@@ -349,7 +348,7 @@
             https://www.thisisservicedesigndoing.com/
     diagram:
         type: grid
-        nodes: "[[REQS:UJ.JOURNEY:*]]"
+        nodes: "[[JOURNEY:*]]"
         properties:
             -   ACTORS
     childs:
@@ -362,7 +361,7 @@
                     desc: >
                         Comma-separated references to the User Personas objects experiencing the
                         journey.
-                    value: list([[REQS:UP.PERSONA:*]])
+                    value: list([[PERSONA:*]])
             childs:
                 -   kind: STEP
                     desc: >
@@ -425,7 +424,7 @@
             https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html
     diagram:
         type: grid
-        nodes: "[[REQS:FR.REQUIREMENT:*]]"
+        nodes: "[[FR.REQUIREMENT:*]]"
         properties:
             -   PRIORITY
         config:
@@ -447,7 +446,7 @@
             format:
                 maxTableColumns: 6
             referenced:
-                -   "[[REQS:UC.USE-CASE:*]]"
+                -   "[[USE-CASE:*]]"
             props:
                 -   name: PRIORITY
                     desc: >
@@ -462,7 +461,7 @@
                         Comma-separated references to the SOLUTION-PREMISES objects the
                         requirement rests on, i.e. the assumptions, dependencies, and risks whose
                         failure calls for revisiting it.
-                    value: list([[REQS:SP.PREMISE:*]])
+                    value: list([[PREMISE:*]])
                     optional: true
 
 -   kind: REQS
@@ -483,7 +482,7 @@
         -   Doran: There's a S.M.A.R.T. Way to Write Management's Goals and Objectives, Management Review 70(11) (1981)
     diagram:
         type: grid
-        nodes: "[[REQS:NR.REQUIREMENT:*]]"
+        nodes: "[[NR.REQUIREMENT:*]]"
         properties:
             -   PRIORITY
             -   CATEGORY
@@ -524,14 +523,14 @@
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects whose
                         capability the requirement bounds or constrains.
-                    value: list([[REQS:FR.*]])
+                    value: list([[FR.*]])
                     optional: true
                 -   name: PREMISES
                     desc: >
                         Comma-separated references to the SOLUTION-PREMISES objects the
                         requirement rests on, i.e. the assumptions, dependencies, and risks whose
                         failure calls for revisiting it.
-                    value: list([[REQS:SP.PREMISE:*]])
+                    value: list([[PREMISE:*]])
                     optional: true
                 -   name: METRIC
                     desc: >
@@ -558,7 +557,7 @@
             https://www.omg.org/spec/DMN/
     diagram:
         type: grid
-        nodes: "[[REQS:DR.RULE:*]]"
+        nodes: "[[RULE:*]]"
         properties:
             -   CATEGORY
             -   SOURCE
@@ -591,7 +590,7 @@
             format:
                 maxTableColumns: 5
             referenced:
-                -   "[[TEST:TC.TEST-CASE:*]]"
+                -   "[[TEST-CASE:*]]"
             props:
                 -   name: CATEGORY
                     desc: >
@@ -624,20 +623,20 @@
                         Comma-separated references to the GLOSSARY terms the rule governs, i.e.
                         the domain terms its statement is about, so that every rule is anchored in
                         the ubiquitous language and every term shows the rules that hold for it.
-                    value: list([[REQS:DG.TERM:*]])
+                    value: list([[TERM:*]])
                     optional: true
                 -   name: CONSTRAINS
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS or
                         NON-FUNCTIONAL-REQUIREMENTS objects the rule constrains.
-                    value: list([[REQS:FR.*]], [[REQS:NR.*]])
+                    value: list([[FR.*]], [[NR.*]])
                     optional: true
                 -   name: PREMISES
                     desc: >
                         Comma-separated references to the SOLUTION-PREMISES objects the rule
                         rests on, i.e. the assumptions, dependencies, and risks whose failure
                         calls for revisiting it.
-                    value: list([[REQS:SP.PREMISE:*]])
+                    value: list([[PREMISE:*]])
                     optional: true
 
 -   kind: REQS
@@ -661,7 +660,7 @@
             https://link.springer.com/book/10.1007/978-3-662-49851-4
     diagram:
         type: grid
-        nodes: "[[REQS:DW.WORKFLOW:*]]"
+        nodes: "[[WORKFLOW:*]]"
         properties:
             -   ACTORS
         config:
@@ -693,7 +692,7 @@
                 final: FINAL
             diagram:
                 type: graph
-                edges: "[[REQS:DW.WORKFLOW:*.HANDOFF:*]]"
+                edges: "[[HANDOFF:*]]"
                 edgeSource: FROM
                 edgeTarget: TO
                 onlyConnected: true
@@ -707,13 +706,13 @@
                         Comma-separated references to the User Personas objects taking part in the
                         workflow, in the order of their first appearance, so that every `ACTOR` of
                         an activity is listed here.
-                    value: list([[REQS:UP.PERSONA:*]])
+                    value: list([[PERSONA:*]])
                 -   name: OWNER
                     desc: >
                         Reference to the User Personas object (usually a `Stakeholder`) accountable
                         for the workflow as a whole, i.e. for its outcome and its rules, as opposed
                         to the actors performing its activities.
-                    value: "[[REQS:UP.PERSONA:*]]"
+                    value: "[[PERSONA:*]]"
                     optional: true
                 -   name: TRIGGER
                     desc: >
@@ -728,20 +727,20 @@
                         Comma-separated references to the User Journey objects the workflow spans,
                         i.e. the per-persona experiences of which the workflow is the cross-persona
                         counterpart.
-                    value: list([[REQS:UJ.JOURNEY:*]])
+                    value: list([[JOURNEY:*]])
                     optional: true
                 -   name: TERMS
                     desc: >
                         Comma-separated references to the GLOSSARY terms of type `Activity` the
                         workflow realizes, anchoring it in the ubiquitous language.
-                    value: list([[REQS:DG.TERM:*]])
+                    value: list([[TERM:*]])
                     optional: true
                 -   name: RULES
                     desc: >
                         Comma-separated references to the DOMAIN-RULES objects governing the
                         workflow as a whole (e.g. a deadline or an approval policy), while a rule
                         checked at a single handoff is referenced from the handoff instead.
-                    value: list([[REQS:DR.RULE:*]])
+                    value: list([[RULE:*]])
                     optional: true
             childs:
                 -   kind: ACTIVITY
@@ -762,7 +761,7 @@
                                 sending the invitations) or `Time` for a waiting period ending with
                                 a deadline; several parties are given only for an activity they
                                 perform jointly, as a change of the acting party is a handoff.
-                            value: list([[REQS:UP.PERSONA:*]], enum(System,Time))
+                            value: list([[PERSONA:*]], enum(System,Time))
                         -   name: INITIAL
                             desc: >
                                 Whether the activity is the initial one, i.e. the single activity
@@ -794,11 +793,11 @@
                     props:
                         -   name: FROM
                             desc: The activity (of the same workflow) the handoff departs from.
-                            value: "[[REQS:DW.WORKFLOW:*.ACTIVITY:*]]"
+                            value: "[[ACTIVITY:*]]"
                             local: true
                         -   name: TO
                             desc: The activity (of the same workflow) the handoff arrives at.
-                            value: "[[REQS:DW.WORKFLOW:*.ACTIVITY:*]]"
+                            value: "[[ACTIVITY:*]]"
                             local: true
                         -   name: CONDITION
                             desc: >
@@ -811,7 +810,7 @@
                             desc: >
                                 Comma-separated references to the DOMAIN-RULES objects the
                                 handoff enforces, usually through its `CONDITION`.
-                            value: list([[REQS:DR.RULE:*]])
+                            value: list([[RULE:*]])
                             optional: true
 
 -   kind: REQS
@@ -832,7 +831,7 @@
             https://www.ivarjacobson.com/publications/white-papers/use-case-20-e-book
     diagram:
         type: grid
-        nodes: "[[REQS:UC.USE-CASE:*]]"
+        nodes: "[[USE-CASE:*]]"
         config:
             size-node-height-scale: 4
             grid-columns-max: 4
@@ -853,9 +852,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[REQS:UC.USE-CASE:*]], [[REQS:UP.PERSONA:*]], [[REQS:UJ.JOURNEY:*.STEP:*]],
-                    [[REQS:DW.WORKFLOW:*.ACTIVITY:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:DR.RULE:*]],
-                    [[DATA:SM.LIFECYCLE:*.TRANSITION:*]]"
+                nodes: "[[USE-CASE:*]], [[PERSONA:*]], [[STEP:*]], [[ACTIVITY:*]],
+                    [[FR.REQUIREMENT:*]], [[RULE:*]], [[TRANSITION:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -866,33 +864,33 @@
                     desc: >
                         Reference to the PERSONAS object denoting the primary actor pursuing the
                         goal.
-                    value: "[[REQS:UP.PERSONA:*]]"
+                    value: "[[PERSONA:*]]"
                 -   name: JOURNEYS
                     desc: >
                         Comma-separated references to the User Journey STEP objects the use case
                         covers, tracing the journey into the use cases.
-                    value: list([[REQS:UJ.JOURNEY:*.STEP:*]])
+                    value: list([[STEP:*]])
                     optional: true
                 -   name: ACTIVITIES
                     desc: >
                         Comma-separated references to the Domain Workflow ACTIVITY objects within
                         which the actor performs the use case, tracing the workflow into the use
                         cases; omitted for a use case outside any workflow.
-                    value: list([[REQS:DW.WORKFLOW:*.ACTIVITY:*]])
+                    value: list([[ACTIVITY:*]])
                     optional: true
                 -   name: REQUIREMENTS
                     desc: >
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects the use
                         case exercises, i.e. whose behavior its scenarios walk through, so that every
                         Functional Requirement is exercised by at least one use case.
-                    value: list([[REQS:FR.*]])
+                    value: list([[FR.*]])
                     optional: true
                 -   name: RULES
                     desc: >
                         Comma-separated references to the DOMAIN-RULES objects the scenarios of
                         the use case apply, i.e. whose condition a scenario step checks or enforces
                         (e.g. an access rule in an authentication step).
-                    value: list([[REQS:DR.RULE:*]])
+                    value: list([[RULE:*]])
                     optional: true
                 -   name: INCLUDES
                     desc: >
@@ -901,7 +899,7 @@
                         invokes (e.g. `The attendee authenticates ([[USE-CASE:authenticate]]).`),
                         factoring a flow shared by several use cases out into a use case of its own
                         instead of restating its steps.
-                    value: list([[REQS:UC.USE-CASE:*]])
+                    value: list([[USE-CASE:*]])
                     optional: true
                     acyclic: true
                 -   name: PRE-CONDITION

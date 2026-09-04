@@ -19,8 +19,8 @@
             https://www.omg.org/spec/UML/2.5.1
     diagram:
         type: graph
-        nodes: "[[DATA:DM.ENTITY:*]]"
-        edges: "[[DATA:DM.ENTITY:*.RELATION:*]]"
+        nodes: "[[DM.ENTITY:*]]"
+        edges: "[[RELATION:*]]"
     childs:
         -   kind: ENTITY
             name: "[A-Z][a-zA-Z0-9]*"
@@ -31,8 +31,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[DATA:DM.ENTITY:*]]"
-                edges: "[[DATA:DM.ENTITY:*.RELATION:*]]"
+                nodes: "[[DM.ENTITY:*]]"
+                edges: "[[RELATION:*]]"
                 config:
                     size-node-width-max: 440
             props:
@@ -41,14 +41,14 @@
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects the
                         entity supports, i.e. whose behavior needs the information it carries,
                         tracing the requirements into the data model.
-                    value: list([[REQS:FR.*]])
+                    value: list([[FR.*]])
                     optional: true
                 -   name: TERMS
                     desc: >
                         Comma-separated references to the GLOSSARY terms the entity materializes,
                         i.e. the domain terms whose information it carries, so that every entity
                         is anchored in the ubiquitous language and every term shows its data.
-                    value: list([[REQS:DG.TERM:*]])
+                    value: list([[TERM:*]])
                     optional: true
             childs:
                 -   kind: ATTRIBUTE
@@ -119,7 +119,7 @@
                     props:
                         -   name: TARGET
                             desc: Reference to the DATA-MODEL entity the directed relation targets.
-                            value: "[[DATA:DM.ENTITY:*]]"
+                            value: "[[DM.ENTITY:*]]"
                         -   name: KIND
                             desc: >
                                 The kind of the directed relation: `association` for a plain
@@ -156,7 +156,7 @@
             https://www.omg.org/spec/UML/2.5.1
     diagram:
         type: grid
-        nodes: "[[DATA:SM.LIFECYCLE:*]]"
+        nodes: "[[LIFECYCLE:*]]"
         properties:
             -   ENTITY
         config:
@@ -180,7 +180,7 @@
                 final: FINAL
             diagram:
                 type: graph
-                edges: "[[DATA:SM.LIFECYCLE:*.TRANSITION:*]]"
+                edges: "[[TRANSITION:*]]"
                 edgeSource: FROM
                 edgeTarget: TO
                 onlyConnected: true
@@ -194,7 +194,7 @@
                     desc: >
                         Reference to the DATA-MODEL entity whose lifecycle this models, at most one
                         lifecycle per entity (an entity without a lifecycle has a trivial one).
-                    value: "[[DATA:DM.ENTITY:*]]"
+                    value: "[[DM.ENTITY:*]]"
                     unique: true
             childs:
                 -   kind: STATE
@@ -245,11 +245,11 @@
                     props:
                         -   name: FROM
                             desc: The state (of the same lifecycle) the transition departs from.
-                            value: "[[DATA:SM.LIFECYCLE:*.STATE:*]]"
+                            value: "[[STATE:*]]"
                             local: true
                         -   name: TO
                             desc: The state (of the same lifecycle) the transition arrives at.
-                            value: "[[DATA:SM.LIFECYCLE:*.STATE:*]]"
+                            value: "[[STATE:*]]"
                             local: true
                         -   name: ACTOR
                             desc: >
@@ -257,7 +257,7 @@
                                 the transition, and/or `System` for a transition the solution
                                 triggers on its own or `Time` for one triggered by the passing of
                                 time (e.g. an expiry); omitted when the trigger is irrelevant.
-                            value: list([[REQS:UP.PERSONA:*]], enum(System,Time))
+                            value: list([[PERSONA:*]], enum(System,Time))
                             optional: true
                         -   name: GUARD
                             desc: >
@@ -270,7 +270,7 @@
                             desc: >
                                 Comma-separated references to the DOMAIN-RULES objects the
                                 transition enforces, usually through its `GUARD`.
-                            value: list([[REQS:DR.RULE:*]])
+                            value: list([[RULE:*]])
                             optional: true
                         -   name: USE-CASES
                             desc: >
@@ -279,7 +279,7 @@
                                 causes the state change, tracing the transition into the use
                                 cases exercising it; omitted for a transition no use case
                                 triggers (e.g. one triggered by `Time` or by the system alone).
-                            value: list([[REQS:UC.USE-CASE:*]])
+                            value: list([[USE-CASE:*]])
                             optional: true
 
 -   kind: DATA
@@ -306,8 +306,8 @@
             https://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html
     diagram:
         type: graph
-        nodes: "[[DATA:AM.ROLE:*]], [[DATA:DM.ENTITY:*]]"
-        edges: "[[DATA:AM.ROLE:*.PERMISSION:*]]"
+        nodes: "[[ROLE:*]], [[DM.ENTITY:*]]"
+        edges: "[[PERMISSION:*]]"
         edgeTarget: ENTITY
         onlyConnected: true
         qualified: true
@@ -328,8 +328,7 @@
                 type: hub
                 center: self
                 deep: true
-                nodes: "[[DATA:AM.ROLE:*]], [[REQS:UP.PERSONA:*]], [[REQS:DG.TERM:*]], [[DATA:DM.ENTITY:*]],
-                    [[REQS:DR.RULE:*]]"
+                nodes: "[[ROLE:*]], [[PERSONA:*]], [[TERM:*]], [[DM.ENTITY:*]], [[RULE:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -345,12 +344,12 @@
                         `Actor` denoting the external systems holding the role (e.g. a registration
                         system calling the machine-facing interface), as an external system is no
                         persona.
-                    value: list([[REQS:UP.PERSONA:*]], [[REQS:DG.TERM:*]])
+                    value: list([[PERSONA:*]], [[TERM:*]])
                 -   name: TERM
                     desc: >
                         Reference to the GLOSSARY term of type `Actor` the role grants, anchoring
                         the role in the ubiquitous language.
-                    value: "[[REQS:DG.TERM:*]]"
+                    value: "[[TERM:*]]"
                     optional: true
                 -   name: INHERITS
                     desc: >
@@ -358,7 +357,7 @@
                         this role holds in addition to its own (a role hierarchy, e.g. a manager
                         inheriting the rights of a moderator), where an inherited permission is
                         not restated.
-                    value: list([[DATA:AM.ROLE:*]])
+                    value: list([[ROLE:*]])
                     optional: true
                     acyclic: true
             childs:
@@ -378,7 +377,7 @@
                     props:
                         -   name: ENTITY
                             desc: Reference to the DATA-MODEL entity the permission is granted on.
-                            value: "[[DATA:DM.ENTITY:*]]"
+                            value: "[[DM.ENTITY:*]]"
                         -   name: OPERATIONS
                             desc: >
                                 Comma-separated operations the role may perform on the entity: the
@@ -387,14 +386,14 @@
                                 (a state change is not an `Update`: it is granted by its transition
                                 only), where every persona named as `ACTOR` of a transition holds
                                 a role granting it.
-                            value: list(enum(Create,Read,Update,Delete), [[DATA:SM.LIFECYCLE:*.TRANSITION:*]])
+                            value: list(enum(Create,Read,Update,Delete), [[TRANSITION:*]])
                         -   name: STATES
                             desc: >
                                 Comma-separated references to the STATE-MODEL states of the entity
                                 in which the operations are granted (`Create` needs none, as a
                                 creation enters the initial state); omitted when granted in every
                                 state or when the entity has no lifecycle.
-                            value: list([[DATA:SM.LIFECYCLE:*.STATE:*]])
+                            value: list([[STATE:*]])
                             optional: true
                         -   name: CONDITION
                             desc: >
@@ -411,6 +410,6 @@
                                 Comma-separated references to the DOMAIN-RULES objects justifying
                                 or bounding the permission, i.e. the rules whose statement grants
                                 or limits the right.
-                            value: list([[REQS:DR.RULE:*]])
+                            value: list([[RULE:*]])
                             optional: true
 

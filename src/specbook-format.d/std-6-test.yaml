@@ -29,7 +29,7 @@
             https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/
     diagram:
         type: grid
-        nodes: "[[TEST:TC.TEST-CASE:*]]"
+        nodes: "[[TEST-CASE:*]]"
         config:
             size-node-width-max: 440
             size-node-height-scale: 2
@@ -69,13 +69,11 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[TEST:TC.TEST-CASE:*]], [[REQS:FR.REQUIREMENT:*]], [[REQS:NR.REQUIREMENT:*]],
-                    [[REQS:DR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]], [[REQS:DW.WORKFLOW:*]],
-                    [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
-                    [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
-                    [[UXUI:DS.STORYBOARD:*.FRAME:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                    [[ARCH:DA.ASPECT:*]], [[ARCH:DV.NODE:*]], [[ARCH:DV.NETWORK:*]],
-                    [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[ARCH:DD.DECISION:*]]"
+                nodes: "[[TEST-CASE:*]], [[FR.REQUIREMENT:*]], [[NR.REQUIREMENT:*]], [[RULE:*]],
+                    [[SCENARIO:*]], [[WORKFLOW:*]], [[TRANSITION:*]], [[ATTRIBUTE:*]],
+                    [[PERMISSION:*]], [[ENDPOINT:*]], [[FRAME:*]], [[FV.COMPONENT:*]], [[UNIT:*]],
+                    [[ASPECT:*]], [[NODE:*]], [[NETWORK:*]], [[CONCERN:*]], [[TACTIC:*]],
+                    [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -111,12 +109,10 @@
                         proven to be performable, a tactic (judged by its `MECHANISM`) is proven to
                         take effect, and a decision (judged by its `WHAT`) is proven to be complied
                         with.
-                    value: list([[REQS:*.REQUIREMENT:*]], [[REQS:DR.RULE:*]], [[REQS:UC.USE-CASE:*.SCENARIO:*]],
-                        [[DATA:SM.LIFECYCLE:*.TRANSITION:*]], [[DATA:DM.ENTITY:*.ATTRIBUTE:*]],
-                        [[DATA:AM.ROLE:*.PERMISSION:*]], [[APIS:IE.ENDPOINT:*]],
-                        [[UXUI:DS.STORYBOARD:*.FRAME:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                        [[ARCH:DA.ASPECT:*]], [[ARCH:DV.NODE:*]], [[ARCH:DV.NETWORK:*]],
-                        [[ARCH:OV.CONCERN:*]], [[ARCH:QP.TACTIC:*]], [[ARCH:DD.DECISION:*]])
+                    value: list([[REQUIREMENT:*]], [[RULE:*]], [[SCENARIO:*]], [[TRANSITION:*]],
+                        [[ATTRIBUTE:*]], [[PERMISSION:*]], [[ENDPOINT:*]], [[FRAME:*]],
+                        [[FV.COMPONENT:*]], [[UNIT:*]], [[ASPECT:*]], [[NODE:*]], [[NETWORK:*]],
+                        [[CONCERN:*]], [[TACTIC:*]], [[DECISION:*]])
                 -   name: WORKFLOWS
                     desc: >
                         Comma-separated references to the DOMAIN-WORKFLOWS objects the test case
@@ -124,7 +120,7 @@
                         steps cross in order, so that the collaboration across actors and sittings
                         (not just the use cases of each single sitting) is proven to work as
                         modeled; omitted for a test case confined to a single sitting.
-                    value: list([[REQS:DW.WORKFLOW:*]])
+                    value: list([[WORKFLOW:*]])
                     optional: true
                 -   name: PRE-CONDITION
                     desc: >

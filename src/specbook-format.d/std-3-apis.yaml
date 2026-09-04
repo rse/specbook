@@ -30,7 +30,7 @@
             https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap12.html
     diagram:
         type: grid
-        nodes: "[[APIS:IM.INTERFACE:*]]"
+        nodes: "[[INTERFACE:*]]"
         properties:
             -   KIND
             -   DIRECTION
@@ -50,7 +50,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[APIS:IM.INTERFACE:*]], [[APIS:ID.TYPE:*]], [[APIS:IE.ENDPOINT:*]]"
+                nodes: "[[INTERFACE:*]], [[TYPE:*]], [[ENDPOINT:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -90,7 +90,7 @@
                         Comma-separated references to the PERSONAS objects which use the interface
                         (the external systems using it reference the interface from the
                         CONTEXT-VIEW instead).
-                    value: list([[REQS:UP.PERSONA:*]])
+                    value: list([[PERSONA:*]])
                     optional: true
 
 -   kind: APIS
@@ -112,7 +112,7 @@
             https://spec.graphql.org/October2021/
     diagram:
         type: graph
-        nodes: "[[APIS:ID.TYPE:*]]"
+        nodes: "[[TYPE:*]]"
         deep: true
         onlyConnected: true
         labeled: true
@@ -135,7 +135,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[APIS:ID.TYPE:*]], [[APIS:IM.INTERFACE:*]]"
+                nodes: "[[TYPE:*]], [[INTERFACE:*]]"
                 deep: true
                 labeled: true
                 qualified: true
@@ -148,7 +148,7 @@
                         Comma-separated references to the INTERFACE-MODEL objects the type is
                         exchanged through, i.e. the interfaces whose endpoints consume or return it,
                         directly or through the fields of another type.
-                    value: list([[APIS:IM.INTERFACE:*]])
+                    value: list([[INTERFACE:*]])
                 -   name: BASE
                     desc: >
                         The underlying type of a non-object (value) type: one of the primitives
@@ -160,7 +160,7 @@
                         object (an alias), where several
                         comma-separated alternatives form a named union type; omitted for
                         an object type composed of fields.
-                    value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                    value: list([[TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                     optional: true
                 -   name: EXTENDS
                     desc: >
@@ -170,7 +170,7 @@
                         envelope type, or a GraphQL type implementing interfaces), where an
                         inherited field is not redeclared; omitted for a type carrying a
                         `BASE`.
-                    value: list([[APIS:ID.TYPE:*]])
+                    value: list([[TYPE:*]])
                     acyclic: true
                     optional: true
                 -   name: MATERIALIZES
@@ -179,7 +179,7 @@
                         materializes (e.g. as a data transfer object carrying the
                         attributes of one entity, or as a view flattening several
                         entities), tracing the interface into the data model.
-                    value: list([[DATA:DM.ENTITY:*]])
+                    value: list([[DM.ENTITY:*]])
                     optional: true
             childs:
                 -   kind: FIELD
@@ -202,7 +202,7 @@
                                 enumeration `enum(XXX,YYY[,...])` (a reusable one is a `TYPE`
                                 object with an `enum(...)` base), where several comma-separated
                                 alternatives form a union type.
-                            value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            value: list([[TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                         -   name: ARITY
                             desc: >
                                 The arity (cardinality) of the field value: `0..1` or `?`
@@ -245,7 +245,7 @@
                                 object (a scalar, enumeration, alias, or union
                                 type carrying a `BASE`); an object type composed of fields is no
                                 value type and hence not admitted, as a literal cannot express it.
-                            value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            value: list([[TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                         -   name: VALUE
                             desc: >
                                 The literal value of the constant (e.g. `100`, `event/`), matching
@@ -275,7 +275,7 @@
             https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap12.html
     diagram:
         type: graph
-        nodes: "[[APIS:IE.ENDPOINT:*]], [[APIS:ID.TYPE:*]]"
+        nodes: "[[ENDPOINT:*]], [[TYPE:*]]"
         deep: true
         onlyConnected: true
         labeled: true
@@ -305,8 +305,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[APIS:IE.ENDPOINT:*]], [[APIS:ID.TYPE:*]], [[APIS:ID.TYPE:*.CONSTANT:*]], [[APIS:IM.INTERFACE:*]],
-                    [[DATA:AM.ROLE:*.PERMISSION:*]]"
+                nodes: "[[ENDPOINT:*]], [[TYPE:*]], [[CONSTANT:*]], [[INTERFACE:*]],
+                    [[PERMISSION:*]]"
                 deep: true
                 labeled: true
                 qualified: true
@@ -316,7 +316,7 @@
             props:
                 -   name: INTERFACE
                     desc: The INTERFACES object the endpoint belongs to and is addressed within.
-                    value: "[[APIS:IM.INTERFACE:*]]"
+                    value: "[[INTERFACE:*]]"
                 -   name: PERMISSIONS
                     desc: >
                         Comma-separated references to the AUTHORIZATION-MODEL permission objects
@@ -325,7 +325,7 @@
                         the operation, so that the authorization of every endpoint is stated
                         rather than left to the implementation; omitted for an endpoint open to
                         every caller.
-                    value: list([[DATA:AM.ROLE:*.PERMISSION:*]])
+                    value: list([[PERMISSION:*]])
                     optional: true
                 -   name: OPERATION
                     desc: |
@@ -360,7 +360,7 @@
                     desc: >
                         Comma-separated references to the USE-CASES objects the endpoint
                         realizes, tracing the requirements into the interface.
-                    value: list([[REQS:UC.USE-CASE:*]])
+                    value: list([[USE-CASE:*]])
                     optional: true
             childs:
                 -   kind: OPTION
@@ -383,7 +383,7 @@
                                 enumeration `enum(XXX,YYY[,...])` (a reusable one is a `TYPE`
                                 object with an `enum(...)` base), where several comma-separated
                                 alternatives form a union type.
-                            value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            value: list([[TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                         -   name: ALIAS
                             desc: >
                                 Comma-separated alternative names of the option in the
@@ -432,7 +432,7 @@
                                 inline enumeration `enum(XXX,YYY[,...])` (a reusable one is a
                                 `TYPE` object with an `enum(...)` base), where several comma-separated
                                 alternatives form a union type.
-                            value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            value: list([[TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                         -   name: ARITY
                             desc: >
                                 The arity (cardinality) of the argument:
@@ -476,7 +476,7 @@
                                 enumeration `enum(XXX,YYY[,...])` (a reusable one is a `TYPE`
                                 object with an `enum(...)` base), where several comma-separated
                                 alternatives form a union type.
-                            value: list([[APIS:ID.TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
+                            value: list([[TYPE:*]], /^(?:boolean|string|text|integer|float|decimal|uuid|bytes|date|time|datetime|duration|any|enum\((?:[A-Za-z0-9_-]+)(?:,\s*[A-Za-z0-9_-]+)*\))$/)
                         -   name: ARITY
                             desc: >
                                 The arity (cardinality) of the result:

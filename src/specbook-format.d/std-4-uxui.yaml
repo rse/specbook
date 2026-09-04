@@ -25,7 +25,7 @@
     optional: true
     diagram:
         type: grid
-        nodes: "[[UXUI:IC.PRINCIPLE:*]]"
+        nodes: "[[PRINCIPLE:*]]"
         properties:
             -   CATEGORY
         config:
@@ -44,12 +44,11 @@
                 it rejects is its `TRADE-OFF`), and is not verifiable by a metric (a measurable
                 quality bound is a Non-Functional Requirement instead).
             referenced:
-                -   "[[UXUI:DP.PATTERN:*]]"
+                -   "[[PATTERN:*]]"
             diagram:
                 type: hub
                 center: self
-                nodes: "[[UXUI:IC.PRINCIPLE:*]], [[REQS:UP.PERSONA:*]], [[REQS:UJ.JOURNEY:*.STEP:*]],
-                    [[UXUI:DP.PATTERN:*]]"
+                nodes: "[[PRINCIPLE:*]], [[PERSONA:*]], [[STEP:*]], [[PATTERN:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -68,14 +67,14 @@
                         Comma-separated references to the User Personas objects whose experience
                         the principle governs, omitted for a principle governing the experience of
                         all users alike.
-                    value: list([[REQS:UP.PERSONA:*]])
+                    value: list([[PERSONA:*]])
                     optional: true
                 -   name: MOTIVATED-BY
                     desc: >
                         Comma-separated references to the User Journey step objects whose
                         `PAIN-POINT` or `OPPORTUNITY` the principle answers, so that a principle is
                         grounded in the observed experience rather than in taste alone.
-                    value: list([[REQS:UJ.JOURNEY:*.STEP:*]])
+                    value: list([[STEP:*]])
                     optional: true
                 -   name: TRADE-OFF
                     desc: >
@@ -107,7 +106,7 @@
     optional: true
     diagram:
         type: grid
-        nodes: "[[UXUI:LC.CONVENTION:*]]"
+        nodes: "[[CONVENTION:*]]"
         properties:
             -   CATEGORY
         config:
@@ -139,21 +138,21 @@
                         Comma-separated references to the User Personas objects the convention
                         addresses, omitted for a convention governing the text shown to all users
                         alike.
-                    value: list([[REQS:UP.PERSONA:*]])
+                    value: list([[PERSONA:*]])
                     optional: true
                 -   name: PRINCIPLES
                     desc: >
                         Comma-separated references to the INTERACTION-CONCEPT objects the convention
                         supports in wording, so that a convention is grounded in the interaction
                         philosophy rather than in taste alone.
-                    value: list([[UXUI:IC.PRINCIPLE:*]])
+                    value: list([[PRINCIPLE:*]])
                     optional: true
                 -   name: TERMS
                     desc: >
                         Comma-separated references to the GLOSSARY terms whose surfacing in the
                         user-facing text the convention governs, so that the Domain Glossary defines
                         the term and the convention states how it is written.
-                    value: list([[REQS:DG.TERM:*]])
+                    value: list([[TERM:*]])
                     optional: true
                 -   name: EXAMPLE
                     desc: >
@@ -178,7 +177,7 @@
     optional: true
     diagram:
         type: grid
-        nodes: "[[UXUI:DP.PATTERN:*]]"
+        nodes: "[[PATTERN:*]]"
         properties:
             -   CATEGORY
         config:
@@ -200,7 +199,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[UXUI:DP.PATTERN:*]], [[UXUI:IC.PRINCIPLE:*]], [[UXUI:DS.STORYBOARD:*]]"
+                nodes: "[[PATTERN:*]], [[PRINCIPLE:*]], [[STORYBOARD:*]]"
                 deep: true
                 labeled: true
                 qualified: true
@@ -221,7 +220,7 @@
                         Comma-separated references to the User Personas objects whose interaction
                         the pattern structures, omitted for a pattern applied to the interaction of
                         all users alike.
-                    value: list([[REQS:UP.PERSONA:*]])
+                    value: list([[PERSONA:*]])
                     optional: true
                 -   name: CONTEXT
                     desc: >
@@ -237,7 +236,7 @@
                         Comma-separated references to the INTERACTION-CONCEPT objects the pattern
                         embodies, so that every principle is shown to be honored by at least one
                         pattern rather than merely declared.
-                    value: list([[UXUI:IC.PRINCIPLE:*]])
+                    value: list([[PRINCIPLE:*]])
                     optional: true
                 -   name: USES
                     desc: >
@@ -245,7 +244,7 @@
                         pattern is composed of (e.g. a `Master-Detail` using an `Inline Edit` in
                         its detail), so that the patterns form a language of related structures
                         rather than a flat catalogue.
-                    value: list([[UXUI:DP.PATTERN:*]])
+                    value: list([[PATTERN:*]])
                     optional: true
                 -   name: TRADE-OFF
                     desc: >
@@ -272,7 +271,7 @@
     optional: true
     diagram:
         type: grid
-        nodes: "[[UXUI:DS.STORYBOARD:*]]"
+        nodes: "[[STORYBOARD:*]]"
         properties:
             -   ACTORS
         config:
@@ -290,8 +289,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[UXUI:DS.STORYBOARD:*]], [[REQS:UP.PERSONA:*]],
-                    [[REQS:UC.USE-CASE:*.SCENARIO:*]], [[UXUI:DP.PATTERN:*]]"
+                nodes: "[[STORYBOARD:*]], [[PERSONA:*]], [[SCENARIO:*]], [[PATTERN:*]]"
                 deep: true
                 labeled: true
                 qualified: true
@@ -305,12 +303,12 @@
                         storyboard tells, in the order of their appearance, so that a storyboard
                         switching its viewpoint between actors (e.g. from a moderator to a
                         presenter) names all of them.
-                    value: list([[REQS:UP.PERSONA:*]])
+                    value: list([[PERSONA:*]])
                 -   name: SCENARIO
                     desc: >
                         Reference to the USE-CASES scenario object the storyboard renders as user
                         interface, omitted for a storyboard of a flow no scenario covers.
-                    value: "[[REQS:UC.USE-CASE:*.SCENARIO:*]]"
+                    value: "[[SCENARIO:*]]"
                     optional: true
             childs:
                 -   kind: FRAME
@@ -336,14 +334,14 @@
                                 Reference to the User Personas object from whose viewpoint the frame
                                 is depicted, given whenever the storyboard names several `ACTORS`
                                 and omitted for a storyboard of a single actor.
-                            value: "[[REQS:UP.PERSONA:*]]"
+                            value: "[[PERSONA:*]]"
                             optional: true
                         -   name: PATTERNS
                             desc: >
                                 Comma-separated references to the DIALOG-PATTERNS objects the frame
                                 instantiates, so that a pattern is shown to recur across the
                                 concrete flows rather than merely being catalogued.
-                            value: list([[UXUI:DP.PATTERN:*]])
+                            value: list([[PATTERN:*]])
                             optional: true
                         -   name: SKETCH
                             desc: >
@@ -378,7 +376,7 @@
     optional: true
     diagram:
         type: grid
-        nodes: "[[UXUI:VD.ELEMENT:*]]"
+        nodes: "[[ELEMENT:*]]"
         properties:
             -   CATEGORY
         config:
@@ -404,7 +402,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[UXUI:VD.ELEMENT:*]], [[REQS:UP.PERSONA:*]], [[UXUI:IC.PRINCIPLE:*]], [[UXUI:VD.MOCKUP:*]]"
+                nodes: "[[ELEMENT:*]], [[PERSONA:*]], [[PRINCIPLE:*]], [[MOCKUP:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -426,14 +424,14 @@
                         Comma-separated references to the User Personas objects for whom the
                         element governs the appearance, omitted for an element governing the
                         appearance for all users alike.
-                    value: list([[REQS:UP.PERSONA:*]])
+                    value: list([[PERSONA:*]])
                     optional: true
                 -   name: PRINCIPLES
                     desc: >
                         Comma-separated references to the INTERACTION-CONCEPT objects the element
                         supports in appearance, so that an element is grounded in the interaction
                         philosophy rather than in taste alone.
-                    value: list([[UXUI:IC.PRINCIPLE:*]])
+                    value: list([[PRINCIPLE:*]])
                     optional: true
                 -   name: SOURCE
                     desc: >
@@ -463,20 +461,20 @@
                     desc: >
                         Comma-separated references to the User Personas objects who see the
                         depicted screen.
-                    value: list([[REQS:UP.PERSONA:*]])
+                    value: list([[PERSONA:*]])
                 -   name: STORYBOARD
                     desc: >
                         Reference to the DIALOG-STORYBOARD object whose flow the depicted screen
                         belongs to, so that the high-fidelity look traces back to the sketched
                         flow, omitted for a mockup of a screen no storyboard covers.
-                    value: "[[UXUI:DS.STORYBOARD:*]]"
+                    value: "[[STORYBOARD:*]]"
                     optional: true
                 -   name: ELEMENTS
                     desc: >
                         Comma-separated references to the `ELEMENT` objects the mockup shows
                         applied, so that an element is shown to be realized rather than merely
                         declared.
-                    value: list([[UXUI:VD.ELEMENT:*]])
+                    value: list([[ELEMENT:*]])
                 -   name: IMAGE
                     desc: >
                         An image (`![...](...)`) of the mockup, a high-fidelity rendering from

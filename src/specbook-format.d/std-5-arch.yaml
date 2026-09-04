@@ -23,9 +23,9 @@
             https://www.iso.org/standard/74393.html
     diagram:
         type: hub
-        nodes: "[[ARCH:CV.ENTITY:*]]"
+        nodes: "[[CV.ENTITY:*]]"
         center:
-            source: "[[META:TI]]"
+            source: "[[TI]]"
             property: TITLE
             kind: Solution
         centerEdges:
@@ -79,7 +79,7 @@
                         the domain (usually a term of type `Actor`, which covers an external system
                         as a party acting in the domain), anchoring every boundary entity in the
                         ubiquitous language.
-                    value: list([[REQS:DG.TERM:*]])
+                    value: list([[TERM:*]])
                     optional: true
                 -   name: INTERFACE
                     desc: >
@@ -88,7 +88,7 @@
                         `Provided` one) or offers (for a `Required` one); omitted when the
                         interaction happens through the user interface or outside any modeled
                         interface (e.g. a file exchange).
-                    value: list([[APIS:IM.INTERFACE:*]])
+                    value: list([[INTERFACE:*]])
                     optional: true
                 -   name: ACTORS
                     desc: >
@@ -98,7 +98,7 @@
                         the `Stakeholder` personas representing it, so the entity aggregates the
                         personas instead of re-stating them; omitted when no persona stands behind
                         the entity.
-                    value: list([[REQS:UP.PERSONA:*]])
+                    value: list([[PERSONA:*]])
                     optional: true
                 -   name: PREMISES
                     desc: >
@@ -107,7 +107,7 @@
                         structural interaction with the external party, the premise the reliance
                         on it and the consequence of its failure, so the risky context entities
                         are found by traversal.
-                    value: list([[REQS:SP.PREMISE:*]])
+                    value: list([[PREMISE:*]])
                     optional: true
                 -   name: DATA
                     desc: >
@@ -131,7 +131,7 @@
             https://c4model.com/
     diagram:
         type: graph
-        nodes: "[[ARCH:FV.COMPONENT:*]]"
+        nodes: "[[FV.COMPONENT:*]]"
         labeled: true
         properties:
             -   KIND
@@ -150,8 +150,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:FV.COMPONENT:*]], [[REQS:FR.REQUIREMENT:*]], [[APIS:IM.INTERFACE:*]],
-                    [[DATA:DM.ENTITY:*]]"
+                nodes: "[[FV.COMPONENT:*]], [[FR.REQUIREMENT:*]], [[INTERFACE:*]], [[DM.ENTITY:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -178,7 +177,7 @@
                         references the component it groups functionality within, and a component
                         references the `Subsystem` it belongs to; omitted for a top-level
                         component.
-                    value: "[[ARCH:FV.COMPONENT:*]]"
+                    value: "[[FV.COMPONENT:*]]"
                     optional: true
                     acyclic: true
                 -   name: REALIZES
@@ -186,7 +185,7 @@
                         Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects the
                         component realizes, i.e. whose capability its functionality delivers, so
                         that every Functional Requirement is owned by at least one component.
-                    value: list([[REQS:FR.*]])
+                    value: list([[FR.*]])
                     optional: true
                 -   name: OWNS
                     desc: >
@@ -195,7 +194,7 @@
                         components access an owned entity through the owner's interfaces or hold
                         derived copies only), so that every entity is owned by at most one
                         component; omitted when the component owns no entity.
-                    value: list([[DATA:DM.ENTITY:*]])
+                    value: list([[DM.ENTITY:*]])
                     optional: true
                 -   name: PROVIDES
                     desc: >
@@ -203,7 +202,7 @@
                         provides, i.e. through which other components and external entities
                         interact with it; omitted when the component provides no modeled interface
                         (e.g. a user interface or an internal module).
-                    value: list([[APIS:IM.INTERFACE:*]])
+                    value: list([[INTERFACE:*]])
                     optional: true
                 -   name: CONSUMES
                     desc: >
@@ -212,7 +211,7 @@
                         `Required` interfaces offered by external entities, through which its
                         dependencies are exercised; omitted when the component consumes no
                         modeled interface.
-                    value: list([[APIS:IM.INTERFACE:*]])
+                    value: list([[INTERFACE:*]])
                     optional: true
                 -   name: DEPENDS-ON
                     desc: >
@@ -220,7 +219,7 @@
                         depends on at runtime, naming the target component only, while the
                         interface through which a dependency is exercised is stated by `CONSUMES`
                         where modeled.
-                    value: list([[ARCH:FV.COMPONENT:*]])
+                    value: list([[FV.COMPONENT:*]])
                     optional: true
 
 -   kind: ARCH
@@ -239,7 +238,7 @@
             https://c4model.com/diagrams/container
     diagram:
         type: grid
-        nodes: "[[ARCH:TS.TIER:*]]"
+        nodes: "[[TS.TIER:*]]"
     childs:
         -   kind: TIER
             desc: |
@@ -282,8 +281,7 @@
                     diagram:
                         type: hub
                         center: self
-                        nodes: "[[ARCH:TS.TIER:*.COMPONENT:*]], [[ARCH:FV.COMPONENT:*]],
-                            [[ARCH:DD.DECISION:*]]"
+                        nodes: "[[TS.TIER:*.COMPONENT:*]], [[FV.COMPONENT:*]], [[DECISION:*]]"
                         labeled: true
                         qualified: true
                         properties:
@@ -568,7 +566,7 @@
                                 impact-analyzed; omitted for a component not tied to particular
                                 functional components (e.g. a language or a build tool used by
                                 all).
-                            value: list([[ARCH:FV.COMPONENT:*]])
+                            value: list([[FV.COMPONENT:*]])
                             optional: true
 
 -   kind: ARCH
@@ -590,7 +588,7 @@
             https://www.informit.com/store/documenting-software-architectures-views-and-beyond-9780321552686
     diagram:
         type: grid
-        nodes: "[[ARCH:DA.ASPECT:*]]"
+        nodes: "[[ASPECT:*]]"
         properties:
             -   CATEGORY
     childs:
@@ -637,7 +635,7 @@
             https://www.wiley.com/en-us/Pattern+Oriented+Software+Architecture,+Volume+2,+Patterns+for+Concurrent+and+Networked+Objects-p-9781118725177
     diagram:
         type: graph
-        nodes: "[[ARCH:CO.UNIT:*]]"
+        nodes: "[[UNIT:*]]"
         labeled: true
         properties:
             -   KIND
@@ -659,7 +657,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:DV.NODE:*]]"
+                nodes: "[[UNIT:*]], [[FV.COMPONENT:*]], [[NODE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -684,14 +682,14 @@
                         expressing the containment the kinds imply: a `Thread`, `Task`, `Pool`, or
                         `EventLoop` references the `Process` it executes within, and a `Task` the
                         `EventLoop` or `Pool` scheduling it; omitted for a top-level unit.
-                    value: "[[ARCH:CO.UNIT:*]]"
+                    value: "[[UNIT:*]]"
                     optional: true
                     acyclic: true
                 -   name: HOSTS
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW objects that run inside
                         this concurrency unit; omitted when no modeled component runs inside it.
-                    value: list([[ARCH:FV.COMPONENT:*]])
+                    value: list([[FV.COMPONENT:*]])
                     optional: true
                 -   name: MULTIPLICITY
                     desc: >
@@ -703,7 +701,7 @@
                         coordinates or communicates with at runtime, naming the peer unit only
                         (e.g. a producer names the consumer it feeds through a shared queue),
                         while the mechanism is stated by `COORDINATION`.
-                    value: list([[ARCH:CO.UNIT:*]])
+                    value: list([[UNIT:*]])
                     optional: true
                 -   name: COORDINATION
                     desc: >
@@ -728,7 +726,7 @@
             https://c4model.com/diagrams/deployment
     diagram:
         type: graph
-        nodes: "[[ARCH:DV.NODE:*]]"
+        nodes: "[[NODE:*]]"
         labeled: true
         properties:
             -   TIER
@@ -756,7 +754,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DV.TIER:*]], [[ARCH:DV.NODE:*]]"
+                nodes: "[[DV.TIER:*]], [[NODE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -771,7 +769,7 @@
                         Reference to the DEPLOYMENT-VIEW tier this tier is contained in (e.g. the
                         `Server` and `Database` tiers reference the `Data Center` tier hosting
                         them); omitted for a top-level tier.
-                    value: "[[ARCH:DV.TIER:*]]"
+                    value: "[[DV.TIER:*]]"
                     optional: true
                     acyclic: true
                 -   name: LOCATION
@@ -785,7 +783,7 @@
                         Reference to the TECHNOLOGY-STACK tier whose products run in this tier;
                         omitted when the Technology Stack is absent, has no matching tier, or the
                         tier (e.g. a data center) groups other tiers only.
-                    value: "[[ARCH:TS.TIER:*]]"
+                    value: "[[TS.TIER:*]]"
                     optional: true
         -   kind: AREA
             desc: >
@@ -806,7 +804,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]]"
+                nodes: "[[AREA:*]], [[NODE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -832,8 +830,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DV.TIER:*]], [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]],
-                    [[ARCH:DV.NETWORK:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]]"
+                nodes: "[[DV.TIER:*]], [[AREA:*]], [[NODE:*]], [[NETWORK:*]], [[FV.COMPONENT:*]],
+                    [[UNIT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -860,13 +858,13 @@
                     desc: >
                         Reference to the DEPLOYMENT-VIEW tier the node belongs to, exactly one, as a
                         single deployment unit never spans tiers.
-                    value: "[[ARCH:DV.TIER:*]]"
+                    value: "[[DV.TIER:*]]"
                 -   name: AREA
                     desc: >
                         Reference to the DEPLOYMENT-VIEW area the node is dedicated to, at most one,
                         as a single deployment unit never spans areas; omitted for a node shared by
                         several areas or when the solution is not split vertically.
-                    value: "[[ARCH:DV.AREA:*]]"
+                    value: "[[AREA:*]]"
                     optional: true
                 -   name: PLATFORM
                     desc: >
@@ -880,7 +878,7 @@
                         expressing the nesting the kinds imply: a `Container` references the
                         `Server` or `Cluster` running it, and a `Server` the `Cluster` it belongs
                         to; omitted for a top-level node.
-                    value: "[[ARCH:DV.NODE:*]]"
+                    value: "[[NODE:*]]"
                     optional: true
                     acyclic: true
                 -   name: HOSTS
@@ -890,7 +888,7 @@
                         node (which themselves state the components they host), and the functional
                         components not mapped by any concurrency unit directly. A containing node
                         does not repeat what its `PART-OF` nodes host.
-                    value: list([[ARCH:CO.UNIT:*]], [[ARCH:FV.COMPONENT:*]])
+                    value: list([[UNIT:*]], [[FV.COMPONENT:*]])
                     optional: true
                 -   name: INSTANCES
                     desc: >
@@ -902,14 +900,14 @@
                         Comma-separated references to the DEPLOYMENT-VIEW objects this node opens
                         network connections to at runtime, naming the target node only, while the
                         carried protocols are stated by the `PROTOCOLS` of the shared `NETWORK`.
-                    value: list([[ARCH:DV.NODE:*]])
+                    value: list([[NODE:*]])
                     optional: true
                 -   name: NETWORKS
                     desc: >
                         Comma-separated references to the DEPLOYMENT-VIEW network segments the node
                         is attached to (e.g. a public ingress and a private backend network); omitted
                         when the topology models no network segments.
-                    value: list([[ARCH:DV.NETWORK:*]])
+                    value: list([[NETWORK:*]])
                     optional: true
         -   kind: NETWORK
             desc: >
@@ -930,7 +928,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DV.NETWORK:*]], [[ARCH:DV.NODE:*]]"
+                nodes: "[[NETWORK:*]], [[NODE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -975,7 +973,7 @@
             https://www.iso.org/standard/70636.html
     diagram:
         type: grid
-        nodes: "[[ARCH:OV.CONCERN:*]]"
+        nodes: "[[CONCERN:*]]"
         properties:
             -   CATEGORY
     childs:
@@ -1000,9 +998,9 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:OV.CONCERN:*]], [[REQS:NR.REQUIREMENT:*]], [[REQS:UP.PERSONA:*]],
-                    [[ARCH:QP.TACTIC:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                    [[ARCH:DV.NODE:*]], [[DATA:DM.ENTITY:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                nodes: "[[CONCERN:*]], [[NR.REQUIREMENT:*]], [[PERSONA:*]], [[TACTIC:*]],
+                    [[FV.COMPONENT:*]], [[UNIT:*]], [[NODE:*]], [[DM.ENTITY:*]],
+                    [[TS.TIER:*.COMPONENT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1045,30 +1043,29 @@
                         procedure, usually a `Stakeholder` persona like the operations team (a
                         procedure performed by a `User` persona through the solution is a Use Case
                         instead); omitted when no persona of the operating organization is modeled.
-                    value: list([[REQS:UP.PERSONA:*]])
+                    value: list([[PERSONA:*]])
                     optional: true
                 -   name: ADDRESSES
                     desc: >
                         Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
                         procedure fulfills (e.g. a recovery objective, a retention obligation);
                         omitted when the concern fulfills no stated requirement.
-                    value: list([[REQS:NR.*]])
+                    value: list([[NR.*]])
                     optional: true
                 -   name: ELEMENTS
                     desc: >
                         Comma-separated references to the FUNCTIONALITY-VIEW, CONCURRENCY-VIEW,
                         DEPLOYMENT-VIEW, or DATA-MODEL objects the procedure acts upon (e.g. the
                         nodes scaled, the units restarted, the entities backed up or migrated).
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DV.TIER:*]],
-                        [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]], [[ARCH:DV.NETWORK:*]],
-                        [[DATA:DM.ENTITY:*]])
+                    value: list([[FV.COMPONENT:*]], [[UNIT:*]], [[DV.TIER:*]], [[AREA:*]],
+                        [[NODE:*]], [[NETWORK:*]], [[DM.ENTITY:*]])
                     optional: true
                 -   name: TOOLS
                     desc: >
                         Comma-separated references to the TECHNOLOGY-STACK components (usually of
                         `PHASE` `Operate-Time`) supporting the procedure; omitted when the procedure
                         uses no modeled product.
-                    value: list([[ARCH:TS.TIER:*.COMPONENT:*]])
+                    value: list([[TS.TIER:*.COMPONENT:*]])
                     optional: true
 
 -   kind: ARCH
@@ -1088,7 +1085,7 @@
             https://www.iso.org/standard/78176.html
     diagram:
         type: grid
-        nodes: "[[ARCH:QP.TACTIC:*]]"
+        nodes: "[[TACTIC:*]]"
         properties:
             -   QUALITY
     childs:
@@ -1119,9 +1116,9 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:QP.TACTIC:*]], [[REQS:NR.REQUIREMENT:*]], [[ARCH:FV.COMPONENT:*]],
-                    [[ARCH:CO.UNIT:*]], [[ARCH:DA.ASPECT:*]], [[ARCH:DV.NODE:*]], [[DATA:DM.ENTITY:*]],
-                    [[ARCH:OV.CONCERN:*]], [[ARCH:DD.DECISION:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                nodes: "[[TACTIC:*]], [[NR.REQUIREMENT:*]], [[FV.COMPONENT:*]], [[UNIT:*]],
+                    [[ASPECT:*]], [[NODE:*]], [[DM.ENTITY:*]], [[CONCERN:*]], [[DECISION:*]],
+                    [[TS.TIER:*.COMPONENT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1150,7 +1147,7 @@
                     desc: >
                         Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
                         tactic addresses.
-                    value: list([[REQS:NR.*]])
+                    value: list([[NR.*]])
                 -   name: MECHANISM
                     desc: >
                         The design mechanism through which the tactic is applied to achieve the
@@ -1171,9 +1168,9 @@
                         INTERFACE-MODEL objects the tactic shapes (e.g. the components replicated,
                         the aspects governing modifiability, the entities anonymized, the roles
                         and interfaces secured).
-                    value: list([[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]], [[ARCH:DA.ASPECT:*]],
-                        [[ARCH:DV.TIER:*]], [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]], [[ARCH:DV.NETWORK:*]],
-                        [[DATA:DM.ENTITY:*]], [[DATA:AM.ROLE:*]], [[APIS:IM.INTERFACE:*]])
+                    value: list([[FV.COMPONENT:*]], [[UNIT:*]], [[ASPECT:*]], [[DV.TIER:*]],
+                        [[AREA:*]], [[NODE:*]], [[NETWORK:*]], [[DM.ENTITY:*]], [[ROLE:*]],
+                        [[INTERFACE:*]])
                     optional: true
                 -   name: OPERATED-BY
                     desc: >
@@ -1181,14 +1178,14 @@
                         acts upon the design mechanism of the tactic (e.g. the scaling out of the
                         replication, the restoring of the backup); omitted when no modeled procedure
                         operates the tactic.
-                    value: list([[ARCH:OV.CONCERN:*]])
+                    value: list([[CONCERN:*]])
                     optional: true
                 -   name: TOOLS
                     desc: >
                         Comma-separated references to the TECHNOLOGY-STACK components realizing the
                         tactic (e.g. the load balancer, the message broker, the CDN); omitted when
                         the tactic uses no modeled product.
-                    value: list([[ARCH:TS.TIER:*.COMPONENT:*]])
+                    value: list([[TS.TIER:*.COMPONENT:*]])
                     optional: true
 -   kind: ARCH
     name: Design Decisions
@@ -1209,7 +1206,7 @@
             https://adr.github.io/
     diagram:
         type: grid
-        nodes: "[[ARCH:DD.DECISION:*]]"
+        nodes: "[[DECISION:*]]"
         properties:
             -   STATUS
         config:
@@ -1277,14 +1274,12 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ARCH:DD.DECISION:*]], [[REQS:NR.REQUIREMENT:*]], [[REQS:SP.PREMISE:*]],
-                    [[DATA:DM.ENTITY:*]], [[DATA:SM.LIFECYCLE:*]], [[DATA:AM.ROLE:*]],
-                    [[APIS:IM.INTERFACE:*]], [[APIS:ID.TYPE:*]], [[APIS:IE.ENDPOINT:*]],
-                    [[UXUI:IC.PRINCIPLE:*]], [[UXUI:LC.CONVENTION:*]], [[UXUI:DP.PATTERN:*]],
-                    [[UXUI:DS.STORYBOARD:*]], [[UXUI:VD.ELEMENT:*]],
-                    [[ARCH:CV.ENTITY:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                    [[ARCH:DA.ASPECT:*]], [[ARCH:DV.TIER:*]], [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]],
-                    [[ARCH:DV.NETWORK:*]], [[ARCH:QP.TACTIC:*]], [[ARCH:TS.TIER:*.COMPONENT:*]]"
+                nodes: "[[DECISION:*]], [[NR.REQUIREMENT:*]], [[PREMISE:*]], [[DM.ENTITY:*]],
+                    [[LIFECYCLE:*]], [[ROLE:*]], [[INTERFACE:*]], [[TYPE:*]], [[ENDPOINT:*]],
+                    [[PRINCIPLE:*]], [[CONVENTION:*]], [[PATTERN:*]], [[STORYBOARD:*]],
+                    [[ELEMENT:*]], [[CV.ENTITY:*]], [[FV.COMPONENT:*]], [[UNIT:*]], [[ASPECT:*]],
+                    [[DV.TIER:*]], [[AREA:*]], [[NODE:*]], [[NETWORK:*]], [[TACTIC:*]],
+                    [[TS.TIER:*.COMPONENT:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1307,7 +1302,7 @@
                         Reference to the DESIGN-DECISIONS object that supersedes this decision,
                         present if and only if `STATUS` is `Superseded` (which the schema cannot
                         enforce itself).
-                    value: "[[ARCH:DD.DECISION:*]]"
+                    value: "[[DECISION:*]]"
                     optional: true
                     acyclic: true
                 -   name: DRIVEN-BY
@@ -1317,7 +1312,7 @@
                         obligation, the budget constraint, the dependency taken as given), anchoring
                         the forces `WHEN` describes in prose; omitted when no modeled requirement or
                         premise drives the decision.
-                    value: list([[REQS:NR.*]], [[REQS:SP.PREMISE:*]])
+                    value: list([[NR.*]], [[PREMISE:*]])
                     optional: true
                 -   name: AFFECTS
                     desc: >
@@ -1329,13 +1324,11 @@
                         context, the interface styled REST instead of GraphQL, the dialog pattern
                         chosen over a native one, the components split, the external system
                         integrated); omitted for a decision shaping no modeled element.
-                    value: list([[DATA:DM.ENTITY:*]], [[DATA:SM.LIFECYCLE:*]], [[DATA:AM.ROLE:*]],
-                        [[APIS:IM.INTERFACE:*]], [[APIS:ID.TYPE:*]], [[APIS:IE.ENDPOINT:*]],
-                        [[UXUI:IC.PRINCIPLE:*]], [[UXUI:LC.CONVENTION:*]], [[UXUI:DP.PATTERN:*]],
-                        [[UXUI:DS.STORYBOARD:*]], [[UXUI:VD.ELEMENT:*]],
-                        [[ARCH:CV.ENTITY:*]], [[ARCH:FV.COMPONENT:*]], [[ARCH:CO.UNIT:*]],
-                        [[ARCH:DA.ASPECT:*]], [[ARCH:DV.TIER:*]], [[ARCH:DV.AREA:*]], [[ARCH:DV.NODE:*]],
-                        [[ARCH:DV.NETWORK:*]])
+                    value: list([[DM.ENTITY:*]], [[LIFECYCLE:*]], [[ROLE:*]], [[INTERFACE:*]],
+                        [[TYPE:*]], [[ENDPOINT:*]], [[PRINCIPLE:*]], [[CONVENTION:*]],
+                        [[PATTERN:*]], [[STORYBOARD:*]], [[ELEMENT:*]], [[CV.ENTITY:*]],
+                        [[FV.COMPONENT:*]], [[UNIT:*]], [[ASPECT:*]], [[DV.TIER:*]], [[AREA:*]],
+                        [[NODE:*]], [[NETWORK:*]])
                     optional: true
                 -   name: DECIDES
                     desc: >
@@ -1343,7 +1336,7 @@
                         TECHNOLOGY-STACK components the decision chose over their alternatives,
                         i.e. the mechanism or product which exists because of this decision; omitted
                         when the decision chose no modeled tactic or product.
-                    value: list([[ARCH:QP.TACTIC:*]], [[ARCH:TS.TIER:*.COMPONENT:*]])
+                    value: list([[TACTIC:*]], [[TS.TIER:*.COMPONENT:*]])
                     optional: true
                 -   name: ALTERNATIVES
                     desc: >

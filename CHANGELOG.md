@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.2.3 (2026-09-04)
+------------------
+
+-   CLEANUP [spec]: Shortest Reference Form in Standard Schema
+    The references of the standard schema configuration now use the plain `[[KIND:*]]` form for
+    the unique kinds and drop the top-level kind qualification everywhere else.
+
 1.2.2 (2026-09-04)
 ------------------
 
