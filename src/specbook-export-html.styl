@@ -438,7 +438,7 @@ div.fold-switch div.fold-controls svg
 /*  the folding of the diagrams and the over-long table cells
     (screen-only): a diagram sits in a fold container carrying a chevron
     mark in the muted symbol color of the anchors at its top left corner
-    -- in the page margin beside the content, and in the flow left of
+    -- in the page margin beside the content, and in a flex row left of
     the diagram inside a table cell, where no margin is left -- while an
     over-long cell carries its own chevron in a rounded grey box behind
     the last still shown word; a folded diagram leaves the icon of its
@@ -485,17 +485,21 @@ span.fold-label svg
     width: 1.1rem
     height: 1.1rem
 @media screen
+    td div.fold
+        display: flex
+        align-items: flex-start
     td div.fold > span.fold-mark
         position: static
-        display: inline-block
-        vertical-align: middle
-        margin-right: 0.3rem
+        flex: 0 0 auto
+        margin: 0.3rem 0.3rem 0 0
+    td div.fold > div.diagram
+        flex: 1 1 auto
+        min-width: 0
     body:not(.searching) div.fold.folded > span.fold-label
         display: block
     body:not(.searching) td div.fold.folded > span.fold-label
-        display: inline-block
-        vertical-align: middle
-        margin-bottom: 0
+        display: block
+        margin: 0.15rem 0 0 0
     body:not(.searching) div.fold.folded > div.diagram,
     body:not(.searching) td.folded .fold-rest
         display: none
