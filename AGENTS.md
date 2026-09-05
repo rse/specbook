@@ -51,7 +51,8 @@ API.
         decoration needs outside of CSS
     -   `src/specbook-diagram.ts`: the derivation of the Gradia specs of
         the configured `graph`/`hub`/`grid` diagrams from the object
-        model and its references, their validation, and the in-memory
+        model and its references (including the `nest` container
+        nesting of the nodes), their validation, and the in-memory
         cache of the rendered SVGs
     -   `src/specbook-config.ts`: YAML schema configuration loading, merging, and validation (Valibot)
     -   `src/specbook-diagnostic.ts`: the `Diagnostic` type and its

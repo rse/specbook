@@ -759,8 +759,10 @@
                 edgeSource: FROM
                 edgeTarget: TO
                 onlyConnected: true
-                properties:
-                    -   ACTOR
+                qualified: true
+                nest:
+                    properties:
+                        -   ACTOR
                 config:
                     size-node-width-max: 440
             props:

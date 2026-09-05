@@ -366,6 +366,40 @@ type SchemaGradiaConfig = Partial<{
     whether every node is labeled with its kind (default: `false`),
     BECAUSE names alone are ambiguous across multiple object kinds
 
+-   `SchemaDiagram.ordered?: boolean`:
+    whether the nodes are placed in document order instead of by the
+    layered layout, the top-level ones stacked top-down and the members
+    of a container lined up left-to-right (default: `false`),
+    BECAUSE in a coarse-to-fine specification the references then all
+    point backward, i.e. upward
+
+-   `SchemaDiagram.nest?: SchemaDiagramNest`:
+    nesting of the nodes into container nodes,
+    BECAUSE a containment drawn as a box beats one drawn as an edge
+
+-   `SchemaDiagramNest.properties?: string[]`:
+    properties whose single referenced object is the container of a node,
+    BECAUSE a `PART-OF` or `TIER` reference is a containment, not a relation
+
+-   `SchemaDiagramNest.parent?: boolean`:
+    whether the parent object is the container of a node (default: `false`),
+    BECAUSE the nesting of the objects is a containment, too
+
+-   `SchemaDiagramNest.kind?: boolean`:
+    whether a synthetic container per object kind holds the nodes
+    (default: `false`),
+    BECAUSE a kind is a grouping no object models
+
+-   `SchemaDiagramNest.layout?: "graph" | "hub" | "grid"`:
+    shape the members of every container are laid out with
+    (default: the diagram type),
+    BECAUSE the inside of a container may tell a different story than the whole
+
+-   `SchemaDiagramNest.crossing?: "nodes" | "target" | "both"`:
+    ends of a boundary-crossing edge lifted onto the containers
+    (default: `nodes`, i.e. none),
+    BECAUSE a bundle of references into a container reads as one edge onto it
+
 -   `SchemaDiagram.properties?: string[]`:
     property names attached to the nodes as key/value annotations,
     BECAUSE the node name alone rarely makes the nodes comparable
@@ -532,6 +566,34 @@ node only, `qualified` labels every node with its object kind,
 nodes as key/value annotations (with every `[[xxx]]` reference stripped
 to its target object name), and `config` passes arbitrary Gradia
 rendering options (e.g. `grid-columns-max: 5`) through to the diagram.
+
+`ordered` replaces the layered layout of a `graph` by the document
+order of the objects: the top-level nodes stack top-down in that order
+(a synthetic container at the position of its first member), while the
+members of a container line up left-to-right in it, wrapped by the
+Gradia option `graph-columns-max`, so the references of a coarse-to-fine
+specification all point backward, i.e. upward or leftward.
+
+`nest` nests the nodes into *container* nodes, drawn as boxes around
+their members with the edges crossing the box borders: the first of its
+`properties` carrying exactly one resolvable reference names the
+container of a node (a container outside the node set is added to it,
+labeled and linked like a node, and nested on its own in turn, so a
+`NODE` sits in its `TIER` and the tier in the tier it is `PART-OF`),
+else with `parent: true` the parent object is the container when part
+of the node set, else with `kind: true` a synthetic container per object
+kind is. An edge between a container and one of its own members is
+dropped, as the nesting already shows it, `layout` selects the shape
+the members of every container are laid out with (default: the diagram
+type), a `hub` carries no containers, as every container would need a
+primary node of its own, and a node nested into itself or into a cycle
+is reported. With `crossing: target` an edge crossing a container
+boundary ends at the outermost container of its target not enclosing
+its source, too, and with `crossing: both` it also starts at the
+corresponding container of its source, where the edges coinciding
+afterwards merge into one with their arities summed, so the edges
+inside a container stay node-to-node while the bundles of references
+into a container become single edges onto it.
 
 ### Format
 

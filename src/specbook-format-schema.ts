@@ -67,9 +67,22 @@ export type SchemaDiagramCenterEdges = {
     labeled?:          string
 }
 
+/*  the nesting of the nodes of a diagram into container nodes: the
+    properties whose referenced object becomes the container (the first
+    resolvable one wins), the parent object as the container, a
+    synthetic container per object kind, the layout of the members, and
+    the ends of the boundary-crossing edges lifted onto the containers  */
+export type SchemaDiagramNest = {
+    properties?:       string[]
+    parent?:           boolean
+    kind?:             boolean
+    layout?:           "graph" | "hub" | "grid"
+    crossing?:         "nodes" | "target" | "both"
+}
+
 /*  the diagram derived for every object of an object kind: its shape,
     its node/edge selection, the edge property roles, the derivation
-    switches, and the node annotations  */
+    switches, the node nesting, and the node annotations  */
 export type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid"
     nodes?:            string
@@ -86,6 +99,8 @@ export type SchemaDiagram = {
     onlyConnected?:    boolean
     collapse?:         boolean
     qualified?:        boolean
+    ordered?:          boolean
+    nest?:             SchemaDiagramNest
     properties?:       string[]
     config?:           Partial<GradiaConfig>
 }
@@ -168,6 +183,13 @@ const SchemaDiagramCenterEdges: v.GenericSchema<SchemaDiagramCenterEdges> = v.st
     both:              v.optional(v.string()),
     labeled:           v.optional(v.string())
 })
+const SchemaDiagramNest: v.GenericSchema<SchemaDiagramNest> = v.strictObject({
+    properties:        v.optional(v.array(v.string())),
+    parent:            v.optional(v.boolean()),
+    kind:              v.optional(v.boolean()),
+    layout:            v.optional(v.picklist([ "graph", "hub", "grid" ])),
+    crossing:          v.optional(v.picklist([ "nodes", "target", "both" ]))
+})
 const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     type:              v.optional(v.picklist([ "graph", "hub", "grid" ])),
     nodes:             v.optional(v.string()),
@@ -184,6 +206,8 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     onlyConnected:     v.optional(v.boolean()),
     collapse:          v.optional(v.boolean()),
     qualified:         v.optional(v.boolean()),
+    ordered:           v.optional(v.boolean()),
+    nest:              v.optional(SchemaDiagramNest),
     properties:        v.optional(v.array(v.string())),
     config:            v.optional(SchemaDiagramConfig)
 })

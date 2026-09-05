@@ -5,6 +5,14 @@ ChangeLog
 1.2.5 (2026-09-05)
 ------------------
 
+-   FEATURE [code, docs]: Document Order in Diagrams
+    An `ordered` diagram stacks its nodes in document order through the new Gradia `order`
+    attribute, so the Diagram of Contents runs top-down from the requirements to the tests.
+
+-   FEATURE [code, docs]: Container Nodes in Diagrams
+    A diagram now nests its nodes into container boxes by a reference property, the parent object,
+    or the object kind, used by the deployment, functionality, stack, and workflow diagrams.
+
 -   FEATURE [code, docs]: Folding of Diagrams and Table Cell Texts in HTML Export
     The HTML export now folds every diagram and every over-long table cell text individually and,
     for all of them at once, through the two controls of a new tab of the brand bar.

@@ -132,6 +132,9 @@
         type: graph
         nodes: "[[FV.COMPONENT:*]]"
         labeled: true
+        nest:
+            properties:
+                -   PART-OF
         properties:
             -   KIND
     children:
@@ -237,7 +240,15 @@
             https://c4model.com/diagrams/container
     diagram:
         type: grid
-        nodes: "[[TS.TIER:*]]"
+        nodes: "[[TS.TIER:*]], [[TS.TIER:*.COMPONENT:*]]"
+        nest:
+            parent: true
+            layout: grid
+        properties:
+            -   PRODUCT
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 3
     children:
         -   kind: TIER
             desc: |
@@ -727,8 +738,12 @@
         type: graph
         nodes: "[[NODE:*]]"
         labeled: true
+        qualified: true
+        nest:
+            properties:
+                -   PART-OF
+                -   TIER
         properties:
-            -   TIER
             -   AREA
             -   KIND
             -   PLATFORM

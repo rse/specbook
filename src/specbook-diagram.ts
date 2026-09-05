@@ -9,7 +9,7 @@ import { Gradia }
 
 import type { Spec, SpecObject, SpecProperty }
     from "./specbook-format-spec.js"
-import type { Schema, SchemaDiagram, SchemaDiagramCenterEdges }
+import type { Schema, SchemaDiagram, SchemaDiagramCenterEdges, SchemaDiagramNest }
     from "./specbook-format-schema.js"
 import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths,
     expandReferences, plainText, type LinkIndex }
@@ -98,33 +98,63 @@ const propsOf = (parenProps: ParenProps, object: SpecObject): SpecProperty[] => 
 const propValue = (parenProps: ParenProps, object: SpecObject, key: string): string | undefined =>
     propsOf(parenProps, object).find((property) => property.key === key)?.value
 
+/*  the derived nesting of the nodes of a diagram: the container node
+    of every nested node, plus the set of all container nodes  */
+interface DiagramNesting {
+    parentOf:   Map<SpecObject, SpecObject>
+    containers: Set<SpecObject>
+}
+
 /*  generate the Gradia spec text of a derived diagram, opened by a
     "#type" directive and the configured "#config" directives so every
     embedded spec is self-contained: one node statement per object (the
     unique anchor path as the node id, the object name as the displayed
-    label) and one edge statement per derived edge  */
+    label, the container node as the parent) and one edge statement per
+    derived edge  */
 const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
-    centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[],
-    index: LinkIndex, anchors: Map<SpecObject, string>, parenProps: ParenProps): string => {
+    centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[], nesting: DiagramNesting,
+    index: LinkIndex, anchors: Map<SpecObject, string>, positions: Map<SpecObject, number>,
+    parenProps: ParenProps): string => {
     const lines  = [ `#type ${type}` ]
     const config = diagram.config ?? {}
     for (const [ key, value ] of Object.entries(config))
         if (value !== undefined)
             lines.push(`#config ${key} ${configValue(value)}`)
     lines.push("")
+
+    /*  the explicit top-down order of an "ordered" diagram: the members
+        of a container share one row (which Gradia wraps), while the
+        top-level nodes stack in document order, a synthetic container
+        taking the position of its first member  */
+    const orderOf = (node: SpecObject): number => {
+        if (nesting.parentOf.has(node))
+            return 0
+        let order = positions.get(node) ?? Number.MAX_SAFE_INTEGER
+        for (const [ member, container ] of nesting.parentOf)
+            if (container === node)
+                order = Math.min(order, positions.get(member) ?? order)
+        return order
+    }
     for (const node of nodes) {
         const anchor = anchors.get(node)
         const attrs  = new Array<string>()
 
-        /*  a synthetic center node (the only node without an anchor
-            path) links to its source object, or nowhere at all  */
-        const url = anchor !== undefined ? `#${anchor}` : centerUrl
+        /*  a synthetic center or container node (the only nodes without
+            an anchor path) links to its source object, or nowhere at all  */
+        const url = anchor !== undefined ? `#${anchor}` : (node === center ? centerUrl : undefined)
         if (url !== undefined)
             attrs.push(`url: ${atom(url)}`)
         if (diagram.qualified === true && node.kind !== "")
             attrs.push(`type: ${atom(node.kind)}`)
         if (type === "hub" ? node === center : node.primary === true)
             attrs.push("primary: true")
+        const container = nesting.parentOf.get(node)
+        if (container !== undefined)
+            attrs.push(`parent: ${atom(anchors.get(container) ?? container.id)}`)
+        if (diagram.nest?.layout !== undefined && nesting.containers.has(node))
+            attrs.push(`container: ${diagram.nest.layout}`)
+        if (diagram.ordered === true)
+            attrs.push(`order: ${orderOf(node)}`)
 
         /*  attach the values of the configured properties as Gradia
             key/value attributes (a node lacking a property is fine, as
@@ -449,11 +479,112 @@ const deriveCenterEdges = (cfg: SchemaDiagramCenterEdges, nodes: SpecObject[],
     return edges
 }
 
+/*  derive the nesting of the nodes into container nodes: per node the
+    first configured property carrying exactly one resolvable reference
+    names its container (added to the node set when absent, and nested
+    on its own in turn), else its parent object when part of the node
+    set, else a synthetic container per object kind; a node nested into
+    itself or into a cycle stays un-nested and is reported  */
+const deriveNesting = (nest: SchemaDiagramNest, nodes: SpecObject[], nodeSet: Set<SpecObject>,
+    index: LinkIndex, parents: Map<SpecObject, SpecObject | undefined>,
+    parenProps: ParenProps, errors: DiagramError[]): DiagramNesting => {
+    const parentOf = new Map<SpecObject, SpecObject>()
+    const byKind   = new Map<string, SpecObject>()
+
+    /*  the iteration also visits the containers appended underway  */
+    for (const node of nodes) {
+        let container: SpecObject | undefined
+        for (const key of nest.properties ?? []) {
+            const value = propValue(parenProps, node, key)
+            const refs  = value !== undefined ? Array.from(value.matchAll(referenceRegex)) : []
+            if (refs.length !== 1)
+                continue
+            container = resolveUnique(index, refs[0][1].trim(), node).target
+            if (container !== undefined)
+                break
+        }
+        if (container === undefined && nest.parent === true) {
+            const parent = parents.get(node)
+            if (parent !== undefined && nodeSet.has(parent))
+                container = parent
+        }
+        if (container === undefined && nest.kind === true && node.kind !== "") {
+            container = byKind.get(node.kind)
+            if (container === undefined) {
+                container = { kind: "", id: `@kind-${node.kind}`, name: node.kind, properties: [], children: [] }
+                byKind.set(node.kind, container)
+            }
+        }
+        if (container === undefined)
+            continue
+
+        /*  a container chain leading back to the node would close a
+            cycle, which Gradia rejects exactly like a self-nesting  */
+        let ancestor: SpecObject | undefined = container
+        while (ancestor !== undefined && ancestor !== node)
+            ancestor = parentOf.get(ancestor)
+        if (ancestor === node) {
+            errors.push({ reason: `node "${plainText(node.name)}" is nested into itself` })
+            continue
+        }
+        parentOf.set(node, container)
+        if (!nodeSet.has(container)) {
+            nodes.push(container)
+            nodeSet.add(container)
+        }
+    }
+    return { parentOf, containers: new Set(parentOf.values()) }
+}
+
+/*  lift the edges crossing a container boundary onto the containers:
+    an end is replaced by its outermost ancestor container not enclosing
+    the other end as well (the target end only, or both ends), and the
+    edges coinciding afterwards merge into one, with their arities summed
+    where numeric, so a bundle of references into a container becomes a
+    single edge onto it  */
+const liftEdges = (edges: DiagramEdge[], parentOf: Map<SpecObject, SpecObject>,
+    mode: "target" | "both", anchors: Map<SpecObject, string>): DiagramEdge[] => {
+    const ancestors = (object: SpecObject): SpecObject[] => {
+        const chain = new Array<SpecObject>()
+        for (let p = parentOf.get(object); p !== undefined; p = parentOf.get(p))
+            chain.push(p)
+        return chain
+    }
+    const lift = (end: SpecObject, other: SpecObject): SpecObject => {
+        const enclosing = new Set<SpecObject>([ other, ...ancestors(other) ])
+        let lifted = end
+        for (const ancestor of ancestors(end)) {
+            if (enclosing.has(ancestor))
+                break
+            lifted = ancestor
+        }
+        return lifted
+    }
+    const merged = new Map<string, DiagramEdge>()
+    for (const edge of edges) {
+        const target = lift(edge.target, edge.source)
+        const source = mode === "both" ? lift(edge.source, edge.target) : edge.source
+        if (source === target)
+            continue
+        const key   = `${anchors.get(source) ?? source.id} ${anchors.get(target) ?? target.id}` +
+            ` ${edge.name ?? ""}`
+        const known = merged.get(key)
+        if (known === undefined)
+            merged.set(key, { source, target, name: edge.name, arity: edge.arity })
+        else if (known.arity !== undefined && edge.arity !== undefined
+            && /^\d+$/.test(known.arity) && /^\d+$/.test(edge.arity))
+            known.arity = String(Number(known.arity) + Number(edge.arity))
+        else if (known.arity !== edge.arity)
+            known.arity = undefined
+    }
+    return Array.from(merged.values())
+}
+
 /*  derive the Gradia spec of a single object from its "diagram:"
     schema configuration (the returned spec is absent whenever the
     configured diagram situation is invalid)  */
 const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
-    index: LinkIndex, anchors: Map<SpecObject, string>,
+    index: LinkIndex, anchors: Map<SpecObject, string>, positions: Map<SpecObject, number>,
     parents: Map<SpecObject, SpecObject | undefined>, parenProps: ParenProps): DiagramResult => {
     const type   = diagram.type ?? "graph"
     const errors = new Array<DiagramError>()
@@ -529,15 +660,33 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         }
     }
 
+    /*  nest the nodes into container nodes (except in a "hub" diagram,
+        where every container would need a primary node of its own),
+        dropping the edges between a container and its own members,
+        which Gradia rejects, as the nesting already shows them  */
+    let nesting: DiagramNesting = { parentOf: new Map(), containers: new Set() }
+    if (diagram.nest !== undefined) {
+        if (type === "hub")
+            errors.push({ reason: "\"hub\" diagram cannot carry a \"nest\" configuration" })
+        else {
+            nesting = deriveNesting(diagram.nest, nodes, nodeSet, index, parents, parenProps, errors)
+            if (diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
+                edges = liftEdges(edges, nesting.parentOf, diagram.nest.crossing, anchors)
+            edges = edges.filter((edge) => nesting.parentOf.get(edge.source) !== edge.target
+                && nesting.parentOf.get(edge.target) !== edge.source)
+        }
+    }
+
     /*  the "onlyConnected" filtering keeps only the nodes with at
-        least one incident edge (sensible for "graph" diagrams only)  */
+        least one incident edge (sensible for "graph" diagrams only),
+        and the container nodes, whose members connect them  */
     if (diagram.onlyConnected === true && type === "graph") {
         const connected = new Set<SpecObject>()
         for (const edge of edges) {
             connected.add(edge.source)
             connected.add(edge.target)
         }
-        nodes = nodes.filter((node) => connected.has(node))
+        nodes = nodes.filter((node) => connected.has(node) || nesting.containers.has(node))
     }
     if (errors.length > 0)
         return { errors }
@@ -551,8 +700,8 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         || (diagram.collapse !== false && nodes.length === 1 && edges.length === 0))
         return { errors }
 
-    return { spec: renderSpec(diagram, type, center, centerUrl, nodes, edges, index, anchors, parenProps),
-        config: diagram.config, columns, errors }
+    return { spec: renderSpec(diagram, type, center, centerUrl, nodes, edges, nesting, index, anchors,
+        positions, parenProps), config: diagram.config, columns, errors }
 }
 
 /*  the memoized diagram derivations, keyed by specification, as the
@@ -567,11 +716,14 @@ export const specDiagrams = (specification: Spec,
     const derived = derivations.get(specification)
     if (derived !== undefined && derived.config === config)
         return derived.results
-    const index   = buildLinkIndex(specification)
-    const anchors = anchorPaths(index)
-    const parents = new Map<SpecObject, SpecObject | undefined>()
-    for (const node of index)
+    const index     = buildLinkIndex(specification)
+    const anchors   = anchorPaths(index)
+    const parents   = new Map<SpecObject, SpecObject | undefined>()
+    const positions = new Map<SpecObject, number>()
+    index.forEach((node, position) => {
         parents.set(node.object, node.parent?.object)
+        positions.set(node.object, position)
+    })
     const schemas = collectSchemas(specification, config)
 
     /*  re-derive the synthetic properties of the consumed parenthesized
@@ -581,7 +733,8 @@ export const specDiagrams = (specification: Spec,
     const results = new Map<SpecObject, DiagramResult>()
     for (const [ object, schema ] of schemas)
         if (schema.diagram !== undefined)
-            results.set(object, deriveDiagram(object, schema.diagram, index, anchors, parents, parenProps))
+            results.set(object, deriveDiagram(object, schema.diagram, index, anchors, positions, parents,
+                parenProps))
     derivations.set(specification, { config, results })
     return results
 }

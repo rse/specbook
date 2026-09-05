@@ -116,6 +116,12 @@
         nodes: "[[REQS:*]], [[DATA:*]], [[APIS:*]], [[UXUI:*]], [[ARCH:*]], [[TEST:*]]"
         deep: true
         qualified: true
+        ordered: true
+        nest:
+            kind: true
+            crossing: target
+        config:
+            graph-columns-max: 2
     props:
         -   name: LOGO
             desc: The logo of the specification.
