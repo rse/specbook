@@ -1,0 +1,56 @@
+##
+##  Specification Book (SpecBook)
+##  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+##  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+##
+
+name: Deploy static content to Pages
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - "web/**"
+      - ".github/workflows/static.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+      - name: Install dependencies
+        working-directory: "web"
+        run: npm install
+      - name: Build website
+        working-directory: "web"
+        env:
+          SITE_URL: https://specbook.tools
+        run: npm start build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: "web/dst"
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
