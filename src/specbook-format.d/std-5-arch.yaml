@@ -174,7 +174,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[FV.COMPONENT:*]], [[FR.REQUIREMENT:*]], [[INTERFACE:*]], [[DM.ENTITY:*]]"
+                nodes: "[[FV.COMPONENT:*]], [[FR.REQUIREMENT:*]], [[INTERFACE:*]], [[DM.ENTITY:*]],
+                    [[TACTIC:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -313,7 +314,8 @@
                     diagram:
                         type: hub
                         center: self
-                        nodes: "[[TS.TIER:*.COMPONENT:*]], [[FV.COMPONENT:*]], [[DECISION:*]]"
+                        nodes: "[[TS.TIER:*.COMPONENT:*]], [[FV.COMPONENT:*]], [[TACTIC:*]],
+                            [[DECISION:*]]"
                         labeled: true
                         qualified: true
                         properties:
@@ -636,7 +638,22 @@
                 states the product choice), does not restate the runtime structure (a Functionality
                 View `Module` or `Subsystem` groups the logic), does not cover production
                 procedures (an Operations View concern does), and the trade-off that produced a
-                rule is a Design Decisions decision referencing the aspect through `AFFECTS`.
+                rule is a Design Decisions decision referencing the aspect through `AFFECTS`,
+                while the quality the rule protects (usually a `Maintainability` requirement) is
+                addressed by a Quality Perspectives tactic referencing the aspect through
+                `AFFECTS`, too, so the hub diagram of an aspect shows the decision and the tactic
+                behind it.
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ASPECT:*]], [[TACTIC:*]], [[DECISION:*]]"
+                labeled: true
+                qualified: true
+                properties:
+                    -   CATEGORY
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
             props:
                 -   name: CATEGORY
                     desc: >
@@ -689,7 +706,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[UNIT:*]], [[FV.COMPONENT:*]], [[NODE:*]]"
+                nodes: "[[UNIT:*]], [[FV.COMPONENT:*]], [[NODE:*]], [[TACTIC:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -790,7 +807,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[DV.TIER:*]], [[NODE:*]]"
+                nodes: "[[DV.TIER:*]], [[NODE:*]], [[TACTIC:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -840,7 +857,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[AREA:*]], [[NODE:*]]"
+                nodes: "[[AREA:*]], [[NODE:*]], [[TACTIC:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -867,7 +884,7 @@
                 type: hub
                 center: self
                 nodes: "[[DV.TIER:*]], [[AREA:*]], [[NODE:*]], [[NETWORK:*]], [[FV.COMPONENT:*]],
-                    [[UNIT:*]]"
+                    [[UNIT:*]], [[TACTIC:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -964,7 +981,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[NETWORK:*]], [[NODE:*]]"
+                nodes: "[[NETWORK:*]], [[NODE:*]], [[TACTIC:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1346,10 +1363,11 @@
                         Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS or
                         SOLUTION-PREMISES objects forcing the decision (e.g. the compliance
                         obligation, the budget constraint, the dependency taken as given), anchoring
-                        the forces `WHEN` describes in prose; omitted when no modeled requirement or
-                        premise drives the decision.
+                        the forces `WHEN` describes in prose: as a decision is the response to
+                        forces, at least one is always named, usually a Non-Functional Requirement
+                        and only exceptionally a premise alone, and a decision finding no
+                        requirement to name reveals a missing one rather than a needless reference.
                     value: list([[NR.*]], [[PREMISE:*]])
-                    optional: true
                 -   name: AFFECTS
                     desc: >
                         Comma-separated references to the objects of the DATA, APIS, UXUI, or ARCH

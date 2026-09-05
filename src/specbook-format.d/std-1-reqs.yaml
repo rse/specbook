@@ -557,6 +557,28 @@
                 several requirements otherwise) which is verifiable against its `METRIC`, written
                 with exactly one keyword `MUST`, `SHOULD`, or `COULD` matching its `PRIORITY`, plus
                 a 1-sentence rationale ("why").
+
+                The requirement is answered by the architecture, never the other way round: a
+                Quality Perspectives tactic addresses it through its mechanism, a Design Decisions
+                decision is driven by it as a force, and an Operations View concern fulfills it
+                through its procedure, so every requirement is referenced from at least one of
+                them (a `WONT` requirement, which the architecture rightly ignores, is the tolerated
+                exception the lint warning cannot tell apart) and its hub diagram shows what
+                answers it.
+            referenced:
+                -   "[[TACTIC:*]]"
+                -   "[[DECISION:*]]"
+                -   "[[CONCERN:*]]"
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[NR.REQUIREMENT:*]], [[FR.REQUIREMENT:*]], [[PREMISE:*]], [[RULE:*]],
+                    [[TACTIC:*]], [[DECISION:*]], [[CONCERN:*]], [[TEST-CASE:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
             props:
                 -   name: PRIORITY
                     desc: >

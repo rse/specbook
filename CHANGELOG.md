@@ -5,6 +5,14 @@ ChangeLog
 1.2.6 (2026-09-05)
 ------------------
 
+-   IMPROVEMENT [docs, othr]: Trace the Architecture Back onto the Non-Functional Requirements
+    An `NR` requirement now demands a tactic, decision, or concern answering it and shows them in a
+    hub, `DRIVEN-BY` is mandatory, the view element hubs show their tactics and decisions, too.
+
+-   IMPROVEMENT [othr]: Close the Architecture Traceability Gaps of the Sample
+    The sample adds the requirements, tactics, decisions, and concern references the architecture
+    implied but never stated, so every requirement is answered and every decision has its force.
+
 -   FEATURE [code, docs]: Mediated Context Entities via `VIA` Property and `centerEdges.via`
     An `ENTITY` exchanging data only through another entity (e.g. a manually carried file) names
     it in `VIA`, and the hub diagram labels its center edges `via <name>` instead of implying an

@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-06-18 10:18
+Modified: 2026-09-05 13:10
 ---
 
 REQS: Non-Functional Requirements (NR)
@@ -80,6 +80,33 @@ REQS: Non-Functional Requirements (NR)
     BECAUSE weak access secrets would let unauthorized viewers join the
     event.
 
+-   REQUIREMENT: Isolated Persistence Node {{data-isolation}};
+    PRIORITY: MUST; CATEGORY: Security;
+    QUALIFIES: [[REQUIREMENT:gdpr-eu]];
+    PREMISES: [[PREMISE:message-personal-data]];
+    METRIC: 0 routes to the database port from outside the business services;
+    The system MUST keep the persistence node reachable from the business
+    services alone, with no route from the Internet or from the
+    connection-handling tiers, BECAUSE the persisted personal data is
+    protected best by a node an attacker of the public entry point
+    cannot even address.
+
+-   REQUIREMENT: Event Setup Recovery {{recovery}};
+    PRIORITY: MUST; CATEGORY: Reliability;
+    PREMISES: [[PREMISE:eu-hosting]];
+    METRIC: RPO <= 24 hours (<= 1 hour right before an event) and RTO <= 2 hours;
+    The system MUST allow the event setups and their messages to be
+    restored after a database loss within 2 hours from a backup at most
+    24 hours old, and at most 1 hour old right before an event, BECAUSE
+    a prepared event must not have to be re-entered under time pressure
+    on the day of the broadcast.
+
+-   REQUIREMENT: Event-Safe Maintenance {{maintenance-window}};
+    PRIORITY: MUST; CATEGORY: Reliability;
+    METRIC: 0 rollouts or reconfigurations while an event runs;
+    The system MUST be upgraded and reconfigured only while no event
+    runs, BECAUSE a live audience cannot be asked to wait for a restart.
+
 -   REQUIREMENT: Live Configuration Latency {{config-latency}};
     PRIORITY: SHOULD; CATEGORY: Performance;
     QUALIFIES: [[REQUIREMENT:config-propagation]];
@@ -107,6 +134,34 @@ REQS: Non-Functional Requirements (NR)
     The system SHOULD throttle chat and question submissions to a
     configurable maximum per user per minute, BECAUSE rate limiting
     prevents denial-of-service abuse of the interaction channels.
+
+-   REQUIREMENT: Start-Surge Asset Delivery {{asset-delivery}};
+    PRIORITY: SHOULD; CATEGORY: Performance;
+    QUALIFIES: [[REQUIREMENT:browser-access]];
+    PREMISES: [[PREMISE:start-surge]];
+    METRIC: client bundle delivered within 3 seconds at 10000 simultaneous joins;
+    The system SHOULD deliver the static client bundle to each of 10000
+    attendees joining within the same minute in at most 3 seconds,
+    BECAUSE the audience arrives in a surge right at the start of the
+    event and must not be held back by the download.
+
+-   REQUIREMENT: Compile-Time Contract Safety {{contract-safety}};
+    PRIORITY: SHOULD; CATEGORY: Maintainability;
+    METRIC: 100 % of the client/server message contracts type-checked at build time;
+    The system SHOULD catch every mismatch between the message contracts
+    of client and server at build time instead of at runtime, BECAUSE a
+    contract slip surfacing only during a live event is the costliest
+    defect the solution can have.
+
+-   REQUIREMENT: Live Diagnosability {{observability}};
+    PRIORITY: SHOULD; CATEGORY: Maintainability;
+    QUALIFIES: [[REQUIREMENT:event-stats]], [[REQUIREMENT:debug-stats]];
+    METRIC: event counters at most 5 minutes old, every login failure traceable from token states and log;
+    The system SHOULD let the administrator see the attendee, channel,
+    and authentication-flow counters of a running event with at most 5
+    minutes delay and trace every login failure from the recorded token
+    states and the log, BECAUSE capacity and access problems must be
+    diagnosed while the audience is still online.
 
 -   REQUIREMENT: Mobile Usability {{mobile-usability}};
     PRIORITY: COULD; CATEGORY: Usability;

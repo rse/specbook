@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-03 18:30
+Modified: 2026-09-05 13:10
 ---
 
 ARCH: Design Decisions (DD)
@@ -31,14 +31,15 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:gdpr]], [[REQUIREMENT:cost]], [[PREMISE:eu-hosting]]
--   AFFECTS:      [[TIER:datacenter]]
--   ALTERNATIVES: Azure, AWS
+-   AFFECTS:      [[TIER:datacenter]], [[ASPECT:codeline]]
+-   ALTERNATIVES: Azure, AWS, GitHub
 -   WHEN:
     The solution must be GDPR-compliant with EU data residency, and a primary economic goal is to minimize recurring cost per
     event, the solution having been built specifically to replace a costlier third-party platform.
 -   WHAT:
     We operate all server tiers on self-managed Hetzner infrastructure in Nürnberg, Germany, separated into dev, QA, and
-    production environments, rather than on Azure or AWS.
+    production environments, rather than on Azure or AWS, and keep the source on a self-administered Gitea rather than on
+    a hosted forge.
 -   WHY:
     Hetzner delivers EU-resident hosting at a fraction of hyperscaler cost, satisfying both the data-residency and
     cost-minimization forces; public cloud was rejected because its per-event egress and compute pricing would undermine the
@@ -100,3 +101,218 @@ ARCH: Design Decisions (DD)
     Separating the audience-facing logical stream from interchangeable provider endpoints makes live failover a state change
     rather than a reconfiguration, satisfying both the multi-variant and continuity forces; binding clients directly to a
     single provider was rejected because it would make any provider problem an event-ending failure.
+
+##  DECISION: Embed provider-delivered video instead of self-hosted streaming {{provider-streaming}}
+
+-   STATUS:       Accepted
+-   DRIVEN-BY:    [[REQUIREMENT:streaming-quality]], [[REQUIREMENT:cost]], [[PREMISE:provider-delivery]]
+-   AFFECTS:      [[COMPONENT:client]], [[ENTITY:Channel]], [[ENTITY:Resource]], [[ENTITY:provider]]
+-   DECIDES:      [[TACTIC:stream-passthrough]]
+-   ALTERNATIVES: self-hosted media server (e.g. OvenMediaEngine, Wowza), relaying the video through the data center
+-   WHEN:
+    Productions are delivered in 1080p30 in two languages to up to 10000 attendees, the streaming providers already encode
+    and distribute the video worldwide, and the per-event cost has to stay low.
+-   WHAT:
+    We leave the video entirely with the streaming providers: the client embeds the provider player of the active resource,
+    and the solution carries only the metadata telling every client which resource to play.
+-   WHY:
+    A provider delivers the produced quality from a global network for a per-event fee, whereas self-hosted streaming would
+    need transcoding and egress capacity for 10000 viewers in the data center; a self-hosted media server was rejected as
+    the single most expensive and most fragile piece the solution could take on.
+-   CONSEQUENCES:
+    The solution depends on the providers for the entire video path, so the provider failover has to be a first-class
+    mechanism, and the video quality is capped by what the providers deliver rather than tunable by the solution.
+
+##  DECISION: One modular service process instead of microservices {{modular-service}}
+
+-   STATUS:       Accepted
+-   DRIVEN-BY:    [[REQUIREMENT:cost]], [[REQUIREMENT:contract-safety]], [[REQUIREMENT:scalability]]
+-   AFFECTS:      [[COMPONENT:service]], [[COMPONENT:auth]], [[COMPONENT:translation]], [[COMPONENT:statistics]],
+                  [[UNIT:service-loop]], [[NODE:service]]
+-   ALTERNATIVES: one service per capability (authentication, messaging, translation, statistics)
+-   WHEN:
+    The business logic of events, access, moderation, translation, and statistics is small and shares one data model, the
+    connection load is carried by the relay tier anyway, and a small team operates the solution itself.
+-   WHAT:
+    We run the entire business logic as one Node.js service process with authentication, translation, and statistics as
+    modules inside it, scaled by running several identical instances per environment.
+-   WHY:
+    The scaling problem of the solution is the connection count, which the relay tier solves, not the business logic, so
+    splitting it would buy nothing but network hops, partial failures, and contracts to keep in sync; per-capability
+    services were rejected because they multiply the operating effort of a self-hosted solution.
+-   CONSEQUENCES:
+    Every module shares the release cycle and the failure domain of the service, and a module growing a load profile of its
+    own has to be carved out later at the cost of a refactoring.
+
+##  DECISION: TypeScript with a shared common module across client and server {{typed-common}}
+
+-   STATUS:       Accepted
+-   DRIVEN-BY:    [[REQUIREMENT:contract-safety]]
+-   AFFECTS:      [[ASPECT:module-split]], [[ASPECT:typescript]], [[ASPECT:dependency-layering]], [[ASPECT:identifier-naming]]
+-   DECIDES:      [[TACTIC:typed-contracts]], [[COMPONENT:language]]
+-   ALTERNATIVES: plain JavaScript, per-tier types generated from an interface description (e.g. OpenAPI, AsyncAPI)
+-   WHEN:
+    Client and server exchange dozens of message types over MQTT topics, both sides evolve together in one repository, and
+    a contract mismatch would surface only during a live event.
+-   WHAT:
+    We write client, server, and a common module in TypeScript, keep every topic and payload type in the common module, and
+    let both sides import it, with the common module depending on neither of them.
+-   WHY:
+    Sharing the types directly makes the compiler the contract check with no generator and no drift between a description
+    and the code; plain JavaScript was rejected as it leaves mismatches to runtime, and generated per-tier types as they
+    reintroduce an intermediate description to keep in sync.
+
+##  DECISION: Vue.js single-page client with headless widgets {{vue-client}}
+
+-   STATUS:       Accepted
+-   DRIVEN-BY:    [[REQUIREMENT:browser-compat]], [[REQUIREMENT:mobile-usability]], [[REQUIREMENT:config-latency]]
+-   AFFECTS:      [[COMPONENT:client]], [[ASPECT:vite-build]]
+-   DECIDES:      [[TACTIC:portability]], [[COMPONENT:ui-framework]], [[COMPONENT:widget-framework]], [[COMPONENT:build-tool]]
+-   ALTERNATIVES: React, Svelte, server-rendered pages with progressive enhancement
+-   WHEN:
+    The attendee and operator screens run in any recent browser on managed and unmanaged desktop and mobile devices, react
+    to server-pushed changes within seconds, and are styled to the corporate design without a native look.
+-   WHAT:
+    We build the client as a Vue.js single-page application composed of headless Reka UI widgets styled with Tailwind CSS,
+    bundled by Vite into static files.
+-   WHY:
+    A reactive component model maps server-pushed state straight onto the screen, and headless widgets give accessible
+    behavior while leaving the styling free; React was rejected for its heavier toolchain in a small team, Svelte for its
+    thinner ecosystem, and server-rendered pages because they cannot follow live state without reloads.
+
+##  DECISION: HAProxy as a two-stage router and proxy edge {{haproxy-edge}}
+
+-   STATUS:       Accepted
+-   DRIVEN-BY:    [[REQUIREMENT:scalability]], [[REQUIREMENT:data-isolation]]
+-   AFFECTS:      [[COMPONENT:router]], [[COMPONENT:proxy]], [[UNIT:router]], [[UNIT:proxy-pool]], [[TIER:middleware-tier]],
+                  [[NODE:router]], [[NODE:proxy]]
+-   DECIDES:      [[COMPONENT:reverse-proxy]]
+-   ALTERNATIVES: nginx, Traefik, a managed cloud load balancer
+-   WHEN:
+    Ten thousand long-lived WebSocket connections per event have to enter one hardened data center entry point and be
+    spread across the per-environment proxy and relay instances, with dev, QA, and production separated at the edge.
+-   WHAT:
+    We terminate all traffic at one HAProxy router process per entry point, firewalled by NFTables, which round-robins it
+    to a pool of HAProxy proxy instances per environment forwarding to the relay brokers.
+-   WHY:
+    HAProxy handles WebSocket upgrades and connection counts of this size with a mature configuration model and serves both
+    stages with one product; nginx was rejected for its weaker connection-level balancing, Traefik for its
+    container-centric configuration, and a managed load balancer because the solution is self-hosted.
+-   CONSEQUENCES:
+    The router is a single point of entry per data center and its capacity is the ceiling of the environment, and every
+    routing change touches a hand-maintained configuration.
+
+##  DECISION: Three network segments with an isolated database subnet {{network-segments}}
+
+-   STATUS:       Accepted
+-   DRIVEN-BY:    [[REQUIREMENT:data-isolation]], [[REQUIREMENT:gdpr]]
+-   AFFECTS:      [[NETWORK:internet]], [[NETWORK:backend]], [[NETWORK:data]], [[NODE:database]], [[TIER:database-tier]]
+-   DECIDES:      [[TACTIC:network-isolation]]
+-   ALTERNATIVES: one flat private network, database attached to the backend network
+-   WHEN:
+    The persisted personal data of the attendees lives on the database server, while the router, proxies, and relays face
+    the Internet and are the parts most likely to be compromised.
+-   WHAT:
+    We segment the data center into a private backend VLAN carrying the router, proxies, relays, and services, and an
+    isolated data subnet carrying only the database and the service containers, behind the TLS-only public Internet.
+-   WHY:
+    A compromised connection-handling node then still has no route to the database, which is the strongest containment
+    available at no recurring cost on a private vSwitch; a flat network was rejected because it makes every node a
+    stepping stone to the personal data.
+
+##  DECISION: Single-host Docker Compose instead of a cluster orchestrator {{compose-orchestration}}
+
+-   STATUS:       Accepted
+-   DRIVEN-BY:    [[REQUIREMENT:cost]], [[REQUIREMENT:scalability]], [[REQUIREMENT:maintenance-window]]
+-   AFFECTS:      [[NODE:service]], [[NODE:proxy]], [[NODE:relay]]
+-   DECIDES:      [[COMPONENT:container-orchestration]]
+-   ALTERNATIVES: Kubernetes, Nomad
+-   WHEN:
+    Each environment runs a handful of proxy, relay, and service instances on self-managed servers, scaling is planned
+    ahead of an event rather than reacting to load, and rollouts happen only between events.
+-   WHAT:
+    We run and recreate the containers of an environment with Docker Compose from one compose file per environment, adding
+    instances by editing that file and recreating between events.
+-   WHY:
+    Planned, per-event scaling and rollouts between events need no scheduler, self-healing, or rolling updates, so a
+    cluster would add an operating burden without a benefit; Kubernetes and Nomad were rejected because operating the
+    cluster would cost more than the solution it hosts.
+-   CONSEQUENCES:
+    There is no automatic failover of a crashed instance during an event, and growing beyond one host per environment
+    means revisiting this decision.
+
+##  DECISION: PostgreSQL as the single self-hosted relational store {{postgresql-store}}
+
+-   STATUS:       Accepted
+-   DRIVEN-BY:    [[REQUIREMENT:gdpr]], [[REQUIREMENT:recovery]], [[REQUIREMENT:cost]], [[PREMISE:eu-hosting]]
+-   AFFECTS:      [[FV.database]], [[UNIT:database]], [[NODE:database]], [[TIER:database-tier]]
+-   DECIDES:      [[TS.TIER:Database.COMPONENT:database]]
+-   ALTERNATIVES: a document store (e.g. MongoDB), an embedded database (e.g. SQLite), a managed cloud database
+-   WHEN:
+    Events, channels, messages, tokens, and statistics form a relational model with transactional invariants, the data
+    has to stay in the EU data center, and moderation and reporting need ad-hoc queries over it.
+-   WHAT:
+    We persist all state in one self-hosted PostgreSQL primary per environment, accessed by the service alone, with the
+    filesystem beside it for the static assets.
+-   WHY:
+    A relational store with ACID transactions matches the model and the consistency the moderation needs, and PostgreSQL
+    self-hosts on the same servers at no license cost; a document store was rejected for its weaker invariants, an
+    embedded database for its single-writer limit across service instances, and a managed database as it leaves the
+    self-hosted boundary.
+
+##  DECISION: Typed SQL builder instead of a full ORM {{typed-sql}}
+
+-   STATUS:       Accepted
+-   DRIVEN-BY:    [[REQUIREMENT:contract-safety]], [[REQUIREMENT:attendee-scale]]
+-   AFFECTS:      [[COMPONENT:service]], [[FV.database]]
+-   DECIDES:      [[COMPONENT:persistence-layer]]
+-   ALTERNATIVES: Prisma, TypeORM
+-   WHEN:
+    The service persists the event state through TypeScript against PostgreSQL, the schema is generated spec-first from the
+    data model, and the message handlers have to stay cheap under the load of a large event.
+-   WHAT:
+    We access PostgreSQL through Drizzle, a typed SQL query builder and schema definition layer, with the schema derived
+    from the data model.
+-   WHY:
+    A thin typed layer keeps the end-to-end type safety of the shared contracts down to the database without the query
+    overhead and abstraction leaks of a heavy ORM; Prisma was rejected for its separate schema language and query engine,
+    TypeORM for its runtime cost and weaker typing.
+
+##  DECISION: Logical dumps instead of continuous archiving for backup {{logical-dumps}}
+
+-   STATUS:       Accepted
+-   DRIVEN-BY:    [[REQUIREMENT:recovery]], [[REQUIREMENT:cost]]
+-   AFFECTS:      [[NODE:database]]
+-   DECIDES:      [[TACTIC:recovery]], [[COMPONENT:database-backup]]
+-   ALTERNATIVES: pgBackRest, Barman (continuous WAL archiving with point-in-time recovery)
+-   WHEN:
+    The recovery objective tolerates the loss of a day of changes (an hour right before an event), the data volume per
+    event is small, and the backup must stay within the EU data center without a backup server of its own.
+-   WHAT:
+    We back up with logical pg_dump dumps taken nightly and before each event onto the backup storage of the data center
+    and restore them with pg_restore onto a fresh server.
+-   WHY:
+    A logical dump is portable across PostgreSQL versions, needs no additional server, and meets the objectives as the data
+    changes mainly before an event; continuous archiving was rejected because point-in-time recovery buys nothing for data
+    that is anonymized at the end of every event anyway.
+
+##  DECISION: Serve the static client from a CDN edge outside the data center {{cdn-edge}}
+
+-   STATUS:       Accepted
+-   DRIVEN-BY:    [[REQUIREMENT:asset-delivery]], [[REQUIREMENT:gdpr]], [[PREMISE:start-surge]]
+-   AFFECTS:      [[TIER:edge-tier]], [[NODE:cdn]], [[ENTITY:cdn]]
+-   DECIDES:      [[TACTIC:edge-delivery]]
+-   ALTERNATIVES: serving the bundle from the data center router, a second Hetzner location
+-   WHEN:
+    Up to 10000 attendees download the client bundle within the same minute at the start of an event, the data center has
+    one entry point, and the personal data has to stay within the EU.
+-   WHAT:
+    We serve the static client bundle and static resources from a Cloudflare CDN edge, while every live connection and
+    every request carrying personal data goes to the data center directly.
+-   WHY:
+    The bundle is public, identical for everyone, and cacheable, exactly what a CDN absorbs at any scale, so the start surge
+    never reaches the data center; serving it from the router was rejected because the surge would compete with the live
+    connections for the same entry point.
+-   CONSEQUENCES:
+    Only static, non-personal content leaves the EU hosting boundary, but the CDN sees the client addresses, so the data
+    processing agreement with the CDN provider is part of the GDPR compliance evidence.
