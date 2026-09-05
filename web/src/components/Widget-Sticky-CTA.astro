@@ -1,0 +1,102 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  sticky install call-to-action: a fixed bar along the bottom viewport edge
+    carrying the one-line install command, a copy button (wired globally by the
+    Feature-Clipboard-Copy component in BaseLayout), a shortcut into the Setup
+    section, and a dismiss button. Its visibility is driven by the shared scroll
+    logic in Feature-Progress.astro, which must also be on the page.  */
+
+import LogoSpecBook from "./Widget-Logo-SpecBook.astro"
+
+/*  the one-line install command of the Setup section  */
+const command = "**npm** install -g @rse/specbook"
+
+/*  split the command into runs, flagging any **...** span so it can be tinted
+    in the accent colour while the rest stays plain — the same markup contract
+    the Terminal component uses for its command rows.  */
+const tokenize = (cmd: string) =>
+    cmd.split(/(\*\*[^*]*\*\*)/).filter((part) => part !== "").map((part) => ({
+        text: /^\*\*[^*]*\*\*$/.test(part) ? part.slice(2, -2) : part,
+        meta: /^\*\*[^*]*\*\*$/.test(part)
+    }))
+
+/*  the raw command without the **...** highlight markers, i.e. the actual
+    shell command handed over to the clipboard  */
+const plain = (cmd: string) => cmd.replace(/\*\*([^*]*)\*\*/g, "$1")
+---
+<div
+    id="sticky-cta"
+    role="region"
+    aria-label="Install SpecBook"
+    class="cta-bar fixed inset-x-0 bottom-0 z-40 border-t border-border-strong transition-opacity duration-300"
+>
+    <div class="mx-auto flex max-w-4xl items-center gap-3 px-6 py-2 text-[0.7875rem] leading-snug sm:text-[0.9rem]">
+        {/*  leading brand block: the SpecBook logo plus an "Easy Setup:" label
+             echoing the heading of the Setup section this bar shortcuts to.
+             Both it and the prompt glyph are decorative, so they are dropped
+             below the `sm` breakpoint, where the command needs every pixel.  */}
+        <span class="hidden shrink-0 items-center gap-2 sm:flex">
+            <LogoSpecBook class="h-[0.85rem] w-auto"/>
+            <span class="font-semibold text-foreground-secondary">Easy <span class="text-accent">Setup:</span></span>
+        </span>
+        <span class="hidden select-none font-mono text-brand-500 sm:inline">❯</span>
+        <code class="code-plain min-w-0 flex-1 truncate font-mono tracking-[-0.03em] text-foreground-secondary">{tokenize(command).map((t) => (
+            t.meta ? <span class="text-accent">{t.text}</span> : t.text
+        ))}</code>
+        <button
+            type="button"
+            class="shrink-0 cursor-grab rounded-md border border-border-strong px-2 py-1 text-xs text-foreground-muted transition hover:border-accent hover:text-accent"
+            data-copy={plain(command)}
+            aria-label="Copy command"
+        >Copy ⧉</button>
+        <a
+            href="#setup"
+            class="cta-btn hidden shrink-0 rounded-md border border-border-strong px-2 py-1 text-xs transition hover:border-accent sm:inline-block"
+        >Setup ↓</a>
+        <button
+            id="sticky-cta-dismiss"
+            type="button"
+            class="shrink-0 cursor-grab rounded-md border border-border-strong px-2 py-1 text-xs text-foreground-muted transition hover:border-accent hover:text-accent"
+            aria-label="Dismiss the install bar"
+        >✕</button>
+    </div>
+</div>
+
+{/*  dismiss: drop the bar for the current page view only — no storage, so a
+     reload brings it back. The Feature-Progress.astro scroll logic notices the
+     detached node and drops its own reference to it.  */}
+<script is:inline>
+    (function () {
+        const cta = document.getElementById("sticky-cta")
+        const btn = document.getElementById("sticky-cta-dismiss")
+        if (!cta || !btn) return
+        btn.addEventListener("click", function () { cta.remove() })
+    })()
+</script>
+
+<style>
+    /*  frosted bar background: the same translucent brand gradient plus
+        backdrop blur as the site header, so the bar reads as the header's
+        counterpart along the bottom edge.  */
+    .cta-bar {
+        background: linear-gradient(to right,
+            color-mix(in oklch, var(--background) 80%, transparent),
+            color-mix(in oklch, color-mix(in oklch, var(--background) 82%, var(--brand-600)) 80%, transparent),
+            color-mix(in oklch, var(--background) 80%, transparent)
+        );
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+    }
+
+    /*  the Setup shortcut is rendered as a button, exactly like the copy
+        button next to it. Its colours are restated here because the unlayered
+        global `a {}` rule outranks Tailwind's layered colour utilities -- the
+        same trick the site header uses for its .nav-link.  */
+    .cta-btn       { color: var(--foreground-muted) !important; }
+    .cta-btn:hover { color: var(--accent)           !important; }
+</style>

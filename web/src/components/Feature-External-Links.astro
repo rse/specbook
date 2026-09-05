@@ -1,0 +1,36 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  external-link targeting: make every off-site link ("http"/"https" target)
+    open in a new browser tab, so following a reference never tears the visitor
+    out of the single-page site. Applied centrally at run-time rather than by
+    hand-annotating every <a> in the components, mirroring the purely
+    selector-driven "↗" marker in `theme.css` — both key off the very same
+    `a[href^="http"]` condition, so a link can never end up marked as external
+    but still navigating in place.
+
+    An author-supplied `target` always wins, which doubles as the per-link
+    opt-out. `rel` gains `noopener`/`noreferrer` (without dropping any existing
+    tokens): implied by modern browsers for `target="_blank"`, but still needed
+    to keep the opened page from reaching back through `window.opener` on
+    older ones.  */
+---
+<script is:inline>
+    (function () {
+        document.querySelectorAll("a[href^=\"http\"]").forEach(function (link) {
+            /*  respect an explicitly authored target (the opt-out).  */
+            if (link.hasAttribute("target"))
+                return
+            link.setAttribute("target", "_blank")
+            const rel = (link.getAttribute("rel") || "").split(/\s+/).filter(Boolean)
+            for (const token of [ "noopener", "noreferrer" ])
+                if (!rel.includes(token))
+                    rel.push(token)
+            link.setAttribute("rel", rel.join(" "))
+        })
+    })()
+</script>

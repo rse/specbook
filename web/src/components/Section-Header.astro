@@ -1,0 +1,160 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  floating site header: the SpecBook logo, the in-page section nav (driven by
+    the Scroll-Spy via `data-navlink`/`nav-spy`), the GitHub link, and the
+    scroll-progress bar along its bottom edge.  */
+
+import { site }      from "../data/site.ts"
+import LogoSpecBook  from "./Widget-Logo-SpecBook.astro"
+import LogoGitHub    from "./Widget-Logo-GitHub.astro"
+import ProgressBar   from "./Widget-Progress-Bar.astro"
+
+/*  the in-page section navigation entries  */
+const navItems = [
+    [ "#fit",          "Fit"          ],
+    /* [ "#highlights",   "Highlights"   ], */
+    [ "#setup",        "Setup"        ],
+    [ "#usage",        "Usage"        ],
+    [ "#format",       "Format"       ],
+    [ "#architecture", "Architecture" ],
+    [ "#export",       "Export"       ]
+]
+---
+<header class="fixed inset-x-0 top-0 z-50 border-b border-border-strong">
+    {/*  header background as a separate, absolutely-positioned layer rather than
+         a `backdrop-blur` on the <header> itself: a `backdrop-filter` on the
+         header would establish a backdrop root that nullifies the mobile nav
+         panel's own blur (a descendant cannot re-blur an already-blurred
+         ancestor). Keeping it a sibling layer lets the panel blur the page
+         directly.  */}
+    <div
+        class="nav-bar-bg pointer-events-none absolute inset-0 -z-10"
+        aria-hidden="true"
+    ></div>
+    <div class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-4 lg:max-w-6xl">
+        <a href="/" class="flex items-center gap-3 font-display text-lg font-bold">
+            <LogoSpecBook class="h-[1.4rem] w-auto"/>
+        </a>
+
+        {/*  hamburger toggle: visible only below the `lg` breakpoint, where the
+             nav collapses into the `#nav-menu` panel below.  */}
+        <button
+            id="nav-toggle"
+            type="button"
+            aria-label="Toggle navigation menu"
+            aria-controls="nav-menu"
+            aria-expanded="false"
+            class="flex cursor-grab items-center rounded-md border border-border-strong px-2 py-1 text-foreground-secondary transition-colors hover:border-accent hover:text-accent lg:hidden"
+        >
+            <span class="nav-toggle-open w-5 justify-center text-xl leading-none text-accent not-[.hidden]:inline-flex">☰</span><span class="nav-toggle-close hidden w-5 justify-center text-xl leading-none text-accent not-[.hidden]:inline-flex">✕</span>
+        </button>
+
+        {/*  the collapsible navigation panel: a horizontal in-line nav from the
+             `lg` breakpoint upwards, and (below it) an auto-width drop-down panel
+             anchored to the top-right of the header, toggled by `#nav-toggle`
+             via the `data-open` attribute.  */}
+        <div
+            id="nav-menu"
+            class="link-plain nav-menu-panel absolute right-6 top-full hidden w-auto flex-col items-end gap-y-1.5 rounded-md rounded-t-none border border-border-strong p-4 shadow-lg data-[open]:flex lg:static lg:top-auto lg:flex lg:w-auto lg:flex-1 lg:flex-row lg:items-center lg:justify-between lg:gap-x-5 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none"
+        >
+            <nav class="flex min-w-0 flex-col flex-wrap items-end gap-x-2 xl:gap-x-4 gap-y-1 text-base text-foreground-secondary lg:ml-4 lg:flex-row lg:items-center">
+                {navItems.map(([ href, label ]) =>
+                    <a href={href} data-navlink class="nav-spy transition-colors">
+                        {label}
+                    </a>
+                )}
+            </nav>
+            <nav class="flex flex-col flex-wrap items-end gap-x-2 xl:gap-x-4 gap-y-1 text-base text-foreground-secondary lg:flex-row lg:items-center">
+                <span class="flex items-center gap-2">
+                    <a href="https://github.com/rse" aria-label="Dr. Ralf S. Engelschall on GitHub" class="flex items-center">
+                        <img src="/assets/rse-signet.svg" alt="Dr. Ralf S. Engelschall" class="h-[1.2rem] w-auto"/>
+                    </a>
+                    <a href="#author" data-navlink class="nav-spy transition-colors">
+                        Author
+                    </a>
+                </span>
+                {/*  the GitHub mark inherits the accent color of its link (see
+                     the `.nav-link` rule below), matching the signet of the
+                     "Author" entry above, drawn in the very brand tone.  */}
+                <a href={site.repo} class="nav-link inline-flex items-center gap-1.5 transition-colors">
+                    <LogoGitHub class="h-4 w-4"/>
+                    Project
+                </a>
+            </nav>
+        </div>
+    </div>
+    <ProgressBar />
+</header>
+
+{/*  hamburger toggle: open/close the collapsed nav panel below the `lg`
+     breakpoint, and auto-close it whenever a nav link is clicked.  */}
+<script is:inline>
+    (function () {
+        const btn  = document.getElementById("nav-toggle")
+        const menu = document.getElementById("nav-menu")
+        if (!btn || !menu) return
+        const setOpen = function (open) {
+            if (open)
+                menu.setAttribute("data-open", "")
+            else
+                menu.removeAttribute("data-open")
+            btn.setAttribute("aria-expanded", open ? "true" : "false")
+            btn.querySelector(".nav-toggle-open").classList.toggle("hidden", open)
+            btn.querySelector(".nav-toggle-close").classList.toggle("hidden", !open)
+        }
+        btn.addEventListener("click", function () {
+            setOpen(!menu.hasAttribute("data-open"))
+        })
+        menu.querySelectorAll("a").forEach(function (link) {
+            link.addEventListener("click", function () { setOpen(false) })
+        })
+
+        /*  close the open panel when clicking anywhere outside of it or the
+            toggle button (the toggle handles its own clicks above).  */
+        document.addEventListener("click", function (ev) {
+            if (!menu.hasAttribute("data-open"))
+                return
+            if (menu.contains(ev.target) || btn.contains(ev.target))
+                return
+            setOpen(false)
+        })
+    })()
+</script>
+
+<style is:global>
+    /*  non-spy nav link (e.g. "Project"): label and inlined mark alike are
+        accent-colored, and on hover both deepen by one accent step. The
+        `!important` beats the unlayered global `a {}` rule.  */
+    .nav-link       { color: var(--accent)       !important; }
+    .nav-link:hover { color: var(--accent-hover) !important; }
+
+    /*  header background layer and collapsed mobile drop-down panel: the
+        translucent brand gradient plus the frosted backdrop blur, kept off the
+        <header> element itself (see the markup comment) so it does not trap
+        the mobile nav panel's own blur. The panel shares the exact style so
+        the open menu reads identically to the header bar it hangs from; it is
+        cleared again from the `lg` breakpoint upwards, where the nav is an
+        inline, transparent part of the header.  */
+    .nav-bar-bg,
+    .nav-menu-panel {
+        background: linear-gradient(to right,
+            color-mix(in oklch, var(--background) 85%, transparent),
+            color-mix(in oklch, color-mix(in oklch, var(--background) 82%, var(--brand-500)) 85%, transparent),
+            color-mix(in oklch, var(--background) 85%, transparent)
+        );
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+    }
+    @media (width >= 64rem) {
+        .nav-menu-panel {
+            background: transparent;
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
+    }
+</style>

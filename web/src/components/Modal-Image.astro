@@ -1,0 +1,48 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  full-viewport image modal, used for the screenshots and diagrams. The
+    reusable Modal shell is wrapped around a single <img>. Any element on the
+    page carrying `data-image-src` (and optionally `data-image-label`) opens it
+    on click; the Modal shell handles the close button and Escape. The image is
+    grid-centered, keeps its own aspect ratio, and grows as large as the
+    viewport allows (capped by both width and height).  */
+
+import Modal from "./Modal-Shell.astro"
+---
+<Modal id="image-modal" label="Image viewer">
+    <img
+        id="image-modal-image"
+        src=""
+        alt=""
+        class="max-h-[92vh] max-w-[94vw] cursor-zoom-out rounded-lg object-contain"
+    />
+</Modal>
+
+{/* open on a trigger click; the Modal shell handles closing. */}
+<script is:inline>
+    (function () {
+        const imageModal = document.getElementById("image-modal")
+        const imageEl    = document.getElementById("image-modal-image")
+        if (!imageModal || !imageEl) return
+        document.querySelectorAll("[data-image-src]").forEach(function (trigger) {
+            trigger.addEventListener("click", function () {
+                imageEl.src = trigger.getAttribute("data-image-src") || ""
+                imageEl.alt = trigger.getAttribute("data-image-label") || ""
+                imageModal.style.display = "grid"
+            })
+        })
+
+        /*  a click on the enlarged image closes the modal too, reusing the
+            shell's close button so its scroll-unlock and "modal:close" event
+            fire uniformly.  */
+        imageEl.addEventListener("click", function () {
+            const closeBtn = imageModal.querySelector("[data-modal-close]")
+            if (closeBtn) closeBtn.click()
+        })
+    })()
+</script>

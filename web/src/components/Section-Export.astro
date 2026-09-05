@@ -1,0 +1,126 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  "Export" section: the export-format and interface matrices, rendered as two
+    framed tables, plus the explanatory NOTICE callouts.  */
+
+import SectionGlow              from "./Section-Glow.astro"
+import { formats, interfaces }  from "../data/formats.ts"
+---
+<section id="export" class="relative isolate mx-auto max-w-4xl px-6 py-8">
+    <SectionGlow variant="section" side="right" />
+
+    <header class="sb-section-head" data-reveal>
+        <h2 class="sb-h2 mt-12">
+            Export Formats and <span class="text-accent">Interfaces</span>
+        </h2>
+        <p class="sb-lead sb-justify">
+            One <code>specbook export</code> run can write as many outputs as you
+            list, each format inferred from its filename extension unless given
+            explicitly as a <code>&lt;format&gt;:</code> prefix. The very same
+            functionality is reachable through three interfaces, so the audience
+            decides the door, never the feature set.
+        </p>
+    </header>
+
+    <div class="mt-12 grid gap-2 lg:grid-cols-2">
+        {/*  export-format matrix — reveals from the left edge
+            ("right" starts off-screen left, per Scroll-Reveal's inverted naming)  */}
+        <div class="bg-background-elevated overflow-hidden rounded-xl border border-border-strong p-2 shadow-xl sm:p-3" data-reveal="right">
+            <table class="w-full text-left text-xs sm:text-sm">
+                <thead>
+                    <tr class="border-b border-border-strong text-foreground">
+                        <th class="pb-2 pr-1 font-semibold sm:pr-3">Export Format</th>
+                        <th class="pb-2 px-1 font-semibold sm:px-3">Selector</th>
+                        <th class="pb-2 pl-1 font-semibold sm:pl-3">Audience</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {formats.map((r) => (
+                        <tr class="border-b border-border-strong last:border-0">
+                            <td class={`py-1.5 pr-1 align-top sm:py-0 sm:pr-3 ${r.primary ? "font-bold text-accent" : "text-foreground-secondary"}`}>{r.name}</td>
+                            <td class="py-1.5 px-1 align-top sm:py-0 sm:px-3"><code class="code-plain font-mono text-foreground-muted">{r.id}</code></td>
+                            <td class={`py-1.5 pl-1 align-top sm:py-0 sm:pl-3 ${r.primary ? "font-bold text-accent" : "text-foreground-secondary"}`}>{r.audience}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+
+        {/*  interface matrix — reveals from the right edge
+            ("left" starts off-screen right, per Scroll-Reveal's inverted naming)  */}
+        <div class="bg-background-elevated overflow-hidden rounded-xl border border-border-strong p-2 shadow-xl sm:p-3" data-reveal="left">
+            <table class="w-full text-left text-xs sm:text-sm">
+                <thead>
+                    <tr class="border-b border-border-strong text-foreground">
+                        <th class="pb-2 pr-1 font-semibold sm:pr-3">Interface</th>
+                        <th class="pb-2 px-1 font-semibold sm:px-3">Shape</th>
+                        <th class="pb-2 pl-1 font-semibold sm:pl-3">Audience</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {interfaces.map((r) => (
+                        <tr class="border-b border-border-strong last:border-0">
+                            <td class={`py-1.5 pr-1 align-top sm:py-0 sm:pr-3 ${r.primary ? "font-bold text-accent" : "text-foreground-secondary"}`}>{r.name}</td>
+                            <td class="py-1.5 px-1 align-top sm:py-0 sm:px-3"><code class="code-plain font-mono text-foreground-muted">{r.id}</code></td>
+                            <td class={`py-1.5 pl-1 align-top sm:py-0 sm:pl-3 ${r.primary ? "font-bold text-accent" : "text-foreground-secondary"}`}>{r.kind}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-10 grid gap-8 lg:grid-cols-2 lg:items-start">
+        {/*  export NOTICE — reveals from the left edge
+            ("right" starts off-screen left, per Scroll-Reveal's inverted naming)  */}
+        <div data-reveal="right">
+            <blockquote class="border-l-4 border-accent bg-background-elevated/60 px-6 py-2 text-foreground-secondary">
+                <b class="text-accent">NOTICE: Export Formats</b>
+
+                <p class="mt-1 text-foreground-secondary sb-justify">
+                    The <code>-o</code> option can be given as often as you like,
+                    and plain <code>-</code> (stdout) defaults to <b>JSON</b>. The{" "}
+                    <code>md</code> format normalizes the entire corpus into a{" "}
+                    <i>single</i> Markdown document, while the AST formats attach
+                    the derived diagram of an object as a textual Gradia spec and
+                    the reference coverage it reports as its counts.
+                </p>
+
+                <p class="text-foreground-secondary sb-indent-p sb-justify">
+                    With <code>-w</code>, the schema configuration files, the
+                    referenced artifact files, and all embedded assets are
+                    observed, and every change re-exports once the sources stayed
+                    silent for one second. A failed re-export is reported but
+                    leaves the observe loop intact.
+                </p>
+            </blockquote>
+        </div>
+
+        {/*  interface NOTICE — reveals from the right edge
+            ("left" starts off-screen right, per Scroll-Reveal's inverted naming)  */}
+        <div data-reveal="left">
+            <blockquote class="border-l-4 border-accent bg-background-elevated/60 px-6 py-2 text-foreground-secondary">
+                <b class="text-accent">NOTICE: Interfaces</b>
+
+                <p class="mt-1 text-foreground-secondary sb-justify">
+                    All three interfaces are backed by one and the same
+                    implementation, so a command behaves identically no matter
+                    which of them invoked it. The MCP service exposes the tools{" "}
+                    <code>specbook_init</code>, <code>specbook_lint</code>,{" "}
+                    <code>specbook_export</code>, and <code>specbook_describe</code>.
+                </p>
+
+                <p class="text-foreground-secondary sb-indent-p sb-justify">
+                    <code>preview</code> intentionally has no MCP tool, as it is
+                    a long-running server rather than a one-shot command. Use{" "}
+                    <code>specbook preview</code> from your own shell instead.
+                </p>
+            </blockquote>
+        </div>
+    </div>
+</section>

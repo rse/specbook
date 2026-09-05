@@ -1,0 +1,80 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  reusable full-viewport modal shell: a dimmed, blurred overlay plus a close
+    button. The actual content (image, QR code, …) is provided via the default
+    <slot> and managed by the caller. The overlay starts hidden; callers open
+    it by setting its display to "grid".
+
+    Close behavior (close button + Escape) is wired here: it hides the overlay
+    and dispatches a bubbling "modal:close" CustomEvent on the overlay, so the
+    caller can react without re-implementing the chrome.  */
+
+interface Props {
+    id:     string
+    label?: string
+}
+
+const { id, label = "Dialog" } = Astro.props
+---
+<div
+    id={id}
+    class="fixed inset-0 z-[100] hidden place-items-center bg-black/60 p-4 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-label={label}
+>
+    <button
+        type="button"
+        data-modal-close
+        aria-label="Close"
+        class="fixed right-5 top-5 z-[101] grid h-12 w-12 cursor-pointer place-items-center rounded-full bg-accent/55 text-2xl font-bold leading-none text-white shadow-lg backdrop-blur transition-colors hover:bg-accent/80"
+    >
+        ✕
+    </button>
+    <slot />
+</div>
+
+{/* generic open/close chrome: close button + Escape hide the overlay and emit
+    a "modal:close" event the caller can listen for. While the overlay is
+    visible, body scrolling is locked so the wheel can't scroll the page behind
+    it; the lock is released once it hides again. Callers open the overlay by
+    setting its display directly, so a MutationObserver watches that change and
+    toggles the lock for both open paths uniformly. */}
+<script is:inline define:vars={{ id }}>
+    (function () {
+        const modal = document.getElementById(id)
+        if (!modal) return
+        const isOpen = function () {
+            return getComputedStyle(modal).display !== "none"
+        }
+        const lockScroll = function (lock) {
+            /*  the document scrolls on <html> (because `overflow-x: clip`
+                on it makes the vertical axis compute to `auto`), so the lock
+                must target the document element, not just <body>.  */
+            document.documentElement.style.overflow = lock ? "hidden" : ""
+            document.body.style.overflow            = lock ? "hidden" : ""
+        }
+        const close = function () {
+            if (!isOpen())
+                return
+            modal.style.display = "none"
+            modal.dispatchEvent(new CustomEvent("modal:close", { bubbles: true }))
+        }
+        modal.querySelectorAll("[data-modal-close]").forEach(function (btn) {
+            btn.addEventListener("click", close)
+        })
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && isOpen()) close()
+        })
+        /*  mirror the body scroll-lock to the overlay's visibility, regardless
+            of whether it was opened/closed via the shell or directly by a caller.  */
+        new MutationObserver(function () {
+            lockScroll(isOpen())
+        }).observe(modal, { attributes: true, attributeFilter: [ "style" ] })
+    })()
+</script>

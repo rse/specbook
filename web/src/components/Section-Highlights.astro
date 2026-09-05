@@ -1,0 +1,41 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  "Highlights" section: the two-column USP list whose text and figure columns
+    swap per row (zig-zag), driven by the highlights data. Each row's columns
+    reveal directionally (left/right) so the two halves converge on scroll,
+    mirrored per row via the row index in Widget-Feature-Row.  */
+
+import FeatureRow       from "./Widget-Feature-Row.astro"
+import Annotation       from "./Widget-Annotation.astro"
+import { highlights }   from "../data/highlights.ts"
+---
+{/*  "relative isolate" catches the `-z-10` glows of the feature rows below,
+     so they neither sink behind the page background nor rise above any
+     content (see the stacking contract in Section-Glow.astro)  */}
+<section id="highlights" class="relative isolate mx-auto max-w-4xl px-6 py-8">
+    <header class="mt-12 sb-section-head relative" data-reveal>
+        <h2 class="sb-h2 relative inline-block">
+            <Annotation flat class="right-0 translate-x-1/4">
+                Wanna see what a<br/>
+                checked specification<br/>
+                actually buys you?
+            </Annotation>
+            One Source, <span class="text-accent">Many Renderings</span>
+        </h2>
+        <p class="sb-lead sb-justify">
+            A generic object model, authored as plain Markdown, constrained by
+            a schema you define, and rendered into every format your project
+            actually needs — for developers, for customers, and for the AI
+            agents working alongside both.
+        </p>
+    </header>
+
+    <div class="mt-12 flex flex-col gap-16">
+        {highlights.map((usp, index) => <FeatureRow usp={usp} index={index} />)}
+    </div>
+</section>

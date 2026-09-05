@@ -1,0 +1,86 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  "Author" section: the author portrait and the author bio, laid out as a
+    two-column row.  */
+
+import SectionGlow from "./Section-Glow.astro"
+import LogoRSE     from "./Widget-Logo-RSE.astro"
+---
+<section id="author" class="relative isolate mx-auto max-w-4xl px-6 py-8">
+    <SectionGlow variant="section" side="left"/>
+
+    <header class="sb-section-head" data-reveal>
+        <h2 class="sb-h2 mt-12">
+            About the <span class="text-accent">Author</span>
+        </h2>
+        <p class="sb-lead sb-justify">
+            <b>SpecBook</b> is primarily authored by{" "}
+            <b>Dr. Ralf S. Engelschall</b> (abbreviated{" "}
+            <b>RSE</b> and stylized <LogoRSE class="inline-block h-[1em] w-auto align-[-0.15em]"/>),
+            a German <i>Computer Scientist</i>, <i>Executive Manager</i>, <i>Solution Architect</i>, and <i>Software Artist</i>.
+            He has over 40 years of experience in <b>Software Development</b> and over 30 years of experience in <b>Software Engineering</b>.
+        </p>
+    </header>
+
+    <div class="mt-12 flex w-full flex-col items-center gap-16 sm:flex-row sm:items-start">
+        {/*  portrait reveals from the left edge, text from the right, converging
+            toward center ("right"/"left" are inverted per Scroll-Reveal naming)  */}
+        <div class="w-full min-w-0 sm:basis-3/8 sm:shrink-0 sm:grow-0" data-reveal="right">
+            <a href="https://github.com/rse" class="bg-accent/10 link-plain block overflow-hidden rounded-xl ring-1 ring-border-strong transition hover:ring-accent">
+                <img src="/assets/rse-portrait.png" alt="Dr. Ralf S. Engelschall" class="aspect-[10/9] w-full object-cover" />
+            </a>
+            <a href="https://github.com/rse" class="bg-accent/10 link-plain mt-4 w-full inline-flex items-center justify-center gap-2 sb-btn">
+                <LogoRSE class="inline-block h-[1.5em] w-auto"/>
+                <b class="text-xl">Dr. Ralf S. Engelschall</b>
+            </a>
+        </div>
+        <div class="w-full min-w-0 sm:basis-5/8" data-reveal="left">
+            <p class="mt-1 text-foreground-secondary sb-justify">
+                <b>RSE</b> is <b>CTO msg group</b> and <b>Director msg Research</b> at <a href="https://www.msg.group">msg</a>{" "}
+                &mdash; a Software Engineering company group with more than 11,000 people &mdash;
+                managing director and co-founder of <b>Software Engineering Academy (SEA)</b>,
+                managing director and co-founder of <a href="https://www.openpkg.com/">OpenPKG</a>,
+                and especially also one of the founders of the <a href="https://www.apache.org/">Apache Software Foundation (ASF)</a>.
+            </p>
+            <p class="text-foreground-secondary sb-indent-p sb-justify">
+                <b>RSE</b> was awarded the <a href="https://gi.de/balzert-preis">Balzert Prize</a> 2023 of
+                the <a href="https://gi.de/">Gesellschaft für Informatik (GI)</a> "for his
+                outstanding contribution to the teaching of Computer
+                Science" with his <a href="https://multimediale-didaktik.de">Multimedia Didactics</a>, and the <a href="https://fb-swt.gi.de/weiteres/ernst-denert-se-preis/bisherige-preistraeger">Ernst Denert Software Engineering Prize</a> 2018
+                for his <a href="https://huica.org">Hierarchical User Interface Component Architecture (HUICA)</a>.
+            </p>
+            <p class="text-foreground-secondary sb-indent-p sb-justify">
+                <b>RSE</b> has been a well-known <b>Open Source</b> authority for over 35 years
+                and the founder and prolific author of numerous popular software projects, like{" "}
+                <a href="https://httpd.apache.org/docs/current/mod/mod_rewrite.html">Apache mod_rewrite</a>,{" "}
+                <a href="https://httpd.apache.org/docs/current/mod/mod_ssl.html">Apache mod_ssl</a>,{" "}
+                <a href="https://www.openssl.org">OpenSSL</a>,{" "}
+                <a href="https://www.openpkg.org">OpenPKG</a>,{" "}
+                <a href="https://www.gnu.org/software/shtool/">GNU Shtool</a>,{" "}
+                <a href="https://www.gnu.org/software/pth/">GNU Pth</a>,{" "}
+                <a href="http://www.ossp.org/pkg/lib/uuid/">OSSP uuid</a>,{" "}
+                <a href="https://componentjs.com">ComponentJS</a>,{" "}
+                <a href="https://github.com/rse/studio-canvas">Studio Canvas</a>,{" "}
+                <a href="https://github.com/rse/studio-ai">Studio AI</a>,{" "}
+                <a href="https://github.com/rse/rundown">Rundown</a>,{" "}
+                <a href="https://traits-ts.org">Traits-TS</a>,{" "}
+                <a href="https://github.com/rse/mqtt-plus">MQTT+</a>,{" "}
+                <a href="https://github.com/rse/gradia">Gradia</a>,{" "}
+                <a href="https://ase.tools">ASE</a>,{" "}
+                <a href="https://github.com/rse/specbook">SpecBook</a>,{" "}
+                and <a href="https://github.com/rse?tab=repositories">about <b>300</b> more</a>.
+            </p>
+            <p class="text-foreground-secondary sb-indent-p sb-justify">
+                You can follow <b>RSE</b> and his current <b>Open Source</b> software developments on{" "}
+                <a href="https://github.com/rse">GitHub</a>,
+                and follow him and his current (German) article publishing on{" "}
+                <a href="https://www.linkedin.com/in/engelschall">LinkedIn</a>.
+            </p>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,46 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  inlined "RSE" signet of Dr. Ralf S. Engelschall (the three interlocking
+    strokes). `class` is forwarded to the <svg> for sizing (e.g. "h-4 w-auto").
+    Decorative by default (aria-hidden) since it usually sits next to the "RSE"
+    text. `idPrefix` namespaces the internal gradient id so multiple instances
+    on one page never collide.  */
+
+interface Props {
+    class?:    string
+    idPrefix?: string
+}
+
+const { class: className = "h-4 w-auto", idPrefix = "rse-signet" } = Astro.props
+const gradId = `${idPrefix}-gradient`
+---
+<svg class={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 476 272" aria-hidden="true">
+    <defs>
+        <linearGradient id={gradId} x1="77.5" y1="138.4" x2="400.2" y2="138.4" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#369"/>
+            <stop offset=".1" stop-color="#36699c"/>
+            <stop offset=".2" stop-color="#4275a8"/>
+            <stop offset=".3" stop-color="#58b"/>
+            <stop offset=".4" stop-color="#71a4d7"/>
+            <stop offset=".5" stop-color="#93c6f9"/>
+            <stop offset=".5" stop-color="#9cf"/>
+            <stop offset=".5" stop-color="#96c9fc"/>
+            <stop offset=".6" stop-color="#73a6d9"/>
+            <stop offset=".7" stop-color="#578abd"/>
+            <stop offset=".8" stop-color="#4275a8"/>
+            <stop offset=".9" stop-color="#36699c"/>
+            <stop offset="1" stop-color="#369"/>
+        </linearGradient>
+    </defs>
+    <path d="M60.5,239.5c-20-14-32-44-30-75s14.3-65.6,36.2-92.4c47.8-58.6,113.8-59.6,132.8-10.6s9.1,73.7-16,112"
+        fill="none" stroke="#369" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"/>
+    <path d="M87.5,96.5c10,100,60,143,91,149s56.9-.6,65.5-28.5c16-52-14-83,1-130s55-58,74-58c31,0,61.8,9.5,69,50s3,48-24,98"
+        fill="none" stroke={`url(#${gradId})`} stroke-linecap="round" stroke-linejoin="round" stroke-width="20"/>
+    <path d="M273,99c-3,32,15.9,71.9,33,96,22,31,47.8,53.8,92,47,27.5-4.3,42-23,48-52,5.3-25.4-5-47-8-58"
+        fill="none" stroke="#369" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"/>
+</svg>

@@ -1,0 +1,80 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  shared scroll-progress logic for the page, driving (when present) the
+    Progress-Bar (#scroll-progress), the Progress-Ring (#back-to-top-ring), the
+    back-to-top button's visibility/click (#back-to-top), and the Sticky-CTA
+    bar's visibility (#sticky-cta). Each element is optional — the logic no-ops
+    for any it doesn't find — so this can sit alongside either, both, or neither
+    presentational component. The Sticky-CTA visibility additionally consults
+    the #setup section and the #page-footer, standing the bar down while either
+    of them is on screen.
+
+    Throttled via requestAnimationFrame; vendored/adapted from Astro Rocket.  */
+---
+<script is:inline>
+    (function () {
+        const bar    = document.getElementById("scroll-progress")
+        const btt    = document.getElementById("back-to-top")
+        const ring   = document.getElementById("back-to-top-ring")
+        let   cta    = document.getElementById("sticky-cta")
+        const setup  = document.getElementById("setup")
+        const footer = document.getElementById("page-footer")
+        let ticking  = false
+
+        /*  whether an element (if present at all) intersects the viewport  */
+        function onScreen(el) {
+            if (!el) return false
+            const rect = el.getBoundingClientRect()
+            return rect.top < window.innerHeight && rect.bottom > 0
+        }
+        function update() {
+            ticking = false
+            const doc = document.documentElement
+            const max = doc.scrollHeight - doc.clientHeight
+            const p = max > 0 ? doc.scrollTop / max : 0
+            if (bar)  bar.style.transform = "scaleX(" + p + ")"
+            if (ring) ring.setAttribute("stroke-dashoffset", String(1 - p))
+            if (btt) {
+                const show = doc.scrollTop > 400
+                btt.style.opacity = show ? "1" : "0"
+                btt.style.pointerEvents = show ? "auto" : "none"
+            }
+
+            /*  the sticky install bar can be dismissed at any time, which
+                detaches its node from the document -- drop our reference then,
+                so we no longer style a node which is gone for good.  */
+            if (cta && !cta.isConnected)
+                cta = null
+            if (cta) {
+                /*  the sticky install bar is shown throughout the page, but
+                    stands down while the Setup section is on screen (where the
+                    very same command is already shown in its terminal boxes)
+                    and once the footer is reached (where it would optically
+                    disrupt the page ending).  */
+                const show = !onScreen(setup) && !onScreen(footer)
+                cta.style.opacity = show ? "1" : "0"
+                cta.style.pointerEvents = show ? "auto" : "none"
+            }
+        }
+        function onScroll() {
+            if (!ticking) { ticking = true; requestAnimationFrame(update) }
+        }
+        window.addEventListener("scroll", onScroll, { passive: true })
+        window.addEventListener("resize", onScroll)
+        if (btt) btt.addEventListener("click", function () {
+            window.scrollTo({ top: 0, behavior: "smooth" })
+
+            /*  strip any "#xxx" fragment from the URL (via replaceState, so it
+                neither adds a history entry nor re-jumps the page) to ensure we
+                really stay at the very top.  */
+            if (window.location.hash)
+                history.replaceState(null, "", window.location.pathname + window.location.search)
+        })
+        update()
+    })()
+</script>

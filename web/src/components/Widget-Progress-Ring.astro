@@ -1,0 +1,35 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  back-to-top button with a circular scroll-progress ring. The ring's fill and
+    the button's visibility/click are driven by the shared scroll logic in
+    Feature-Progress.astro, which must also be on the page. It mirrors the very
+    same scroll progress meter the SpecBook HTML export itself carries.
+
+    It floats at `bottom-12` rather than hugging the viewport edge, so it clears
+    the Sticky-CTA bar along the bottom instead of touching it.  */
+---
+<button
+    id="back-to-top"
+    type="button"
+    aria-label="Back to top"
+    class="pointer-events-none fixed bottom-12 right-6 z-50 grid h-12 w-12 place-items-center opacity-0 transition-opacity duration-300"
+>
+    <svg class="absolute inset-0 h-12 w-12 -rotate-90" viewBox="0 0 44 44" fill="none">
+        <circle cx="22" cy="22" r="20" stroke="var(--brand-200)" stroke-width="2" />
+        <circle
+            id="back-to-top-ring"
+            cx="22" cy="22" r="20"
+            stroke="var(--accent)" stroke-width="2"
+            stroke-linecap="round"
+            pathLength="1"
+            stroke-dasharray="1"
+            stroke-dashoffset="1"
+        />
+    </svg>
+    <span class="relative text-accent">↑</span>
+</button>

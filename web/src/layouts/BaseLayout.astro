@@ -1,0 +1,80 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  base layout for the SpecBook site: a light-only <html>, SEO head, a
+    floating header with a scroll-progress bar, a footer, and a back-to-top
+    button with a scroll-progress ring. The scroll-reveal IntersectionObserver
+    and the scroll-progress logic are vendored and adapted from Astro Rocket (MIT).  */
+
+import                    "../styles/theme.css"
+import { site }      from "../data/site.ts"
+import PageHeader    from "../components/Section-Header.astro"
+import PageFooter    from "../components/Section-Footer.astro"
+import ModalImage    from "../components/Modal-Image.astro"
+import ModalQR       from "../components/Modal-QR.astro"
+import StickyCTA     from "../components/Widget-Sticky-CTA.astro"
+import ProgressRing  from "../components/Widget-Progress-Ring.astro"
+import Progress      from "../components/Feature-Progress.astro"
+import ClipboardCopy from "../components/Feature-Clipboard-Copy.astro"
+import ScrollReveal  from "../components/Feature-Scroll-Reveal.astro"
+import ScrollSpy     from "../components/Feature-Scroll-Spy.astro"
+import ExternalLinks from "../components/Feature-External-Links.astro"
+
+interface Props {
+    title?:       string
+    description?: string
+}
+
+const { title, description } = Astro.props
+
+const pageTitle = title ?? site.title
+const pageDesc  = description ?? site.description
+const canonical = new URL(Astro.url.pathname, Astro.site).href
+---
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/svg+xml" href="/assets/specbook-icon.svg" />
+        <link rel="canonical" href={canonical} />
+        <meta name="theme-color" content={site.themeColor} />
+
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDesc} />
+        <meta name="author" content={site.author} />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDesc} />
+        <meta property="og:url" content={canonical} />
+        <meta name="twitter:card" content="summary" />
+    </head>
+    <body>
+        <PageHeader/>
+
+        <main>
+            <slot/>
+        </main>
+
+        <PageFooter/>
+
+        <ModalImage/>
+        <ModalQR/>
+
+        <StickyCTA/>
+
+        <ProgressRing/>
+        <Progress/>
+
+        <ScrollReveal/>
+        <ScrollSpy/>
+        <ExternalLinks/>
+
+        <ClipboardCopy/>
+    </body>
+</html>

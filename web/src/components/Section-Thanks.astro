@@ -1,0 +1,121 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  "Thanks" sections: the individual contributors as a four-column grid of name
+    plates, followed by the supporting organizations as a two-column grid of logo
+    plates and the sibling projects. Being the final page sections, the latter
+    carries the closing bottom margin. The plates sit on the white ground, so the
+    logos take the blue-ink variant.  */
+
+import SectionGlow from "./Section-Glow.astro"
+import Annotation  from "./Widget-Annotation.astro"
+
+/*  the individual contributors, in alphabetical order  */
+const contributors = [
+    "Matthias Brusdeylins",
+    "Noah S. Engelschall",
+    "Rudolf Koster",
+    "Maximilian Marsch",
+    "Linda Zeman"
+]
+
+/*  the supporting organizations, in the experience and educational contexts of
+    which SpecBook is developed  */
+const sponsors = [
+    { name: "msg systems ag",                         logo: "/assets/msg-logo-blue.svg", height: "h-14", reveal: "right" },
+    { name: "SEA Software Engineering Academy gGmbH", logo: "/assets/sea-logo-blue.svg", height: "h-20", reveal: "left"  }
+]
+
+/*  the sibling projects SpecBook builds upon or belongs with  */
+const siblings = [
+    { name: "Gradia", href: "https://github.com/rse/gradia", note: "renders the object model diagrams" },
+    { name: "ASE",    href: "https://ase.tools",             note: "Agentic Software Engineering toolkit" }
+]
+---
+<section id="contributors" class="relative isolate mx-auto max-w-4xl px-6 py-8">
+    <SectionGlow variant="section" side="right" />
+    <header class="sb-section-head" data-reveal>
+        <h2 class="sb-h2 mt-12">
+            <Annotation flat class="hidden sm:block right-0 -translate-x-2/3">
+                Wanna join our<br/>
+                Open Source<br/>
+                software journey?
+            </Annotation>
+            Thanks to the <span class="text-accent">Contributors</span>
+        </h2>
+        <p class="sb-lead sb-justify">
+            <b>SpecBook</b> received support from the following individual
+            contributors (in alphabetical order), coming from both the industrial{" "}
+            <b>Software Engineering</b> and <b>Open Source Software</b> contexts.{" "}
+            <b>Many thanks to them for their valuable feedback and support!</b>
+        </p>
+    </header>
+
+    <div class="mt-12 w-full" data-reveal>
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-4">
+            {contributors.map((name) => (
+                <div class="bg-background-elevated overflow-hidden rounded-xl border border-border-strong p-1 text-center text-accent">{name}</div>
+            ))}
+        </div>
+    </div>
+</section>
+
+<section id="sponsors" class="relative isolate mx-auto max-w-4xl px-6 py-8">
+    <SectionGlow variant="section" side="left" />
+    <header class="sb-section-head" data-reveal>
+        <h2 class="sb-h2">
+            Thanks to the <span class="text-accent">Sponsors</span>
+        </h2>
+        <p class="sb-lead sb-justify">
+            <b>SpecBook</b> is developed in the experience context of industrial{" "}
+            <b>Software Engineering</b> at the <a href="https://www.msg.group">msg group</a>{" "}
+            and in the educational context of the <b>Software Engineering Academy (SEA)</b>,
+            supported by <i>msg Research</i> and <i>SEA</i>.{" "}
+            <b>Many thanks to them for their support!</b>
+        </p>
+    </header>
+
+    <div class="mt-12 w-full">
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {/*  left sponsor reveals from the left edge, right from the right
+                ("right"/"left" are inverted per Scroll-Reveal naming)  */}
+            {sponsors.map((sponsor) => (
+                <div class="bg-background-elevated flex flex-col items-center gap-2 py-2 overflow-hidden rounded-xl border border-border-strong p-1 text-center text-foreground" data-reveal={sponsor.reveal}>
+                    <div class="flex flex-1 items-center justify-center">
+                        <img src={sponsor.logo} alt={sponsor.name} class={`${sponsor.height} w-auto`} />
+                    </div>
+                    <div class="mb-2">{sponsor.name}</div>
+                </div>
+            ))}
+        </div>
+    </div>
+</section>
+
+<section id="siblings" class="relative isolate mx-auto max-w-4xl px-6 py-8 mb-24">
+    <SectionGlow variant="section" side="right" />
+    <header class="sb-section-head" data-reveal>
+        <h2 class="sb-h2">
+            See Also the <span class="text-accent">Sibling Projects</span>
+        </h2>
+        <p class="sb-lead sb-justify">
+            <b>SpecBook</b> does not stand alone: it renders its diagrams with a
+            dedicated sibling project, and it fits into a larger toolkit for
+            combining Agentic AI Coding with traditional Software Engineering.
+        </p>
+    </header>
+
+    <div class="mt-12 w-full" data-reveal>
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {siblings.map((sibling) => (
+                <a href={sibling.href} class="bg-background-elevated link-plain overflow-hidden rounded-xl border border-border-strong p-4 text-center transition hover:border-accent">
+                    <div class="text-lg font-bold text-accent">{sibling.name}</div>
+                    <div class="mt-1 text-sm text-foreground-secondary">{sibling.note}</div>
+                </a>
+            ))}
+        </div>
+    </div>
+</section>

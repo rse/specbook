@@ -1,0 +1,230 @@
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+@import "tailwindcss";
+
+@import "../../node_modules/typopro-web/web/TypoPRO-SourceSansPro/TypoPRO-SourceSansPro-Regular.css";
+@import "../../node_modules/typopro-web/web/TypoPRO-SourceSansPro/TypoPRO-SourceSansPro-RegularIt.css";
+@import "../../node_modules/typopro-web/web/TypoPRO-SourceSansPro/TypoPRO-SourceSansPro-Light.css";
+@import "../../node_modules/typopro-web/web/TypoPRO-SourceSansPro/TypoPRO-SourceSansPro-Semibold.css";
+@import "../../node_modules/typopro-web/web/TypoPRO-SourceSansPro/TypoPRO-SourceSansPro-Bold.css";
+
+@import "../../node_modules/typopro-web/web/TypoPRO-SourceCodePro/TypoPRO-SourceCodePro-Regular.css";
+@import "../../node_modules/typopro-web/web/TypoPRO-SourceCodePro/TypoPRO-SourceCodePro-Bold.css";
+
+@import "../../node_modules/typopro-web/web/TypoPRO-Kalam/TypoPRO-Kalam-Regular.css";
+
+/*  brand scale — nine picks out of the 32-step accent color spread SpecBook
+    itself generates from its default theme color tone "#336699" (via
+    `@rse/mrcs`, see `src/specbook-theme.ts`), so the site and the documents
+    SpecBook exports read as one palette. `--brand-600` is the very accent
+    (spread index 12) the SpecBook light theme uses.  */
+:root {
+    --brand-100: #e3f0ff;  /*  accent spread  32  */
+    --brand-200: #cee6ff;  /*  accent spread  30  */
+    --brand-300: #afd6ff;  /*  accent spread  27  */
+    --brand-400: #8ac0f8;  /*  accent spread  23  */
+    --brand-500: #6fa3da;  /*  accent spread  18  */
+    --brand-600: #4f83b7;  /*  accent spread  12  */
+    --brand-700: #3a6da1;  /*  accent spread   8  */
+    --brand-800: #25598b;  /*  accent spread   4  */
+    --brand-900: #154a7a;  /*  accent spread   1  */
+}
+
+/*  semantic tokens — white grounds out of the grey base spread, pale blue
+    tints out of the accent spread, mirroring the light-theme layer-2 mapping
+    of the SpecBook HTML export. The site is deliberately light-only, so there
+    is no second, dark set of these tokens.  */
+:root {
+    --background:           var(--brand-100);
+    --background-secondary: #ffffff;
+    --background-elevated:  #f4f9ff;
+
+    --foreground:           #111111;
+    --foreground-secondary: #444444;
+    --foreground-muted:     #777777;
+
+    --border:               var(--brand-200);
+    --border-strong:        var(--brand-200);
+
+    --accent:               var(--brand-600);
+    --accent-hover:         var(--brand-700);
+}
+
+/*  Tailwind theme bridge — expose tokens as utilities (bg-*, text-*, …)  */
+@theme inline {
+    --color-background:           var(--background);
+    --color-background-secondary: var(--background-secondary);
+    --color-background-elevated:  var(--background-elevated);
+
+    --color-foreground:           var(--foreground);
+    --color-foreground-secondary: var(--foreground-secondary);
+    --color-foreground-muted:     var(--foreground-muted);
+
+    --color-border:               var(--border);
+    --color-border-strong:        var(--border-strong);
+
+    --color-brand-100:            var(--brand-100);
+    --color-brand-200:            var(--brand-200);
+    --color-brand-300:            var(--brand-300);
+    --color-brand-400:            var(--brand-400);
+    --color-brand-500:            var(--brand-500);
+    --color-brand-600:            var(--brand-600);
+    --color-brand-700:            var(--brand-700);
+    --color-brand-800:            var(--brand-800);
+    --color-brand-900:            var(--brand-900);
+
+    --color-accent:               var(--accent);
+    --color-accent-hover:         var(--accent-hover);
+
+    --font-display: "TypoPRO Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+    --font-sans:    "TypoPRO Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+    --font-mono:    "TypoPRO Source Code Pro", ui-monospace, monospace;
+}
+
+/*  justified, first-line-indented section body copy  */
+@utility sb-indent-p {
+    @apply mt-1;
+    text-align: justify;
+    text-indent: 2em;
+}
+
+/*  accent-colored, uppercase eyebrow label above section/subsection headings  */
+@utility sb-eyebrow {
+    @apply text-sm font-semibold uppercase tracking-wider text-accent;
+}
+
+/*  primary section heading (h2)  */
+@utility sb-h2 {
+    @apply text-3xl font-bold sm:text-4xl;
+}
+
+/*  subsection heading (h3)  */
+@utility sb-h3 {
+    @apply mt-3 text-2xl font-bold sm:text-3xl;
+}
+
+/*  bordered, accent-on-hover navigation/call-to-action button  */
+@utility sb-btn {
+    @apply rounded-lg border border-border-strong px-3 py-2 font-semibold text-foreground transition-colors hover:border-accent hover:text-accent;
+}
+
+/*  centered, width-constrained section header wrapper  */
+@utility sb-section-head {
+    @apply mx-auto max-w-2xl text-center;
+}
+
+/*  vertically-centered two-column split layout (text/diagram zig-zag rows)  */
+@utility sb-grid-split {
+    @apply grid items-center gap-10 lg:grid-cols-2 lg:gap-16;
+}
+
+/*  left-aligned section lead/intro copy  */
+@utility sb-lead {
+    @apply mt-4 text-left text-foreground-secondary;
+}
+
+/*  justified body copy — hyphenates long words so the justified line-fill
+    does not stretch inter-word spacing into ragged-looking gaps  */
+@utility sb-justify {
+    @apply text-justify;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/*  ==== base element styling ====  */
+
+html {
+    /*  lift the root size from the 16px default so every rem-based text
+        utility scales up proportionally across the whole site. Use px (a CSS
+        reference pixel, identical across browsers) rather than an absolute
+        unit like pt — pt is resolved against the device DPI differently by
+        Chrome and Firefox.  */
+    font-size: 20px;
+    scroll-behavior: smooth;
+    /*  offset anchor jumps (nav links) by the height of the fixed header
+        plus a little breathing room, so a section's headline lands below
+        the header instead of being hidden underneath it.  */
+    scroll-padding-top: 5rem;
+    color-scheme: light;
+    background: var(--background);
+    /*  clip decorative bleed (e.g. the section background glows) so it never
+        produces a horizontal scrollbar. `clip` (rather than `hidden`) avoids
+        establishing a scroll container, so it does not interfere with the
+        `position: sticky`/`fixed` header or `scroll-padding-top`.  */
+    overflow-x: clip;
+    position: relative;
+}
+
+body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.3;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    /*  also clip on the body: `overflow-x: hidden` on the root alone does not
+        reliably suppress horizontal touch panning on mobile when the body is
+        still `visible`, which let the decorative glows pan the page sideways.  */
+    overflow-x: clip;
+}
+
+h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+/*  flag external links (any "http"/"https" target) in prose text with a
+    trailing "↗" glyph, so off-site destinations are visually distinguishable
+    from in-page anchors. The U+FE0E variation selector forces the monochrome
+    text presentation instead of a colored emoji arrow. Uses :where() (zero
+    specificity) so the opt-out below always wins.  */
+:where(a[href^="http"])::after {
+    content: "\2197\fe0e";
+    color: var(--accent-hover);
+    display: inline;
+    margin-left: 0.30em;
+    font-size: 0.75em;
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: none;
+}
+:where(.link-plain) a::after,
+a.link-plain::after {
+    content: none;
+}
+
+b, strong {
+    font-weight: 600;
+}
+
+code {
+    /*  tighten the monospace letter-spacing slightly for a denser, more
+        terminal-like look.  */
+    letter-spacing: -0.035em;
+}
+
+/*  give inline code a subtle rounded chip frame, scaled down slightly as
+    the monospace face runs large beside the prose face. Uses :where()
+    (zero specificity) so any element that supplies its own framing via
+    utility classes (the Terminal command rows) overrides it cleanly, and
+    `.code-plain` opts out entirely.  */
+:where(code:not(.code-plain)) {
+    border: 1px solid var(--border-strong);
+    border-radius: 0.3rem;
+    color: var(--color-foreground);
+    background: var(--color-brand-200);
+    padding: 0.05em 0.35em;
+    font-size: 0.9em;
+}

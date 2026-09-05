@@ -1,0 +1,31 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+import BaseLayout          from "../layouts/BaseLayout.astro"
+import Hero                from "../components/Section-Title.astro"
+import SectionFit          from "../components/Section-Fit.astro"
+import SectionHighlights   from "../components/Section-Highlights.astro"
+import SectionSetup        from "../components/Section-Setup.astro"
+import SectionUsage        from "../components/Section-Usage.astro"
+import SectionFormat       from "../components/Section-Format.astro"
+import SectionArchitecture from "../components/Section-Architecture.astro"
+import SectionExport       from "../components/Section-Export.astro"
+import SectionAuthor       from "../components/Section-Author.astro"
+import SectionThanks       from "../components/Section-Thanks.astro"
+---
+<BaseLayout>
+    <Hero/>
+    <SectionFit/>
+    <!-- <SectionHighlights/> -->
+    <SectionSetup/>
+    <SectionUsage/>
+    <SectionFormat/>
+    <SectionArchitecture/>
+    <SectionExport/>
+    <SectionAuthor/>
+    <SectionThanks/>
+</BaseLayout>

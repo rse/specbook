@@ -1,0 +1,37 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  full-viewport QR-code modal: the reusable Modal shell wrapped around the
+    QR code for the site URL, rendered in white (`stroke="currentColor"` with a
+    `text-white` wrapper) on the dimmed, blurred overlay. The footer's QR toggle
+    opens it; the Modal shell handles the close button and Escape.  */
+
+import Modal      from "./Modal-Shell.astro"
+import QRCode     from "./Widget-QR-Code.astro"
+import { site }   from "../data/site.ts"
+---
+<Modal id="qr-modal" label="QR code">
+    <figure id="qr-modal-figure" class="flex flex-col items-center gap-4 text-white">
+        {/*  the scannable QR code for `site.url`, rendered via the shared
+             QR-Code component; `currentColor` inherits the `text-white` wrapper.  */}
+        <QRCode class="h-[min(70vw,70vh)] w-[min(70vw,70vh)]"/>
+        <figcaption class="font-display text-lg font-bold tracking-wide">{site.url}</figcaption>
+    </figure>
+</Modal>
+
+{/*  open on the footer trigger; closing is owned entirely by the Modal shell
+     (its close button and Escape). Clicks on the overlay do not close it.  */}
+<script is:inline>
+    (function () {
+        const modal   = document.getElementById("qr-modal")
+        const trigger = document.getElementById("qr-toggle")
+        if (!modal || !trigger) return
+        trigger.addEventListener("click", function () {
+            modal.style.display = "grid"
+        })
+    })()
+</script>

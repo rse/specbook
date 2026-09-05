@@ -1,0 +1,102 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  hanging flag: an SVG banner whose silhouette forms the letter "W"
+    (straight vertical sides, flat top, shallow W-notched bottom edge). It
+    hangs from the top of the hero area; the SVG draws only the flag shape,
+    while its overlay content is supplied by the caller via the default slot
+    and centred in the rectangular part above the bottom W-notch.  */
+
+interface Props {
+    class?: string
+}
+const { class: className } = Astro.props
+
+/*  flag geometry (SVG user units): a tall (portrait) banner with a shallow,
+    double-V ("W") cut into its bottom edge, so the overlay reads straight.  */
+const W       = 132  /*  overall width                     */
+const H       = 220  /*  overall height                    */
+const notch   = 8    /*  depth of the two bottom V-notches */
+const peak    = 16   /*  height of the centre "W" peak     */
+
+/*  bottom edge, left-to-right: down the left side, a V-notch up to the centre
+    peak, a second V-notch, then up the right side. Straight vertical sides and
+    a flat top keep the outer silhouette reading as a clean "W".  */
+const path = [
+    "M 0 0",                       /*  top-left                          */
+    `L ${W} 0`,                    /*  top-right                         */
+    `L ${W} ${H}`,                 /*  down right side                   */
+    `L ${W * 0.75} ${H - notch}`,  /*  up into right V-notch             */
+    `L ${W * 0.50} ${H - peak}`,   /*  up to centre peak                 */
+    `L ${W * 0.25} ${H - notch}`,  /*  down into left V-notch            */
+    `L 0 ${H}`,                    /*  down left side                    */
+    "Z"
+].join(" ")
+---
+<div class={`flag pointer-events-none select-none ${className ?? ""}`}>
+    {/* inner positioning context: holds the flag SVG and the HTML overlay.
+        Keeping `relative` here (not on the outer wrapper) lets the caller
+        position the outer element freely (e.g. `absolute`) without conflict. */}
+    <div class="relative" style={`width: ${W}px;`}>
+        {/* flag shape only — the SVG draws the "W" silhouette, gradient and shadow */}
+        <svg
+            class="block h-auto w-full"
+            width={W}
+            height={H + 6}
+            viewBox={`0 0 ${W} ${H + 6}`}
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+        >
+            <defs>
+                {/* vertical blue gradient for the flag body */}
+                <linearGradient id="flag-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stop-color="var(--brand-600)" />
+                    <stop offset="100%" stop-color="var(--brand-800)" />
+                </linearGradient>
+
+                {/* soft drop shadow so the flag reads as "hanging" over the hero */}
+                <filter id="flag-shadow" x="-40%" y="-20%" width="180%" height="160%">
+                    <feDropShadow dx="0" dy="5" stdDeviation="3" flood-color="#000000" flood-opacity="0.25" />
+                </filter>
+            </defs>
+
+            {/* flag body */}
+            <path
+                d={path}
+                fill="url(#flag-fill)"
+                stroke="var(--brand-300)"
+                stroke-width="0"
+                stroke-linejoin="round"
+                filter="url(#flag-shadow)"
+            />
+        </svg>
+
+        {/* overlay content, supplied by the caller via the default slot and
+            centred in the rectangular part above the bottom W-notch. Pointer
+            events are re-enabled here (the outer wrapper disables them). */}
+        <div
+            class="flag-label pointer-events-auto absolute inset-x-0 text-center leading-[1.1] text-brand-100"
+            style={`bottom: ${(notch + peak) + 8}px; font-size: 20px;`}>
+            <slot />
+        </div>
+    </div>
+</div>
+
+<style>
+    /*  gentle, physical "hanging" sway, pivoting from the top edge.  */
+    .flag {
+        transform-origin: top center;
+        animation: flag-sway 5s ease-in-out infinite;
+    }
+    @keyframes flag-sway {
+        0%, 100% { transform: rotate(-2.0deg); }
+        50%      { transform: rotate(2.0deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .flag { animation: none; }
+    }
+</style>

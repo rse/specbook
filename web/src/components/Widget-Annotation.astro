@@ -1,0 +1,111 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  hand-drawn annotation: a curved brand-blue arc/arrow sweeping from the
+    top-right down to the bottom-left, with a short brand-blue text caption
+    placed above the arc. Rendered as an overlay that points at a nearby
+    UI element. The arrow head sits at the arc's bottom-left (target)
+    end. The caption is supplied via the default slot.
+
+    The root carries the shared overlay defaults (`absolute bottom-full
+    z-30 w-[200px]`, hidden below the `sm` breakpoint via `hidden
+    sm:block`); the caller only supplies the horizontal anchoring (e.g.
+    `left-1/2 -translate-x-1/4` or `right-0 translate-x-1/4`) and any
+    overrides through the `class` prop, which is appended last.  */
+
+interface Props {
+    class?: string
+    fade?: boolean
+    flat?: boolean
+}
+const { class: className, fade = false, flat = false } = Astro.props
+
+/*  arc geometry (SVG user units): a gentle curve from the top-right
+    corner down to the bottom-left, where the arrow head points at the
+    annotated target. The `flat` variant uses a shorter overall height
+    and a flatter arc that drops less vertically, sweeping more along
+    the horizontal towards a higher target point.  */
+const W = 200              /*  overall width                     */
+const H = flat ? 70 : 110  /*  overall height (shorter if flat)  */
+
+/*  the arc path: start at top-right, sweep leftwards along the top to
+    the top-left, then hook downwards to the target point near the
+    bottom-left. A smooth cubic Bézier gives the "L"-shaped hook; the
+    `flat` variant ends at a higher target with a gentler drop.  */
+const arc = flat ?
+    "M 64 14 C 28 12, 28 34, 30 52" :  /*  flatter sweep, near-vertical at the arrow end  */
+    "M 58 12 C 20 14, 6 44, 30 90"     /*  default sweep down to target  */
+
+/*  arrow head at the bottom-left (target) end of the arc; the `flat`
+    variant points nearly straight down, nudged slightly clockwise.  */
+const head = flat ?
+    "M 30 52 L 20 41 M 30 52 L 37 40" :  /*  near-downward head, tilted clockwise  */
+    "M 30 90 L 16 84 M 30 90 L 34 76"    /*  head at the default target  */
+---
+<div class={`annotation ${fade ? "annotation-cycle" : ""} pointer-events-none select-none absolute bottom-full z-30 hidden w-[200px] sm:block ${className ?? ""}`}>
+    <svg
+        class="block h-auto w-full overflow-visible"
+        width={W}
+        height={H}
+        viewBox={`0 0 ${W} ${H}`}
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+    >
+        {/* curved arc body */}
+        <path
+            d={arc}
+            fill="none"
+            stroke="var(--accent)"
+            stroke-width="3"
+            stroke-linecap="round"
+        />
+
+        {/* arrow head at the bottom-left (target) end of the arc, pointing
+            down-and-leftwards where the hook terminates */}
+        <path
+            d={head}
+            fill="none"
+            stroke="var(--accent)"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        />
+    </svg>
+
+    {/* caption text, supplied by the caller via the default slot, centred
+        above the arc, which now sweeps along the top edge. The caller
+        positions the outer wrapper (absolutely), so this anchors against
+        that wrapper. */}
+    <div
+        class={`annotation-label absolute inset-x-0 -top-3 ${flat ? "translate-x-10" : "translate-x-7"} -rotate-2 text-center font-normal leading-[1.1] text-accent`}
+        style="font-family: 'TypoPRO Kalam', cursive; font-size: 19px; font-weight: 400; letter-spacing: -0.03em;">
+        <slot />
+    </div>
+</div>
+
+<style>
+    /*  wait hidden (10s), fade in (2s), hold (10s), fade out (2s),
+        then restart from the beginning; total cycle = 24s  */
+    .annotation-cycle {
+        animation: annotation-cycle 24s ease-in-out infinite;
+    }
+
+    @keyframes annotation-cycle {
+        0%      { opacity: 0; }   /*  start hidden for 10s    */
+        41.67%  { opacity: 0; }   /*  end of hidden wait      */
+        50%     { opacity: 1; }   /*  fade in over 2s         */
+        91.67%  { opacity: 1; }   /*  hold visible for 10s    */
+        100%    { opacity: 0; }   /*  fade out over 2s        */
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .annotation-cycle {
+            animation: none;
+            opacity: 1;
+        }
+    }
+</style>

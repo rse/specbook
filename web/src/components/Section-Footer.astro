@@ -1,0 +1,35 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+import QRCode from "./Widget-QR-Code.astro"
+---
+<footer id="page-footer" class="border-t border-border-strong bg-accent/10">
+    <div class="mx-auto flex max-w-4xl items-center gap-5 px-6 py-5 text-sm text-foreground-muted">
+        {/*  QR-code trigger: opens the `#qr-modal` popup showing the QR code for
+             the site URL. Opening is wired in Modal-QR.astro (which owns the
+             popup and its closing). The icon sits at the accent colour and turns
+             to the foreground colour while hovered.  */}
+        <button
+            id="qr-toggle"
+            type="button"
+            aria-label="Show QR code for this site"
+            aria-controls="qr-modal"
+            class="inline-flex shrink-0 cursor-pointer items-center text-accent transition-colors hover:text-foreground"
+        >
+            <QRCode class="h-20 w-20 transition-colors"/>
+        </button>
+        <div>
+            <p>
+                <strong>SpecBook — Markdown-based Specification Format</strong>
+            </p>
+            <p class="mt-2">
+                Copyright &copy; 2026 <a href="#author">Dr. Ralf S. Engelschall</a><br/>
+                Licensed under <a href="https://spdx.org/licenses/Apache-2.0">Apache-2.0</a> as Open Source
+            </p>
+        </div>
+    </div>
+</footer>

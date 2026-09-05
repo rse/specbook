@@ -1,0 +1,76 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  scroll-spy: highlight the nav link whose section is currently in view. Each
+    [data-navlink] points at a "#id" section; links whose target is absent from
+    the page are skipped. A reference line ~30% down the viewport selects the
+    last section whose top has passed it, so the active link follows the scroll
+    position. Reaching the page bottom forces the final section active even if
+    it's too short to reach the line. Above the first section, no link is active.
+
+    Markup contract: nav links carry `data-navlink`; the active link gets the
+    `.is-active` class (which adopts the foreground colour).  */
+---
+<script is:inline>
+    (function () {
+        const links = document.querySelectorAll("[data-navlink]")
+        if (!links.length)
+            return
+        const entries = []
+        links.forEach((link) => {
+            const id = (link.getAttribute("href") || "").replace(/^#/, "")
+            const sec = id && document.getElementById(id)
+            if (sec)
+                entries.push({ link: link, sec: sec })
+        })
+        if (!entries.length)
+            return
+        let active = null
+        const setActive = (link) => {
+            if (active === link)
+                return
+            if (active)
+                active.classList.remove("is-active")
+            active = link
+            if (active)
+                active.classList.add("is-active")
+        }
+        let ticking = false
+        const update = () => {
+            ticking = false
+            const line = window.innerHeight * 0.3
+            const doc = document.documentElement
+            const atBottom = window.innerHeight + window.scrollY >= doc.scrollHeight - 2
+            let pick = null
+            if (atBottom)
+                pick = entries[entries.length - 1].link
+            else {
+                entries.forEach((e) => {
+                    if (e.sec.getBoundingClientRect().top <= line)
+                        pick = e.link
+                })
+            }
+            setActive(pick)
+        }
+        const onScroll = () => {
+            if (!ticking) {
+                ticking = true
+                requestAnimationFrame(update)
+            }
+        }
+        window.addEventListener("scroll", onScroll, { passive: true })
+        window.addEventListener("resize", onScroll)
+        update()
+    })()
+</script>
+
+<style is:global>
+    /*  the link whose section is in view (and any hovered link) adopts the
+        foreground colour; weight is left unchanged.  */
+    .nav-spy.is-active,
+    .nav-spy:hover { color: var(--foreground); }
+</style>

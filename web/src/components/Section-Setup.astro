@@ -1,0 +1,249 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  "Setup" section: prerequisites prose plus terminal-style boxes with the
+    install / update / uninstall commands (each row has a "❯" prompt and a copy
+    button wired by the Feature-Clipboard-Copy component in BaseLayout),
+    followed by the optional PDF-browser and MCP-service power-ups.  */
+
+import SectionGlow from "./Section-Glow.astro"
+import Terminal    from "./Widget-Terminal.astro"
+import Annotation  from "./Widget-Annotation.astro"
+---
+<section id="setup" class="relative isolate mx-auto max-w-4xl px-6 py-8">
+    <SectionGlow variant="section" side="left" />
+
+    <header class="sb-section-head" data-reveal>
+        <h2 class="sb-h2 mt-12">
+            <Annotation flat class="hidden sm:block left-[75%] -translate-x-full">
+                Execute just one<br/>
+                command and you<br/>
+                are up and running!
+            </Annotation>
+            Easy <span class="text-accent">Setup</span>
+        </h2>
+        <p class="mt-4 text-foreground-secondary sb-justify">
+            Getting started with <b>SpecBook</b> takes a single command.
+            Follow the prerequisites and the installation steps on the left,
+            run the ready-to-copy commands shown on the right, and you are
+            up and running within minutes.
+        </p>
+    </header>
+
+    <div class="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:items-start">
+        <div class="mt-6 sb-section-head" data-reveal="right">
+            <p class="text-foreground-secondary sb-justify">
+                As a prerequisite, please install the essential run-time
+                environment <a href="https://nodejs.org/">Node.js</a>{" "}
+                (version <code>22.13.0</code> or later) for your particular platform.
+                Everything else <b>SpecBook</b> needs ships inside its own package.
+            </p>
+            <p class="sb-indent-p text-foreground-secondary sb-justify">
+                Then execute the command on the right under <b>Installation</b>,
+                which installs the <b>SpecBook</b> Command-Line Interface (CLI)
+                globally and makes the <code>specbook</code> command available.
+                The <b>Updating</b> command keeps <b>SpecBook</b> up to date and
+                the <b>Uninstallation</b> command reverses the installation
+                residue-free again at any time.
+            </p>
+            <p class="sb-indent-p text-foreground-secondary sb-justify">
+                Prefer not to install anything globally? Then run <b>SpecBook</b>{" "}
+                straight through <code>npx</code>, or add it as a regular
+                development dependency of your project, so the very same version
+                is pinned for everyone and for your Continuous Integration.
+            </p>
+        </div>
+
+        <div class="relative mt-6">
+            <div data-reveal="left">
+                <Terminal
+                    class="mx-auto mt-8 sm:mt-18 lg:mt-0 max-w-2xl"
+                    copy={true}
+                    title="Installation"
+                    tabs={[
+                        { label: "Global", commands: [
+                            "**npm** install -g @rse/specbook"
+                        ] },
+                        { label: "Project", commands: [
+                            "**npm** install --save-dev @rse/specbook"
+                        ] },
+                        { label: "One-Shot", commands: [
+                            "**npx** @rse/specbook lint -b docs/"
+                        ] }
+                    ]}
+                />
+            </div>
+
+            <div data-reveal="left">
+                <Terminal
+                    class="mx-auto mt-8 max-w-2xl"
+                    copy={true}
+                    title="Updating"
+                    tabs={[
+                        { label: "Global", commands: [
+                            "**npm** update -g @rse/specbook"
+                        ] },
+                        { label: "Project", commands: [
+                            "**npm** update @rse/specbook"
+                        ] }
+                    ]}
+                />
+            </div>
+
+            <div data-reveal="left">
+                <Terminal
+                    class="mx-auto mt-8 max-w-2xl"
+                    copy={true}
+                    title="Uninstallation"
+                    tabs={[
+                        { label: "Global", commands: [
+                            "**npm** uninstall -g @rse/specbook"
+                        ] },
+                        { label: "Project", commands: [
+                            "**npm** uninstall @rse/specbook"
+                        ] }
+                    ]}
+                />
+            </div>
+        </div>
+    </div>
+
+    <div class="relative">
+        <SectionGlow variant="section" side="right" />
+        <header class="mt-12 sb-section-head" data-reveal>
+            <h2 class="text-xl font-bold sm:text-2xl">
+                Power-Up with <span class="text-accent">PDF Export</span>
+            </h2>
+        </header>
+
+        <div class="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:items-start">
+            <div class="mt-6 sb-section-head" data-reveal="right">
+                <p class="text-foreground-secondary sb-justify">
+                    The <b>PDF</b> export prints the HTML rendering through a
+                    Chromium-based browser, driven by{" "}
+                    <a href="https://playwright.dev">Playwright</a>. The
+                    option-less environment variable <code>SPECBOOK_BROWSER</code>{" "}
+                    selects which browser that is.
+                </p>
+                <p class="text-foreground-secondary sb-indent-p sb-justify">
+                    A value carrying a path separator is taken as an executable
+                    path and any other one as a Playwright channel name
+                    (<code>chromium</code>, <code>chrome</code>,{" "}
+                    <code>msedge</code>, and their beta/dev/canary variants).
+                    The variable itself has no default value: an unset one uses
+                    the downloaded Playwright Chromium and, only if that one is
+                    absent, a system-installed <i>Google Chrome</i>.
+                </p>
+                <blockquote class="mt-4 border-l-4 border-accent bg-background-elevated/60 px-6 py-2 text-foreground-secondary sb-justify">
+                    <b class="text-accent">NOTICE:</b>
+                    <span class="mt-1 block text-foreground-secondary">
+                        A browser is <b>NOT</b> required for <b>SpecBook</b> to
+                        work. It is needed for the <b>PDF</b> export alone; all
+                        other export formats are produced without it. A missing
+                        browser fails the PDF export before the specification is
+                        even parsed, and an explicitly configured browser failing
+                        to launch fails the export instead of silently falling
+                        back onto another one.
+                    </span>
+                </blockquote>
+            </div>
+
+            <div class="relative mt-6">
+                <div data-reveal="left">
+                    <Terminal
+                        class="mx-auto mt-8 lg:mt-0 max-w-2xl"
+                        copy={true}
+                        title="Browser Installation"
+                        tabs={[
+                            { label: "Playwright", commands: [
+                                "**npx** playwright install chromium"
+                            ] },
+                            { label: "System", commands: [
+                                "export SPECBOOK_BROWSER=\"**chrome**\""
+                            ] },
+                            { label: "Explicit", commands: [
+                                "export SPECBOOK_BROWSER=\"**/path/to/browser**\""
+                            ] }
+                        ]}
+                    />
+                </div>
+
+                <div data-reveal="left">
+                    <Terminal
+                        class="mx-auto mt-8 max-w-2xl"
+                        copy={true}
+                        title="PDF Export"
+                        commands={[
+                            "**specbook** export -b docs/ -o spec.pdf"
+                        ]}
+                    />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <header class="mt-12 sb-section-head" data-reveal>
+        <h2 class="text-xl font-bold sm:text-2xl">
+            Power-Up with the <span class="text-accent">MCP Service</span>
+        </h2>
+    </header>
+
+    <div class="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:items-start">
+        <div class="mt-6 sb-section-head" data-reveal="right">
+            <p class="text-foreground-secondary sb-justify">
+                <b>SpecBook</b> can <i>optionally</i> be attached to an Agentic
+                AI Coding tool as a{" "}
+                <a href="https://modelcontextprotocol.io">Model-Context-Protocol (MCP)</a>{" "}
+                service over stdio. It then exposes its commands as the tools{" "}
+                <code>specbook_init</code>, <code>specbook_lint</code>,{" "}
+                <code>specbook_export</code>, and <code>specbook_describe</code>.
+            </p>
+            <p class="text-foreground-secondary sb-indent-p sb-justify">
+                Because the CLI and the MCP service are both thin wrappers over
+                the very same <code>SpecBook</code> API class, an agent gets
+                exactly the functionality you get &mdash; no second, weaker code
+                path. There is deliberately no <code>preview</code> tool, as
+                that one is a long-running server.
+            </p>
+            <blockquote class="mt-4 border-l-4 border-accent bg-background-elevated/60 px-6 py-2 text-foreground-secondary sb-justify">
+                <b class="text-accent">NOTICE:</b>
+                <span class="mt-1 block text-foreground-secondary">
+                    The MCP service is <b>NOT</b> required for <b>SpecBook</b> to
+                    work. It is fully optional, but lets an AI agent lint and
+                    export your specification itself &mdash; and, together with{" "}
+                    <code>specbook describe</code>, understand the format well
+                    enough to write one.
+                </span>
+            </blockquote>
+        </div>
+
+        <div class="relative mt-6">
+            <div data-reveal="left">
+                <Terminal
+                    class="mx-auto mt-8 lg:mt-0 max-w-2xl"
+                    copy={true}
+                    title="MCP Service"
+                    commands={[
+                        "**specbook** mcp"
+                    ]}
+                />
+            </div>
+
+            <div data-reveal="left">
+                <Terminal
+                    class="mx-auto mt-8 max-w-2xl"
+                    copy={true}
+                    title="Format Description for the LLM"
+                    commands={[
+                        "**specbook** describe -b docs/ -e -z 2",
+                        "**specbook** describe -p schema -f raw"
+                    ]}
+                />
+            </div>
+        </div>
+    </div>
+</section>

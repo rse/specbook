@@ -1,0 +1,50 @@
+{
+    "private":                                    true,
+    "name":                                       "specbook-web",
+    "version":                                    "1.2.6",
+    "description":                                "Specification Book (SpecBook)",
+    "author":                                     "Dr. Ralf S. Engelschall <rse@engelschall.com>",
+    "license":                                    "Apache-2.0",
+    "homepage":                                   "https://specbook.tools",
+    "type":                                       "module",
+    "devDependencies": {
+        "@rse/stx":                               "1.1.6",
+        "@astrojs/check":                         "0.9.10",
+        "typescript":                             "6.0.3",
+        "eslint":                                 "10.10.0",
+        "@eslint/js":                             "10.0.1",
+        "@typescript-eslint/parser":              "8.69.0",
+        "typescript-eslint":                      "8.69.0",
+        "@stylistic/eslint-plugin":               "5.10.0",
+        "eslint-plugin-astro":                    "3.1.0",
+        "astro-eslint-parser":                    "3.1.0",
+        "globals":                                "17.12.0"
+    },
+    "dependencies": {
+        "astro":                                  "7.3.1",
+        "@astrojs/sitemap":                       "3.7.4",
+        "astro-robots-txt":                       "1.0.0",
+        "astro-swiper":                           "2.10.0",
+        "@lucide/astro":                          "1.41.0",
+        "tailwindcss":                            "4.3.3",
+        "@tailwindcss/vite":                      "4.3.3",
+        "typopro-web":                            "4.2.8"
+    },
+    "engines": {
+        "node":                                   ">=22.13.0"
+    },
+    "overrides": {
+        "typopro-web": {
+            "npm-install-fetch":                  "1.4.0"
+        }
+    },
+    "scripts": {
+        "start":                                  "stx -v4 -l warning -c etc/stx.conf"
+    },
+    "allowScripts": {
+        "core-js":                                true,
+        "esbuild":                                true,
+        "typopro-web":                            true,
+        "fsevents":                               true
+    }
+}

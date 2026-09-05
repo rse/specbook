@@ -1,0 +1,53 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  decorative radial glow that bleeds off one side of its parent. Two shapes:
+      - variant="section": a smaller glow anchored at the section's top start,
+        bleeding off the chosen edge (used at the top of a section).
+      - variant="text": a large glow centred behind a text block, bleeding off
+        the chosen edge (used behind the two-column row text).
+    `side` picks which edge it bleeds off.
+
+    STACKING CONTRACT (the glow is decorative and MUST never cover content):
+    `-z-10` only orders the glow behind the content of the stacking context it
+    lands in, and the glow is sized 120%-260% of its parent, so it bleeds far
+    outside it. Hence its immediate parent MUST be `relative` (to act as the
+    containing block) but MUST NOT establish a stacking context of its own --
+    no `isolate`, no `z-index`, and no `data-reveal` (whose `will-change`,
+    `opacity`, and `transform` all establish one). Otherwise that parent is
+    painted as one atomic unit in the positioned layer, i.e. above every plain
+    in-flow sibling, and the bleeding glow washes over them.
+
+    The glow therefore lands in the stacking context of the enclosing
+    `<section class="relative isolate">`, whose `isolate` both catches it (so
+    it never sinks behind the page background) and puts it into that section's
+    negative-z layer -- painted after the section's own background but before
+    all of its content.  */
+
+interface Props {
+    variant?: "section" | "text"
+    side?:    "left" | "right"
+}
+
+const { variant = "text", side = "left" } = Astro.props
+
+/*  shared gradient; the "section" shape is a touch tighter than the "text" one.
+    The wash stays faint (18%), as it sits on the white ground of the light
+    theme, where a stronger tint would read as a stain instead of a glow.  */
+const gradient = variant === "section" ?
+    "radial-gradient(ellipse 60% 50% at center, color-mix(in oklch, #ffffff 100%, transparent), transparent 80%)" :
+    "radial-gradient(ellipse 70% 60% at center, color-mix(in oklch, #ffffff 100%, transparent), transparent 80%)"
+
+const placement = variant === "section" ?
+    `top-0 h-[120%] w-[80%] -translate-y-[20%] ${side === "left" ? "left-0 -translate-x-[70%]" : "right-0 translate-x-[70%]"}` :
+    `top-1/2 h-[260%] w-[240%] -translate-y-1/2 ${side === "left" ? "right-0 -translate-x-[10%]" : "left-0 translate-x-[10%]"}`
+---
+<div
+    class:list={[ "pointer-events-none absolute -z-10", placement ]}
+    style={`background: ${gradient};`}
+    aria-hidden="true"
+></div>

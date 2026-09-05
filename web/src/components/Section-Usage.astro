@@ -1,0 +1,194 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  "Usage" section: a text/terminal pair laid out as a two-column row,
+    mirroring the highlight rows, followed by the full command catalog panel
+    and the environment variable reference.  */
+
+import SectionGlow from "./Section-Glow.astro"
+import Terminal    from "./Widget-Terminal.astro"
+import Compass     from "@lucide/astro/icons/compass"
+
+/*  the six CLI commands, each with its one-line purpose and its distinctive
+    options; the very same commands the MCP service exposes as
+    `specbook_<cmd>` tools and the API class as `SpecBook` methods (except
+    `preview`, which is a long-running server, and `mcp`, which *is* the
+    service).  */
+const commands = [
+    { name: "init",     purpose: "Generate the initial specification Markdown files from the schema configuration.",
+      options: [ "-v", "-c", "-b" ] },
+    { name: "lint",     purpose: "Parse and validate the whole corpus, reporting file- and line-precise diagnostics.",
+      options: [ "-v", "-c", "-b" ] },
+    { name: "export",   purpose: "Render the specification into one or more output formats, optionally watching the sources.",
+      options: [ "-v", "-c", "-b", "-o", "-w" ] },
+    { name: "preview",  purpose: "Serve the HTML export live in the browser, updating it in place on every change.",
+      options: [ "-v", "-c", "-b", "-a", "-p" ] },
+    { name: "describe", purpose: "Emit the description of the SpecBook models, formats, and the effective schema.",
+      options: [ "-v", "-c", "-b", "-e", "-z", "-f", "-p", "-o" ] },
+    { name: "mcp",      purpose: "Run the Model-Context-Protocol service over stdio for an Agentic AI Coding tool.",
+      options: [ "-v" ] }
+]
+
+/*  the CLI options, each with the environment variable overriding its default  */
+const options = [
+    [ "-v, --verbose [<level>]",           "SPECBOOK_VERBOSE", "verbosity: 0 notices, 1 processing, 2 ratios, 3 details" ],
+    [ "-c, --config <yaml-file>",          "SPECBOOK_CONFIG",  "schema configuration (glob patterns, repeatable, merged)" ],
+    [ "-b, --basedir <dir>",               "SPECBOOK_BASEDIR", "base directory the artifact files resolve against" ],
+    [ "-o, --output [<format>:]<file>",    "SPECBOOK_OUTPUT",  "output file, format inferred from its extension" ],
+    [ "-w, --watch",                       "SPECBOOK_WATCH",   "re-export on every change of a source or an asset" ],
+    [ "-a, --addr <ip-addr>",              "SPECBOOK_ADDR",    "IP address of the live preview (default 127.0.0.1)" ],
+    [ "-p, --port <tcp-port>",             "SPECBOOK_PORT",    "TCP port of the live preview (default 12345)" ],
+    [ "-e, --embed",                       "SPECBOOK_EMBED",   "embed the schema configuration instead of referencing it" ],
+    [ "-z, --compress [<level>]",          "SPECBOOK_COMPRESS", "compress the emitted schema configuration (levels 1-3)" ],
+    [ "-f, --format <format>",             "SPECBOOK_FORMAT",  "rendered Markdown (md) or raw file content (raw)" ],
+    [ "-p, --part <part>",                 "SPECBOOK_PART",    "document part: all, meta, schema, or spec" ]
+]
+---
+<section id="usage" class="relative isolate mx-auto max-w-4xl px-6 py-8">
+    <header class="sb-section-head" data-reveal>
+        <h2 class="sb-h2 mt-12">
+            Quickly <span class="text-accent">Get Started</span>
+        </h2>
+        <p class="sb-lead sb-justify">
+            <b>SpecBook</b> is a small, sharp command-line tool with exactly six
+            commands and no hidden workflow. You author Markdown, it lints and
+            renders. The following gives you a few hints on how to quickly get
+            started.
+        </p>
+    </header>
+
+    <div class="mt-12 flex flex-col gap-12">
+        <div class="sb-grid-split">
+            <div class="lg:order-1 relative isolate" data-reveal="right">
+                <p class="sb-eyebrow">From Zero to Document</p>
+                <h3 class="sb-h3 flex items-start gap-2">
+                    <Compass class="mt-1 h-6 w-6 shrink-0 sm:h-7 sm:w-7" stroke-width={0.75}/>
+                    <span>The Four Steps</span>
+                </h3>
+                <p class="mt-4 text-foreground-secondary sb-justify">
+                    Start with <b><code>specbook init</code></b>, which generates
+                    the initial Markdown files for the object kinds the schema
+                    configuration declares. Without a <code>-c</code> option, the
+                    bundled <i>standard</i> schema configuration applies, so you
+                    can start writing immediately.
+                </p>
+                <p class="sb-indent-p text-foreground-secondary sb-justify">
+                    While writing, keep <b><code>specbook preview</code></b>{" "}
+                    running: it serves the HTML export at{" "}
+                    <code>http://127.0.0.1:12345/</code> and replaces the
+                    document in place on every change, so your scroll position
+                    and your theme choice survive. Then let{" "}
+                    <b><code>specbook lint</code></b> guard your Continuous
+                    Integration, and let <b><code>specbook export</code></b>{" "}
+                    produce the deliverables.
+                </p>
+            </div>
+            <div class="lg:order-2 relative">
+                <SectionGlow variant="text" side="right"/>
+                <div data-reveal="left">
+                    <Terminal
+                        prefix="Shell"
+                        copy={true}
+                        title="Authoring"
+                        commands={[
+                            "**specbook** init -b docs/",
+                            "**specbook** preview -b docs/",
+                            "**specbook** lint -v -b docs/"
+                        ]}
+                    />
+                    <Terminal
+                        class="mt-8"
+                        prefix="Shell"
+                        copy={true}
+                        title="Exporting"
+                        commands={[
+                            "**specbook** export -b docs/\n-o spec.html -o spec.pdf",
+                            "**specbook** export -b docs/ -o spec.yaml",
+                            "**specbook** export -b docs/ -w -o spec.html"
+                        ]}
+                    />
+                </div>
+            </div>
+        </div>
+
+        {/*  the command catalog: every CLI command with its purpose and the
+             options it accepts  */}
+        <div class="relative overflow-hidden rounded-xl border border-border-strong bg-background-elevated p-6 shadow-xl sm:p-8" data-reveal>
+            <p class="text-sm font-bold uppercase tracking-wider text-accent">Command Catalog</p>
+            <ul class="mt-4 flex flex-col gap-3">
+                {commands.map((command) => (
+                    <li class="border-b border-border-strong pb-3 last:border-0 last:pb-0">
+                        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <code class="code-plain font-mono text-base font-bold text-accent">specbook {command.name}</code>
+                            <span class="flex flex-wrap gap-1">
+                                {command.options.map((option) => (
+                                    <code class="code-plain rounded border border-border-strong bg-background px-1.5 py-0.5 font-mono text-xs text-foreground-muted">{option}</code>
+                                ))}
+                            </span>
+                        </div>
+                        <p class="mt-1 text-sm text-foreground-secondary">{command.purpose}</p>
+                    </li>
+                ))}
+            </ul>
+        </div>
+
+        {/*  the option reference, each row naming the environment variable
+             which overrides the option's default value  */}
+        <div class="bg-background-elevated overflow-hidden rounded-xl border border-border-strong p-3 shadow-xl sm:p-4" data-reveal>
+            <table class="sb-option-table w-full text-left text-xs sm:text-sm">
+                <thead>
+                    <tr class="border-b border-border-strong text-accent">
+                        <th class="pb-2 pr-1 font-semibold sm:pr-3">Option</th>
+                        <th class="pb-2 px-1 font-semibold sm:px-3">Environment</th>
+                        <th class="pb-2 pl-1 font-semibold sm:pl-3">Meaning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {options.map(([ option, env, meaning ]) => (
+                        <tr class="border-b border-border-strong last:border-0">
+                            <td class="py-1 pr-1 align-top sm:pr-3"><code class="code-plain font-mono font-bold text-accent">{option}</code></td>
+                            <td class="py-1 px-1 align-top sm:px-3"><code class="code-plain font-mono text-foreground-muted">{env}</code></td>
+                            <td class="py-1 pl-1 align-top text-foreground-secondary sm:pl-3">{meaning}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="text-center text-xs text-foreground-muted" data-reveal>
+            The default value of every option <code>--xxx</code> can be overridden by its{" "}
+            <code>SPECBOOK_XXX</code> environment variable, while an explicitly supplied option always wins.
+            As <code>-c</code> is repeatable, <code>SPECBOOK_CONFIG</code> carries a list of patterns separated
+            by the path delimiter of the platform.
+        </p>
+    </div>
+</section>
+
+<style>
+    /*  on small screens the three-column option table would squeeze the
+        monospace option column into a single character per line, so it
+        collapses into a stacked, single-column layout instead.  */
+    @media (max-width: 639px) {
+        .sb-option-table,
+        .sb-option-table tbody,
+        .sb-option-table tr,
+        .sb-option-table td {
+            display: block;
+            width: 100%;
+        }
+        .sb-option-table thead {
+            display: none;
+        }
+        .sb-option-table tr {
+            padding: 0.5rem 0;
+        }
+        .sb-option-table td {
+            padding-left: 0;
+            padding-right: 0;
+        }
+    }
+</style>

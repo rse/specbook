@@ -99,6 +99,9 @@ API.
     standard schema configuration, exported into the git-ignored
     `smp/broadcast.*` files) and a small standalone sample (`sample/`,
     with its own `sample.yaml` schema configuration)
+-   `web/`: the project website, a self-contained Astro/Tailwind
+    single-page application with its own `package.json`, `etc/stx.conf`,
+    and `node_modules/` (see "Website" below)
 -   `dst/`: the compiled output (`main` is `dst/specbook-api.js`,
     `bin` `specbook` is `dst/specbook-cli.js`) -- never edit it, it is regenerated
 
@@ -130,6 +133,51 @@ faces as base64 `data:` URIs), copies the client-side search script and
 `dst/specbook-format.yaml`, and copies the two theme variants of the logo.
 
 No test target is defined.
+
+## Website
+
+The project website under `web/` is a *separate* project with its own
+`package.json` and `node_modules/`, so it never enters the npm package of
+the tool (`files` is `dst` only). Its infrastructure and setup are taken
+over from the ASE website: an Astro static site (`output: "static"`,
+`outDir: "dst"`), styled with Tailwind 4 through `@tailwindcss/vite`,
+oriented at `@rse/stx` again (`cd web && npm start <target>` with
+`web/etc/stx.conf`):
+
+```
+npm start build      # lint + astro build
+npm start lint       # astro check + eslint on src/**/*.{ts,astro}
+npm start dev        # astro dev
+npm start preview    # astro preview
+npm start clean      # remove dst
+npm start distclean  # also remove node_modules and package-lock.json
+```
+
+The Astro configuration (`web/etc/astro.config.mjs`) adds a sitemap and a
+`robots.txt`, and a post-build integration which strips the Vite content
+hashes off the emitted `dst/_astro/` assets and rewrites all references
+to them. The `site` URL defaults to `https://specbook.tools` and is
+overridable through the `SITE_URL` environment variable.
+
+The sources are organized as `web/src/pages/index.astro` (the single
+page), `web/src/layouts/BaseLayout.astro` (head, header, footer, and the
+page-level features), `web/src/components/` (`Section-*` for the page
+sections, `Widget-*` for the reusable pieces, `Modal-*` for the
+overlays, and `Feature-*` for the behavioral, markup-less scripts), and
+`web/src/data/` (the content of the fit check, the highlights, the
+comparison, the export formats, and the site itself).
+
+The color theme of `web/src/styles/theme.css` is a *light* white/blue
+one, whose nine `--brand-*` steps are picked out of the very 32-step
+accent color spread SpecBook itself generates from its default theme
+color tone `#336699` (`--brand-600` is the accent of the SpecBook light
+theme), and whose semantic tokens mirror the light-theme layer-2 mapping
+of the SpecBook HTML export. Unlike that export, the website is
+deliberately *light-only*: there is no dark token set, no theme
+switcher, and hence no persisted theme choice. Assets therefore carry no
+theme variants either -- the two sponsor logos exist as a blue-ink
+variant (on the white sponsor plates) and a white-ink one (on the deep
+blue hero flag).
 
 ## CLI Commands
 

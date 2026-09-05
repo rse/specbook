@@ -1,0 +1,228 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  the hero: the SpecBook logo, the title, a rotating quote carousel, the
+    GitHub badges, and the two introductory paragraphs.  */
+
+import LogoSpecBook from "./Widget-Logo-SpecBook.astro"
+import Flag         from "./Widget-Flag.astro"
+import Annotation   from "./Widget-Annotation.astro"
+import Terminal     from "./Widget-Terminal.astro"
+import {
+    Swiper,
+    SwiperWrapper,
+    SwiperSlide
+}                   from "astro-swiper"
+
+/*  rotating hero quotes, swipeable via the <Swiper> carousel below.  */
+const quotes = [
+    "Write your specification in Markdown &mdash;<br/>concise and precise!",
+    "One corpus, many renderings &mdash;<br/>HTML, PDF, Markdown, and AST!",
+    "Custom schemas per context &mdash;<br/>you decide what a specification may contain!",
+    "Readable by developers,<br/>parseable by AI agents!"
+]
+
+/*  GitHub badges via Shields.io: one shared URL helper and the plain badge
+    list (the "project stars" badge is rendered separately below, as it
+    carries the annotation).  */
+const badgeURL = (path: string) =>
+    `https://img.shields.io/${path}&style=for-the-badge&logoColor=%23e3f0ff&labelColor=%23336699&color=%23154a7a`
+const badges = [
+    { href: "https://github.com/rse",                   path: "github/stars/rse?logo=github&label=author%20stars",                 alt: "github (author stars)"     },
+    { href: "https://github.com/rse",                   path: "github/followers/rse?logo=github&label=author%20followers",         alt: "github (author followers)" },
+    { href: "https://github.com/rse/specbook/releases", path: "github/v/release/rse/specbook?logo=github&label=project%20release", alt: "github (release)"          }
+]
+---
+<section class="relative isolate overflow-hidden">
+    {/* hanging flag, carrying the supporting organization logos as its overlay
+        content. The flag body is a deep blue gradient, so these take the
+        white-ink variant of each logo. */}
+    <Flag class="absolute right-[5%] top-0 z-30 sm:right-[20%]">
+        <div class="mb-2 flex flex-col items-center justify-center gap-4">
+            <img src="/assets/sea-logo-white.svg" alt="SEA Software Engineering Academy gGmbH" class="w-25 h-auto opacity-90"/>
+            <img src="/assets/msg-logo-white.svg" alt="msg systems ag" class="w-20 h-auto opacity-90"/>
+        </div>
+    </Flag>
+
+    {/* radial wash */}
+    <div
+        class="pointer-events-none absolute inset-0 -z-10"
+        style="background:
+            radial-gradient(ellipse 60% 180% at 50% -20%, color-mix(in oklch, #ffffff 100%, transparent), transparent 50%);
+        aria-hidden="true"
+    ></div>
+
+    <div class="mx-auto flex min-h-[88vh] max-w-4xl flex-col items-center justify-center px-6 pt-[6rem] pb-20 text-center">
+        <div class="hero-stagger flex flex-col items-center">
+            {/*  SpecBook logo and annotation  */}
+            <div class="relative">
+                <span
+                    class="pointer-events-none absolute text-left right-full top-0 mr-8 hidden w-56 -rotate-2 leading-[1.10] text-accent lg:block"
+                    style="font-family: 'TypoPRO Kalam', cursive; font-size: 22px; letter-spacing: -0.03em;">
+                    From a founder of the<br/>
+                    Apache Software Foundation...
+                </span>
+                <LogoSpecBook class="mb-4 h-auto w-48 sm:w-64"/>
+            </div>
+
+            {/* title */}
+            <h1 class="hero-title max-w-full text-4xl font-bold break-words sm:text-6xl md:text-7xl">
+                <span class="bg-gradient-to-b from-brand-600 to-brand-900 bg-clip-text text-transparent">
+                    Specification
+                </span>{" "}
+                <span class="bg-gradient-to-b from-brand-300 to-brand-600 bg-clip-text text-transparent">
+                    Book
+                </span>
+            </h1>
+
+            {/* quotes — swipeable carousel, auto-rotating, with pagination */}
+            <Swiper
+                class="hero-quotes mt-6 w-full max-w-xl"
+                options={{
+                    direction:      "vertical",
+                    allowTouchMove: false,
+                    loop:           true,
+                    autoplay:       { delay: 6000, disableOnInteraction: false },
+                    pagination:     { el: ".swiper-pagination", clickable: true },
+                    a11y:           { enabled: true },
+                    keyboard:       { enabled: true }
+                }}
+            >
+                <SwiperWrapper>
+                    {quotes.map((quote) => (
+                        <SwiperSlide class="flex items-center justify-center px-4 sm:px-10">
+                            <blockquote class="border-l-8 border-brand-600 px-4 text-left text-xs italic leading-tight text-foreground sm:text-lg" set:html={quote}/>
+                        </SwiperSlide>
+                    ))}
+                </SwiperWrapper>
+            </Swiper>
+
+            {/* GitHub badges */}
+            <div class="link-plain relative z-40 mt-6 flex min-h-[28px] flex-wrap items-center justify-center gap-2">
+                {badges.map((badge) => (
+                    <a href={badge.href} class="inline-flex overflow-hidden rounded-md">
+                        <img src={badgeURL(badge.path)} alt={badge.alt} />
+                    </a>
+                ))}
+                <span class="group relative inline-flex">
+                    <Annotation fade class="left-1/2 -translate-x-1/4">
+                        If you like SpecBook,<br/>
+                        please support it<br/>
+                        by giving a star!<br/>
+                        Many thanks.
+                    </Annotation>
+                    <a href="https://github.com/rse/specbook" class="inline-flex overflow-hidden rounded-md">
+                        <img src={badgeURL("github/stars/rse/specbook?logo=github&label=project%20stars")} alt="github (project stars)" />
+                    </a>
+                </span>
+            </div>
+
+            {/* sub-title */}
+            <p class="mt-6 max-w-2xl text-base sm:text-lg leading-snug text-foreground-secondary sb-justify">
+                <b>Specification Book (SpecBook)</b> is the opinionated{" "}
+                <a href="https://github.com/rse/specbook/blob/master/LICENSE.txt">Open Source</a>{" "}
+                tooling of renowned and prolific author <a href="#author">Dr. Ralf S. Engelschall</a> for a generic,{" "}
+                <b>Markdown-based specification format</b>, which can be configured for the specifications of
+                particular contexts through a <b>YAML-based schema configuration</b>.
+                It ships as an <b>API</b>, a <b>CLI</b>, and an{" "}
+                <a href="https://modelcontextprotocol.io">Model-Context-Protocol (MCP)</a> service &mdash;
+                so humans, scripts, and AI agents all reach the very same functionality.
+            </p>
+
+            <div class="w-full max-w-2xl">
+                <p class="sb-indent-p text-base sm:text-lg leading-snug text-foreground-secondary sb-justify">
+                    A specification is a tree of typed objects, authored as plain <b>Markdown</b> and
+                    validated strictly against its schema. <b>SpecBook</b> lets it be{" "}
+                    <i>initialized</i>, <i>linted</i>, <i>exported</i> (JSON, JSON5, YAML, TOON, HTML,
+                    PDF, and normalized Markdown), <i>previewed</i> (HTML, live in the browser), and{" "}
+                    <i>described</i> to LLMs &mdash; so one single source becomes the document your
+                    developers read, the document your customers receive, and the model your
+                    agents consume.
+                </p>
+            </div>
+
+            {/* the shortest possible path from zero to a rendered specification */}
+            <!--
+            <Terminal
+                class="mx-auto mt-10 w-full max-w-2xl text-left"
+                copy={true}
+                title="Quick Start"
+                commands={[
+                    "**npm** install -g @rse/specbook",
+                    "**specbook** init -b docs/",
+                    "**specbook** preview -b docs/"
+                ]}
+            />
+            -->
+        </div>
+    </div>
+
+    {/* scroll-down indicator (desktop only, fades against the hero base). */}
+    <a
+        href="#fit"
+        aria-label="Scroll to fit check"
+        class="absolute inset-x-0 bottom-8 mx-auto hidden w-max flex-col items-center text-accent md:flex">
+        <span class="chevron-bounce text-2xl leading-none">⌄</span>
+    </a>
+</section>
+
+<style is:global>
+    .hero-title { letter-spacing: -0.05em; }
+
+    /*  hero entrance animations:
+        the hero children stagger in on load;
+        the scroll-down chevron bounces.  */
+
+    @keyframes hero-slide-up {
+        from { opacity: 0; transform: translateY(80px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-stagger > * {
+        animation: hero-slide-up 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .hero-stagger > *:nth-child(1) { animation-delay: 0ms; }
+    .hero-stagger > *:nth-child(2) { animation-delay: 90ms; }
+    .hero-stagger > *:nth-child(3) { animation-delay: 180ms; }
+    .hero-stagger > *:nth-child(4) { animation-delay: 270ms; }
+
+    @keyframes chevron-bounce {
+        0%, 100% { transform: translateY(0); opacity: 0.5; }
+        50%      { transform: translateY(8px); opacity: 1; }
+    }
+    .chevron-bounce { animation: chevron-bounce 1.8s ease-in-out infinite; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .hero-stagger > *,
+        .chevron-bounce { animation: none; }
+    }
+
+    /*  theme the swiper quote carousel to the brand palette. The carousel
+        swipes vertically, so it needs a fixed height (the wrapper would
+        otherwise collapse). Swiper's bundle CSS forces "margin: auto" on
+        ".swiper" (centring it and defeating Tailwind's ml-* utilities), so
+        the horizontal offset is set here instead: a left auto-margin nudges
+        the carousel right while a right margin keeps it off the right edge.  */
+    .hero-quotes.hero-quotes {
+        --swiper-theme-color: var(--brand-600);
+        --swiper-pagination-bullet-inactive-color: var(--brand-400);
+        height: 3rem;
+        margin-left:  auto;
+        margin-right: -2rem;
+        touch-action: pan-y;
+    }
+
+    /*  on small viewports the smaller quote font (text-xs) needs less
+        vertical room, so shrink the fixed carousel height accordingly.  */
+    @media (max-width: 639px) {
+        .hero-quotes.hero-quotes {
+            height: 2rem;
+        }
+    }
+    .hero-quotes .swiper-slide {
+        height: auto;
+    }
+</style>

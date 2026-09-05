@@ -1,0 +1,76 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  one row of the "Highlights" section: the USP text beside its illustrating
+    figure, with the two columns swapping sides per row (zig-zag) so the page
+    reads as an alternating rhythm. The `index` drives that swap and the
+    directional scroll reveal, which lets both halves converge on scroll.
+
+    A highlight without a `figure` has nothing to show, so its text spans the
+    full row width instead of leaving an empty column behind.  */
+
+import SectionGlow          from "./Section-Glow.astro"
+import Diagram              from "./Widget-Diagram.astro"
+import type { Highlight }   from "../data/highlights.ts"
+
+interface Props {
+    usp:   Highlight
+    index: number
+}
+
+const { usp, index } = Astro.props
+
+/*  bind to a capitalized name so the expression below is recognized as a
+    component and not as an HTML element  */
+const Icon = usp.icon
+
+/*  even rows keep the text left, odd rows move it right; the decorative glow
+    bleeds off the outer edge of whichever side the text ended up on  */
+const reversed = index % 2 === 1
+
+/*  bind the optional figure to a local, so the branch below narrows it to a
+    plain string for the (required) `src` of the Diagram  */
+const figure = usp.figure
+---
+{figure ? (
+    <div class="sb-grid-split">
+        {/*  the glow sits beside the revealed text rather than inside it: a
+             `data-reveal` element establishes a stacking context, which would
+             lift the bleeding glow above the neighbouring rows (see the
+             stacking contract in Section-Glow.astro)  */}
+        <div class:list={[ "relative", reversed ? "lg:order-2" : "lg:order-1" ]}>
+            <SectionGlow variant="text" side={reversed ? "left" : "right"}/>
+            <div data-reveal={reversed ? "left" : "right"}>
+                <p class="sb-eyebrow">{usp.eyebrow}</p>
+                {/*  "mt-1" centers the icon on the first line box of the heading,
+                     so a wrapping heading keeps it on top  */}
+                <h3 class="sb-h3 flex items-start gap-2">
+                    <Icon class="mt-1 h-6 w-6 shrink-0 sm:h-7 sm:w-7" stroke-width={0.75}/>
+                    <span>{usp.title}</span>
+                </h3>
+                <p class="mt-4 text-foreground-secondary sb-justify" set:html={usp.body}/>
+            </div>
+        </div>
+        <Diagram
+            class={reversed ? "lg:order-1" : "lg:order-2"}
+            src={figure}
+            label={usp.label ?? usp.title}
+        />
+    </div>
+) : (
+    <div class="relative">
+        <SectionGlow variant="section" side={reversed ? "right" : "left"}/>
+        <div data-reveal>
+            <p class="sb-eyebrow">{usp.eyebrow}</p>
+            <h3 class="sb-h3 flex items-start gap-2">
+                <Icon class="mt-1 h-6 w-6 shrink-0 sm:h-7 sm:w-7" stroke-width={0.75}/>
+                <span>{usp.title}</span>
+            </h3>
+            <p class="mt-4 text-foreground-secondary sb-justify" set:html={usp.body}/>
+        </div>
+    </div>
+)}
