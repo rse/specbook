@@ -219,7 +219,7 @@ const resolveBrowser = async (verbose: Verbose): Promise<LaunchOptions | undefin
         const chrome = await chromium.launch({ channel: "chrome" })
         await chrome.close()
         verbose("Playwright Chromium unavailable -- falling back to the " +
-            `system-installed Google Chrome (${chromiumRemedy})`, "notice")
+            `system-installed Google Chrome (${chromiumRemedy})`, "none")
         return { channel: "chrome" }
     }
     catch {
@@ -308,7 +308,7 @@ export const htmlToPdf = async (
             would otherwise ship silently wrong page numbers  */
         if (!stable)
             verbose(`the ToC page numbers did not stabilize within ${literal(tocPasses)} ` +
-                "passes -- they can be off by a page", "notice")
+                "passes -- they can be off by a page", "none")
 
         /*  render the final document, decorated with header/footer  */
         const decorated = await renderPdf(html, {

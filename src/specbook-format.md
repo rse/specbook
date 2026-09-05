@@ -622,7 +622,8 @@ the description of the reporting object (one row per pattern, labeled
 by the kinds of the matching objects, with the covered and total counts
 and the ratio as a bar), the AST exports attach the counts as the
 `coverage` field of the object, and the verbose output of `lint` and
-`export` names the unreferenced objects.
+`export` states the ratio at its higher levels and names the
+unreferenced objects at its highest one.
 
 ### Format
 

@@ -55,17 +55,17 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
             /*  identify the client by its remote address and port  */
             const addr   = request.socket.remoteAddress ?? "unknown"
             const client = `${addr.includes(":") ? `[${addr}]` : addr}:${request.socket.remotePort ?? 0}`
-            options.verbose(`client ${literal(client)} connected`, "notice")
+            options.verbose(`client ${literal(client)} connected`, "none")
             clients.add(socket)
             socket.on("close", () => {
                 clients.delete(socket)
-                options.verbose(`client ${literal(client)} disconnected`, "notice")
+                options.verbose(`client ${literal(client)} disconnected`, "none")
             })
 
             /*  report a failing client, as an unhandled "error" event
                 would otherwise terminate the process  */
             socket.on("error", (err: Error) => {
-                options.verbose(`client ${literal(client)} failed: ${err.message}`, "notice")
+                options.verbose(`client ${literal(client)} failed: ${err.message}`, "none")
             })
         }
     })
@@ -74,12 +74,12 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
     await fastify.listen({ host: options.addr, port: options.port })
     const host = options.addr.includes(":") ? `[${options.addr}]` : options.addr
     const url  = `http://${host}:${options.port}/`
-    options.verbose(`listening on ${literal(url)}`, "notice")
+    options.verbose(`listening on ${literal(url)}`, "none")
     return {
         update: (buffer: Buffer) => {
             /*  the first export turns the 503 placeholder into the document  */
             if (html === undefined)
-                options.verbose(`serving ${literal(url)}`, "notice")
+                options.verbose(`serving ${literal(url)}`, "none")
             html = buffer
             options.verbose(`notifying ${literal(clients.size)} preview client(s)`)
             for (const client of clients)

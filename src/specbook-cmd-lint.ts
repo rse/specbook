@@ -107,9 +107,10 @@ export const lint = (options: LintOptions): LintResult => {
         `and ${literal(stats.links)} link relationship(s)`)
 
     /*  report the reference coverage the "referenced"-flagged object
-        kinds receive and the "coverage"-configured objects report, the
-        unreferenced objects of the latter by name (the ones of the
-        former are already reported as warnings)  */
+        kinds receive and the "coverage"-configured objects report as
+        additional figures, the unreferenced objects of the latter by
+        name as a lengthy detail (the ones of the former are already
+        reported as warnings)  */
     if (config !== undefined && result.specification.artifacts.length > 0) {
         const index   = buildLinkIndex(result.specification)
         const schemas = collectSchemas(result.specification, config)
@@ -121,13 +122,17 @@ export const lint = (options: LintOptions): LintResult => {
             const chain = chainOf(index, covered[0] ?? uncovered[0])
             options.verbose((schema.referenced ?? []).map((entry) => `"${literal(entry)}"`).join(" or ") +
                 ` references ${ratio(covered, uncovered)} ${schema.kind} object(s)` +
-                (chain.length > 1 ? ` below ${label(chain[0])}` : ""))
+                (chain.length > 1 ? ` below ${label(chain[0])}` : ""), "detail")
         }
         for (const [ object, entries ] of specCoverage(index, schemas))
-            for (const { pattern, covered, uncovered } of entries)
+            for (const { pattern, covered, uncovered } of entries) {
                 options.verbose(`${label(object)} references ${ratio(covered, uncovered)} ` +
-                    `"${literal(pattern)}" object(s)` + (uncovered.length > 0 ?
-                    `, unreferenced: ${uncovered.map(label).join(", ")}` : ""))
+                    `"${literal(pattern)}" object(s)`, "detail")
+                if (uncovered.length > 0)
+                    options.verbose(`${label(object)} leaves ${literal(uncovered.length)} ` +
+                        `"${literal(pattern)}" object(s) unreferenced: ` +
+                        uncovered.map(label).join(", "), "trace")
+            }
     }
 
     /*  report the non-optional artifacts absent from the specification,

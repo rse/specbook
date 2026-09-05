@@ -20,12 +20,13 @@ import { servePreview, previewAddr, previewPort }        from "./specbook-cmd-pr
 import { describeFormat, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
     compressLevels, parseCompressLevel, type DescribeFormat, type DescribePart, type CompressLevel }
     from "./specbook-cmd-describe.js"
-import { literal, renderVerbose, type Verbose, type VerboseLevel }
-    from "./specbook-verbose.js"
+import { literal, renderVerbose, verbosities, verbosityOf, parseVerbosity,
+    type Verbose, type VerboseLevel, type Verbosity }    from "./specbook-verbose.js"
 import { type Schema }                                   from "./specbook-format-schema.js"
 
 /*  re-export the central types for API consumers  */
-export { literal, renderVerbose, type Verbose, type VerboseLevel }
+export { literal, renderVerbose, verbosities, verbosityOf, parseVerbosity }
+export { type Verbose, type VerboseLevel, type Verbosity }
 export { formats, parseOutputSpec, type ExportFormat }
 export { previewAddr, previewPort }
 export { describeFormats, describeParts, parseDescribeFormat, parseDescribePart }
@@ -49,7 +50,8 @@ export const standardConfig =
 
 /*  the sink of the verbose messages, receiving the emitting command,
     the message, and its severity, so consumers can qualify the message
-    themselves and surface the "notice" ones unconditionally  */
+    themselves and gate it by their verbosity (the "none" ones passing
+    unconditionally)  */
 export type VerboseSink = (cmd: string, msg: string, level: VerboseLevel) => void
 
 /*  the constructor options of the SpecBook API  */
@@ -66,7 +68,7 @@ export class SpecBook {
 
     /*  bind the verbose sink to a particular command  */
     private verboseOf (cmd: string): Verbose {
-        return (msg: string, level: VerboseLevel = "debug") => this.verbose(cmd, msg, level)
+        return (msg: string, level: VerboseLevel = "notice") => this.verbose(cmd, msg, level)
     }
 
     /*  determine the files of the YAML schema configuration out of the
@@ -131,7 +133,7 @@ export class SpecBook {
             throw new Error("invalid specification:\n" +
                 result.diagnostics.map(renderDiagnostic).join("\n"))
         for (const diagnostic of result.diagnostics)
-            verbose(renderDiagnostic(diagnostic), "notice")
+            verbose(renderDiagnostic(diagnostic), "none")
         if (result.specification.artifacts.length === 0)
             throw new Error("unexportable specification: no artifacts found")
         const buffers = new Array<Buffer>()
@@ -195,7 +197,7 @@ export class SpecBook {
             }
             catch (err) {
                 verbose("export failed: " +
-                    (err instanceof Error ? err.message : String(err)), "notice")
+                    (err instanceof Error ? err.message : String(err)), "none")
             }
             return files
         }, verbose)

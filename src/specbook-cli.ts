@@ -12,23 +12,30 @@ import chalk                       from "chalk"
 
 import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, renderVerbose, literal,
     parseOutputSpec, previewAddr, previewPort, describeFormats, describeParts,
-    parseDescribeFormat, parseDescribePart, parseCompressLevel,
+    parseDescribeFormat, parseDescribePart, parseCompressLevel, parseVerbosity, verbosityOf,
     version, type VerboseSink, type VerboseLevel } from "./specbook-api.js"
 import { serveMcp }                from "./specbook-mcp.js"
+
+/*  the parsed value of the verbose option: a bare flag, a level, or the
+    environment default  */
+type VerboseOption = { verbose: string | boolean }
 
 /*  route verbose messages to stderr, keeping stdout reserved for the
     command outputs and the MCP protocol, and qualify every message with
     the tool name plus the scope path of the emitting command, where
     Chalk styles the output only if the terminal supports colors; the
-    "notice" messages pass regardless of the verbose option, as they
+    verbosity of the verbose option gates the messages by their level,
+    so the "none" messages pass regardless of the option, as they
     report environment problems the user has to see  */
-const verboseOf = (opts: { verbose: boolean }, ...scope: string[]): VerboseSink =>
-    (cmd: string, msg: string, level: VerboseLevel): void => {
-        if (opts.verbose || level === "notice") {
+const verboseOf = (opts: VerboseOption, ...scope: string[]): VerboseSink => {
+    const verbosity = parseVerbosity(opts.verbose)
+    return (cmd: string, msg: string, level: VerboseLevel): void => {
+        if (verbosityOf[level] <= verbosity) {
             const scopePath = [ ...scope, cmd ].map((segment) => chalk.bold(segment)).join(": ")
             process.stderr.write(`specbook: ${scopePath}: ${renderVerbose(msg, chalk.blue)}\n`)
         }
     }
+}
 
 /*  write a buffer to a standard stream, awaiting the write callback
     which only fires once the data has been flushed to the underlying
@@ -52,7 +59,7 @@ const writeOutput = async (output: string, data: Buffer | string,
         await writeStdout(data)
     else {
         await fs.promises.writeFile(output, data)
-        verbose(cmd, `wrote "${literal(output)}" (${literal(Buffer.byteLength(data))} bytes)`, "debug")
+        verbose(cmd, `wrote "${literal(output)}" (${literal(Buffer.byteLength(data))} bytes)`, "notice")
     }
 }
 
@@ -70,9 +77,14 @@ const envDefaultFlag = (name: string, fallback: boolean): boolean => {
     return value !== undefined ? !(/^(?:|0|false|no|off)$/i).test(value) : fallback
 }
 
-/*  provide the verbose option of all sub-commands  */
+/*  provide the verbose option of all sub-commands, whose optional level
+    selects the verbosity (where the environment default carries a level
+    or a boolean word)  */
 const withVerboseOption = (command: Command): Command => command
-    .option("-v, --verbose", "print verbose processing information to stderr", envDefaultFlag("verbose", false))
+    .option("-v, --verbose [level]", "print verbose processing information to stderr " +
+        "(0: none, 1: notices, 2: also the details like the coverage ratios, " +
+        "3: also the traces like the unreferenced objects; default: 0, bare flag: 1)",
+    envDefault("verbose", "0"))
 
 /*  provide the repeatable schema configuration option, whose files or
     glob patterns are merged in order (with "std" naming the bundled
@@ -93,7 +105,7 @@ const withCommonOptions = (command: Command): Command =>
         .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
 
 /*  the parsed values of the common options  */
-type CommonOptions = { verbose: boolean, config: string[], basedir: string }
+type CommonOptions = VerboseOption & { config: string[], basedir: string }
 
 /*  the help, version, and usage-error output Commander produces, which
     is collected instead of written directly, as Commander writes it
@@ -120,8 +132,8 @@ program.name("specbook")
 /*  the mcp command runs all other commands as MCP tools over stdio  */
 withVerboseOption(program.command("mcp"))
     .description("run as MCP stdio server")
-    .action(async (opts: { verbose: boolean }) => {
-        verboseOf(opts)("mcp", "starting MCP server on stdio", "debug")
+    .action(async (opts: VerboseOption) => {
+        verboseOf(opts)("mcp", "starting MCP server on stdio", "notice")
         await serveMcp(verboseOf(opts, "mcp"))
     })
 
@@ -143,13 +155,13 @@ withCommonOptions(program.command("lint"))
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const result = await specbook.lint({ config: configOf(opts), basedir: opts.basedir })
         for (const diagnostic of result.diagnostics)
-            await writeStdout(opts.verbose ?
+            await writeStdout(parseVerbosity(opts.verbose) > 0 ?
                 renderDiagnosticVerbose(diagnostic, process.stdout.isTTY === true) :
                 `${renderDiagnostic(diagnostic)}\n`)
         if (result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
             process.exitCode = 1
         else
-            verboseOf(opts)("lint", "specification valid", "debug")
+            verboseOf(opts)("lint", "specification valid", "notice")
     })
 
 /*  the export command parses the input once and writes every output  */
@@ -218,7 +230,7 @@ withConfigOption(withVerboseOption(program.command("describe")),
     .option("-p, --part <part>", `document part (${describeParts.join(", ")})`,
         envDefault("part", "all"))
     .option("-o, --output <markdown-file>", "output file (\"-\" for stdout)", envDefault("output", "-"))
-    .action(async (opts: { verbose: boolean, config: string[], basedir?: string,
+    .action(async (opts: VerboseOption & { config: string[], basedir?: string,
         embed: boolean, compress: string | boolean, format: string, part: string, output: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const text = await specbook.describe({ config: configOf(opts), basedir: opts.basedir,

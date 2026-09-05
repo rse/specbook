@@ -91,7 +91,7 @@ export const watchSpecification = async (
         "error" event would otherwise terminate the process  */
     watcher.on("error", (err: unknown) => {
         verbose("observing failed: " +
-            (err instanceof Error ? err.message : String(err)), "notice")
+            (err instanceof Error ? err.message : String(err)), "none")
     })
 
     /*  perform a re-export and re-synchronize the observed files  */
@@ -116,7 +116,7 @@ export const watchSpecification = async (
             timer = undefined
             chain = chain.then(cycle).catch((err: unknown) => {
                 verbose("re-export failed: " +
-                    (err instanceof Error ? err.message : String(err)), "notice")
+                    (err instanceof Error ? err.message : String(err)), "none")
             })
         }, watchDelay)
     })

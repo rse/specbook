@@ -131,17 +131,17 @@ Commands:
 
 ```bash
 $ specbook init \
-  [-v|--verbose] \
+  [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>]
 
 $ specbook lint \
-  [-v|--verbose] \
+  [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>]
 
 $ specbook export \
-  [-v|--verbose] \
+  [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
   [-o|--output [<format>:]<output-file>] \
@@ -149,14 +149,14 @@ $ specbook export \
   [...]
 
 $ specbook preview \
-  [-v|--verbose] \
+  [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
   [-a|--addr <ip-addr>] \
   [-p|--port <tcp-port>]
 
 $ specbook describe \
-  [-v|--verbose] \
+  [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
   [-e|--embed] \
@@ -166,13 +166,17 @@ $ specbook describe \
   [-o|--output <output-file>]
 
 $ specbook mcp \
-  [-v|--verbose]
+  [-v|--verbose [<level>]]
 ```
 
 Options:
 
--   `-v|--verbose`:
-    Enable verbose logging of processing information to `stderr`.
+-   `-v|--verbose [<level>]`:
+    Enable verbose logging of processing information to `stderr` at the
+    given verbosity level: `0` (the default) logs the notices only, `1`
+    (the bare flag) also the regular processing information, `2` also
+    the reference coverage ratios, and `3` also the unreferenced objects
+    of a reference coverage.
 
 -   `-c|--config <schema-yaml-file>`:
     The YAML schema configuration (default: the bundled standard schema
@@ -185,10 +189,10 @@ Options:
     all diagnostics and fail on any error among them (a warning, like a
     lapse of the reference coverage a `referenced` object kind demands,
     is reported only), so a partial or invalid specification is never
-    exported. The verbose output additionally states the reference
-    coverage ratios: the ones the `referenced` object kinds receive and
-    the ones the `coverage` object kinds report, the latter naming the
-    unreferenced objects.
+    exported. The verbose output additionally states at verbosity level
+    `2` the reference coverage ratios: the ones the `referenced` object
+    kinds receive and the ones the `coverage` object kinds report, the
+    latter naming the unreferenced objects at level `3`.
     The option accepts glob patterns and can be given multiple times: the
     matching files (in the order of the patterns and alphabetically within
     a pattern, where the literal `std` names the bundled standard schema

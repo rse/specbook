@@ -134,12 +134,12 @@ No test target is defined.
 ## CLI Commands
 
 ```
-specbook init     [-v] [-c <yaml-file>] [-b <basedir>]
-specbook lint     [-v] [-c <yaml-file>] [-b <basedir>]
-specbook export   [-v] [-c <yaml-file>] [-b <basedir>] [-w] [-o [<format>:]<output-file>] [...]
-specbook preview  [-v] [-c <yaml-file>] [-b <basedir>] [-a <ip-addr>] [-p <tcp-port>]
-specbook describe [-v] [-c <yaml-file>] [-b <basedir>] [-e] [-z [<level>]] [-f <format>] [-p <part>] [-o <markdown-file>]
-specbook mcp      [-v]
+specbook init     [-v [<level>]] [-c <yaml-file>] [-b <basedir>]
+specbook lint     [-v [<level>]] [-c <yaml-file>] [-b <basedir>]
+specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-w] [-o [<format>:]<output-file>] [...]
+specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-a <ip-addr>] [-p <tcp-port>]
+specbook describe [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-e] [-z [<level>]] [-f <format>] [-p <part>] [-o <markdown-file>]
+specbook mcp      [-v [<level>]]
 ```
 
 The YAML schema configuration of `init`, `lint`, `export`, and `preview` falls back
@@ -187,9 +187,10 @@ The `coverage` field of an object kind lists `[[...]]` patterns whose
 matching objects (a target also counting through its descendants) every
 object of the kind reports as covered/total counts of the references
 from its own subtree: the verbose output of `lint` and `export` prints
-one line per `referenced` flag (the ratio only, as the lapses are
-warnings) and per `coverage` pattern (the ratio plus the unreferenced
-objects by name), the HTML/PDF export renders a coverage table (kinds,
+at verbosity level 2 one line per `referenced` flag (the ratio only, as
+the lapses are warnings) and per `coverage` pattern (the ratio, plus a
+second line naming the unreferenced objects at level 3 only), the
+HTML/PDF export renders a coverage table (kinds,
 counts, ratio bar) below the description of the reporting object, and
 the AST exports attach the counts as its `coverage` field. The standard
 schema configuration reports the use case, scenario, requirement, and
@@ -350,12 +351,18 @@ and, only if that one is absent, a system-installed Google Chrome (the
 equivalent of `chrome`). An explicitly configured browser failing to
 launch fails the export instead of falling back onto another browser.
 
-Every verbose message carries a level: `debug` for the regular
-processing information, which `-v`/`--verbose` gates, and `notice` for
-the environment problems, the warning diagnostics, and the preview
-server events, which the CLI prints regardless of the option. The
-literal values inside a message are marked by `literal()` and styled by
-`renderVerbose()`, which the CLI feeds with Chalk.
+Every verbose message carries a level, named after the least verbosity
+printing it: `none` for the environment problems, the warning
+diagnostics, and the preview server events, which the CLI prints
+regardless of the option, `notice` for the regular processing
+information, `detail` for the additional figures (the coverage ratios),
+and `trace` for the lengthy details (the unreferenced objects of a
+coverage report). The option `-v`/`--verbose [<level>]` selects the
+verbosity gating them: `0` (the default) prints the `none` messages
+only, `1` (the bare flag) also the `notice` ones, `2` also the `detail`
+ones, and `3` also the `trace` ones. The literal values inside a
+message are marked by `literal()` and styled by `renderVerbose()`,
+which the CLI feeds with Chalk.
 
 ## Code Style
 
