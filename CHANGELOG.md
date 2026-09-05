@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.2.6 (2026-09-05)
+------------------
+
+-   BUGFIX [code]: Fold Mark Beside Table Cell Diagrams in HTML Export
+    The fold chevron of a diagram inside a table cell now sits in a flex row left of the diagram
+    instead of on its own line above it, which left too much space at the top of the diagram.
+
 1.2.5 (2026-09-05)
 ------------------
 
