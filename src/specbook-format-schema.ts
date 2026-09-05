@@ -67,6 +67,7 @@ export type SchemaDiagramCenterEdges = {
     outbound?:         string
     both?:             string
     labeled?:          string
+    via?:              string
 }
 
 /*  the nesting of the nodes of a diagram into container nodes: the
@@ -183,7 +184,8 @@ const SchemaDiagramCenterEdges: v.GenericSchema<SchemaDiagramCenterEdges> = v.st
     inbound:           v.optional(v.string()),
     outbound:          v.optional(v.string()),
     both:              v.optional(v.string()),
-    labeled:           v.optional(v.string())
+    labeled:           v.optional(v.string()),
+    via:               v.optional(v.string())
 })
 const SchemaDiagramNest: v.GenericSchema<SchemaDiagramNest> = v.strictObject({
     properties:        v.optional(v.array(v.string())),

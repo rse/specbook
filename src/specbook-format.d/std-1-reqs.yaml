@@ -924,7 +924,7 @@
                 center: self
                 nodes: "[[USE-CASE:*]], [[ROLE:*]], [[PERSONA:*]], [[STEP:*]], [[ACTIVITY:*]],
                     [[FR.REQUIREMENT:*]], [[RULE:*]], [[TRANSITION:*]], [[PERMISSION:*]],
-                    [[PRINCIPLE:*]]"
+                    [[PRINCIPLE:*]], [[CV.ENTITY:*]]"
                 labeled: true
                 qualified: true
                 config:

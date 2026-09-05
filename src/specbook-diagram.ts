@@ -449,7 +449,9 @@ const deriveCenter = (object: SpecObject, diagram: SchemaDiagram,
     direction property of the node objects: the "inbound" value
     maps onto a node-to-center edge, the "outbound" value onto a
     center-to-node edge, and the "both" value onto both (which
-    Gradia renders as an input node plus an output "ghost" node)  */
+    Gradia renders as an input node plus an output "ghost" node),
+    named by the "labeled" property and/or by the mediating object
+    the "via" property references (as "via <name>")  */
 const deriveCenterEdges = (cfg: SchemaDiagramCenterEdges, nodes: SpecObject[],
     center: SpecObject, index: LinkIndex, parenProps: ParenProps,
     errors: DiagramError[]): DiagramEdge[] => {
@@ -467,10 +469,18 @@ const deriveCenterEdges = (cfg: SchemaDiagramCenterEdges, nodes: SpecObject[],
                 `carries the unmapped diagram "centerEdges" value "${value}"` })
             continue
         }
-        const label = cfg.labeled !== undefined ?
+        const expand = (text: string) => plainText(expandReferences(text, (reference) =>
+            resolveUnique(index, reference, node).target?.name ?? reference))
+        const label  = cfg.labeled !== undefined ?
             propValue(parenProps, node, cfg.labeled) : undefined
-        const name  = label !== undefined ? plainText(expandReferences(label, (reference) =>
-            resolveUnique(index, reference, node).target?.name ?? reference)) : undefined
+        const via    = cfg.via !== undefined ?
+            propValue(parenProps, node, cfg.via) : undefined
+        const names  = new Array<string>()
+        if (label !== undefined)
+            names.push(expand(label))
+        if (via !== undefined)
+            names.push(`via ${expand(via)}`)
+        const name   = names.length > 0 ? names.join(" ") : undefined
         if (inbound || both)
             edges.push({ source: node, target: center, name })
         if (outbound || both)

@@ -569,8 +569,8 @@ USE-CASE: Create Event from Registration Import {{create-event}}
 -   REQUIREMENTS:   [[REQUIREMENT:registration-import]], [[REQUIREMENT:registration-export]], [[REQUIREMENT:event-portability]]
 -   RULES:          [[RULE:token-format]], [[RULE:no-accounts]]
 -   PRE-CONDITION:  The manager has an Excel sheet of the Event Registration System and an event to populate.
--   TRIGGER:        The Event Registration System delivers the Excel sheet of the attendees of an upcoming event.
--   POST-CONDITION: The access list and tokens are created and URLs returned to the Event Registration System.
+-   TRIGGER:        The manager receives the Excel sheet of the attendees of an upcoming event, exported by the Event Registration System.
+-   POST-CONDITION: The access list and tokens are created and the URL sheet is ready for the manager to hand back to the Event Registration System.
 
 The manager imports the Excel sheet of the Event Registration System to fill the event access list and generate authorization
 tokens, then exports an Excel sheet of personal access URLs back to the Event Registration System, avoiding duplicate
@@ -584,7 +584,7 @@ invitations on repeated imports, BECAUSE provisioning hundreds of attendees by h
 2.  The system creates access-list users for new emails and skips existing ones.
 3.  The system generates a "NNN-NNN" authorization token per user in state issued.
 4.  The system composes each user's personal access URL with event, user, and token.
-5.  The system returns an Excel sheet with the URL column filled to the Event Registration System.
+5.  The system returns an Excel sheet with the URL column filled, which the manager hands back to the Event Registration System.
 
 USE-CASE: Publish, Start, and Finish Event {{publish-start-finish}}
 ------------------------------------------

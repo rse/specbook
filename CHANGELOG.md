@@ -5,6 +5,19 @@ ChangeLog
 1.2.6 (2026-09-05)
 ------------------
 
+-   FEATURE [code, docs]: Mediated Context Entities via `VIA` Property and `centerEdges.via`
+    An `ENTITY` exchanging data only through another entity (e.g. a manually carried file) names
+    it in `VIA`, and the hub diagram labels its center edges `via <name>` instead of implying an
+    online integration.
+
+-   IMPROVEMENT [docs, othr]: Trace the Context Entities into the Use Cases
+    An `ENTITY` now references the `USE-CASES` crossing the boundary at it, shown in the use case
+    hub diagram, too, so the use case responsible for an entity is found without a text search.
+
+-   IMPROVEMENT [othr]: Persons Instead of Browsers at the Context Boundary of the Sample
+    The sample names the attendee and the event operator as the `Person` entities instead of their
+    browsers, and describes the registration system exchange as the manual Excel round trip it is.
+
 -   FEATURE [code, docs]: Reference Coverage Reporting via `coverage` Object Kind Field
     The objects of a kind report the share of the objects matching its patterns they reference
     (HTML/PDF table, AST counts, verbose names), used by the Test Cases of the standard schema.

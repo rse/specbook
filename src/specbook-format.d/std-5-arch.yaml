@@ -33,6 +33,7 @@
             inbound:  Inbound
             outbound: Outbound
             both:     Bidirectional
+            via:      VIA
         qualified: true
         properties:
             -   KIND
@@ -71,8 +72,20 @@
                         sides initiate), independent of the direction the exchanged information
                         flows in, which the `DATA` property describes (e.g. a datastore the
                         solution reads from is `Outbound`, as the solution initiates, while the
-                        data flows in).
+                        data flows in). For a mediated entity (see `VIA`), where the mediator
+                        initiates every interaction, the direction of the data flow instead.
                     value: enum(Inbound,Outbound,Bidirectional)
+                -   name: VIA
+                    desc: >
+                        Reference to the entity mediating the exchange with this one, when the
+                        solution and the entity have no direct technical interaction at all,
+                        but a person or system in between carries the data (e.g. a manager
+                        uploading the file exported by an external system), so the context
+                        diagram marks the edge as `via` that entity instead of suggesting an
+                        online integration; omitted for a directly interacting entity.
+                    value: "[[CV.ENTITY:*]]"
+                    optional: true
+                    acyclic: true
                 -   name: TERMS
                     desc: >
                         Comma-separated references to the GLOSSARY terms the entity appears as in
@@ -98,6 +111,15 @@
                         the `System` role it plays, so the entity aggregates the roles instead of
                         re-stating them; omitted when no modeled role stands behind the entity.
                     value: list([[ROLE:*]])
+                    optional: true
+                -   name: USE-CASES
+                    desc: >
+                        Comma-separated references to the USE-CASES objects whose interaction
+                        crosses the boundary at this entity (the use cases a `Person` entity
+                        performs, or the ones exchanging data with a `System` or `Service`
+                        entity), so the use case responsible for an entity is found without a
+                        text search; omitted when no modeled use case touches the entity.
+                    value: list([[USE-CASE:*]])
                     optional: true
                 -   name: PREMISES
                     desc: >

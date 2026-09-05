@@ -10,7 +10,7 @@ WORKFLOW: Run Broadcast Event {{run-broadcast-event}}
 -----------------------------
 
 -   ACTORS:   [[ROLE:manager]], [[ROLE:presenter]], [[ROLE:moderator]], [[ROLE:attendee]]
--   TRIGGER:  The Event Registration System delivers the attendee list of an upcoming event.
+-   TRIGGER:  The manager receives the attendee list of an upcoming event, exported by the Event Registration System.
 -   OUTCOME:  The event took place, its personal data is anonymized, and its interaction results are exported.
 -   JOURNEYS: [[JOURNEY:attend]], [[JOURNEY:operate]], [[JOURNEY:moderate]]
 -   TERMS:    [[TERM:anonymization]]

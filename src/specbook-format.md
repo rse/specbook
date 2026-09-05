@@ -101,6 +101,7 @@ type SchemaDiagramCenterEdges = {
     outbound?:         string
     both?:             string
     labeled?:          string
+    via?:              string
 }
 type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid"
@@ -327,9 +328,11 @@ type SchemaGradiaConfig = Partial<{
     objects whose `inbound` value maps onto a node-to-center edge, whose
     `outbound` value onto a center-to-node edge, and whose `both` value
     onto both edges (the second placement rendered as a "ghost" node),
-    each optionally named by the value of the `labeled` property,
-    BECAUSE the nodes carry no `[[xxx]]` reference to a synthetic center,
-    so their relation to it lives in a direction property instead
+    each optionally named by the value of the `labeled` property and/or
+    by the mediating object referenced by the `via` property (as `via
+    <name>`), BECAUSE the nodes carry no `[[xxx]]` reference to a
+    synthetic center, so their relation to it lives in a direction
+    property instead
 
 -   `SchemaDiagram.links?: "props" | "all"`:
     edge source: property values (`props`) or also texts (`all`),
@@ -934,7 +937,7 @@ In all formats, the `<name/>` may carry trailing decorations, in any
 order:
 
 -   `{{<id/>}}`: the explicit Wiki-style anchor, setting the object id
-    (e.g. `## ENTITY: Attendee Browser {{attendee}}`).
+    (e.g. `## ENTITY: Attendee {{attendee}}`).
 
 -   `(<token/>)`: a parenthesized token with three possible roles: on
     level 1 it becomes the artifact id (e.g. `# DATA: Data Model (DM)`);
@@ -993,7 +996,7 @@ exports. A reference is a `.`-separated path of segments, where each
 segment matches a single object as:
 
 -   `<id/>`: the object id or explicit anchor (e.g. `[[attendee]]`)
--   `<name/>`: the object name (e.g. `[[Attendee Browser]]`)
+-   `<name/>`: the object name (e.g. `[[Attendee]]`)
 -   `<kind/>:<name-or-id/>`: kind-qualified (e.g. `[[ENTITY:Event]]`)
 -   `<kind/>:*` or `*`: wildcards (for match sets, see below)
 
