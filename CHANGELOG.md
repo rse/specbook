@@ -5,6 +5,10 @@ ChangeLog
 1.2.6 (2026-09-05)
 ------------------
 
+-   FEATURE [code, docs]: Reference Coverage Reporting via `coverage` Object Kind Field
+    The objects of a kind report the share of the objects matching its patterns they reference
+    (HTML/PDF table, AST counts, verbose names), used by the Test Cases of the standard schema.
+
 -   IMPROVEMENT [docs, othr]: Trace the Interaction Principles into the Use Case Scenarios
     A `PRINCIPLE` now references the `USE-CASES` and scenarios exhibiting its behavior, shown in
     both hub diagrams, so its realization is checkable, and the sample fills the references.

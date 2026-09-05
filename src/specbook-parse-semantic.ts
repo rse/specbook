@@ -14,6 +14,8 @@ import { compileValueExpr, splitItems, anchored, type ValueExpr }
     from "./specbook-parse-value.js"
 import { ParseContext, type ObjectMeta }
     from "./specbook-parse-common.js"
+import { referencedCoverage }
+    from "./specbook-coverage.js"
 
 /*  the syntax of a value consisting of exactly one Wiki-style reference  */
 const singleReferenceRegex = /^\[\[([^[\]]+)\]\]$/
@@ -509,52 +511,14 @@ const checkRelations = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject
     of the flag's reference patterns, itself or through an ancestor, while
     the references from within the subtree of the object itself do not
     count (a lapse is a warning only, as the specification stays valid)  */
-const checkReferenced = (ctx: ParseContext, specification: Spec, schemas: Map<SpecObject, SchemaObject>) => {
-    /*  collect the referencing objects of every referenced object
-        (the references from within its own subtree excluded)  */
-    const referrers = new Map<SpecObject, Set<SpecObject>>()
-    const walk = (object: SpecObject) => {
-        const chain = chainOf(ctx.linkIndex, object)
-        const texts = [ object.name, ...object.properties.map((p) => p.value) ]
-        if (object.description !== undefined)
-            texts.push(object.description.description, object.description.rationale ?? "")
-        for (const text of texts)
-            for (const m of plainText(text).matchAll(referenceRegex)) {
-                const target = resolveUnique(ctx.linkIndex, m[1].trim(), object).target
-                if (target !== undefined && !chain.includes(target))
-                    referrers.set(target, (referrers.get(target) ?? new Set<SpecObject>()).add(object))
-            }
-        object.children.forEach(walk)
-    }
-    for (const artifact of specification.artifacts)
-        artifact.objects.forEach(walk)
-
-    /*  resolve the reference patterns of every flagged kind into the
-        admissible referencing objects (once per shared schema node)  */
-    const sources = new Map<SchemaObject, Set<SpecObject>>()
-    for (const [ object, schema ] of schemas) {
-        if (schema.referenced === undefined)
-            continue
-        let admissible = sources.get(schema)
-        if (admissible === undefined) {
-            admissible = new Set<SpecObject>()
-            for (const entry of schema.referenced) {
-                const expr = compileValueExpr(entry)
-                if (expr.kind === "reference")
-                    for (const source of resolveSet(ctx.linkIndex, expr.pattern))
-                        admissible.add(source)
-            }
-            sources.set(schema, admissible)
-        }
-        const covered = Array.from(referrers.get(object) ?? [])
-            .some((referrer) => chainOf(ctx.linkIndex, referrer).some((o) => admissible.has(o)))
-        if (!covered) {
+const checkReferenced = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject>) => {
+    for (const { schema, uncovered } of referencedCoverage(ctx.linkIndex, schemas))
+        for (const object of uncovered) {
             const meta = ctx.metaOf(object)
             ctx.diagnose(meta.file, meta.line,
                 `${object.kind} "${object.name}" is not referenced from any object matching ` +
-                schema.referenced.map((entry) => `"${entry}"`).join(" or "), "warning")
+                (schema.referenced ?? []).map((entry) => `"${entry}"`).join(" or "), "warning")
         }
-    }
 }
 
 /*  validate the parsed specification against the configuration  */
@@ -615,7 +579,7 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
         been validated on its own  */
     checkRelations(ctx, schemas)
     checkAutomata(ctx, schemas)
-    checkReferenced(ctx, specification, schemas)
+    checkReferenced(ctx, schemas)
 
     /*  order the artifacts exactly along the schema definition  */
     specification.artifacts.sort((a, b) =>

@@ -972,6 +972,50 @@ table.objects td section
 table.objects td section h6
     margin: 0.5rem 0 0.25rem 0
 
+/*  the reference coverage tables of the coverage-configured objects:
+    the headers like the "Properties" and "Diagram" headers of the
+    compact tables (as they name neither object kinds nor properties),
+    the counts in narrow columns, the ratio as a bar in the accent
+    color over the remaining width, followed by its percentage  */
+table.coverage
+    border-collapse: collapse
+    margin: 1.0rem 0
+    width: 100%
+table.coverage th,
+table.coverage td
+    border: 0
+    border-left: 1px solid var(--theme-color-specbook-border)
+    padding: 0.3rem 0.6rem
+    text-align: left
+    vertical-align: top
+    white-space: nowrap
+table.coverage th:first-child,
+table.coverage td:first-child
+    border-left: 0
+table.coverage td:first-child
+    font-weight: 600
+table.coverage th
+    background-color: var(--theme-color-specbook-tint)
+    font-weight: normal
+    color: var(--theme-color-specbook-accent)
+table.coverage tbody tr.even td
+    background-color: var(--theme-color-specbook-stripe)
+table.coverage th.ratio,
+table.coverage td.ratio
+    width: 100%
+table.coverage span.bar
+    display: inline-block
+    vertical-align: middle
+    width: 12rem
+    height: 0.6rem
+    border-radius: 0.3rem
+    background-color: var(--theme-color-specbook-tint-deep)
+    overflow: hidden
+table.coverage span.bar > span
+    display: block
+    height: 100%
+    background-color: var(--theme-color-specbook-accent)
+
 /*  the object descriptions and their embedded images  */
 p.description,
 div.description

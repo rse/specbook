@@ -72,14 +72,17 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 -   **AST Exports for AI/LLMs**:
     The parsed specification Abstract Syntax Tree (AST) can be exported in
     JSON, JSON5, YAML, or TOON format for machine consumption, with the
-    derived diagram of an object attached to it as a textual Gradia spec.
+    derived diagram of an object attached to it as a textual Gradia spec
+    and the reference coverage it reports attached as its counts.
     Together with the `describe` command, which explains the models and
     formats, this enables LLMs to both read and write specifications.
 
 -   **HTML Export for Developers**:
     The HTML export is a self-contained single document with a title page,
     a table-of-contents (also as a slide-in side panel for quick navigation),
-    a diagram-of-contents, a fuzzy full-text search, embedded images, a
+    a diagram-of-contents, a fuzzy full-text search, embedded images,
+    reference coverage tables (e.g. the share of the use cases, scenarios,
+    requirements, and rules the test cases verify), a
     scroll progress meter (which also scrolls back to the top on click),
     description popups (which show the schema and corpus description of
     an object kind, property, or object instance on hover), and a
@@ -182,7 +185,10 @@ Options:
     all diagnostics and fail on any error among them (a warning, like a
     lapse of the reference coverage a `referenced` object kind demands,
     is reported only), so a partial or invalid specification is never
-    exported.
+    exported. The verbose output additionally states the reference
+    coverage ratios: the ones the `referenced` object kinds receive and
+    the ones the `coverage` object kinds report, the latter naming the
+    unreferenced objects.
     The option accepts glob patterns and can be given multiple times: the
     matching files (in the order of the patterns and alphabetically within
     a pattern, where the literal `std` names the bundled standard schema

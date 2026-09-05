@@ -225,10 +225,10 @@ const checkAutomaton = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) 
     are beyond its schema: sibling objects have to stay distinctly
     resolvable, "file" fields are allowed on the first (artifact) level
     only, property value and marker expressions have to be syntactically
-    valid, "referenced" entries have to be reference expressions, an
-    "automaton" has to name existing child kinds and properties, and the
-    names of non-artifact objects have to be valid patterns (as they are
-    compiled into regular expressions)  */
+    valid, "referenced" and "coverage" entries have to be reference
+    expressions, an "automaton" has to name existing child kinds and
+    properties, and the names of non-artifact objects have to be valid
+    patterns (as they are compiled into regular expressions)  */
 const checkConstraints = (
     config:    Schema,
     posOfPath: (path: YamlPath) => { file: string, line: number, column: number }
@@ -256,22 +256,23 @@ const checkConstraints = (
                     `"file" field is only allowed on the first (artifact) level (found on level ${depth})`)
             checkProperties(object.props ?? [], at, diagnose)
             checkAutomaton(object, at, diagnose)
-            for (const [ j, entry ] of (object.referenced ?? []).entries()) {
-                /*  a reference coverage entry has to be a single
-                    (usually wildcard) reference expression  */
-                let expr: ValueExpr | undefined
-                try {
-                    expr = compileValueExpr(entry)
+            for (const field of [ "referenced", "coverage" ] as const)
+                for (const [ j, entry ] of (object[field] ?? []).entries()) {
+                    /*  a reference coverage entry has to be a single
+                        (usually wildcard) reference expression  */
+                    let expr: ValueExpr | undefined
+                    try {
+                        expr = compileValueExpr(entry)
+                    }
+                    catch (err) {
+                        diagnose([ ...at, field, j ],
+                            `invalid "${field}" entry "${entry}": ` +
+                                (err instanceof Error ? err.message : String(err)))
+                    }
+                    if (expr !== undefined && expr.kind !== "reference")
+                        diagnose([ ...at, field, j ],
+                            `"${field}" entry "${entry}" is not a single "[[xxx]]" reference`)
                 }
-                catch (err) {
-                    diagnose([ ...at, "referenced", j ],
-                        `invalid "referenced" entry "${entry}": ` +
-                            (err instanceof Error ? err.message : String(err)))
-                }
-                if (expr !== undefined && expr.kind !== "reference")
-                    diagnose([ ...at, "referenced", j ],
-                        `"referenced" entry "${entry}" is not a single "[[xxx]]" reference`)
-            }
             if (depth > 1 && object.name !== undefined) {
                 try {
                     anchored(object.name)

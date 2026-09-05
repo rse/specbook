@@ -14,15 +14,22 @@ import type { Schema }
     from "./specbook-format-schema.js"
 import { specDiagrams }
     from "./specbook-diagram.js"
+import { specCoverage }
+    from "./specbook-coverage.js"
+import { buildLinkIndex }
+    from "./specbook-link.js"
+import { collectSchemas }
+    from "./specbook-parse-semantic.js"
 import { isTitleObject }
     from "./specbook-export-common.js"
 
 /*  the Abstract Syntax Tree (AST) export formats  */
 export type AstFormat = "json" | "json5" | "yaml" | "toon"
 
-/*  the plain JSON shape of the specification (as far as the
-    diagram attachment below has to navigate it)  */
-interface PlainObject        { diagram?: string, children: PlainObject[] }
+/*  the plain JSON shape of the specification (as far as the diagram
+    and coverage attachments below have to navigate it)  */
+interface PlainCoverage      { pattern: string, covered: number, total: number }
+interface PlainObject        { diagram?: string, coverage?: PlainCoverage[], children: PlainObject[] }
 interface PlainSpecification { artifacts: { objects: PlainObject[] }[] }
 
 /*  render the specification AST into a serialization format  */
@@ -35,13 +42,21 @@ export const renderAst = (specification: Spec, format: AstFormat,
         "diagram" fields onto the corresponding plain object nodes
         (an invalid diagram situation omits the diagram, as it is
         already reported as a lint diagnostic, and the diagram of
-        the title object is reserved for the HTML/PDF export)  */
+        the title object is reserved for the HTML/PDF export), and
+        the reference coverage of the coverage-configured objects as
+        "coverage" fields (the counts only, as the export is intended
+        for machine consumption)  */
     if (config !== undefined) {
-        const diagrams = specDiagrams(specification, config)
+        const diagrams  = specDiagrams(specification, config)
+        const coverages = specCoverage(buildLinkIndex(specification), collectSchemas(specification, config))
         const walk = (object: SpecObject, node: PlainObject) => {
             const result = diagrams.get(object)
             if (result?.spec !== undefined && !isTitleObject(object))
                 node.diagram = result.spec
+            const coverage = coverages.get(object)
+            if (coverage !== undefined)
+                node.coverage = coverage.map(({ pattern, covered, uncovered }) =>
+                    ({ pattern, covered: covered.length, total: covered.length + uncovered.length }))
             object.children.forEach((child, i) => walk(child, node.children[i]))
         }
         specification.artifacts.forEach((artifact, i) =>

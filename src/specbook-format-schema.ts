@@ -14,8 +14,9 @@ export type Schema = SchemaObject[]
 
 /*  an object kind: an artifact (level 1, with its "file" and exact
     "name") or an object nested below it (with a "name" regex), the
-    reference coverage every object of the kind has to receive, and the
-    finite state machine its child objects optionally form  */
+    reference coverage every object of the kind has to receive, the
+    reference coverage every object of the kind reports, and the finite
+    state machine its child objects optionally form  */
 export type SchemaObject = {
     kind:              string
     name?:             string
@@ -25,6 +26,7 @@ export type SchemaObject = {
     refs?:             string
     optional?:         boolean
     referenced?:       string[]
+    coverage?:         string[]
     automaton?:        SchemaAutomaton
     diagram?:          SchemaDiagram
     format?:           SchemaFormat
@@ -226,6 +228,7 @@ const SchemaObject: v.GenericSchema<SchemaObject> = v.strictObject({
     refs:              v.optional(v.string()),
     optional:          v.optional(v.boolean()),
     referenced:        v.optional(v.pipe(v.array(v.string()), v.minLength(1))),
+    coverage:          v.optional(v.pipe(v.array(v.string()), v.minLength(1))),
     automaton:         v.optional(SchemaAutomaton),
     diagram:           v.optional(SchemaDiagram),
     format:            v.optional(SchemaFormat),

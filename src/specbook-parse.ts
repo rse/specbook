@@ -24,7 +24,7 @@ import { validateDiagrams }
 /*  re-export the public parsing types and helpers  */
 export { type SourceFile, type ParseResult }
     from "./specbook-parse-common.js"
-export { resolveArtifact }
+export { resolveArtifact, collectSchemas }
     from "./specbook-parse-semantic.js"
 
 /*  parse a set of specification Markdown files into the specification

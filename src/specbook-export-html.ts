@@ -28,6 +28,8 @@ import { collectSchemas }
     from "./specbook-parse-semantic.js"
 import { renderDiagrams }
     from "./specbook-diagram.js"
+import { specCoverage, coverageRatio, type Coverage }
+    from "./specbook-coverage.js"
 import type { Verbose }
     from "./specbook-verbose.js"
 
@@ -179,8 +181,23 @@ const templates = {
             {{ Object.diagram }}
             {{ Object.properties }}
             {{ Object.description }}
+            {{ Object.coverage }}
             {{ Object.children }}
         </section>
+    `,
+
+    /*  <Coverage/>  */
+    "Coverage": textframe`
+        <table class="coverage">
+            <thead>
+                <tr><th>Coverage</th><th>Covered</th><th>Total</th><th class="ratio">Ratio</th></tr>
+            </thead>
+            <tbody>
+                {% for entry in Coverage %}
+                <tr{% if entry.even %} class="even"{% endif %}><td>{{ entry.label }}</td><td>{{ entry.covered }}</td><td>{{ entry.total }}</td><td class="ratio"><span class="bar"><span style="width: {{ entry.ratio }}%"></span></span> {{ entry.ratio }}%</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     `,
 
     /*  <Properties/>  */
@@ -1028,14 +1045,15 @@ const render = (name: keyof typeof templates, context: object): string => {
 
 /*  the active per-document reference expander, fully-qualified
     anchor paths, member-carrying property value constraints, object
-    schema nodes, pre-rendered diagram SVGs, description popup keys
-    of the schema nodes, and object parents of the description popup
-    title paths (all set during HTML rendering)  */
+    schema nodes, pre-rendered diagram SVGs, reference coverages,
+    description popup keys of the schema nodes, and object parents of
+    the description popup title paths (all set during HTML rendering)  */
 let linker:      ((text: string, compact: boolean) => string) | null = null
 let anchors:     Map<SpecObject, string> | null       = null
 let members:     Map<string, ValueExpr> | null        = null
 let schemas:     Map<SpecObject, SchemaObject> | null = null
 let diagrams:    Map<SpecObject, string> | null       = null
+let coverages:   Map<SpecObject, Coverage[]> | null   = null
 let infoKeys:    Map<SchemaObject, string> | null     = null
 let infoParents: Map<SpecObject, SpecObject> | null   = null
 
@@ -1400,6 +1418,31 @@ const diagramOf = (object: SpecObject) => {
     return diagram !== undefined ? safe(`<div class="diagram">${diagram}</div>`) : ""
 }
 
+/*  the reference coverage of an object as a table: one row per
+    configured pattern, labeled by the kinds of the matching objects,
+    marked as object kinds and carrying the description popup of the
+    first matching object of each kind (by the bare pattern, if none
+    matches), with the counts and the ratio as a bar (empty for an
+    object without a configured coverage)  */
+const coverageOf = (object: SpecObject) => {
+    const coverage = coverages?.get(object)
+    if (coverage === undefined)
+        return ""
+    const kindLabel = (entry: Coverage, kind: string) => {
+        const first = [ ...entry.covered, ...entry.uncovered ].find((target) => target.kind === kind)
+        return `<span class="object-kind"${first !== undefined ? infoAttr(first) : ""}>${escapeHtml(kind)}</span>`
+    }
+    return safe(render("Coverage", { Coverage: coverage.map((entry, i) => ({
+        label:   entry.kinds.length > 0 ?
+            safe(entry.kinds.map((kind) => kindLabel(entry, kind)).join(", ")) :
+            entry.pattern.replace(/^\[\[(.*)\]\]$/s, "$1"),
+        covered: entry.covered.length,
+        total:   entry.covered.length + entry.uncovered.length,
+        ratio:   coverageRatio(entry.covered.length, entry.covered.length + entry.uncovered.length),
+        even:    i % 2 === 1
+    })) }))
+}
+
 /*  render a single-kind group of children into one compact table:
     the name first, then the property columns, then the description;
     a group wider than maxColumns, or carrying diagrams, instead chunks
@@ -1499,6 +1542,7 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
                 Fold: formatOf(object)?.maxCellHeight })) : "",
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
+        coverage:    coverageOf(object),
         children:    safe(renderChildren(object, level + 1, concise))
     } }))
 }
@@ -1724,10 +1768,11 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         below, also on a failure of the collecting or rendering)  */
     const index = buildLinkIndex(specification)
     try {
-        anchors  = anchorPaths(index)
-        members  = config !== undefined ? collectMembers(config, new Map()) : null
-        schemas  = config !== undefined ? collectSchemas(specification, config) : null
-        diagrams = rendered
+        anchors   = anchorPaths(index)
+        members   = config !== undefined ? collectMembers(config, new Map()) : null
+        schemas   = config !== undefined ? collectSchemas(specification, config) : null
+        diagrams  = rendered
+        coverages = schemas !== null ? specCoverage(index, schemas) : null
 
         /*  collect the schema descriptions for the description popups,
             plus the object parents composing their title paths  */
@@ -1802,6 +1847,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         members     = null
         schemas     = null
         diagrams    = null
+        coverages   = null
         infoKeys    = null
         infoParents = null
     }

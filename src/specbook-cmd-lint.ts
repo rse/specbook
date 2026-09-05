@@ -10,10 +10,12 @@ import * as path from "node:path"
 import { loadConfig, configStatistics }                         from "./specbook-config.js"
 import { literal, type Verbose }                                from "./specbook-verbose.js"
 import { type Diagnostic }                                      from "./specbook-diagnostic.js"
-import { parseSpecification, specStatistics, resolveArtifact, type SourceFile }
+import { parseSpecification, specStatistics, resolveArtifact, collectSchemas, type SourceFile }
     from "./specbook-parse.js"
-import { type Spec }                                            from "./specbook-format-spec.js"
+import { type Spec, type SpecObject }                           from "./specbook-format-spec.js"
 import { type Schema, type SchemaObject }                       from "./specbook-format-schema.js"
+import { buildLinkIndex, chainOf, plainText }                   from "./specbook-link.js"
+import { referencedCoverage, specCoverage, coverageRatio }      from "./specbook-coverage.js"
 
 /*  the options of the lint command  */
 export interface LintOptions {
@@ -103,6 +105,30 @@ export const lint = (options: LintOptions): LintResult => {
     const stats = specStatistics(result.specification)
     options.verbose(`parsed specification defining ${literal(stats.objects)} object(s) ` +
         `and ${literal(stats.links)} link relationship(s)`)
+
+    /*  report the reference coverage the "referenced"-flagged object
+        kinds receive and the "coverage"-configured objects report, the
+        unreferenced objects of the latter by name (the ones of the
+        former are already reported as warnings)  */
+    if (config !== undefined && result.specification.artifacts.length > 0) {
+        const index   = buildLinkIndex(result.specification)
+        const schemas = collectSchemas(result.specification, config)
+        const label   = (object: SpecObject) => `${object.kind} "${literal(plainText(object.name))}"`
+        const ratio   = (covered: SpecObject[], uncovered: SpecObject[]) =>
+            `${literal(covered.length)} of ${literal(covered.length + uncovered.length)} ` +
+            `(${literal(coverageRatio(covered.length, covered.length + uncovered.length))}%)`
+        for (const { schema, covered, uncovered } of referencedCoverage(index, schemas)) {
+            const chain = chainOf(index, covered[0] ?? uncovered[0])
+            options.verbose((schema.referenced ?? []).map((entry) => `"${literal(entry)}"`).join(" or ") +
+                ` references ${ratio(covered, uncovered)} ${schema.kind} object(s)` +
+                (chain.length > 1 ? ` below ${label(chain[0])}` : ""))
+        }
+        for (const [ object, entries ] of specCoverage(index, schemas))
+            for (const { pattern, covered, uncovered } of entries)
+                options.verbose(`${label(object)} references ${ratio(covered, uncovered)} ` +
+                    `"${literal(pattern)}" object(s)` + (uncovered.length > 0 ?
+                    `, unreferenced: ${uncovered.map(label).join(", ")}` : ""))
+    }
 
     /*  report the non-optional artifacts absent from the specification,
         against their loaded artifact file (an absent or unreadable file

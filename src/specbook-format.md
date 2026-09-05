@@ -74,6 +74,7 @@ type SchemaObject = {
     refs?:             string
     optional?:         boolean
     referenced?:       string[]
+    coverage?:         string[]
     automaton?:        SchemaAutomaton
     diagram?:          SchemaDiagram
     format?:           SchemaFormat
@@ -234,6 +235,13 @@ type SchemaGradiaConfig = Partial<{
     descendants -- from which every object of this kind has to be referenced
     at least once, where a lapse is reported as a warning only,
     BECAUSE a term nobody uses or a requirement no use case exercises is dead weight
+
+-   `SchemaObject.coverage?: string[]`:
+    wildcard references (e.g. `[[SCENARIO:*]]` for the use case scenarios)
+    matching the objects whose reference coverage every object of this kind
+    reports: the share of them referenced -- themselves or through their
+    descendants -- from the object or its descendants (see below),
+    BECAUSE a test artifact has to state how much of the specification it verifies
 
 -   `SchemaObject.automaton?: SchemaAutomaton`:
     finite state machine the child objects of every object of this kind form,
@@ -594,6 +602,24 @@ corresponding container of its source, where the edges coinciding
 afterwards merge into one with their arities summed, so the edges
 inside a container stay node-to-node while the bundles of references
 into a container become single edges onto it.
+
+### Coverage
+
+An object kind can carry a `coverage` field, a list of `[[xxx]]`
+reference patterns, which makes every object of that kind report how
+much of the objects matching each pattern it references: the *coverage*
+is the share of the matching objects (those below the reporting object
+itself excluded) which are referenced from the reporting object or one
+of its descendants, where a matching object also counts as referenced
+through one of its descendants, so a use case is covered as soon as one
+of its scenarios is. While the `referenced` field demands the coverage
+of an object kind and warns about every lapse, the `coverage` field
+merely measures it: the HTML/PDF export renders a coverage table below
+the description of the reporting object (one row per pattern, labeled
+by the kinds of the matching objects, with the covered and total counts
+and the ratio as a bar), the AST exports attach the counts as the
+`coverage` field of the object, and the verbose output of `lint` and
+`export` names the unreferenced objects.
 
 ### Format
 

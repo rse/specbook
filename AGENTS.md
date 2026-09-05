@@ -34,7 +34,9 @@ API.
     -   `src/specbook-export-ast.ts`: the AST renderer (JSON, JSON5,
         YAML, TOON), attaching the derived Gradia spec of a
         diagram-configured object as its `diagram` field (except for the
-        title object, whose diagram the HTML/PDF export reserves)
+        title object, whose diagram the HTML/PDF export reserves) and
+        the covered/total counts of a coverage-configured object as its
+        `coverage` field
     -   `src/specbook-export-md.ts`: the normalized Markdown renderer
     -   `src/specbook-export-html.ts`: the HTML renderer
         (with `src/specbook-export-html.styl` as its inlined stylesheet,
@@ -75,6 +77,11 @@ API.
         uniqueness/presence, symmetric/acyclic references, the
         `automaton` state machines, and the `referenced` coverage) and
         the link references
+    -   `src/specbook-coverage.ts`: the reference coverage the
+        `referenced`-flagged object kinds receive (feeding the semantic
+        check and the verbose ratio) and the `coverage`-configured
+        objects report (feeding the verbose output, the HTML coverage
+        table, and the AST `coverage` field)
     -   `src/specbook-parse-value.ts`: property value expression language
         (Tokenizr-based compiler for regex/enum/tags/list/reference constraints)
     -   `src/specbook-format-spec.ts`: types/schema of the generic Markdown
@@ -175,6 +182,18 @@ reference-valued properties, the finite state machines of the
 resolvability of every Wiki-style reference. Both `lint` and `export`
 report all diagnostics and fail on any error among them, so a partial or
 invalid specification is never exported.
+
+The `coverage` field of an object kind lists `[[...]]` patterns whose
+matching objects (a target also counting through its descendants) every
+object of the kind reports as covered/total counts of the references
+from its own subtree: the verbose output of `lint` and `export` prints
+one line per `referenced` flag (the ratio only, as the lapses are
+warnings) and per `coverage` pattern (the ratio plus the unreferenced
+objects by name), the HTML/PDF export renders a coverage table (kinds,
+counts, ratio bar) below the description of the reporting object, and
+the AST exports attach the counts as its `coverage` field. The standard
+schema configuration reports the use case, scenario, requirement, and
+rule coverage on the Test Cases artifact.
 
 The export output option `-o`/`--output` (default: `-` for stdout) can
 occur multiple times; the format is inferred from the filename extension,
