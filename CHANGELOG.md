@@ -2,8 +2,16 @@
 ChangeLog
 =========
 
-1.2.5 (2026-09-04)
+1.2.5 (2026-09-05)
 ------------------
+
+-   FEATURE [code, docs]: Folding of Diagrams and Table Cell Texts in HTML Export
+    The HTML export now folds every diagram and every over-long table cell text individually and,
+    for all of them at once, through the two controls of a new tab of the brand bar.
+
+-   FEATURE [code, infr, othr]: Select the Browser of the PDF Export via `SPECBOOK_BROWSER`
+    The variable names an executable path or a Playwright channel, an unset one falls back from the
+    Playwright Chromium onto Google Chrome, and a missing one hints at `npx playwright install`.
 
 -   IMPROVEMENT [docs, othr]: Trace the Permissions into the Use Case Scenarios
     A `PERMISSION` now references the `USE-CASES` and scenarios exercising and refusing it, and the
@@ -33,9 +41,8 @@ ChangeLog
     The properties `LIKELIHOOD` and `IMPACT` of a `PREMISE` were misread as rating the premise
     itself instead of its failure, so both now carry the `FAILURE-` prefix.
 
--   FEATURE [code, docs]: Folding of Diagrams and Table Cell Texts in HTML Export
-    The HTML export now folds every diagram and every over-long table cell text individually and,
-    for all of them at once, through the two controls of a new tab of the brand bar.
+-   UPDATE [infr]: Upgrade Dependencies
+    Gradia is now at 1.2.0, Playwright at 1.63.0, PostCSS CLI at 12.0.0, and `@swc/html` at 1.16.2.
 
 1.2.4 (2026-09-04)
 ------------------
