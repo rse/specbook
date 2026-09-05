@@ -1,6 +1,6 @@
 {
     "name":                                "@rse/specbook",
-    "version":                             "1.2.4",
+    "version":                             "1.2.5",
     "publishConfig":                       { "access": "public" },
     "description":                         "Markdown-based Specification Format (API, CLI and MCP service)",
     "license":                             "Apache-2.0",
