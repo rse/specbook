@@ -2,16 +2,24 @@
 ChangeLog
 =========
 
-1.2.7 (2026-09-05)
+1.2.7 (2026-09-06)
 ------------------
 
--   FEATURE [infr, docs]: Project Website under `web/`
+-   FEATURE [infr, othr]: Project Website under `web/`
     An Astro/Tailwind single-page website, taking over the build infrastructure of the ASE site
     and dressed in a light white/blue theme spread from the SpecBook accent color `#336699`.
 
--   FEATURE [code, docs]: Verbosity Levels via `-v [<level>]` Option and Renamed Message Levels
+-   FEATURE [infr]: GitHub Pages Deployment via GitHub Actions Workflow
+    A `.github/workflows/static.yml` workflow builds `web/` and deploys it onto GitHub Pages on
+    every `master` push touching the website or the workflow itself.
+
+-   FEATURE [code, infr, othr]: Verbosity Levels via `-v [<level>]` Option and Renamed Message Levels
     The verbose option now takes an optional level gating the messages by their renamed levels
     (0: `none`, 1 and bare flag: `notice`, 2: `detail` like coverage ratios, 3: `trace` like names).
+
+-   BUGFIX [othr]: Broken Markup in the Website Title Section and Page
+    An unterminated `style` attribute in `Section-Title.astro` and the still-referenced but unused
+    terminal and highlights components are fixed and commented out.
 
 1.2.6 (2026-09-05)
 ------------------
