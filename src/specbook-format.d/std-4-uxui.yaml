@@ -48,7 +48,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[PRINCIPLE:*]], [[PERSONA:*]], [[STEP:*]], [[PATTERN:*]]"
+                nodes: "[[PRINCIPLE:*]], [[PERSONA:*]], [[STEP:*]], [[USE-CASE:*]], [[PATTERN:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -66,15 +66,31 @@
                     desc: >
                         Comma-separated references to the User Personas objects whose experience
                         the principle governs, omitted for a principle governing the experience of
-                        all users alike.
+                        all users alike; this scopes the principle only, its origin is the
+                        `MOTIVATED-BY` and its realization the `USE-CASES`.
                     value: list([[PERSONA:*]])
                     optional: true
                 -   name: MOTIVATED-BY
                     desc: >
                         Comma-separated references to the User Journey step objects whose
                         `PAIN-POINT` or `OPPORTUNITY` the principle answers, so that a principle is
-                        grounded in the observed experience rather than in taste alone.
+                        grounded in the observed experience rather than in taste alone; this is the
+                        origin of the principle (why it exists), while the `USE-CASES` are its
+                        realization (where it can be checked).
                     value: list([[STEP:*]])
+                    optional: true
+                -   name: USE-CASES
+                    desc: >
+                        Comma-separated references to the USE-CASES objects whose scenario steps
+                        exhibit the behavior the principle prescribes (e.g. a `Moderation-Gated
+                        Visibility` surfaces in the step where the submitted message is acknowledged
+                        but not yet public), or, where not every scenario of a use case does so, to
+                        the very `SCENARIO` objects doing so, tracing the principle into the
+                        step-by-step flows against which its realization is checked, while the
+                        concrete user interface realizing it stays with the Dialog Patterns and the
+                        Dialog Storyboard; omitted for a principle governing no use case flow in
+                        particular.
+                    value: list([[USE-CASE:*]], [[SCENARIO:*]])
                     optional: true
                 -   name: TRADE-OFF
                     desc: >

@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 11:45
+Modified: 2026-09-05 12:38
 ---
 
 UXUI: Interaction Concept (IC)
@@ -10,6 +10,7 @@ UXUI: Interaction Concept (IC)
     CATEGORY: Expectation-Conformity;
     ACTORS: [[PERSONA:attendee]], [[PERSONA:moderator-chat]], [[PERSONA:moderator-qa]];
     MOTIVATED-BY: [[STEP:participate]];
+    USE-CASES: [[USE-CASE:ask-question]], [[SCENARIO:chat-pending-private]], [[SCENARIO:chat-edit]], [[USE-CASE:moderate]];
     TRADE-OFF: The liveliness of an unmoderated stream in which every input is public the moment it is sent;
     Attendee input is acknowledged immediately as submitted but becomes
     publicly visible only after moderation when enabled, with its state
@@ -19,6 +20,7 @@ UXUI: Interaction Concept (IC)
 -   PRINCIPLE: Privacy-Visible Identity {{privacy-identity}};
     CATEGORY: Self-Descriptiveness;
     MOTIVATED-BY: [[STEP:arrival]];
+    USE-CASES: [[SCENARIO:chat-post]], [[SCENARIO:join-event-language]], [[SCENARIO:moderate-chat-seed]];
     TRADE-OFF: Full anonymity of all participants, which would spare the anonymity setting and the hover reveal;
     Names are shown according to the event's anonymity setting while the
     email remains discoverable on hover, and AI-translated text is always
@@ -29,6 +31,7 @@ UXUI: Interaction Concept (IC)
     CATEGORY: Task-Suitability;
     ACTORS: [[PERSONA:attendee]];
     MOTIVATED-BY: [[STEP:arrival]], [[STEP:authenticate]];
+    USE-CASES: [[USE-CASE:join-event]], [[USE-CASE:authenticate]];
     TRADE-OFF: An explicit registration with a permanent account, which would give organizers richer attendee profiles;
     The attendee is carried into the event with the least possible effort,
     with email and token pre-filled from the URL where available and
@@ -38,6 +41,7 @@ UXUI: Interaction Concept (IC)
 -   PRINCIPLE: Live Reactivity {{live-reactivity}};
     CATEGORY: Self-Descriptiveness;
     MOTIVATED-BY: [[STEP:participate]], [[STEP:support]];
+    USE-CASES: [[SCENARIO:configure-event-channels]], [[USE-CASE:switch-provider]], [[USE-CASE:steer-presenter]], [[SCENARIO:moderate-forward]], [[USE-CASE:present]];
     TRADE-OFF: Lower server load and simpler clients through polling or a manual reload;
     Every configuration change, provider switch, and moderation outcome is
     pushed to connected clients over WebSockets so the UI updates without a
@@ -48,6 +52,7 @@ UXUI: Interaction Concept (IC)
     CATEGORY: Error-Robustness;
     ACTORS: [[PERSONA:manager]];
     MOTIVATED-BY: [[STEP:configure]];
+    USE-CASES: [[SCENARIO:configure-event-channels]], [[USE-CASE:create-event]];
     TRADE-OFF: The freedom to save any partial or inconsistent configuration unchecked;
     Imported attendee lists and streaming settings are validated at entry
     and problems are reported in place before the event starts, BECAUSE
@@ -58,6 +63,7 @@ UXUI: Interaction Concept (IC)
     CATEGORY: Controllability;
     ACTORS: [[PERSONA:attendee]];
     MOTIVATED-BY: [[STEP:participate]];
+    USE-CASES: [[SCENARIO:join-event-language]], [[SCENARIO:join-event-theme]], [[SCENARIO:chat-own-only]];
     TRADE-OFF: A dedicated settings page with room for more options than the header can hold;
     Every adjustment available to the attendee, like language, theme, or
     the interaction tab, is made in place from the event screen, applies
@@ -68,6 +74,7 @@ UXUI: Interaction Concept (IC)
     CATEGORY: Error-Robustness;
     ACTORS: [[PERSONA:attendee]];
     MOTIVATED-BY: [[STEP:participate]];
+    USE-CASES: [[SCENARIO:chat-post]], [[SCENARIO:chat-like]], [[SCENARIO:chat-edit]], [[SCENARIO:chat-delete]];
     TRADE-OFF: A confirmation step before every submission, which would reduce mistaken posts at the cost of interrupting the flow;
     Input is sent without a confirmation step and corrected afterwards
     instead, as the attendee can edit and delete their own messages while a
@@ -77,6 +84,7 @@ UXUI: Interaction Concept (IC)
 -   PRINCIPLE: Familiar Conventions {{familiar-conventions}};
     CATEGORY: Learnability;
     ACTORS: [[PERSONA:attendee]];
+    USE-CASES: [[USE-CASE:chat-during-event]], [[SCENARIO:authenticate-token]];
     TRADE-OFF: Novel interaction forms tailored to the event format, which would be more expressive but need explaining;
     Chat, questions, and likes look and behave like the consumer messengers
     the attendee already knows, so that the login message is the only
@@ -87,6 +95,7 @@ UXUI: Interaction Concept (IC)
     CATEGORY: Engagement;
     ACTORS: [[PERSONA:attendee]];
     MOTIVATED-BY: [[STEP:participate]];
+    USE-CASES: [[SCENARIO:ask-question-moderated]], [[SCENARIO:chat-post]], [[SCENARIO:chat-like]], [[SCENARIO:chat-poll]];
     TRADE-OFF: Richer contributions like threads, attachments, or formatting, which would raise the bar for taking part;
     A like is a single tap and a message is a single field plus send, with
     the emoji picker as the only enrichment, BECAUSE the more attendees

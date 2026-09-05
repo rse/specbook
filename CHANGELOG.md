@@ -5,6 +5,10 @@ ChangeLog
 1.2.6 (2026-09-05)
 ------------------
 
+-   IMPROVEMENT [docs, othr]: Trace the Interaction Principles into the Use Case Scenarios
+    A `PRINCIPLE` now references the `USE-CASES` and scenarios exhibiting its behavior, shown in
+    both hub diagrams, so its realization is checkable, and the sample fills the references.
+
 -   BUGFIX [code]: Fold Mark Beside Table Cell Diagrams in HTML Export
     The fold chevron of a diagram inside a table cell now sits in a flex row left of the diagram
     instead of on its own line above it, which left too much space at the top of the diagram.
