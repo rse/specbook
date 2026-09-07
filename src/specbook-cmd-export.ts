@@ -4,6 +4,8 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
+import * as fs                       from "node:fs"
+
 /*  Chokidar is aliased in "package.json", as Nunjucks declares the
     (unused) Chokidar 3 as an optional peer dependency and the current
     Chokidar under its plain name would raise a peer warning on install  */
@@ -71,19 +73,43 @@ export const parseOutputSpec = (spec: string): { format: ExportFormat, output: s
     burst of changes is coalesced into a single re-export  */
 const watchDelay = 1000
 
+/*  the interval of the safety-net scan, which catches the changes the
+    file-system watcher missed: a watcher can die unnoticed -- macOS
+    tears down its FSEvents streams across a sleep/wake cycle -- and
+    would then leave the export stale for the rest of the process life  */
+const scanDelay = 30 * 1000
+
+/*  take the modification time snapshot of the observed files, where an
+    absent file (a still missing artifact) is remembered as absent, too,
+    so its creation and removal are noticed like a modification  */
+const snapshot = (files: string[]): Map<string, number> => {
+    const times = new Map<string, number>()
+    for (const file of files) {
+        try {
+            times.set(file, fs.statSync(file).mtimeMs)
+        }
+        catch {
+            times.set(file, 0)
+        }
+    }
+    return times
+}
+
 /*  keep a specification export in sync with its sources, where "run"
     performs one export and returns the files to observe: the initial
     export is performed up-front and every observed change triggers a
     re-export once the sources fell silent again. The observed set is
     re-synchronized after every run, as an edit can add or drop an
     embedded asset. The returned promise settles once the initial export
-    is done, while the active watcher keeps the process alive afterwards  */
+    is done, while the active watcher and the safety-net scan keep the
+    process alive afterwards  */
 export const watchSpecification = async (
     run:     () => Promise<string[]>,
     verbose: Verbose
 ): Promise<void> => {
     /*  perform the regular export before entering the observe loop  */
     let observed  = await run()
+    let times     = snapshot(observed)
     const watcher = watch(observed, { ignoreInitial: true })
     verbose(`observing ${literal(observed.length)} specification file(s) for changes`)
 
@@ -100,6 +126,7 @@ export const watchSpecification = async (
         watcher.unwatch(observed.filter((file) => !files.includes(file)))
         watcher.add(files.filter((file) => !observed.includes(file)))
         observed = files
+        times    = snapshot(files)
     }
 
     /*  restart the quiet period on every change, so a burst collapses
@@ -109,7 +136,7 @@ export const watchSpecification = async (
         and hence silently ending the observe loop)  */
     let chain = Promise.resolve()
     let timer: ReturnType<typeof setTimeout> | undefined
-    watcher.on("all", () => {
+    const schedule = () => {
         if (timer !== undefined)
             clearTimeout(timer)
         timer = setTimeout(() => {
@@ -119,7 +146,26 @@ export const watchSpecification = async (
                     (err instanceof Error ? err.message : String(err)), "none")
             })
         }, watchDelay)
-    })
+    }
+
+    watcher.on("all", schedule)
+
+    /*  compare the modification times regularly, so a change the
+        watcher never reported still reaches the export, and re-establish
+        the watchers on such a miss, as a watcher which lost a file never
+        regains it on its own and the following changes would be caught
+        by the scan only  */
+    setInterval(() => {
+        for (const [ file, time ] of snapshot(observed))
+            if (times.get(file) !== time) {
+                verbose(`observing missed the change of "${literal(file)}" ` +
+                    "-- re-establishing the file observation", "none")
+                watcher.unwatch(observed)
+                watcher.add(observed)
+                schedule()
+                break
+            }
+    }, scanDelay)
 }
 
 /*  render a specification into the requested format, where "realtime"
