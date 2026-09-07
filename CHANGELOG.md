@@ -2,6 +2,19 @@
 ChangeLog
 =========
 
+1.2.8 (2026-09-07)
+------------------
+
+-   IMPROVEMENT [code]: Safety-Net Scan Behind the File Observation of `export --watch` and `preview`
+    A 30s modification time scan in `watchSpecification` catches the changes the Chokidar watcher
+    missed (macOS drops its FSEvents streams across sleep/wake) and re-establishes the observation.
+
+-   IMPROVEMENT [othr]: Link to the Project Website `specbook.tools` in `README.md`
+    The README now links to the project website right below the tagline.
+
+-   UPDATE [infr]: Upgrade NPM Dependencies
+    The development dependency `@types/node` is upgraded from 26.4.1 to 26.5.0.
+
 1.2.7 (2026-09-06)
 ------------------
 
