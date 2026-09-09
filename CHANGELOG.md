@@ -2,7 +2,7 @@
 ChangeLog
 =========
 
-1.2.9 (2026-09-09)
+1.2.9 (2026-09-10)
 ------------------
 
 -   FEATURE [code, othr]: Diagram Maximization in the HTML Export
@@ -18,13 +18,17 @@ ChangeLog
     The grid diagram of the Technology Stack artifact now caps its columns at two instead of three,
     so the tier boxes and the component tiles inside them stay readable.
 
+-   IMPROVEMENT [code, othr]: Compact Container Boxes in the Grid Diagrams
+    Gradia 1.2.3 keeps a container box nested into a grid at the height of its own content, so the
+    tier boxes of the Technology Stack diagram no longer all grow to the height of the largest one.
+
 -   BUGFIX [code]: Hyperlink onto a Search-Hidden Target Had No Effect in the HTML Export
     A click on an in-document hyperlink whose target the search filter hides now leaves the search
     mode (like `Escape`), reveals the document again, and then performs the regular jump.
 
--   IMPROVEMENT [code, othr]: Compact Container Boxes in the Grid Diagrams
-    Gradia 1.2.3 keeps a container box nested into a grid at the height of its own content, so the
-    tier boxes of the Technology Stack diagram no longer all grow to the height of the largest one.
+-   UPDATE [infr]: Upgrade NPM Dependencies
+    The dependency `marked` is upgraded from 18.0.11 to 18.0.12 and the development dependency
+    `typescript-eslint` from 8.69.0 to 8.70.0.
 
 1.2.8 (2026-09-07)
 ------------------
