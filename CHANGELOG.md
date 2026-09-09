@@ -18,6 +18,10 @@ ChangeLog
     The grid diagram of the Technology Stack artifact now caps its columns at two instead of three,
     so the tier boxes and the component tiles inside them stay readable.
 
+-   IMPROVEMENT [code, othr]: Compact Container Boxes in the Grid Diagrams
+    Gradia 1.2.3 keeps a container box nested into a grid at the height of its own content, so the
+    tier boxes of the Technology Stack diagram no longer all grow to the height of the largest one.
+
 1.2.8 (2026-09-07)
 ------------------
 

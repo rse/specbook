@@ -185,6 +185,7 @@ type SchemaGradiaConfig = Partial<{
     "grid-gap-horizontal":       number
     "grid-gap-vertical":         number
     "grid-node-width-equal":     boolean
+    "grid-node-height-equal":    boolean
 }>
 ```
 
