@@ -74,6 +74,23 @@
                     units.push({ el, text, words, keep: false })
                 })
         })
+
+        /*  let a hyperlink whose target the filtering hid leave the
+            search mode (like the Escape key) before it jumps: the click
+            is intercepted, the document revealed again, and the click
+            re-issued, so the browser performs the regular jump  */
+        document.querySelectorAll("a[href^='#']").forEach((link) => {
+            link.addEventListener("click", (event) => {
+                const target = document.getElementById(
+                    decodeURIComponent((link.getAttribute("href") ?? "").slice(1)))
+                if (target === null || target.closest(".search-hide") === null)
+                    return
+                event.preventDefault()
+                reset()
+                slide(false)
+                link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }))
+            })
+        })
     }
 
     /*  the Levenshtein edit distance of two words  */
