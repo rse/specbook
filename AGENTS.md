@@ -43,8 +43,9 @@ API.
         compiled from Stylus to CSS at build time, and
         `src/specbook-export-html-search.js` as its bundled client-side
         fuzzy search; the other client-side scripts -- color theme,
-        scroll progress meter, table of contents side panel, description
-        popups, and live preview -- are inlined in the module itself)
+        scroll progress meter, folding, diagram maximization, table of
+        contents side panel, description popups, and live preview -- are
+        inlined in the module itself)
     -   `src/specbook-export-pdf.ts`: the PDF renderer (HTML printed
         via Playwright/Chromium, post-processed with `pdf-lib`)
     -   `src/specbook-theme.ts`: the theme color spreads generated from
@@ -342,6 +343,19 @@ and persist their own state across page loads, a stored state
 overriding the rendered default. A control carries the search filter
 mark colors while anything of its kind is folded, and the tab icon
 carries them while either control does.
+
+The HTML export (screen only, too) maximizes every diagram on demand:
+hovering a diagram fades in two controls at its top right corner (in
+rounded boxes on the page background, like the chevron of an over-long
+cell), the first of which maximizes the diagram temporarily in an
+overlay covering the browser viewport and the second in the browser
+fullscreen (through the Fullscreen API, a refused request leaving the
+viewport overlay). Both share one overlay on the page background, into
+which the SVG is cloned and scaled to fit the padded area (aspect ratio
+kept, centered), while the document beneath stops scrolling. An "X"
+mark at the top right corner of the overlay, `Escape`, a click beside
+the diagram, and a jump through one of the still active node hyperlinks
+close the overlay again, and nothing of it is persisted.
 
 The `META: Title` object drives the document beyond the title page:
 `TITLE`/`SUBTITLE`/`AUTHOR`/`VERSION`/`LOGO` fill the title page (a

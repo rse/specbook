@@ -508,6 +508,75 @@ span.fold-label svg
     span.fold-more
         display: none
 
+/*  the maximization of the diagrams (screen-only): every diagram
+    carries two controls at its top right corner (drawn like the fold
+    chevron of an over-long cell, in rounded boxes on the page
+    background), faded in while the diagram is hovered, which maximize
+    the diagram temporarily in the shared overlay covering the whole
+    viewport (or, taken into the browser fullscreen, the whole screen)
+    on the page background, where the cloned diagram scales to fit the
+    padded area (aspect ratio kept, centered) and a close mark sits at
+    the top right corner, while the document beneath stops scrolling  */
+span.maximize-controls
+    position: absolute
+    top: 0.35rem
+    right: 0.35rem
+    display: flex
+    gap: 0.25rem
+    line-height: 0
+    opacity: 0
+    transition: opacity 0.2s ease
+div.diagram:hover span.maximize-controls
+    opacity: 1
+span.maximize-controls > span,
+span.maximize-close
+    display: inline-block
+    padding: 0.2rem
+    line-height: 0
+    color: var(--theme-color-specbook-symbol)
+    background-color: var(--theme-color-specbook-background)
+    border: 1px solid var(--theme-color-specbook-border)
+    border-radius: 0.25rem
+    cursor: pointer
+    -webkit-user-select: none
+    user-select: none
+span.maximize-controls > span:hover,
+span.maximize-close:hover
+    color: var(--theme-color-specbook-accent)
+    border-color: var(--theme-color-specbook-accent)
+span.maximize-controls svg,
+span.maximize-close svg
+    width: 1.0rem
+    height: 1.0rem
+div.maximize
+    display: none
+    position: fixed
+    inset: 0
+    z-index: 40
+    box-sizing: border-box
+    padding: 2rem
+    background-color: var(--theme-color-specbook-background)
+div.maximize.open
+    display: block
+div.maximize span.maximize-close
+    position: absolute
+    top: 0.6rem
+    right: 0.6rem
+div.maximize div.maximize-content
+    width: 100%
+    height: 100%
+div.maximize div.maximize-content svg
+    display: block
+    width: 100%
+    height: 100%
+    max-width: none
+html.maximized
+    overflow: hidden
+@media print
+    span.maximize-controls,
+    div.maximize
+        display: none
+
 /*  the connection status tab of the live preview (screen-only): the
     bottommost tab riding right of the brand bar below the table of
     contents tab (sized like the search tab, fixed independent of the
@@ -1050,6 +1119,7 @@ span.theme-dark-only
 
 /*  the diagrams, rationales, keywords, and code spans  */
 div.diagram
+    position: relative
     margin: 1.0rem 0
 div.diagram svg
     max-width: 100%

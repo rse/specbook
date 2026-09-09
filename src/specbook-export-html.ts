@@ -78,6 +78,7 @@ const templates = {
                 {% if Document.search %}<script>{{ Document.search }}</script>{% endif %}
                 <script>{{ Document.progress }}</script>
                 <script>{{ Document.fold }}</script>
+                <script>{{ Document.maximize }}</script>
                 {% if Document.tocpanel %}<script>{{ Document.tocscript }}</script>{% endif %}
                 {% if Document.info %}<script>{{ Document.info }}</script>{% endif %}
                 {% if Document.realtime %}<script class="realtime">{{ Document.realtime }}</script>{% endif %}
@@ -688,6 +689,111 @@ const foldScript = textframe`
         }
         sync()
 
+    })()
+`
+
+/*  the client-side script of the diagram maximization: it attaches two
+    controls to the top right corner of every diagram, revealed by the
+    stylesheet while the diagram is hovered, which maximize the diagram
+    temporarily in a single shared overlay covering the viewport (the
+    SVG cloned into it and fitted by the stylesheet), the second one
+    additionally taking the overlay into the browser fullscreen (a
+    refused request leaves the viewport overlay), where the close mark
+    at the top right corner, "Escape", a click beside the diagram, and
+    a jump through a node hyperlink close the overlay again (a browser
+    leaving the fullscreen on its own closes it, too). The script runs
+    at the end of the body, as the diagrams it decorates have to exist
+    already, and a live preview body swap replaces the overlay and the
+    body-bound listeners along with the body, while the document-bound
+    fullscreen listener retires itself  */
+const maximizeScript = textframe`
+    (function () {
+        /*  an icon control drawn like the tab icons  */
+        const svgNS = "http://www.w3.org/2000/svg"
+        const mark = (name, title, paths) => {
+            const span = document.createElement("span")
+            span.className = name
+            span.title = title
+            const svg = document.createElementNS(svgNS, "svg")
+            svg.setAttribute("viewBox", "0 0 24 24")
+            svg.setAttribute("fill", "none")
+            svg.setAttribute("stroke", "currentColor")
+            svg.setAttribute("stroke-width", "2.5")
+            svg.setAttribute("stroke-linecap", "round")
+            svg.setAttribute("stroke-linejoin", "round")
+            for (const d of paths) {
+                const path = document.createElementNS(svgNS, "path")
+                path.setAttribute("d", d)
+                svg.appendChild(path)
+            }
+            span.appendChild(svg)
+            return span
+        }
+
+        /*  the shared overlay: the close mark plus the content holding
+            the clone of the maximized diagram  */
+        const overlay = document.createElement("div")
+        overlay.className = "maximize"
+        const close   = mark("maximize-close", "close the maximized diagram",
+            [ "M18 6 6 18", "M6 6l12 12" ])
+        const content = document.createElement("div")
+        content.className = "maximize-content"
+        overlay.append(close, content)
+        document.body.appendChild(overlay)
+
+        /*  open the overlay onto a diagram, optionally in the browser
+            fullscreen, and close it again (leaving the fullscreen, too),
+            with the document scrolling locked while it is open  */
+        const open = (diagram, fullscreen) => {
+            const svg = diagram.querySelector("svg").cloneNode(true)
+            svg.removeAttribute("style")
+            content.replaceChildren(svg)
+            overlay.classList.add("open")
+            document.documentElement.classList.add("maximized")
+            if (fullscreen)
+                overlay.requestFullscreen().catch(() => {})
+        }
+        const shut = () => {
+            overlay.classList.remove("open")
+            document.documentElement.classList.remove("maximized")
+            content.replaceChildren()
+            if (document.fullscreenElement === overlay)
+                document.exitFullscreen().catch(() => {})
+        }
+        close.addEventListener("click", shut)
+        overlay.addEventListener("click", (event) => {
+            /*  a node hyperlink navigates on its own, the overlay just
+                gets out of its way, while a click beside the diagram
+                closes the overlay alone  */
+            if (event.target.closest("a") !== null || event.target.closest("svg") === null)
+                shut()
+        })
+        document.body.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && overlay.classList.contains("open"))
+                shut()
+        })
+        const left = () => {
+            if (!overlay.isConnected)
+                document.removeEventListener("fullscreenchange", left)
+            else if (document.fullscreenElement === null && overlay.classList.contains("open"))
+                shut()
+        }
+        document.addEventListener("fullscreenchange", left)
+
+        /*  attach the two controls to every diagram  */
+        document.querySelectorAll("article div.diagram, nav.doc div.diagram").forEach((diagram) => {
+            const controls = document.createElement("span")
+            controls.className = "maximize-controls"
+            const view = mark("maximize-view", "maximize this diagram in the viewport",
+                [ "M15 3h6v6", "M21 3l-7 7", "M9 21H3v-6", "M3 21l7-7" ])
+            const full = mark("maximize-full", "maximize this diagram in fullscreen",
+                [ "M3 7V5a2 2 0 0 1 2-2h2", "M17 3h2a2 2 0 0 1 2 2v2",
+                  "M21 17v2a2 2 0 0 1-2 2h-2", "M7 21H5a2 2 0 0 1-2-2v-2" ])
+            view.addEventListener("click", () => { open(diagram, false) })
+            full.addEventListener("click", () => { open(diagram, true) })
+            controls.append(view, full)
+            diagram.appendChild(controls)
+        })
     })()
 `
 
@@ -1827,6 +1933,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             search:      safe(searchScript()),
             progress:    safe(scrollProgressScript),
             fold:        safe(foldScript),
+            maximize:    safe(maximizeScript),
             info:        info !== null ? safe(infoScript(info, spec ?? {})) : "",
             realtime:    realtime ? safe(realtimeScript) : "",
             toc:         entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",

@@ -86,6 +86,7 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
     reference coverage tables (e.g. the share of the use cases, scenarios,
     requirements, and rules the test cases verify), a
     scroll progress meter (which also scrolls back to the top on click),
+    diagram maximization (into the viewport or the fullscreen),
     description popups (which show the schema and corpus description of
     an object kind, property, or object instance on hover), and a
     light/dark theme toggle. It is intended for the day-to-day online
