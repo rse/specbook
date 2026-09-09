@@ -1,20 +1,20 @@
 ---
 Created:  2026-08-30 00:49
-Modified: 2026-08-30 14:06
+Modified: 2026-09-09 19:59
 ---
 
 APIS: Interface Endpoints (IE)
 ==============================
 
-ENDPOINT: broadcast
--------------------
+ENDPOINT: broadcast-server
+--------------------------
 
 -   INTERFACE:   [[INTERFACE:server-cli]]
 -   PERMISSIONS: [[PERMISSION:administrator-events]], [[PERMISSION:administrator-channels]],
                  [[PERMISSION:administrator-resources]], [[PERMISSION:administrator-params]],
                  [[PERMISSION:administrator-manager-role]]
 -   OPERATION:   command
--   LOCATOR:     `broadcast [options]`
+-   LOCATOR:     `broadcast-server [options]`
 
 The sole command of the program, which loads the layered configuration,
 brings the database schema up to date, pre-forks the configured number

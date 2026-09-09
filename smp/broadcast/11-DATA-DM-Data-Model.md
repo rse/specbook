@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-09 12:00
+Modified: 2026-09-09 19:56
 ---
 
 #   DATA: Data Model (DM)
@@ -54,19 +54,19 @@ BECAUSE the entire data model is event-centric and every other entity hangs off 
     Unique identifier of the event used in the access URL,
     BECAUSE attendees reach a specific event by an unguessable link.
 
--   ATTRIBUTE: title (*); TYPE: `string`; CLASSIFICATION: Public;
+-   ATTRIBUTE: title (*); TYPE: `string?`; CLASSIFICATION: Public;
     Display title of the event such as "Townhall 1/23",
     BECAUSE attendees and managers need a human-readable label.
 
--   ATTRIBUTE: description (*); TYPE: `string`;
+-   ATTRIBUTE: description (*); TYPE: `string?`;
     Free-text description of the event,
     BECAUSE organizers describe the purpose and content of the event.
 
--   ATTRIBUTE: begin (*); TYPE: `datetime`;
+-   ATTRIBUTE: begin (*); TYPE: `datetime?`;
     Planned start date and time of the event,
     BECAUSE attendees and operators must know when the event starts.
 
--   ATTRIBUTE: end (*); TYPE: `datetime`;
+-   ATTRIBUTE: end (*); TYPE: `datetime?`;
     Planned end date and time of the event,
     BECAUSE scheduling and the finish procedure depend on the planned end.
 
@@ -118,7 +118,7 @@ BECAUSE the entire data model is event-centric and every other entity hangs off 
     Whether chat messages may be replied to,
     BECAUSE threaded replies are appropriate only for some events.
 
--   ATTRIBUTE: chatThrottling; TYPE: `integer`; DEFAULT: 1;
+-   ATTRIBUTE: chatThrottling; TYPE: `integer`; DEFAULT: `1`;
     Maximum chat messages per user per minute,
     BECAUSE rate limiting prevents denial-of-service abuse.
 
@@ -166,7 +166,7 @@ BECAUSE the entire data model is event-centric and every other entity hangs off 
     How the attendee name appears on questions,
     BECAUSE the event controls the displayed question identity.
 
--   ATTRIBUTE: questionsThrottling; TYPE: `integer`; DEFAULT: 1;
+-   ATTRIBUTE: questionsThrottling; TYPE: `integer`; DEFAULT: `1`;
     Maximum questions per user per time window,
     BECAUSE rate limiting prevents abuse of the question channel.
 
@@ -238,7 +238,6 @@ BECAUSE the entire data model is event-centric and every other entity hangs off 
 
 -   REQUIREMENTS: [[REQUIREMENT:question-tags]]
 -   USE-CASES: [[USE-CASE:join-event]], [[USE-CASE:moderate]]
--   TERMS: [[TERM:agendapoint]]
 -   GROUP: [[GROUP:Events]]
 
 The textual description of a phase in an event,
@@ -248,11 +247,11 @@ BECAUSE attendees and moderators track which part of the event is currently acti
     Unique identifier of the agenda point,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: text (*); TYPE: `string`;
+-   ATTRIBUTE: text (*); TYPE: `string?`;
     Description of the current phase of the event,
     BECAUSE the phase must be presented in human-readable form.
 
--   ATTRIBUTE: orderPosition (*); TYPE: `integer`;
+-   ATTRIBUTE: orderPosition (*); TYPE: `integer?`;
     Ordering position of the phase,
     BECAUSE agenda points have a defined sequence.
 
@@ -274,7 +273,7 @@ BECAUSE an event groups its streams by language and resolution into channels.
     Unique identifier of the channel,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: name (*); TYPE: `string`;
+-   ATTRIBUTE: name (*); TYPE: `string?`;
     Display name of the channel such as "Digital Townhall",
     BECAUSE attendees choose between named channels.
 
@@ -308,7 +307,7 @@ BECAUSE a channel must map to concrete provider endpoints to be playable.
     Unique identifier of the resource,
     BECAUSE it is referenced as a foreign key and in the access URL.
 
--   ATTRIBUTE: providerId (*); TYPE: `string`;
+-   ATTRIBUTE: providerId (*); TYPE: `string?`;
     Provider identifier from the event configuration file,
     BECAUSE a resource binds to a specific configured streaming provider.
 
@@ -342,7 +341,7 @@ BECAUSE provider endpoints are parameterized by values an administrator supplies
     Parameter key defined in the configuration file,
     BECAUSE each provider parameter is identified by its key.
 
--   ATTRIBUTE: value (*); TYPE: `string`;
+-   ATTRIBUTE: value (*); TYPE: `string?`;
     Value the administrator entered for the key,
     BECAUSE the concrete endpoint requires the supplied value.
 
@@ -364,7 +363,7 @@ BECAUSE the application is role-based and rights are granted through roles.
     The role granted to the person for the event,
     BECAUSE each role carries a distinct set of rights.
 
--   ATTRIBUTE: email (*); TYPE: `string`; CLASSIFICATION: Personal;
+-   ATTRIBUTE: email (*); TYPE: `string?`; CLASSIFICATION: Personal;
     RETENTION: until event finish (Moderator), until event deletion (Manager);
     Email address of the authorized person,
     BECAUSE roles are granted by email without permanent accounts.
@@ -385,7 +384,7 @@ BECAUSE the system holds no permanent accounts yet must identify attendees per e
     Unique identifier of the user,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: email (*); TYPE: `string`; CLASSIFICATION: Personal; RETENTION: until event finish;
+-   ATTRIBUTE: email (*); TYPE: `string?`; CLASSIFICATION: Personal; RETENTION: until event finish;
     Concrete email address of the user,
     BECAUSE authorization tokens are sent to this address at login.
 
@@ -444,16 +443,16 @@ BECAUSE all event interaction is represented uniformly as messages with language
     Moderation and processing state of the message,
     BECAUSE the message moves through a defined moderation and presentation lifecycle.
 
--   ATTRIBUTE: originalLanguage; TYPE: `string`;
+-   ATTRIBUTE: originalLanguage; TYPE: `string?`;
     Language the sender originally wrote the message in,
     BECAUSE the difference between human-written and AI-translated text must always be visible.
 
--   ATTRIBUTE: senderName; TYPE: `string`; CLASSIFICATION: Personal;
+-   ATTRIBUTE: senderName; TYPE: `string?`; CLASSIFICATION: Personal;
     RETENTION: until event finish, then replaced by "Anonymous";
     Display name shown to others for the sender,
     BECAUSE the visible name depends on event naming and anonymity options.
 
--   ATTRIBUTE: presenterAnnotation; TYPE: `string`;
+-   ATTRIBUTE: presenterAnnotation; TYPE: `string?`;
     Hint a moderator attaches for the presenter on forwarding,
     BECAUSE the presenter benefits from routing guidance on a forwarded message.
 
@@ -461,11 +460,11 @@ BECAUSE all event interaction is represented uniformly as messages with language
     Computed number of likes conserved on event finish,
     BECAUSE the like total must survive removal of liker relations for GDPR.
 
--   ATTRIBUTE: sentimentScore; TYPE: `float`;
+-   ATTRIBUTE: sentimentScore; TYPE: `float?`;
     Server-side sentiment score between -1 and 1,
     BECAUSE the analysis result is stored for display and auto-moderation.
 
--   ATTRIBUTE: edited; TYPE: `enum(none,insignificant,significant,deleted)`;
+-   ATTRIBUTE: edited; TYPE: `enum(none,insignificant,significant,deleted)?`;
     Whether and how the message was changed or deleted,
     BECAUSE edits must be marked for others and edits stop once forwarded.
 
@@ -511,11 +510,11 @@ BECAUSE a message is translated into multiple languages while retaining one orig
     Unique identifier of the message text,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: language; TYPE: `string`;
+-   ATTRIBUTE: language; TYPE: `string?`;
     Language the text is written in,
     BECAUSE each text variant is identified by its language.
 
--   ATTRIBUTE: text; TYPE: `string`;
+-   ATTRIBUTE: text; TYPE: `string?`;
     The message text in the stated language,
     BECAUSE the displayed content depends on the chosen language.
 
@@ -523,7 +522,6 @@ BECAUSE a message is translated into multiple languages while retaining one orig
 
 -   REQUIREMENTS: [[REQUIREMENT:question-tags]]
 -   USE-CASES: [[USE-CASE:ask-question]], [[USE-CASE:moderate]]
--   TERMS: [[TERM:questiontag]]
 -   GROUP: [[GROUP:Events]]
 
 A named tag attachable to question messages,
@@ -537,11 +535,11 @@ BECAUSE questions are categorized by topic or addressed person for routing and g
     Unique tag name,
     BECAUSE tags are identified and displayed by their name.
 
--   ATTRIBUTE: moderatorOnly; TYPE: `boolean`;
+-   ATTRIBUTE: moderatorOnly; TYPE: `boolean?`;
     Whether only a Moderator or Manager may use the tag,
     BECAUSE some tags are reserved for the moderation team.
 
--   ATTRIBUTE: group; TYPE: `string`;
+-   ATTRIBUTE: group; TYPE: `string?`;
     Logical group the tag belongs to such as a topic or person,
     BECAUSE tags are organized into meaningful groups.
 
@@ -556,7 +554,7 @@ BECAUSE questions are categorized by topic or addressed person for routing and g
 A one-time second factor proving an attendee controls the email address used as the first factor,
 BECAUSE email-verified access is the core mechanism limiting the audience.
 
--   ATTRIBUTE: token (*); TYPE: `string`; CONSTRAINT: `six digits as NNN-NNN`;
+-   ATTRIBUTE: token (*); TYPE: `string?`; CONSTRAINT: `six digits as NNN-NNN`;
     CLASSIFICATION: Confidential; RETENTION: until validity expiry, at the latest until event finish;
     The generated one-time token for the next login attempt,
     BECAUSE the attendee proves control of the email by returning this token.
@@ -620,23 +618,23 @@ BECAUSE trend visualization of audience size and authentication flow requires re
     Time the snapshot was created,
     BECAUSE statistics are plotted over time.
 
--   ATTRIBUTE: numberOfIssuedAuthTokens (*); TYPE: `integer`;
+-   ATTRIBUTE: numberOfIssuedAuthTokens (*); TYPE: `integer?`;
     Count of issued authorization tokens at the timestamp,
     BECAUSE debugging statistics track issued tokens.
 
--   ATTRIBUTE: numberOfSentAuthTokens (*); TYPE: `integer`;
+-   ATTRIBUTE: numberOfSentAuthTokens (*); TYPE: `integer?`;
     Count of sent authorization tokens at the timestamp,
     BECAUSE debugging statistics track sent tokens.
 
--   ATTRIBUTE: numberOfUsedAuthTokens (*); TYPE: `integer`;
+-   ATTRIBUTE: numberOfUsedAuthTokens (*); TYPE: `integer?`;
     Count of used authorization tokens at the timestamp,
     BECAUSE debugging statistics track used tokens.
 
--   ATTRIBUTE: numberOfSessionTokens (*); TYPE: `integer`;
+-   ATTRIBUTE: numberOfSessionTokens (*); TYPE: `integer?`;
     Count of session tokens at the timestamp,
     BECAUSE logged-in users are derived from session tokens.
 
--   ATTRIBUTE: numberOfConnections (*); TYPE: `integer`;
+-   ATTRIBUTE: numberOfConnections (*); TYPE: `integer?`;
     Count of active MQTT connections at the timestamp,
     BECAUSE active viewers differ from sessions once an attendee leaves.
 
@@ -657,7 +655,7 @@ BECAUSE organizers need per-channel popularity over time.
     Time the snapshot was created,
     BECAUSE channel statistics are plotted over time.
 
--   ATTRIBUTE: numberOfViewers (*); TYPE: `integer`;
+-   ATTRIBUTE: numberOfViewers (*); TYPE: `integer?`;
     Count of viewers of the channel at the timestamp,
     BECAUSE the per-channel viewer count is the tracked metric.
 
@@ -678,25 +676,25 @@ BECAUSE audience composition informs reporting and default localization.
     Time the snapshot was created,
     BECAUSE user statistics are recorded over time.
 
--   ATTRIBUTE: country (*); TYPE: `string`; CLASSIFICATION: Personal;
+-   ATTRIBUTE: country (*); TYPE: `string?`; CLASSIFICATION: Personal;
     RETENTION: linked to the user until event finish, retained unlinked afterwards;
     ISO country code from GeoIP tracking,
     BECAUSE country selects the default application language on first use.
 
--   ATTRIBUTE: browserType (*); TYPE: `string`; CLASSIFICATION: Personal;
+-   ATTRIBUTE: browserType (*); TYPE: `string?`; CLASSIFICATION: Personal;
     RETENTION: linked to the user until event finish, retained unlinked afterwards;
     Type of browser used,
     BECAUSE browser distribution informs compatibility decisions.
 
--   ATTRIBUTE: deviceType (*); TYPE: `string`; CLASSIFICATION: Personal;
+-   ATTRIBUTE: deviceType (*); TYPE: `string?`; CLASSIFICATION: Personal;
     RETENTION: linked to the user until event finish, retained unlinked afterwards;
     Type of device used,
     BECAUSE device distribution informs responsive design priorities.
 
--   ATTRIBUTE: viewportWidth (*); TYPE: `integer`;
+-   ATTRIBUTE: viewportWidth (*); TYPE: `integer?`;
     Width in pixels of the browser viewport,
     BECAUSE viewport sizing informs layout decisions.
 
--   ATTRIBUTE: viewportHeight (*); TYPE: `integer`;
+-   ATTRIBUTE: viewportHeight (*); TYPE: `integer?`;
     Height in pixels of the browser viewport,
     BECAUSE viewport sizing informs layout decisions.

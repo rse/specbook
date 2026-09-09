@@ -1,6 +1,6 @@
 ---
 Created:  2026-08-30 00:49
-Modified: 2026-08-30 14:06
+Modified: 2026-09-09 19:59
 ---
 
 APIS: Interface Model (IM)
@@ -10,7 +10,7 @@ INTERFACE: Server Command Line {{server-cli}}
 ---------------------------------------------
 
 -   KIND:      CLI
--   LOCATION:  `broadcast`
+-   LOCATION:  `broadcast-server`
 -   CONSUMERS: [[PERSONA:administrator]]
 
 The command-line program starting the server process of the service

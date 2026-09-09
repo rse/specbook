@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-19 00:15
-Modified: 2026-09-03 18:05
+Modified: 2026-09-09 17:51
 ---
 
 #   ARCH: Technology Stack (TS)
@@ -74,6 +74,30 @@ Pino provides the leveled, structured logging facility, wrapping the browser con
 human-readably by pino-pretty on the server during development, BECAUSE a single logging library shared by client and
 server keeps the tracing consistent.
 
+### COMPONENT: Date Management {{date-management}}
+
+-   PRODUCT:  Luxon
+-   LICENSE:  MIT
+-   PHASE:    Run-Time
+-   COVERAGE: Data Conversion
+-   USED-BY:  [[COMPONENT:client]], [[COMPONENT:service]]
+
+Luxon handles date and time parsing, formatting, and localization across the client UI and the timestamps emitted by
+the server services, BECAUSE robust, locale-aware date handling is required for event schedules and timestamps in
+German and English on client and server alike.
+
+### COMPONENT: Unique Identifier Generation {{unique-id}}
+
+-   PRODUCT:  nanoid
+-   LICENSE:  MIT
+-   PHASE:    Run-Time
+-   COVERAGE: Business Model, Peer Information
+-   USED-BY:  [[COMPONENT:client]], [[COMPONENT:service]]
+
+nanoid generates the compact, collision-resistant unique identifiers for the messaging peers of client and server and
+for the entities the client creates, BECAUSE short URL-safe identifiers are needed on both tiers without the size and
+overhead of full UUIDs.
+
 ##  TIER: Client
 
 ### COMPONENT: Build Tool {{build-tool}}
@@ -142,16 +166,29 @@ is needed across the branded UI.
 Fontawesome provides the icon set used throughout the client interface, BECAUSE a comprehensive icon library covers the
 UI's iconography needs out of the box.
 
-### COMPONENT: Date Management {{date-management}}
+### COMPONENT: Tooltips {{tooltips}}
 
--   PRODUCT:  Luxon
+-   PRODUCT:  vue-tippy + tippy.js
 -   LICENSE:  MIT
 -   PHASE:    Run-Time
--   COVERAGE: Data Conversion
+-   COVERAGE: Interface Widgets, Interface States
 -   USED-BY:  [[COMPONENT:client]]
 
-Luxon handles date and time parsing, formatting, and localization across the client UI, BECAUSE robust, locale-aware
-date handling is required for event schedules and timestamps in German and English.
+vue-tippy integrates the tippy.js tooltip and popover engine as a Vue.js directive and component for the floating hints
+on the interface elements of the client, BECAUSE a proven positioning engine with a Vue.js integration provides
+consistent tooltips without hand-written placement logic.
+
+### COMPONENT: Animations {{animations}}
+
+-   PRODUCT:  Anime.js
+-   LICENSE:  MIT
+-   PHASE:    Run-Time
+-   COVERAGE: Interface Effects
+-   USED-BY:  [[COMPONENT:client]]
+
+Anime.js drives the scripted transitions and keyframe animations of the client interface elements beyond the
+declarative CSS transitions of the styling framework, BECAUSE timeline-based animations with easing need a JavaScript
+animation engine which CSS alone does not provide.
 
 ### COMPONENT: Sentiment Analysis {{client-sentiment}}
 
@@ -272,17 +309,6 @@ command-line, BECAUSE the server's runtime parameters and secrets must be config
 Valibot declares the canonical, strict configuration schema that validates and coerces the merged configuration at
 startup, BECAUSE a single schema as the source of truth gives fail-fast validation of secrets and a typed
 configuration surface that catches misconfiguration before the service runs.
-
-### COMPONENT: Unique Identifier Generation {{unique-id}}
-
--   PRODUCT:  nanoid
--   LICENSE:  MIT
--   PHASE:    Run-Time
--   COVERAGE: Peer Information
--   USED-BY:  [[COMPONENT:service]]
-
-nanoid generates the compact, collision-resistant unique identifiers for server-side peers and entities, BECAUSE short
-URL-safe identifiers are needed without the size and overhead of full UUIDs.
 
 ### COMPONENT: AI/LLM Connectivity {{ai-connectivity}}
 

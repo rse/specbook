@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 13:40
+Modified: 2026-09-09 16:28
 ---
 
 REQS: Domain Glossary (DG)
@@ -111,8 +111,8 @@ REQS: Domain Glossary (DG)
     BROADER: [[TERM:Message]];
     A [[TERM:Message]] submitted by an [[TERM:Attendee]] as structured
     audience input for the Q&A rounds; it passes through the full
-    moderation and presentation lifecycle, may carry
-    [[TERM:Question Tag]]s, and may receive [[TERM:Like]]s.
+    moderation and presentation lifecycle, may carry tags, and may
+    receive [[TERM:Like]]s.
 
 -   TERM: Chat {{chat}};
     TYPE: Entity;
@@ -184,18 +184,3 @@ REQS: Domain Glossary (DG)
     The optional client-side or server-side evaluation of
     [[TERM:Message]] text yielding a sentiment score used to prevent,
     auto-accept, or auto-reject improper input.
-
--   TERM: Question Tag {{questiontag}};
-    TYPE: Entity;
-    SYNONYMS: Tag;
-    A named label attachable to a Question [[TERM:Message]] giving it
-    context such as the addressed person or [[TERM:Agenda Point]],
-    optionally restricted to [[TERM:Moderator]]s.
-
--   TERM: Agenda Point {{agendapoint}};
-    TYPE: Entity;
-    A phase of an [[TERM:Event]], described by a short text and placed
-    in a defined sequence, letting [[TERM:Attendee]]s and
-    [[TERM:Moderator]]s track which part of the [[TERM:Event]] is
-    currently active and letting a [[TERM:Question Tag]] relate a
-    [[TERM:Question]] to it.
