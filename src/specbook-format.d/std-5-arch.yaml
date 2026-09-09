@@ -271,7 +271,7 @@
             -   PRODUCT
         config:
             size-node-width-max: 440
-            grid-columns-max: 3
+            grid-columns-max: 2
     children:
         -   kind: TIER
             desc: |

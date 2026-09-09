@@ -14,6 +14,10 @@ ChangeLog
     entities into boxes of the overview diagram, now folded to two columns, used by six groups of
     the sample corpus.
 
+-   IMPROVEMENT [spec]: Two Tiers per Row in the Standard Technology Stack Diagram
+    The grid diagram of the Technology Stack artifact now caps its columns at two instead of three,
+    so the tier boxes and the component tiles inside them stay readable.
+
 1.2.8 (2026-09-07)
 ------------------
 
