@@ -2,6 +2,14 @@
 ChangeLog
 =========
 
+1.2.9 (2026-09-09)
+------------------
+
+-   IMPROVEMENT [spec, othr]: Entity Groups in the Standard Data Model
+    A "GROUP" object kind and an "ENTITY" property "GROUP" referencing it nest the strongly related
+    entities into boxes of the overview diagram, now folded to two columns, used by six groups of
+    the sample corpus.
+
 1.2.8 (2026-09-07)
 ------------------
 

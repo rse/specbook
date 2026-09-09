@@ -21,7 +21,27 @@
         type: graph
         nodes: "[[DM.ENTITY:*]]"
         edges: "[[RELATION:*]]"
+        nest:
+            properties:
+                -   GROUP
+        config:
+            graph-columns-max: 2
     children:
+        -   kind: GROUP
+            name: "[A-Z][a-zA-Z0-9]*"
+            desc: >
+                A named group of strongly related entities, carrying a Pascal-cased, 1-3 word long,
+                per-artifact unique name, distinct from the names of its entities (e.g. `Statistics`
+                for the snapshot entities, `Messages` for a message and its texts), and described by
+                a 1-sentence description ("what") plus a 1-sentence rationale ("why") of the
+                cohesion. A group is either an aggregate (a root entity with the part entities it
+                owns) or a subject area (entities sharing one concern), affects the overview diagram
+                only, where its entities are drawn next to each other inside a box, and carries no
+                semantics of its own: the relations between its entities stay explicit. The groups
+                are listed before the entities, and every entity belongs to at most one group.
+            optional: true
+            referenced:
+                -   "[[DM.ENTITY:*]]"
         -   kind: ENTITY
             name: "[A-Z][a-zA-Z0-9]*"
             desc: >
@@ -62,6 +82,13 @@
                         i.e. the domain terms whose information it carries, so that every entity
                         is anchored in the ubiquitous language and every term shows its data.
                     value: list([[TERM:*]])
+                    optional: true
+                -   name: GROUP
+                    desc: >
+                        Reference to the DATA-MODEL group the entity belongs to, placing it next to
+                        the other entities of the group in the overview diagram; omitted for an
+                        entity standing on its own.
+                    value: "[[DM.GROUP:*]]"
                     optional: true
             children:
                 -   kind: ATTRIBUTE
