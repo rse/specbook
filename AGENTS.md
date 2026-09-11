@@ -184,9 +184,9 @@ blue hero flag).
 
 ```
 specbook init     [-v [<level>]] [-c <yaml-file>] [-b <basedir>]
-specbook lint     [-v [<level>]] [-c <yaml-file>] [-b <basedir>]
-specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-w] [-o [<format>:]<output-file>] [...]
-specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-a <ip-addr>] [-p <tcp-port>]
+specbook lint     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g]
+specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-w] [-o [<format>:]<output-file>] [...]
+specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-a <ip-addr>] [-p <tcp-port>]
 specbook describe [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-e] [-z [<level>]] [-f <format>] [-p <part>] [-o <markdown-file>]
 specbook mcp      [-v [<level>]]
 ```
@@ -218,6 +218,19 @@ resolved against the base directory, in which generated specification
 Markdown files are placed, too. All other Markdown files below the base
 directory are ignored, while a referenced but absent file is reported
 unless all of its artifacts are optional.
+
+The option `-g`/`--gitignore` of `lint`, `export`, and `preview` (the
+API/MCP option `gitignore`, default `false`) additionally makes an
+artifact file the Git exclude rules prune out of its project count as an
+*absent* one -- silently for an artifact which is optional anyway, and as
+the error `artifact file excluded by Git` otherwise. The rule sources and
+their precedence are Git's own: the global excludes file
+(`core.excludesFile`, else the XDG fallback), the repository-local
+`info/exclude` of the Git *common* directory (so a linked worktree shares
+the one of its main working tree), and the `.gitignore` files from the
+working tree root down to the artifact file, where the last matching rule
+wins and an excluded ancestor directory excludes everything below it. A
+base directory outside any Git working tree excludes nothing.
 
 Parsing runs in two phases: the syntactic one turns the Markdown into
 the `Spec` AST, the semantic one validates it against the schema

@@ -16,12 +16,14 @@ import { type Spec, type SpecObject }                           from "./specbook
 import { type Schema, type SchemaObject }                       from "./specbook-format-schema.js"
 import { buildLinkIndex, chainOf, plainText }                   from "./specbook-link.js"
 import { referencedCoverage, specCoverage, coverageRatio }      from "./specbook-coverage.js"
+import { excluder }                                             from "./specbook-ignore.js"
 
 /*  the options of the lint command  */
 export interface LintOptions {
-    config:  string[]
-    basedir: string
-    verbose: Verbose
+    config:    string[]
+    basedir:   string
+    gitignore: boolean
+    verbose:   Verbose
 }
 
 /*  the result of the lint command  */
@@ -74,12 +76,25 @@ export const lint = (options: LintOptions): LintResult => {
     if (config !== undefined && files.size === 0)
         diagnostics.push({ file: options.config[0], line: 1, column: 1, severity: "error",
             message: "no artifact files configured" })
+
+    /*  an artifact file Git excludes from its project is treated exactly
+        like an absent one -- it is no part of the project and hence no
+        part of its specification  */
+    const excluded = options.gitignore ? excluder(options.basedir) : () => false
     const sources = new Array<SourceFile>()
     const present = new Set<string>()
     const watched = new Array<string>()
     for (const [ name, optional ] of files) {
         const file = path.join(options.basedir, name)
         watched.push(path.resolve(file))
+        if (excluded(file)) {
+            if (optional)
+                options.verbose(`skipping artifact file "${literal(file)}" excluded by Git`)
+            else
+                diagnostics.push({ file, line: 1, column: 1, severity: "error",
+                    message: "artifact file excluded by Git" })
+            continue
+        }
         if (!fs.existsSync(file)) {
             if (!optional)
                 diagnostics.push({ file, line: 1, column: 1, severity: "error",

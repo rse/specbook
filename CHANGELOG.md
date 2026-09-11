@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.2.10 (2026-09-11)
+-------------------
+
+-   FEATURE [code]: Git Exclude Awareness of the Artifact Files
+    The new option `-g`/`--gitignore` of `lint`, `export`, and `preview` treats an artifact file the
+    Git exclude rules prune out of its project exactly like an absent one.
+
 1.2.9 (2026-09-10)
 ------------------
 

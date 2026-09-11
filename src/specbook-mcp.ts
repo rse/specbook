@@ -60,7 +60,10 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
                 "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
                 "default: the bundled standard schema configuration)"),
-            basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")")
+            basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
+            gitignore: z.boolean().optional().describe("skip the artifact files excluded by the Git " +
+                "exclude rules (the \".gitignore\" files, \"info/exclude\", and the global excludes " +
+                "file), treating such a file exactly like an absent one (default: false)")
         }
     }, async (args) => {
         try {
@@ -88,7 +91,10 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
             format:  z.enum(formats).optional().describe("output format (default: inferred from the " +
                 "output file extension, else json)"),
-            output:  z.string().optional().describe("output file path (\"-\" or omitted returns the result directly)")
+            output:  z.string().optional().describe("output file path (\"-\" or omitted returns the result directly)"),
+            gitignore: z.boolean().optional().describe("skip the artifact files excluded by the Git " +
+                "exclude rules (the \".gitignore\" files, \"info/exclude\", and the global excludes " +
+                "file), treating such a file exactly like an absent one (default: false)")
         }
     }, async (args) => {
         try {
@@ -99,7 +105,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
                 { format: args.format ?? "json", output: args.output } :
                 parseOutputSpec(args.output)
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
-                formats: [ spec.format ] })
+                formats: [ spec.format ], gitignore: args.gitignore })
             if (spec.output !== undefined && spec.output !== "-") {
                 await fs.promises.writeFile(spec.output, data)
                 return { content: [ { type: "text", text: `exported specification into "${spec.output}" (${data.length} bytes)` } ] }

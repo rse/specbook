@@ -107,6 +107,18 @@ const withCommonOptions = (command: Command): Command =>
 /*  the parsed values of the common options  */
 type CommonOptions = VerboseOption & { config: string[], basedir: string }
 
+/*  provide the Git exclude option of the specification *reading*
+    sub-commands (not of "init", which creates artifact files instead of
+    reading them), which treats an artifact file Git excludes from its
+    project exactly like an absent one  */
+const withGitignoreOption = (command: Command): Command => command
+    .option("-g, --gitignore", "skip the artifact files excluded by the Git exclude rules " +
+        "(the \".gitignore\" files, \"info/exclude\", and the global excludes file)",
+    envDefaultFlag("gitignore", false))
+
+/*  the parsed values of the common options plus the Git exclude one  */
+type ProcessOptions = CommonOptions & { gitignore: boolean }
+
 /*  the help, version, and usage-error output Commander produces, which
     is collected instead of written directly, as Commander writes it
     synchronously and then terminates the process, truncating a piped
@@ -149,11 +161,12 @@ withCommonOptions(program.command("init"))
     })
 
 /*  the lint command reports all diagnostics and fails on any error  */
-withCommonOptions(program.command("lint"))
+withGitignoreOption(withCommonOptions(program.command("lint")))
     .description("lint the specification Markdown files below the base directory")
-    .action(async (opts: CommonOptions) => {
+    .action(async (opts: ProcessOptions) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const result = await specbook.lint({ config: configOf(opts), basedir: opts.basedir })
+        const result = await specbook.lint({ config: configOf(opts), basedir: opts.basedir,
+            gitignore: opts.gitignore })
         for (const diagnostic of result.diagnostics)
             await writeStdout(parseVerbosity(opts.verbose) > 0 ?
                 renderDiagnosticVerbose(diagnostic, process.stdout.isTTY === true) :
@@ -165,7 +178,7 @@ withCommonOptions(program.command("lint"))
     })
 
 /*  the export command parses the input once and writes every output  */
-withCommonOptions(program.command("export"))
+withGitignoreOption(withCommonOptions(program.command("export")))
     .description("export the specification Markdown files below the base directory " +
         "as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown")
     .option("-w, --watch", "keep the outputs in sync by re-exporting on every source change",
@@ -174,7 +187,7 @@ withCommonOptions(program.command("export"))
         "output file (\"-\" for stdout, repeatable), with the format inferred " +
         "from the filename extension unless explicitly prefixed",
         (value: string, previous: string[]) => previous.concat(value), new Array<string>())
-    .action(async (opts: CommonOptions & { output: string[], watch: boolean }) => {
+    .action(async (opts: ProcessOptions & { output: string[], watch: boolean }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const outputs = (opts.output.length > 0 ? opts.output : [ envDefault("output") ?? "-" ])
             .map(parseOutputSpec)
@@ -193,24 +206,26 @@ withCommonOptions(program.command("export"))
         }
         if (opts.watch)
             await specbook.watch({ config: configOf(opts), basedir: opts.basedir,
-                formats: distinct, outputs: outputs.map(({ output }) => output), onExport: write })
+                formats: distinct, gitignore: opts.gitignore,
+                outputs: outputs.map(({ output }) => output), onExport: write })
         else
             await write(await specbook.export({ config: configOf(opts), basedir: opts.basedir,
-                formats: distinct }))
+                formats: distinct, gitignore: opts.gitignore }))
     })
 
 /*  the preview command serves the HTML export live in the browser  */
-withCommonOptions(program.command("preview"))
+withGitignoreOption(withCommonOptions(program.command("preview")))
     .description("serve the HTML export of the specification Markdown files below the base " +
         "directory as a live preview, re-exported and reloaded on every source change")
     .option("-a, --addr <ip-addr>",  "IP address to listen on", envDefault("addr", previewAddr))
     .option("-p, --port <tcp-port>", "TCP port to listen on",   envDefault("port", String(previewPort)))
-    .action(async (opts: CommonOptions & { addr: string, port: string }) => {
+    .action(async (opts: ProcessOptions & { addr: string, port: string }) => {
         const port = Number(opts.port)
         if (!Number.isInteger(port) || port < 1 || port > 65535)
             throw new Error(`invalid TCP port "${opts.port}"`)
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        await specbook.preview({ config: configOf(opts), basedir: opts.basedir, addr: opts.addr, port })
+        await specbook.preview({ config: configOf(opts), basedir: opts.basedir, addr: opts.addr, port,
+            gitignore: opts.gitignore })
     })
 
 /*  the describe command also describes the generic SpecBook models and

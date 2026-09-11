@@ -116,10 +116,14 @@ export class SpecBook {
             basedir: options.basedir ?? ".", verbose })
     }
 
-    /*  lint the specification Markdown files below the base directory  */
-    async lint (options: { config?: string[], basedir?: string }): Promise<LintResult> {
+    /*  lint the specification Markdown files below the base directory,
+        where "gitignore" treats an artifact file Git excludes from its
+        project exactly like an absent one  */
+    async lint (options: { config?: string[], basedir?: string,
+        gitignore?: boolean }): Promise<LintResult> {
         return lint({ config: await this.configFiles(options.config),
-            basedir: options.basedir ?? ".", verbose: this.verboseOf("lint") })
+            basedir: options.basedir ?? ".", gitignore: options.gitignore === true,
+            verbose: this.verboseOf("lint") })
     }
 
     /*  render an already parsed specification into the requested formats
@@ -148,7 +152,7 @@ export class SpecBook {
         parsing the input just once and returning one buffer per
         requested format  */
     async export (options: { config?: string[], basedir?: string, formats?: ExportFormat[],
-        realtime?: boolean }): Promise<Buffer[]> {
+        realtime?: boolean, gitignore?: boolean }): Promise<Buffer[]> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
 
@@ -158,7 +162,7 @@ export class SpecBook {
             await requireBrowser(verbose)
 
         const result = lint({ config: await this.configFiles(options.config),
-            basedir: options.basedir ?? ".", verbose })
+            basedir: options.basedir ?? ".", gitignore: options.gitignore === true, verbose })
         return this.renderFormats(result, requested, verbose, options.realtime === true)
     }
 
@@ -172,7 +176,8 @@ export class SpecBook {
         once the initial export is done, while the active watcher keeps the
         process alive afterwards  */
     private async observe (options: { config?: string[], basedir?: string, formats: ExportFormat[],
-        realtime: boolean, outputs?: string[], onExport: (buffers: Buffer[]) => void | Promise<void> },
+        realtime: boolean, gitignore?: boolean, outputs?: string[],
+        onExport: (buffers: Buffer[]) => void | Promise<void> },
     verbose: Verbose): Promise<void> {
         const config = await this.configFiles(options.config)
         return watchSpecification(async () => {
@@ -180,7 +185,8 @@ export class SpecBook {
                 invalid specification, and the configuration files are
                 observed, too, so a failing export (even one due to an
                 invalid configuration) still keeps the observe loop fed  */
-            const result = lint({ config, basedir: options.basedir ?? ".", verbose })
+            const result = lint({ config, basedir: options.basedir ?? ".",
+                gitignore: options.gitignore === true, verbose })
             const files  = [ ...config.map((file) => path.resolve(file)), ...result.files ]
 
             /*  an output which is itself an observed source would re-trigger
@@ -208,7 +214,7 @@ export class SpecBook {
         files "onExport" writes, so an output which is itself an observed
         source can be refused  */
     async watch (options: { config?: string[], basedir?: string, formats?: ExportFormat[],
-        realtime?: boolean, outputs?: string[],
+        realtime?: boolean, gitignore?: boolean, outputs?: string[],
         onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
@@ -224,12 +230,12 @@ export class SpecBook {
         connected browsers as an in-place document update, through the
         client-side script the "realtime" export injects into the HTML  */
     async preview (options: { config?: string[], basedir?: string, addr?: string,
-        port?: number }): Promise<void> {
+        port?: number, gitignore?: boolean }): Promise<void> {
         const verbose = this.verboseOf("preview")
         const server  = await servePreview({ addr: options.addr ?? previewAddr,
             port: options.port ?? previewPort, verbose })
         return this.observe({ config: options.config, basedir: options.basedir,
-            formats: [ "html" ], realtime: true,
+            formats: [ "html" ], realtime: true, gitignore: options.gitignore,
             onExport: ([ html ]) => server.update(html) }, verbose)
     }
 
