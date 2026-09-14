@@ -2,6 +2,17 @@
 ChangeLog
 =========
 
+1.2.13 (2026-09-14)
+-------------------
+
+-   IMPROVEMENT [spec]: Wider `RELATION` Table in the Data Model
+    The `RELATION` objects of the standard schema configuration now allow 5 table columns, so
+    name, `TARGET`, `KIND`, `ARITY`, and description render as one compact table.
+
+-   IMPROVEMENT [code]: Clarified the `Aggregation` Wording of the Data Model `RELATION.KIND`
+    The `aggregation` kind of a `RELATION` now notes its shared part-of target as merely
+    optional, not implied, matching how the plain `association` kind already read.
+
 -   CHANGE [spec]: Capitalized Enumeration Values in the Standard Schema
     The lowercase values of `THEME-STYLE`, `GENDER`, `PROFICIENCY`, and the relation `KIND`
     are now capitalized (`Dark`, `Male`, `Novice`, `Association`, ...) like all other ones.
