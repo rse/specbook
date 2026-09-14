@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-05 00:30
+Modified: 2026-09-14 10:13
 ---
 
 REQS: User Personas (UP)
@@ -53,9 +53,11 @@ lifecycle of the event.
 -   TERM: [[TERM:administrator]]
 
 The administrator provisions the events and the streaming providers
-through the configuration of the software, without ever touching the
-attendees and their messages, BECAUSE the operation of the platform has
-to be reproducible from configuration and free of personal data.
+through the configuration of the software and, as the permanent bootstrap
+identity, enters every event without an access list entry and edits
+everything in it, BECAUSE the operation of the platform has to be
+reproducible from configuration and recoverable by one role that depends
+on no event-specific grant.
 
 ##  PERSONA: Anna {{attendee}}
 
@@ -110,9 +112,9 @@ Registration System has to be quick and repeatable."
 
 -   ROLES:       [[ROLE:administrator]]
 -   TERMS:       [[TERM:administrator]], [[TERM:provider]]
--   GOAL:        Provision events and streaming providers reproducibly via configuration.
--   FRUSTRATION: Platforms that require per-event manual clicks and store personal data he must not touch.
+-   GOAL:        Provision events and streaming providers reproducibly via configuration, and fix anything in any event when the organizers are stuck.
+-   FRUSTRATION: Platforms that require per-event manual clicks and lock him out of the events he provisioned.
 
-"I provision events and streaming providers via config; I never touch
-attendees' personal data."
+"I provision events and streaming providers via config, and when
+something is stuck I step into any event and fix it."
 

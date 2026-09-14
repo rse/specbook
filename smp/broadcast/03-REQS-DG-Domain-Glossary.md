@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-09 16:28
+Modified: 2026-09-14 10:13
 ---
 
 REQS: Domain Glossary (DG)
@@ -11,13 +11,13 @@ REQS: Domain Glossary (DG)
     PREMISES: [[PREMISE:audience-bound]], [[PREMISE:two-languages]], [[PREMISE:start-surge]];
     The central, organizer-defined live broadcast occasion to which an
     audience is invited; it carries all configuration, [[TERM:Channel]]s,
-    roles, the [[TERM:Access List]], and [[TERM:Message]]s, and
+    the [[TERM:Access List]], and [[TERM:Message]]s, and
     progresses from planning through running to finished.
 
 -   TERM: Attendee {{attendee}};
     TYPE: Actor;
     SYNONYMS: Participant, Viewer;
-    BROADER: [[TERM:User]];
+    BROADER: [[TERM:Role]];
     PREMISES: [[PREMISE:email-at-hand]], [[PREMISE:audience-bound]], [[PREMISE:websocket-passage]], [[PREMISE:start-surge]], [[PREMISE:url-leakage]];
     A [[TERM:User]] invited to and logged into a specific [[TERM:Event]]
     who watches the stream and may use the interaction channels; an
@@ -26,9 +26,12 @@ REQS: Domain Glossary (DG)
 -   TERM: User {{user}};
     TYPE: Entity;
     A person identified by their email address within a specific
-    [[TERM:Event]], existing only while granted a [[TERM:Role]], present
-    on the [[TERM:Access List]], or joining via the access email pattern
-    of the [[TERM:Event]]; a User is never a permanent account, and an
+    [[TERM:Event]], holding the [[TERM:Role]]s granted to them and
+    existing only while granted a [[TERM:Role]], present on the
+    [[TERM:Access List]], or joining via the access email pattern of the
+    [[TERM:Event]], except the holder of the [[TERM:Administrator]]
+    [[TERM:Role]], who exists permanently and outside any [[TERM:Event]];
+    any other User is never a permanent account, and an
     [[TERM:Attendee]] is a User logged into the [[TERM:Event]].
 
 -   TERM: Manager {{manager}};
@@ -61,19 +64,23 @@ REQS: Domain Glossary (DG)
 
 -   TERM: Administrator {{administrator}};
     TYPE: Actor;
+    BROADER: [[TERM:Role]];
     SYNONYMS: Software Administrator, Hardware Administrator;
     DISTINCT-FROM: [[TERM:Manager]];
-    A permanent system role; the Hardware Administrator manages the
-    physical server while the Software Administrator manages the
+    A permanent [[TERM:Role]] independent of any [[TERM:Event]] and
+    bootstrapped from the software configuration, whose holder needs no
+    [[TERM:Access List]] entry and may perform every operation on every
+    entity of every [[TERM:Event]]; the Hardware Administrator manages
+    the physical server while the Software Administrator manages the
     software configuration and creates [[TERM:Event]]s.
 
 -   TERM: Role {{role}};
     TYPE: Entity;
     SYNONYMS: Event Role;
-    A grant of special rights to a [[TERM:User]] within a specific
-    [[TERM:Event]], of type [[TERM:Manager]], [[TERM:Moderator]], or
-    [[TERM:Presenter]]; the [[TERM:Administrator]] is a permanent system
-    role, not an event Role.
+    A grant of rights held by a [[TERM:User]] (usually within a specific
+    [[TERM:Event]]), of type [[TERM:Attendee]], [[TERM:Manager]],
+    [[TERM:Moderator]], [[TERM:Presenter]] or [[TERM:Administrator]].
+    A role is a permanent entity.
 
 -   TERM: Channel {{channel}};
     TYPE: Entity;

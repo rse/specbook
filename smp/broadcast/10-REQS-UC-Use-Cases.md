@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-05 00:30
+Modified: 2026-09-14 14:01
 ---
 
 REQS: Use Cases (UC)
@@ -511,7 +511,7 @@ audience set up before anyone can rehearse it.
 -   AT-MAIN-STEP: 2
 -   OUTCOME:      The moderators and the presenter can enter the unpublished event for the rehearsal.
 
-2.  The manager grants the Moderator and Presenter roles of the event by email address, or revokes them again.
+2.  The manager grants the Attendee, Moderator, and Presenter roles to the users of the event by email address, or revokes them again.
 3.  The system creates the users of the roles without permanent accounts and admits them to the unpublished event.
 
 ### SCENARIO: Maintain the Access List {{configure-event-access}}
@@ -712,3 +712,50 @@ focused on the audience.
 
 1.  The presenter sees an alert a moderator has raised on the stage view.
 2.  The presenter confirms the alert, which takes it off the stage view.
+
+USE-CASE: Administer Any Event {{administer-event}}
+------------------------------
+
+-   ACTOR:          [[ROLE:administrator]]
+-   PERSONAS:       [[PERSONA:administrator]]
+-   RULES:          [[RULE:administrator-access]], [[RULE:administrator-bootstrap]], [[RULE:no-accounts]]
+-   PRE-CONDITION:  The Administrator role is granted to the email address of the administrator through the configuration.
+-   TRIGGER:        The administrator opens the URL of an event they are not enrolled in.
+-   POST-CONDITION: The event carries the changes of the administrator.
+
+The administrator enters any event without an access list entry and
+edits every setting, message, and user of it, BECAUSE the organizers
+need a last resort which depends on no event-specific grant when they
+are locked out or stuck.
+
+### SCENARIO: Enter and Edit Any Event {{administer-event-edit}}
+
+-   TYPE: Main
+
+1.  The administrator opens the event URL and requests the login challenge for the configured administrator email address.
+2.  The system issues and sends the one-time token without consulting the access list of the event.
+3.  The administrator returns the token.
+4.  The system admits the administrator to the event in every state with every operation.
+5.  The administrator edits a setting, a message, or a user of the event.
+6.  The system applies the change and propagates it like the change of the respective event role.
+
+### SCENARIO: Reach an Event via the Overview {{administer-event-list}}
+
+-   TYPE:         Alternative
+-   RESULT:       Resume
+-   AT-MAIN-STEP: 1
+-   OUTCOME:      The administrator has reached the event through the overview instead of its URL, and the flow resumes at step 1.
+
+1.  The administrator opens the overview of all events instead of the URL of a particular event.
+2.  The system lists every event in every state.
+3.  The administrator selects an event, which opens its URL.
+
+### SCENARIO: Administrator Role Stays Configured {{administer-event-no-grant}}
+
+-   TYPE:         Exceptional
+-   RESULT:       Failure
+-   AT-MAIN-STEP: 5
+-   OUTCOME:      The set of administrators stays as configured.
+
+5.  The administrator attempts to grant or revoke an Administrator role in the user interface.
+6.  The system refuses the change, as the Administrator role is granted through the configuration only.

@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-29 14:05
+Modified: 2026-09-14 10:13
 ---
 
 #   REQS: Domain Rules (DR)
@@ -25,7 +25,8 @@ the invited [[TERM:Attendee]].
 -   CONSTRAINS: [[REQUIREMENT:authentication]]
 -   PREMISES:   [[PREMISE:url-leakage]]
 
-A [[TERM:User]] MUST be granted access to an [[TERM:Event]] only according to the first matching case:
+A [[TERM:User]] not holding the [[TERM:Administrator]] [[TERM:Role]] (see [[RULE:administrator-access]]) MUST be granted
+access to an [[TERM:Event]] only according to the first matching case:
 
 1.  The email of the [[TERM:User]] is on the [[TERM:Access List]] of the [[TERM:Event]]: access is granted.
 2.  The email of the [[TERM:User]] matches the access email pattern of the [[TERM:Event]]: access is granted.
@@ -157,9 +158,10 @@ automated access.
 
 -   CATEGORY:   Constraint
 -   SOURCE:     Law
--   GOVERNS:    [[TERM:user]], [[TERM:role]], [[TERM:event]], [[TERM:accesslist]]
+-   GOVERNS:    [[TERM:user]], [[TERM:role]], [[TERM:administrator]], [[TERM:event]], [[TERM:accesslist]]
 
-A [[TERM:User]] MUST NOT exist as a permanent account: a [[TERM:User]] exists only while granted a [[TERM:Role]], present on
+A [[TERM:User]] MUST NOT exist as a permanent account, except the holder of the [[TERM:Administrator]] [[TERM:Role]]
+bootstrapped from the configuration: any other [[TERM:User]] exists only while granted a [[TERM:Role]], present on
 the [[TERM:Access List]] of an [[TERM:Event]], or joining via a matching access email pattern, BECAUSE privacy by design
 (GDPR Art. 25) forbids persistent personal data beyond operational need.
 
@@ -172,3 +174,25 @@ the [[TERM:Access List]] of an [[TERM:Event]], or joining via a matching access 
 
 A [[TERM:Manager]] [[TERM:Role]] MUST be retained after an [[TERM:Event]] finishes until the [[TERM:Event]] is deleted
 entirely, BECAUSE [[TERM:Manager]]s must still export the [[TERM:Event]] data left by the [[TERM:Anonymization]].
+
+##  RULE: Administrator Bypasses the Access List {{administrator-access}}
+
+-   CATEGORY:   Constraint
+-   SOURCE:     Business
+-   GOVERNS:    [[TERM:administrator]], [[TERM:user]], [[TERM:event]], [[TERM:accesslist]]
+-   CONSTRAINS: [[REQUIREMENT:authentication]]
+
+A [[TERM:User]] holding the [[TERM:Administrator]] [[TERM:Role]] MUST be granted access to every [[TERM:Event]] through the
+ordinary login challenge of the configured email address, without an [[TERM:Access List]] entry, an access email pattern
+match, or anonymous access, BECAUSE the [[TERM:Administrator]] exists before any [[TERM:Event]] and hence cannot be
+enrolled on its [[TERM:Access List]].
+
+##  RULE: Administrator Bootstrapped by Configuration {{administrator-bootstrap}}
+
+-   CATEGORY:   Constraint
+-   SOURCE:     Business
+-   GOVERNS:    [[TERM:administrator]], [[TERM:role]]
+
+An [[TERM:Administrator]] [[TERM:Role]] MUST be granted and revoked through the software configuration only, never through
+the solution itself, BECAUSE the [[TERM:Administrator]] is the bootstrap identity from which every [[TERM:Event]] and
+[[TERM:Manager]] originates and hence cannot depend on a grant inside the solution.

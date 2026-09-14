@@ -1,19 +1,19 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-09 19:56
+Modified: 2026-09-14 14:01
 ---
 
 #   DATA: Data Model (DM)
 
 ##  GROUP: Events
 
-An event together with its agenda points, its question tags, and its roles,
-BECAUSE all of them are the event-specific configuration of its phases, questions, and rights.
+An event together with its agenda points and its question tags,
+BECAUSE both are the event-specific configuration of its phases and questions.
 
 ##  GROUP: Users
 
-The user as the sole identity entity,
-BECAUSE it is the one entity nearly every other one refers to, standing on its own.
+The user as the sole identity entity together with the roles granted to it,
+BECAUSE the user is the one entity nearly every other one refers to and the roles are the rights it holds.
 
 ##  GROUP: Channels
 
@@ -202,35 +202,31 @@ BECAUSE the entire data model is event-centric and every other entity hangs off 
     Whether improper input is auto-rejected on the server,
     BECAUSE moderators can be relieved of rejecting negative input.
 
--   RELATION: channels; TARGET: [[ENTITY:Channel]]; ARITY: `0..n`;
+-   RELATION: channels; TARGET: [[ENTITY:Channel]]; KIND: Composition; ARITY: `0..n`;
     Language-specific content distributors of the event,
     BECAUSE an event delivers content through one or more logical channels.
 
--   RELATION: roles; TARGET: [[ENTITY:Role]]; ARITY: `0..n`;
-    Manager, Moderator, and Presenter roles for the event,
-    BECAUSE event-specific rights are granted through roles.
-
--   RELATION: accessList; TARGET: [[ENTITY:User]]; ARITY: `0..n`;
+-   RELATION: accessList; TARGET: [[ENTITY:User]]; KIND: Composition; ARITY: `0..n`;
     Invited attendees identified by email,
     BECAUSE access is granted to an explicit list of users.
 
--   RELATION: messages; TARGET: [[ENTITY:Message]]; ARITY: `0..n`;
+-   RELATION: messages; TARGET: [[ENTITY:Message]]; KIND: Composition; ARITY: `0..n`;
     Messages written during the event,
     BECAUSE all chat, question, and support input belongs to the event.
 
--   RELATION: statistics; TARGET: [[ENTITY:EventStatistic]]; ARITY: `0..n`;
+-   RELATION: statistics; TARGET: [[ENTITY:EventStatistic]]; KIND: Composition; ARITY: `0..n`;
     Periodic cumulative statistics snapshots,
     BECAUSE trend visualization requires periodic counts.
 
--   RELATION: availableQuestionTags; TARGET: [[ENTITY:QuestionTag]]; ARITY: `0..n`;
+-   RELATION: availableQuestionTags; TARGET: [[ENTITY:QuestionTag]]; KIND: Composition; ARITY: `0..n`;
     Tags available for use on questions,
     BECAUSE the event defines the vocabulary for tagging questions.
 
--   RELATION: activeAgendaPoint; TARGET: [[ENTITY:AgendaPoint]]; ARITY: `0..1`;
+-   RELATION: activeAgendaPoint; TARGET: [[ENTITY:AgendaPoint]]; KIND: Association; ARITY: `0..1`;
     The currently active agenda point,
     BECAUSE attendees see which phase of the event is current.
 
--   RELATION: agendaPoints; TARGET: [[ENTITY:AgendaPoint]]; ARITY: `0..n`;
+-   RELATION: agendaPoints; TARGET: [[ENTITY:AgendaPoint]]; KIND: Composition; ARITY: `0..n`;
     All agenda points of the event,
     BECAUSE the event has an ordered agenda of phases.
 
@@ -255,7 +251,7 @@ BECAUSE attendees and moderators track which part of the event is currently acti
     Ordering position of the phase,
     BECAUSE agenda points have a defined sequence.
 
--   RELATION: correspondingTags; TARGET: [[ENTITY:QuestionTag]]; ARITY: `0..n`;
+-   RELATION: correspondingTags; TARGET: [[ENTITY:QuestionTag]]; KIND: Association; ARITY: `0..n`;
     Question tags corresponding to this agenda point,
     BECAUSE questions can be associated with the agenda phase they relate to.
 
@@ -285,11 +281,11 @@ BECAUSE an event groups its streams by language and resolution into channels.
     Whether this channel is activated by default on entering an event,
     BECAUSE attendees need a defined initial channel.
 
--   RELATION: resources; TARGET: [[ENTITY:Resource]]; ARITY: `1..n`;
+-   RELATION: resources; TARGET: [[ENTITY:Resource]]; KIND: Composition; ARITY: `1..n`;
     Physical resources backing the channel,
     BECAUSE a channel is delivered by one or more provider resources.
 
--   RELATION: statistics; TARGET: [[ENTITY:ChannelStatistic]]; ARITY: `0..n`;
+-   RELATION: statistics; TARGET: [[ENTITY:ChannelStatistic]]; KIND: Composition; ARITY: `0..n`;
     Periodic viewer statistics of the channel,
     BECAUSE organizers track viewers per channel over time.
 
@@ -315,7 +311,7 @@ BECAUSE a channel must map to concrete provider endpoints to be playable.
     Whether this resource is the active resource of the channel,
     BECAUSE only one resource of a channel is active at once for provider switching.
 
--   RELATION: params; TARGET: [[ENTITY:ResourceProviderParam]]; ARITY: `0..n`;
+-   RELATION: params; TARGET: [[ENTITY:ResourceProviderParam]]; KIND: Composition; ARITY: `0..n`;
     Provider key-value parameters assigned to this resource,
     BECAUSE each provider needs configured parameters to address its stream.
 
@@ -348,45 +344,43 @@ BECAUSE provider endpoints are parameterized by values an administrator supplies
 ##  ENTITY: Role
 
 -   REQUIREMENTS: [[REQUIREMENT:moderation]], [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:export-inputs]]
--   USE-CASES: [[USE-CASE:authenticate]], [[USE-CASE:publish-start-finish]], [[USE-CASE:export-data]]
--   TERMS: [[TERM:role]], [[TERM:manager]], [[TERM:moderator]], [[TERM:presenter]]
--   GROUP: [[GROUP:Events]]
+-   USE-CASES: [[USE-CASE:authenticate]], [[USE-CASE:publish-start-finish]], [[USE-CASE:export-data]],
+    [[USE-CASE:administer-event]]
+-   TERMS: [[TERM:role]], [[TERM:attendee]], [[TERM:manager]], [[TERM:moderator]], [[TERM:presenter]],
+    [[TERM:administrator]]
+-   GROUP: [[GROUP:Users]]
 
-A grant of special rights to a specific user within an event,
+A grant of rights to a user, who exists within a specific event or, as the holder of the Administrator role, permanently and outside any event,
 BECAUSE the application is role-based and rights are granted through roles.
 
 -   ATTRIBUTE: roleId; TYPE: `key uuid`; DEFAULT: `uuid()`;
     Unique identifier of the role,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: type; TYPE: `enum(Manager,Moderator,Presenter)`; DEFAULT: `Presenter`;
-    The role granted to the person for the event,
+-   ATTRIBUTE: type; TYPE: `enum(Manager,Moderator,Presenter,Attendee,Administrator)`; DEFAULT: `Attendee`;
+    The role granted to the user, where Attendee is the plain audience membership and Administrator the permanent, event-independent role granted through the configuration only,
     BECAUSE each role carries a distinct set of rights.
-
--   ATTRIBUTE: email (*); TYPE: `string?`; CLASSIFICATION: Personal;
-    RETENTION: until event finish (Moderator), until event deletion (Manager);
-    Email address of the authorized person,
-    BECAUSE roles are granted by email without permanent accounts.
 
 ##  ENTITY: User
 
 -   REQUIREMENTS: [[REQUIREMENT:authentication]], [[REQUIREMENT:name-appearance]], [[REQUIREMENT:likes]],
     [[REQUIREMENT:personalized-url]], [[REQUIREMENT:registration-import]]
 -   USE-CASES: [[USE-CASE:authenticate]], [[USE-CASE:create-event]], [[USE-CASE:chat-during-event]],
-    [[USE-CASE:publish-start-finish]]
--   TERMS: [[TERM:user]], [[TERM:attendee]], [[TERM:accesslist]]
+    [[USE-CASE:publish-start-finish]], [[USE-CASE:administer-event]]
+-   TERMS: [[TERM:user]], [[TERM:accesslist]]
 -   GROUP: [[GROUP:Users]]
 
-A helper entity enabling event-based logins for invited or pattern-matched attendees,
-BECAUSE the system holds no permanent accounts yet must identify attendees per event.
+A helper entity identifying a person within an event for event-based logins and for the roles granted to them, or permanently and outside any event as the holder of the Administrator role,
+BECAUSE the system holds no permanent accounts except the administrator yet must identify attendees and role holders per event.
 
 -   ATTRIBUTE: userId; TYPE: `key uuid`; DEFAULT: `uuid()`;
     Unique identifier of the user,
     BECAUSE it is referenced as a foreign key.
 
--   ATTRIBUTE: email (*); TYPE: `string?`; CLASSIFICATION: Personal; RETENTION: until event finish;
+-   ATTRIBUTE: email (*); TYPE: `string?`; CLASSIFICATION: Personal;
+    RETENTION: until event finish, until event deletion for a holder of the Manager role, permanently for the holder of the Administrator role;
     Concrete email address of the user,
-    BECAUSE authorization tokens are sent to this address at login.
+    BECAUSE authorization tokens are sent to this address at login and roles are granted to it.
 
 -   ATTRIBUTE: firstname; TYPE: `string`; DEFAULT: `""`; CLASSIFICATION: Personal; RETENTION: until event finish;
     Optional first name of the user,
@@ -396,15 +390,19 @@ BECAUSE the system holds no permanent accounts yet must identify attendees per e
     Optional last name of the user,
     BECAUSE it is displayed on the user's chat and question messages.
 
--   RELATION: likes; TARGET: [[ENTITY:Message]]; ARITY: `0..n`;
+-   RELATION: roles; TARGET: [[ENTITY:Role]]; KIND: Composition; ARITY: `0..n`;
+    Roles granted to the user within its event,
+    BECAUSE rights are held by the identified user rather than by a bare email address.
+
+-   RELATION: likes; TARGET: [[ENTITY:Message]]; KIND: Association; ARITY: `0..n`;
     Messages the user marked as liked,
     BECAUSE likes are tracked per user until anonymization.
 
--   RELATION: sentMessages; TARGET: [[ENTITY:Message]]; ARITY: `0..n`;
+-   RELATION: sentMessages; TARGET: [[ENTITY:Message]]; KIND: Association; ARITY: `0..n`;
     Messages the user has sent,
     BECAUSE authorship links a message to its sending user.
 
--   RELATION: statistics; TARGET: [[ENTITY:UserStatistic]]; ARITY: `0..n`;
+-   RELATION: statistics; TARGET: [[ENTITY:UserStatistic]]; KIND: Aggregation; ARITY: `0..n`;
     Periodic statistics about the user,
     BECAUSE viewer information is captured per user over time.
 
@@ -468,31 +466,31 @@ BECAUSE all event interaction is represented uniformly as messages with language
     Whether and how the message was changed or deleted,
     BECAUSE edits must be marked for others and edits stop once forwarded.
 
--   RELATION: sender; TARGET: [[ENTITY:User]]; ARITY: `0..1`;
+-   RELATION: sender; TARGET: [[ENTITY:User]]; KIND: Association; ARITY: `0..1`;
     The authoring attendee of the message,
     BECAUSE a message has an author until the sender is removed on finish.
 
--   RELATION: liker; TARGET: [[ENTITY:User]]; ARITY: `0..n`;
+-   RELATION: liker; TARGET: [[ENTITY:User]]; KIND: Association; ARITY: `0..n`;
     Attendees who liked the message,
     BECAUSE likes are tracked per liking user before anonymization.
 
--   RELATION: event; TARGET: [[ENTITY:Event]]; ARITY: `1`;
+-   RELATION: event; TARGET: [[ENTITY:Event]]; KIND: Association; ARITY: `1`;
     The event the message belongs to,
     BECAUSE the event link must persist even after senders are deleted.
 
--   RELATION: replyTo; TARGET: [[ENTITY:Message]]; ARITY: `0..1`;
+-   RELATION: replyTo; TARGET: [[ENTITY:Message]]; KIND: Association; ARITY: `0..1`;
     The message this message replies to,
     BECAUSE chat replies and moderator answers chain messages together.
 
--   RELATION: predecessor; TARGET: [[ENTITY:Message]]; ARITY: `0..1`;
+-   RELATION: predecessor; TARGET: [[ENTITY:Message]]; KIND: Association; ARITY: `0..1`;
     The preceding message in a manual ordering,
     BECAUSE moderators sort forwarded messages for the presenter.
 
--   RELATION: questionTags; TARGET: [[ENTITY:QuestionTag]]; ARITY: `0..n`;
+-   RELATION: questionTags; TARGET: [[ENTITY:QuestionTag]]; KIND: Association; ARITY: `0..n`;
     Tags attached to a question message,
     BECAUSE questions can be tagged with zero or more tags for context.
 
--   RELATION: messageText; TARGET: [[ENTITY:MessageText]]; ARITY: `1..n`;
+-   RELATION: messageText; TARGET: [[ENTITY:MessageText]]; KIND: Composition; ARITY: `1..n`;
     The message texts of this message,
     BECAUSE each message text can be translated to multiple languages.
 
@@ -567,11 +565,11 @@ BECAUSE email-verified access is the core mechanism limiting the audience.
     Lifecycle state of the token,
     BECAUSE debugging statistics and anonymized sums need the token state.
 
--   RELATION: user; TARGET: [[ENTITY:User]]; ARITY: `1`;
+-   RELATION: user; TARGET: [[ENTITY:User]]; KIND: Association; ARITY: `1`;
     The user the token was issued for,
     BECAUSE a token authorizes exactly one user.
 
--   RELATION: event; TARGET: [[ENTITY:Event]]; ARITY: `1`;
+-   RELATION: event; TARGET: [[ENTITY:Event]]; KIND: Association; ARITY: `1`;
     The event the token was issued for,
     BECAUSE a token grants access to exactly one event.
 
@@ -593,11 +591,11 @@ BECAUSE an active session must be tracked to enforce single concurrent access.
     Time the user successfully entered the event,
     BECAUSE the session start time is recorded for tracking.
 
--   RELATION: user; TARGET: [[ENTITY:User]]; ARITY: `1`;
+-   RELATION: user; TARGET: [[ENTITY:User]]; KIND: Association; ARITY: `1`;
     The user the session was issued for,
     BECAUSE a session belongs to exactly one user.
 
--   RELATION: event; TARGET: [[ENTITY:Event]]; ARITY: `1`;
+-   RELATION: event; TARGET: [[ENTITY:Event]]; KIND: Association; ARITY: `1`;
     The event the session was issued for,
     BECAUSE a session grants access to exactly one event.
 

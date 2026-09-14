@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-03 18:45
+Modified: 2026-09-14 14:01
 ---
 
 TEST: Test Cases (TC)
@@ -271,6 +271,32 @@ TEST: Test Cases (TC)
 -   INPUT:          The administrator reads the event through the configuration and requests its access list and messages.
 -   EXPECTED:       The event settings are returned, while the requests for the access list and the messages are refused.
 -   POST-CONDITION: No access list entry or message was disclosed to the administrator.
+
+##  TEST-CASE: Administrator Enters Without Access List Entry {{administrator-access}}
+
+-   VERIFIES:       [[RULE:administrator-access]], [[SCENARIO:administer-event-edit]], [[PERMISSION:administrator-auth-tokens]]
+-   PRE-CONDITION:  A running event whose access list does not contain the configured administrator email address and whose access email pattern does not match it.
+-   INPUT:          The administrator requests the login challenge for the configured administrator email address at the event URL and returns the received token.
+-   EXPECTED:       The token is issued and sent without consulting the access list, and the administrator is admitted to the event.
+-   POST-CONDITION: The administrator holds an active session for the event while its access list is unchanged.
+
+1.  The administrator opens the event URL and enters the configured administrator email address.
+2.  The tester verifies that a token was sent to that address.
+3.  The administrator returns the token.
+4.  The tester inspects the access list of the event.
+
+##  TEST-CASE: Administrator Role Granted by Configuration Only {{administrator-bootstrap}}
+
+-   VERIFIES:       [[RULE:administrator-bootstrap]], [[SCENARIO:administer-event-no-grant]], [[PERMISSION:administrator-roles]]
+-   PRE-CONDITION:  The configuration grants the Administrator role to exactly one email address, and its holder has entered an event.
+-   INPUT:          The administrator attempts to grant the Administrator role to a user of the event and to revoke their own Administrator role through the user interface.
+-   EXPECTED:       Both attempts are refused, while granting the Manager role to the same user succeeds.
+-   POST-CONDITION: The set of Administrator roles equals the configured one.
+
+1.  The administrator attempts to grant the Administrator role to a user of the event.
+2.  The administrator attempts to revoke their own Administrator role.
+3.  The administrator grants the Manager role to the same user.
+4.  The tester inspects the roles of the administrator user and of the event user.
 
 ##  TEST-CASE: Concurrent Attendee Load {{load}}
 

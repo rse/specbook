@@ -1,6 +1,6 @@
 ---
 Created:  2026-08-30 00:49
-Modified: 2026-09-09 19:59
+Modified: 2026-09-14 10:13
 ---
 
 APIS: Interface Endpoints (IE)
@@ -12,7 +12,7 @@ ENDPOINT: broadcast-server
 -   INTERFACE:   [[INTERFACE:server-cli]]
 -   PERMISSIONS: [[PERMISSION:administrator-events]], [[PERMISSION:administrator-channels]],
                  [[PERMISSION:administrator-resources]], [[PERMISSION:administrator-params]],
-                 [[PERMISSION:administrator-manager-role]]
+                 [[PERMISSION:administrator-roles]]
 -   OPERATION:   command
 -   LOCATOR:     `broadcast-server [options]`
 

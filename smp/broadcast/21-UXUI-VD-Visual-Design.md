@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-08-30 00:49
+Modified: 2026-09-14 10:24
 ---
 
 #   UXUI: Visual Design (VD)
@@ -148,14 +148,13 @@ The main attendee screen with the Support tab open, showing the private
 exchange of a blue own message and an amber moderator reply above the
 composer.
 
-##  MOCKUP: Manager Event Creation {{mockup-manager-create}}
+##  MOCKUP: Administrator Event Creation {{mockup-administrator-create}}
 
--   ACTORS: [[PERSONA:manager]]
--   STORYBOARD: [[STORYBOARD:registration-import]]
+-   ACTORS: [[PERSONA:administrator]]
 -   ELEMENTS: [[ELEMENT:color-palette]], [[ELEMENT:wordmark]], [[ELEMENT:typography]], [[ELEMENT:spacing]], [[ELEMENT:shape]]
 -   IMAGE: ![](21-UXUI-VD-Visual-Design-4.png)
 
-The event creation form of the manager, showing the type scale of the
+The event creation form of the administrator, showing the type scale of the
 headings, the outlined form fields, the event type selector with the
 filled selected profile, and the blue-tinted profile summary.
 

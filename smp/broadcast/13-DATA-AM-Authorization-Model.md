@@ -1,6 +1,6 @@
 ---
 Created:  2026-08-30 12:00
-Modified: 2026-09-05 02:00
+Modified: 2026-09-14 14:01
 ---
 
 DATA: Authorization Model (AM)
@@ -179,10 +179,10 @@ DATA: Authorization Model (AM)
     The manager switches the active resource of a channel to a fallback streaming provider, without changing the provider parameters.
 
 -   Grant Event Roles {{manager-roles}}; ROLE: [[ROLE:manager]]; ENTITY: [[ENTITY:Role]]; OPERATIONS: Create, Read, Delete;
-    CONDITION: The role belongs to the event the manager holds the Manager role of.;
+    CONDITION: The role is held by a user of the event the manager holds the Manager role of.;
     RULES: [[RULE:no-accounts]], [[RULE:anonymize]];
     USE-CASES: [[SCENARIO:configure-event-roles]];
-    The manager grants and revokes the Manager, Moderator, and Presenter roles of the event by email.
+    The manager grants and revokes the Attendee, Manager, Moderator, and Presenter roles of the users of the event, identified by email.
 
 -   Maintain the Access List {{manager-access-list}}; ROLE: [[ROLE:manager]]; ENTITY: [[ENTITY:User]]; OPERATIONS: Create, Read, Update, Delete;
     CONDITION: The user is on the access list of the event the manager holds the Manager role of.;
@@ -228,24 +228,73 @@ DATA: Authorization Model (AM)
     USE-CASES: [[SCENARIO:export-data-stats]];
     The manager inspects the audience composition by country, browser, device, and viewport.
 
--   Provision Events {{administrator-events}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:Event]]; OPERATIONS: Create, Read;
-    CONDITION: The operation is performed through the configuration, not through the user interface of the event.;
-    The administrator creates the configured events with their settings, reading them back but none of their audience data, outside any use case.
+-   Administer Every Event {{administrator-events}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:Event]];
+    OPERATIONS: Create, Read, Update, Delete, [[TRANSITION:publish]], [[start]], [[start-unpublished]], [[TRANSITION:finish]];
+    RULES: [[RULE:administrator-access]], [[RULE:anonymize]];
+    USE-CASES: [[USE-CASE:administer-event]], [[SCENARIO:administer-event-list]];
+    The administrator provisions the events through the configuration and lists, enters, configures, runs, and deletes every event in every state through the user interface, without any access list entry.
 
--   Provision Channels {{administrator-channels}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:Channel]]; OPERATIONS: Create, Read;
-    CONDITION: The operation is performed through the configuration.;
-    The administrator creates the initial channels of a provisioned event, which the manager lays out further, outside any use case.
+-   Administer the Agenda {{administrator-agenda}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:AgendaPoint]]; OPERATIONS: Create, Read, Update, Delete;
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator curates the agenda of every event and advances its active agenda point.
 
--   Provision Resources {{administrator-resources}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:Resource]]; OPERATIONS: Create, Read, Update, Delete;
-    CONDITION: The operation is performed through the configuration.;
+-   Administer the Channels {{administrator-channels}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:Channel]]; OPERATIONS: Create, Read, Update, Delete;
+    RULES: [[RULE:single-channel]];
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator provisions the initial channels through the configuration and lays out the channels of every event, including the active one.
+
+-   Administer the Resources {{administrator-resources}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:Resource]]; OPERATIONS: Create, Read, Update, Delete;
     RULES: [[RULE:single-resource]];
-    The administrator binds the resources of the channels to the configured streaming providers, outside any use case.
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator binds the resources of every channel to the configured streaming providers and switches the active resource.
 
--   Provision Provider Parameters {{administrator-params}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:ResourceProviderParam]]; OPERATIONS: Create, Read, Update, Delete;
-    CONDITION: The operation is performed through the configuration.;
-    The administrator supplies the key-value parameters each streaming provider needs to address its stream, outside any use case.
+-   Administer the Provider Parameters {{administrator-params}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:ResourceProviderParam]]; OPERATIONS: Create, Read, Update, Delete;
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator supplies and changes the key-value parameters each streaming provider needs to address its stream.
 
--   Grant the Manager Role {{administrator-manager-role}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:Role]]; OPERATIONS: Create, Read, Delete;
-    CONDITION: The role is a Manager role, granted through the configuration.;
-    RULES: [[RULE:manager-retained]];
-    The administrator grants the initial Manager role of a provisioned event by email, from which the manager proceeds on their own, outside any use case.
+-   Administer the Roles {{administrator-roles}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:Role]]; OPERATIONS: Create, Read, Delete;
+    CONDITION: The role is not an Administrator role, which the configuration alone grants and revokes.;
+    RULES: [[RULE:administrator-bootstrap]], [[RULE:manager-retained]];
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator grants the initial Manager role of a provisioned event through the configuration and grants and revokes every Attendee, Manager, Moderator, and Presenter role of every event.
+
+-   Administer the Users {{administrator-users}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:User]]; OPERATIONS: Create, Read, Update, Delete;
+    RULES: [[RULE:access-grant]], [[RULE:no-accounts]];
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator maintains the access list and the users of every event, personal data included.
+
+-   Administer the Messages {{administrator-messages}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:Message]];
+    OPERATIONS: Create, Read, Update, Delete, [[accept]], [[reject]], [[TRANSITION:forward]], [[TRANSITION:answer]], [[TRANSITION:suspend]], [[TRANSITION:resubmit]];
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator reads, moderates, forwards, settles, edits, and deletes every message of every event in every state.
+
+-   Administer the Message Texts {{administrator-message-texts}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:MessageText]]; OPERATIONS: Create, Read, Update, Delete;
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator reads and corrects the language-specific texts of every message.
+
+-   Administer the Tags {{administrator-tags}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:QuestionTag]]; OPERATIONS: Create, Read, Update, Delete;
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator curates the tag vocabulary of every event, including the tags reserved for moderators.
+
+-   Administer the Authorization Tokens {{administrator-auth-tokens}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:AuthorizationToken]];
+    OPERATIONS: Create, Read, Update, Delete, [[TRANSITION:send]], [[consume]], [[consume-automatic]];
+    RULES: [[RULE:administrator-access]], [[RULE:token-format]];
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator passes the login challenge of the configured administrator email address without any access list check, and issues, inspects, and revokes the tokens of every event.
+
+-   Administer the Sessions {{administrator-sessions}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:SessionToken]]; OPERATIONS: Create, Read, Update, Delete;
+    RULES: [[RULE:single-session]];
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator inspects and terminates the sessions of every event.
+
+-   Administer the Event Statistics {{administrator-statistics-event}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:EventStatistic]]; OPERATIONS: Create, Read, Update, Delete;
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator inspects and prunes the event statistics of every event.
+
+-   Administer the Channel Statistics {{administrator-statistics-channel}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:ChannelStatistic]]; OPERATIONS: Create, Read, Update, Delete;
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator inspects and prunes the channel statistics of every event.
+
+-   Administer the Viewer Statistics {{administrator-statistics-user}}; ROLE: [[ROLE:administrator]]; ENTITY: [[ENTITY:UserStatistic]]; OPERATIONS: Create, Read, Update, Delete;
+    USE-CASES: [[USE-CASE:administer-event]];
+    The administrator inspects and prunes the viewer statistics of every event.

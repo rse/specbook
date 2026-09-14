@@ -12,7 +12,7 @@ Modified: 2026-06-22 18:56
 -   VERSION:         0.9.0
 -   LANG:            en
 -   CHARSET:         US-ASCII
--   THEME-STYLE:     dark
+-   THEME-STYLE:     Dark
 -   THEME-TONE:      #336699
 -   PAPER-SIZE:      A4
 
