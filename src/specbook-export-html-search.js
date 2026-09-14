@@ -11,7 +11,9 @@
     the table header and the headings of all enclosing objects, and
     every matched word is highlighted with a <mark> element (an SVG
     <tspan> element underlaid with a <rect> inside a diagram), while
-    the table of contents (page and side panel) is filtered along  */
+    the table of contents (page and side panel) is filtered along; the
+    explicit anchor id of an object (invisible in the document) is
+    searched like its text, a hit marking the anchor symbol instead  */
 (function () {
     const tab    = document.getElementById("search")
     const toggle = document.getElementById("search-toggle")
@@ -52,7 +54,9 @@
         one not nested inside another unit (like a paragraph or diagram
         in a table cell, which is covered by its table row), where a
         diagram is searched by its SVG text labels, joined by spaces,
-        as its raw text content would run them together  */
+        as its raw text content would run them together, and where the
+        explicit anchor id of an object heading or table row joins the
+        searched text  */
     const index = () => {
         if (indexed)
             return
@@ -66,12 +70,13 @@
                             return
                         parent = parent.parentElement
                     }
-                    const text  = (el.classList.contains("diagram") ?
+                    const id    = (el.dataset.id ?? "").toLowerCase()
+                    const text  = ((el.classList.contains("diagram") ?
                         Array.from(el.querySelectorAll("text")).map((t) => t.textContent ?? "").join(" ") :
-                        (el.textContent ?? "")).toLowerCase()
+                        (el.textContent ?? "")) + " " + id).toLowerCase()
                     const words = new Set(text.split(/[^\p{L}\p{N}]+/u).filter((w) => w !== ""))
                     words.forEach((w) => { vocab.add(w) })
-                    units.push({ el, text, words, keep: false })
+                    units.push({ el, id, text, words, keep: false })
                 })
         })
 
@@ -319,12 +324,24 @@
                 el.classList.add("search-hide")
         })
 
-        /*  highlight every matched word within the kept units  */
+        /*  highlight every matched word within the kept units, plus the
+            anchor symbol of a unit whose explicit anchor id matched, as
+            the id itself is nowhere visible  */
         const words = Array.from(new Set(parts.flat()))
         const regex = buildRegex(words, Array.from(variants))
         units.forEach((unit) => {
-            if (unit.el.classList.contains("search-keep"))
-                highlight(unit.el, regex)
+            if (!unit.el.classList.contains("search-keep"))
+                return
+            highlight(unit.el, regex)
+            regex.lastIndex = 0
+            const symbol = unit.el.querySelector("span.anchor-symbol")
+            if (unit.id === "" || symbol === null || !regex.test(unit.id))
+                return
+            const mark = document.createElement("mark")
+            mark.classList.add("search-hit")
+            while (symbol.firstChild !== null)
+                mark.appendChild(symbol.firstChild)
+            symbol.appendChild(mark)
         })
 
         /*  filter the table of contents (its page rows and its side

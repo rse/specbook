@@ -178,7 +178,7 @@ const templates = {
     /*  <Object/>  */
     "Object": textframe`
         <section>
-            <h{{ Object.level }} id="{{ Object.id }}"><span class="object-kind"{% if Object.info %} data-info="{{ Object.info }}" data-info-path="{{ Object.infopath }}"{% endif %}>{{ Object.kind }}:</span> <span class="object-name"{% if Object.spec %} data-info-spec="{{ Object.spec }}" data-info-path="{{ Object.specpath }}"{% endif %}>{{ Object.name }}</span>{% if Object.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if Object.paren %} <span class="anchor-paren">({{ Object.paren }})</span>{% endif %} <a href="#{{ Object.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></h{{ Object.level }}>
+            <h{{ Object.level }} id="{{ Object.id }}"{% if Object.anchor %} data-id="{{ Object.anchor }}"{% endif %}><span class="object-kind"{% if Object.info %} data-info="{{ Object.info }}" data-info-path="{{ Object.infopath }}"{% endif %}>{{ Object.kind }}:</span> <span class="object-name"{% if Object.spec %} data-info-spec="{{ Object.spec }}" data-info-path="{{ Object.specpath }}"{% endif %}>{{ Object.name }}</span>{% if Object.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if Object.paren %} <span class="anchor-paren">({{ Object.paren }})</span>{% endif %} <a href="#{{ Object.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></h{{ Object.level }}>
             {{ Object.diagram }}
             {{ Object.properties }}
             {{ Object.description }}
@@ -236,7 +236,7 @@ const templates = {
             </thead>
             <tbody>
                 {% for row in Table.rows %}
-                <tr id="{{ row.id }}"{% if row.even %} class="even"{% endif %}>
+                <tr id="{{ row.id }}"{% if row.anchor %} data-id="{{ row.anchor }}"{% endif %}{% if row.even %} class="even"{% endif %}>
                     <td><span{% if row.spec %} data-info-spec="{{ row.spec }}" data-info-path="{{ row.specpath }}"{% endif %}>{{ row.name }}</span>{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     {%- for value in row.values %}<td>{{ value }}</td>{% endfor %}
                     {%- if Table.desc %}<td>{{ row.description }}</td>{% endif %}
@@ -257,7 +257,7 @@ const templates = {
             </thead>
             <tbody>
                 {% for row in Table.rows %}
-                <tr id="{{ row.id }}"{% if row.even %} class="even"{% endif %}>
+                <tr id="{{ row.id }}"{% if row.anchor %} data-id="{{ row.anchor }}"{% endif %}{% if row.even %} class="even"{% endif %}>
                     <td><span{% if row.spec %} data-info-spec="{{ row.spec }}" data-info-path="{{ row.specpath }}"{% endif %}>{{ row.name }}</span>{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     <td class="chunks">
                         <table class="chunks">
@@ -1573,6 +1573,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
             width:    Math.round(200 / (keys.length + 3)),
             rows:     children.map((child, i) => scoped(child, () => ({
                 id:          anchorOf(child),
+                anchor:      child.anchor,
                 paren:       child.paren,
                 primary:     child.primary,
                 spec:        infoParents !== null ? anchorOf(child) : undefined,
@@ -1616,6 +1617,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
                 chunks.unshift([ { key: "Diagram", desc: true, span: size, value: diagram } ])
             return {
                 id:       anchorOf(child),
+                anchor:   child.anchor,
                 paren:    child.paren,
                 primary:  child.primary,
                 spec:     infoParents !== null ? anchorOf(child) : undefined,
@@ -1639,6 +1641,7 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
         spec:        infoParents !== null ? anchorOf(object) : undefined,
         specpath:    infoPathOf(object),
         id:          anchorOf(object),
+        anchor:      object.anchor,
         paren:       object.paren,
         primary:     object.primary,
         name:        inline(object.name),

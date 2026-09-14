@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.2.11 (2026-09-14)
+-------------------
+
+-   IMPROVEMENT [code]: Search by Anchor Id in the HTML Export
+    The search filter of the HTML export now also matches the explicit `{{xxx}}` anchor ids of the
+    objects, marking the anchor symbol of a hit object, as the id itself is nowhere visible.
+
 1.2.10 (2026-09-11)
 -------------------
 
