@@ -164,9 +164,10 @@
                             desc: >
                                 The kind of the directed relation: `association` for a plain
                                 reference to an independent target entity, `aggregation` for a
-                                shared part-of relation whose target outlives the entity, or
-                                `composition` for an exclusive part-of relation whose target is
-                                owned by and deleted with the entity; defaults to `association`.
+                                (optionally even shared) part-of relation whose target outlives
+                                the entity, or `composition` for an exclusive part-of relation
+                                whose target is owned by and deleted with the entity; defaults to
+                                `association`.
                             value: enum(association,aggregation,composition)
                             optional: true
                         -   name: ARITY
