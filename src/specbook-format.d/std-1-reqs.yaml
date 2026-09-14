@@ -193,7 +193,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[TERM:*]], [[PREMISE:*]], [[RULE:*]], [[DM.ENTITY:*]], [[ROLE:*]], [[PERSONA:*]]"
+                nodes: "[[TERM:*]], [[PREMISE:*]], [[RULE:*]], [[DM.ENTITY:*]], [[ROLE:*]], [[PERSONA:*]],
+                    [[WORKFLOW:*]], [[CONVENTION:*]], [[CV.ENTITY:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -287,8 +288,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ROLE:*]], [[TERM:*]], [[PERSONA:*]], [[ACTIVITY:*]], [[USE-CASE:*]],
-                    [[CV.ENTITY:*]]"
+                nodes: "[[ROLE:*]], [[TERM:*]], [[PERSONA:*]], [[WORKFLOW:*]], [[ACTIVITY:*]],
+                    [[USE-CASE:*]], [[TRANSITION:*]], [[CV.ENTITY:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -945,8 +946,9 @@
                 type: hub
                 center: self
                 nodes: "[[USE-CASE:*]], [[ROLE:*]], [[PERSONA:*]], [[STEP:*]], [[ACTIVITY:*]],
-                    [[FR.REQUIREMENT:*]], [[RULE:*]], [[TRANSITION:*]], [[PERMISSION:*]],
-                    [[PRINCIPLE:*]], [[CV.ENTITY:*]]"
+                    [[FR.REQUIREMENT:*]], [[RULE:*]], [[DM.ENTITY:*]], [[TRANSITION:*]],
+                    [[PERMISSION:*]], [[PRINCIPLE:*]], [[STORYBOARD:*]], [[CV.ENTITY:*]],
+                    [[TEST-CASE:*]]"
                 labeled: true
                 qualified: true
                 config:

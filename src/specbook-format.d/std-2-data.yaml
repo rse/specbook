@@ -51,7 +51,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[DM.ENTITY:*]], [[FR.REQUIREMENT:*]], [[USE-CASE:*]]"
+                nodes: "[[DM.ENTITY:*]], [[FR.REQUIREMENT:*]], [[USE-CASE:*]], [[LIFECYCLE:*]],
+                    [[FV.COMPONENT:*]], [[CONCERN:*]], [[TACTIC:*]], [[DECISION:*]], [[TEST-CASE:*]]"
                 edges: "[[RELATION:*]]"
                 labeled: true
                 qualified: true

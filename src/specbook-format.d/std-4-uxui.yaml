@@ -48,7 +48,8 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[PRINCIPLE:*]], [[PERSONA:*]], [[STEP:*]], [[USE-CASE:*]], [[PATTERN:*]]"
+                nodes: "[[PRINCIPLE:*]], [[PERSONA:*]], [[STEP:*]], [[USE-CASE:*]], [[CONVENTION:*]],
+                    [[PATTERN:*]], [[ELEMENT:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -215,7 +216,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[PATTERN:*]], [[PRINCIPLE:*]], [[STORYBOARD:*]]"
+                nodes: "[[PATTERN:*]], [[PRINCIPLE:*]], [[STORYBOARD:*]], [[DECISION:*]]"
                 deep: true
                 labeled: true
                 qualified: true
@@ -305,7 +306,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[STORYBOARD:*]], [[PERSONA:*]], [[SCENARIO:*]], [[PATTERN:*]]"
+                nodes: "[[STORYBOARD:*]], [[PERSONA:*]], [[SCENARIO:*]], [[PATTERN:*]], [[MOCKUP:*]]"
                 deep: true
                 labeled: true
                 qualified: true

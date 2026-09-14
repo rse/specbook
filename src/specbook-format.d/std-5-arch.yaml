@@ -175,7 +175,7 @@
                 type: hub
                 center: self
                 nodes: "[[FV.COMPONENT:*]], [[FR.REQUIREMENT:*]], [[INTERFACE:*]], [[DM.ENTITY:*]],
-                    [[TACTIC:*]], [[DECISION:*]]"
+                    [[UNIT:*]], [[NODE:*]], [[CONCERN:*]], [[TACTIC:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -290,6 +290,7 @@
             diagram:
                 type: hub
                 center: self
+                nodes: "[[TS.TIER:*]], [[TS.TIER:*.COMPONENT:*]], [[DV.TIER:*]]"
                 hierarchy: true
                 properties:
                     -   PRODUCT
@@ -314,8 +315,8 @@
                     diagram:
                         type: hub
                         center: self
-                        nodes: "[[TS.TIER:*.COMPONENT:*]], [[FV.COMPONENT:*]], [[TACTIC:*]],
-                            [[DECISION:*]]"
+                        nodes: "[[TS.TIER:*.COMPONENT:*]], [[FV.COMPONENT:*]], [[CONCERN:*]],
+                            [[TACTIC:*]], [[DECISION:*]]"
                         labeled: true
                         qualified: true
                         properties:
@@ -884,7 +885,7 @@
                 type: hub
                 center: self
                 nodes: "[[DV.TIER:*]], [[AREA:*]], [[NODE:*]], [[NETWORK:*]], [[FV.COMPONENT:*]],
-                    [[UNIT:*]], [[TACTIC:*]], [[DECISION:*]]"
+                    [[UNIT:*]], [[CONCERN:*]], [[TACTIC:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1171,7 +1172,7 @@
                 center: self
                 nodes: "[[TACTIC:*]], [[NR.REQUIREMENT:*]], [[FV.COMPONENT:*]], [[UNIT:*]],
                     [[ASPECT:*]], [[NODE:*]], [[DM.ENTITY:*]], [[CONCERN:*]], [[DECISION:*]],
-                    [[TS.TIER:*.COMPONENT:*]]"
+                    [[TS.TIER:*.COMPONENT:*]], [[TEST-CASE:*]]"
                 labeled: true
                 qualified: true
                 properties:

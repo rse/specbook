@@ -50,7 +50,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[INTERFACE:*]], [[TYPE:*]], [[ENDPOINT:*]]"
+                nodes: "[[INTERFACE:*]], [[TYPE:*]], [[ENDPOINT:*]], [[FV.COMPONENT:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -135,7 +135,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[TYPE:*]], [[INTERFACE:*]]"
+                nodes: "[[TYPE:*]], [[INTERFACE:*]], [[ENDPOINT:*]]"
                 deep: true
                 labeled: true
                 qualified: true

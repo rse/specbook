@@ -5,6 +5,10 @@ ChangeLog
 1.2.13 (2026-09-14)
 -------------------
 
+-   IMPROVEMENT [spec]: Back-Referencing Object Kinds as Hub Diagram Inputs
+    The hub diagrams of the standard schema configuration now include the later object kinds
+    referencing them (e.g. `LIFECYCLE` onto `ENTITY`), so the back-links render as inputs.
+
 -   IMPROVEMENT [spec]: Wider `RELATION` Table in the Data Model
     The `RELATION` objects of the standard schema configuration now allow 5 table columns, so
     name, `TARGET`, `KIND`, `ARITY`, and description render as one compact table.
