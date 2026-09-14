@@ -151,7 +151,7 @@
             optional: true
         -   name: THEME-STYLE
             desc: The theme style.
-            value: enum(dark,light)
+            value: enum(Dark,Light)
             optional: true
         -   name: THEME-TONE
             desc: The theme color tone.

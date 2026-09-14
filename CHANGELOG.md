@@ -2,6 +2,10 @@
 ChangeLog
 =========
 
+-   CHANGE [spec]: Capitalized Enumeration Values in the Standard Schema
+    The lowercase values of `THEME-STYLE`, `GENDER`, `PROFICIENCY`, and the relation `KIND`
+    are now capitalized (`Dark`, `Male`, `Novice`, `Association`, ...) like all other ones.
+
 1.2.12 (2026-09-14)
 -------------------
 

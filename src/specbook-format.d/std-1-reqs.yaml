@@ -340,8 +340,8 @@
                     optional: true
                 -   name: GENDER
                     desc: >
-                        The gender of the persona: `male`, `female`, or `diverse`.
-                    value: enum(male,female,diverse)
+                        The gender of the persona: `Male`, `Female`, or `Diverse`.
+                    value: enum(Male,Female,Diverse)
                     optional: true
                 -   name: AGE
                     desc: >
@@ -365,9 +365,9 @@
                     optional: true
                 -   name: PROFICIENCY
                     desc: >
-                        The technical and domain skill level of the persona: `novice`,
-                        `intermediate`, or `expert`.
-                    value: enum(novice,intermediate,expert)
+                        The technical and domain skill level of the persona: `Novice`,
+                        `Intermediate`, or `Expert`.
+                    value: enum(Novice,Intermediate,Expert)
                     optional: true
                 -   name: GOAL
                     desc: >
