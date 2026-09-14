@@ -332,7 +332,9 @@ table row) is searched like its text, a hit marking the anchor symbol
 instead of the invisible id. The description popups (off by
 default, persisted) show the schema `desc` of an object kind or property
 and the corpus description of an object instance after the mouse rested
-400ms on it. The rendered HTML is finally minified with `@swc/html`.
+400ms on it, the title path of an instance popup trailing the anchor id
+of the object (explicit or derived from its name) as ` (#xxx)`. The
+rendered HTML is finally minified with `@swc/html`.
 
 The HTML export (screen only, so print and hence PDF always show the
 full content) folds the content on two levels: every diagram sits in a

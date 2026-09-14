@@ -130,7 +130,7 @@ const templates = {
             <h1>Table of Contents</h1>
             <table>
                 {% for entry in Toc.entries %}
-                <tr class="level-{{ entry.level }}"><td><a href="#{{ entry.id }}"><span class="object-kind"{% if entry.info %} data-info="{{ entry.info }}" data-info-path="{{ entry.infopath }}"{% endif %}>{{ entry.kind }}:</span> <span class="object-name"{% if entry.spec %} data-info-spec="{{ entry.spec }}" data-info-path="{{ entry.specpath }}"{% endif %}>{{ entry.name }}</span> <span class="link-symbol">&#x26AD;</span></a></td>{% if entry.page %}<td class="page"><a href="#{{ entry.id }}">{{ entry.page }}</a></td>{% endif %}</tr>
+                <tr class="level-{{ entry.level }}"><td><a href="#{{ entry.id }}"><span class="object-kind"{% if entry.info %} data-info="{{ entry.info }}" data-info-path="{{ entry.infopath }}"{% endif %}>{{ entry.kind }}:</span> <span class="object-name"{% if entry.spec %} data-info-spec="{{ entry.spec }}" data-info-id="{{ entry.specid }}" data-info-path="{{ entry.specpath }}"{% endif %}>{{ entry.name }}</span> <span class="link-symbol">&#x26AD;</span></a></td>{% if entry.page %}<td class="page"><a href="#{{ entry.id }}">{{ entry.page }}</a></td>{% endif %}</tr>
                 {% endfor %}
             </table>
         </nav>
@@ -155,7 +155,7 @@ const templates = {
     "TocPanelEntries": textframe`
         <ul>
             {% for entry in Entries %}
-            <li><a href="#{{ entry.id }}"><span class="entry"><span class="object-kind"{% if entry.info %} data-info="{{ entry.info }}" data-info-path="{{ entry.infopath }}"{% endif %}>{{ entry.kind }}:</span> <span class="object-name"{% if entry.spec %} data-info-spec="{{ entry.spec }}" data-info-path="{{ entry.specpath }}"{% endif %}>{{ entry.name }}</span></span></a>{{ entry.children }}</li>
+            <li><a href="#{{ entry.id }}"><span class="entry"><span class="object-kind"{% if entry.info %} data-info="{{ entry.info }}" data-info-path="{{ entry.infopath }}"{% endif %}>{{ entry.kind }}:</span> <span class="object-name"{% if entry.spec %} data-info-spec="{{ entry.spec }}" data-info-id="{{ entry.specid }}" data-info-path="{{ entry.specpath }}"{% endif %}>{{ entry.name }}</span></span></a>{{ entry.children }}</li>
             {% endfor %}
         </ul>
     `,
@@ -178,7 +178,7 @@ const templates = {
     /*  <Object/>  */
     "Object": textframe`
         <section>
-            <h{{ Object.level }} id="{{ Object.id }}"{% if Object.anchor %} data-id="{{ Object.anchor }}"{% endif %}><span class="object-kind"{% if Object.info %} data-info="{{ Object.info }}" data-info-path="{{ Object.infopath }}"{% endif %}>{{ Object.kind }}:</span> <span class="object-name"{% if Object.spec %} data-info-spec="{{ Object.spec }}" data-info-path="{{ Object.specpath }}"{% endif %}>{{ Object.name }}</span>{% if Object.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if Object.paren %} <span class="anchor-paren">({{ Object.paren }})</span>{% endif %} <a href="#{{ Object.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></h{{ Object.level }}>
+            <h{{ Object.level }} id="{{ Object.id }}"{% if Object.anchor %} data-id="{{ Object.anchor }}"{% endif %}><span class="object-kind"{% if Object.info %} data-info="{{ Object.info }}" data-info-path="{{ Object.infopath }}"{% endif %}>{{ Object.kind }}:</span> <span class="object-name"{% if Object.spec %} data-info-spec="{{ Object.spec }}" data-info-id="{{ Object.specid }}" data-info-path="{{ Object.specpath }}"{% endif %}>{{ Object.name }}</span>{% if Object.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if Object.paren %} <span class="anchor-paren">({{ Object.paren }})</span>{% endif %} <a href="#{{ Object.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></h{{ Object.level }}>
             {{ Object.diagram }}
             {{ Object.properties }}
             {{ Object.description }}
@@ -237,7 +237,7 @@ const templates = {
             <tbody>
                 {% for row in Table.rows %}
                 <tr id="{{ row.id }}"{% if row.anchor %} data-id="{{ row.anchor }}"{% endif %}{% if row.even %} class="even"{% endif %}>
-                    <td><span{% if row.spec %} data-info-spec="{{ row.spec }}" data-info-path="{{ row.specpath }}"{% endif %}>{{ row.name }}</span>{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
+                    <td><span{% if row.spec %} data-info-spec="{{ row.spec }}" data-info-id="{{ row.specid }}" data-info-path="{{ row.specpath }}"{% endif %}>{{ row.name }}</span>{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     {%- for value in row.values %}<td>{{ value }}</td>{% endfor %}
                     {%- if Table.desc %}<td>{{ row.description }}</td>{% endif %}
                 </tr>
@@ -258,7 +258,7 @@ const templates = {
             <tbody>
                 {% for row in Table.rows %}
                 <tr id="{{ row.id }}"{% if row.anchor %} data-id="{{ row.anchor }}"{% endif %}{% if row.even %} class="even"{% endif %}>
-                    <td><span{% if row.spec %} data-info-spec="{{ row.spec }}" data-info-path="{{ row.specpath }}"{% endif %}>{{ row.name }}</span>{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
+                    <td><span{% if row.spec %} data-info-spec="{{ row.spec }}" data-info-id="{{ row.specid }}" data-info-path="{{ row.specpath }}"{% endif %}>{{ row.name }}</span>{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     <td class="chunks">
                         <table class="chunks">
                             {% for chunk in row.chunks %}
@@ -905,7 +905,8 @@ const tocPanelScript = textframe`
     carrying a "data-info-spec" key pops up the corpus description of
     the object instance (a diagram node box resolves through its
     hyperlinked object anchor), titled with the "data-info-path" object
-    path and fed from the injected INFO/SPEC maps of pre-rendered
+    path (an instance popup trailing the "data-info-id" anchor id of
+    the object) and fed from the injected INFO/SPEC maps of pre-rendered
     description HTML; the popup is capped at 40% viewport width and
     attached above or below, whichever side offers more space; the
     script runs at the end of the body, so a live preview body swap
@@ -1002,6 +1003,20 @@ const infoPopupScript = textframe`
                     path.appendChild(name)
                 }
                 title.appendChild(path)
+            }
+
+            /*  the anchor id of an object instance (explicit or derived
+                from its name, carried by the "data-info-id" key) trails
+                the last segment  */
+            const anchor = source.getAttribute("data-info-id")
+            if (spec !== null && anchor !== null) {
+                const id = document.createElement("span")
+                id.className = "info-id"
+                const name = document.createElement("span")
+                name.className = "info-id-name"
+                name.textContent = anchor
+                id.append(" (#", name, ")")
+                title.appendChild(id)
             }
             if (prop !== null) {
                 title.appendChild(pointer())
@@ -1213,12 +1228,13 @@ const infoAttr = (object: SpecObject): string => {
 }
 
 /*  render the corpus description popup key (the fully-qualified anchor
-    path) and name-ending title path of an object as "data-info-spec"
-    attributes for the manually assembled hyperlink markup (the
+    path), anchor id, and name-ending title path of an object as
+    "data-info-spec" attributes for the manually assembled hyperlink markup (the
     instance popup of the compact and full hyperlinks)  */
 const specAttr = (object: SpecObject): string =>
     infoParents !== null ?
-        ` data-info-spec="${escapeHtml(anchorOf(object))}" data-info-path="${escapeHtml(infoPathOf(object))}"` : ""
+        ` data-info-spec="${escapeHtml(anchorOf(object))}" data-info-id="${escapeHtml(object.id)}"` +
+        ` data-info-path="${escapeHtml(infoPathOf(object))}"` : ""
 
 /*  an entry of the description popup map embedded into the document:
     the pre-rendered description HTML of an object kind ("d") and of
@@ -1577,6 +1593,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
                 paren:       child.paren,
                 primary:     child.primary,
                 spec:        infoParents !== null ? anchorOf(child) : undefined,
+                specid:      child.id,
                 specpath:    infoPathOf(child),
                 name:        inline(child.name),
                 even:        i % 2 === 1,
@@ -1621,6 +1638,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
                 paren:    child.paren,
                 primary:  child.primary,
                 spec:     infoParents !== null ? anchorOf(child) : undefined,
+                specid:   child.id,
                 specpath: infoPathOf(child),
                 name:     inline(child.name),
                 even:     i % 2 === 1,
@@ -1639,6 +1657,7 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
         info:        infoKeyOf(object),
         infopath:    infoPathOf(object, false),
         spec:        infoParents !== null ? anchorOf(object) : undefined,
+        specid:      object.id,
         specpath:    infoPathOf(object),
         id:          anchorOf(object),
         anchor:      object.anchor,
@@ -1715,7 +1734,7 @@ const headingChildren = (object: SpecObject): SpecObject[] =>
 /*  an entry of the table of contents  */
 type TocEntry = { id: string, kind: string, name: nunjucks.runtime.SafeString,
     level: number, page?: number, info?: string, infopath?: string,
-    spec?: string, specpath?: string }
+    spec?: string, specid?: string, specpath?: string }
 
 /*  flatten the hierarchy of the rendered object headings (exactly like
     the PDF outline) into the entries of the table of contents, each
@@ -1727,7 +1746,7 @@ const tocEntries = (objects: SpecObject[], pages?: Map<string, number>): TocEntr
             const id = anchorOf(object)
             entries.push({ id, kind: object.kind,
                 info: infoKeyOf(object), infopath: infoPathOf(object, false),
-                spec: infoParents !== null ? id : undefined, specpath: infoPathOf(object),
+                spec: infoParents !== null ? id : undefined, specid: object.id, specpath: infoPathOf(object),
                 name: inline(object.name), level: Math.min(level, 6), page: pages?.get(id) })
             collect(headingChildren(object), level + 1)
         }
@@ -1749,6 +1768,7 @@ const renderTocPanel = (objects: SpecObject[], title: boolean, doc: boolean): st
             info:     infoKeyOf(object),
             infopath: infoPathOf(object, false),
             spec:     infoParents !== null ? anchorOf(object) : undefined,
+            specid:   object.id,
             specpath: infoPathOf(object),
             name:     inline(object.name),
             children: safe(entries(headingChildren(object)))

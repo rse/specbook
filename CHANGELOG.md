@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.2.12 (2026-09-14)
+-------------------
+
+-   IMPROVEMENT [code]: Anchor Id in the Description Popups of the HTML Export
+    The description popup of an object instance now trails its title path with the anchor id of
+    the object (the explicit `{{xxx}}` one or the one derived from its name) as ` (#xxx)`.
+
 1.2.11 (2026-09-14)
 -------------------
 

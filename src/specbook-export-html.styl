@@ -264,7 +264,9 @@ body.info-on div.info-switch svg.info-icon
     icon leading each, the kinds bold in the path color and the names
     semi-bold in the description color, as in the document content,
     and a pointer separating the segments), extended for properties
-    with the not-filled circle icon and the bold property name, and
+    with the not-filled circle icon and the bold property name, trailed
+    for instances by the anchor id of the object in the description
+    color (its "(#...)" wrapping normal, the id itself semi-bold), and
     the description led by a "Schema" or "Specification" origin label
     (its word in normal weight in a rounded box filled with the path
     color), where
@@ -303,6 +305,11 @@ div.info-popup span.info-name
     font-weight: 600
 div.info-popup.spec span.info-name
     color: var(--theme-color-specbook-popup-spec-desc)
+div.info-popup.spec span.info-id
+    color: var(--theme-color-specbook-popup-spec-desc)
+    font-weight: normal
+div.info-popup.spec span.info-id-name
+    font-weight: 600
 div.info-popup span.info-object::before
     content: "\25CF"
     font-weight: normal
