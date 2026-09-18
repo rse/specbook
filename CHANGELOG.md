@@ -9,6 +9,14 @@ ChangeLog
     The description of `META: Title` closes the title page of the HTML/PDF export below the
     `Modified` date as the abstract: justified, with the follow-up paragraphs indented.
 
+-   IMPROVEMENT [othr]: Synced the Broadcast Sample with Its Application's Initial-Activation Rules
+    The broadcast sample now derives the first channel and resource as active on creation and
+    unlinks retained user statistics from their users on event finish.
+
+-   UPDATE [infr]: Upgrade NPM Dependencies
+    The dependencies `fastify` and `@fastify/websocket` and the development dependency
+    `@types/node` are upgraded to their latest patch releases.
+
 1.2.13 (2026-09-14)
 -------------------
 
