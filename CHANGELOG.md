@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.2.15 (2026-09-18)
+-------------------
+
+-   BUGFIX [code]: Search Filter Also Covers the Abstract on the Title Page
+    The client-side search of the HTML export now filters and highlights the paragraphs of the
+    title page abstract, which previously stayed fully visible during a search.
+
 1.2.14 (2026-09-18)
 -------------------
 

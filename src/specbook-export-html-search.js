@@ -50,34 +50,37 @@
     let indexed = false
 
     /*  fill the unit and vocabulary indices once on first use: a unit
-        is an outermost paragraph-level element within an article, i.e.
-        one not nested inside another unit (like a paragraph or diagram
-        in a table cell, which is covered by its table row), where a
-        diagram is searched by its SVG text labels, joined by spaces,
-        as its raw text content would run them together, and where the
-        explicit anchor id of an object heading or table row joins the
-        searched text  */
+        is an outermost paragraph-level element within an article or
+        the title page abstract (a lone paragraph being the unit itself),
+        i.e. one not nested inside another unit (like a paragraph in a
+        table cell, covered by its table row), where a diagram is
+        searched by its space-joined SVG text labels (its raw text
+        content runs them together), and where the explicit anchor id
+        of an object heading or table row joins the searched text  */
     const index = () => {
         if (indexed)
             return
         indexed = true
-        document.querySelectorAll("article").forEach((article) => {
-            article.querySelectorAll("p, li, tr, pre, blockquote, h1, h2, h3, h4, h5, h6, div.diagram")
-                .forEach((el) => {
-                    let parent = el.parentElement
-                    while (parent !== null && parent.tagName !== "ARTICLE") {
-                        if (/^(TR|TD|TH|LI|P|BLOCKQUOTE)$/.test(parent.tagName))
-                            return
-                        parent = parent.parentElement
-                    }
-                    const id    = (el.dataset.id ?? "").toLowerCase()
-                    const text  = ((el.classList.contains("diagram") ?
-                        Array.from(el.querySelectorAll("text")).map((t) => t.textContent ?? "").join(" ") :
-                        (el.textContent ?? "")) + " " + id).toLowerCase()
-                    const words = new Set(text.split(/[^\p{L}\p{N}]+/u).filter((w) => w !== ""))
-                    words.forEach((w) => { vocab.add(w) })
-                    units.push({ el, id, text, words, keep: false })
-                })
+        document.querySelectorAll("article, div.titlepage > .description").forEach((root) => {
+            const els = Array.from(root.querySelectorAll(
+                "p, li, tr, pre, blockquote, h1, h2, h3, h4, h5, h6, div.diagram"))
+            if (root.tagName === "P")
+                els.unshift(root)
+            els.forEach((el) => {
+                let parent = el.parentElement
+                while (parent !== null && parent !== root) {
+                    if (/^(TR|TD|TH|LI|P|BLOCKQUOTE)$/.test(parent.tagName))
+                        return
+                    parent = parent.parentElement
+                }
+                const id    = (el.dataset.id ?? "").toLowerCase()
+                const text  = ((el.classList.contains("diagram") ?
+                    Array.from(el.querySelectorAll("text")).map((t) => t.textContent ?? "").join(" ") :
+                    (el.textContent ?? "")) + " " + id).toLowerCase()
+                const words = new Set(text.split(/[^\p{L}\p{N}]+/u).filter((w) => w !== ""))
+                words.forEach((w) => { vocab.add(w) })
+                units.push({ el, id, text, words, keep: false })
+            })
         })
 
         /*  let a hyperlink whose target the filtering hid leave the
