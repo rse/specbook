@@ -1170,8 +1170,6 @@ div.titlepage .subtitle
 div.titlepage .author
     font-size: 1.25rem
     margin-top: 2rem
-div.titlepage p.description
-    margin: 2rem 0 0.5rem 0
 div.titlepage table.meta
     margin: 1rem auto 0 auto
     color: var(--theme-color-specbook-muted)
@@ -1180,6 +1178,20 @@ div.titlepage table.meta
 div.titlepage table.meta td
     padding: 0.0rem 0.5rem
     text-align: left
+
+/*  the description of the title object is the abstract closing the
+    title page: justified, the follow-up paragraphs indented  */
+div.titlepage p.description,
+div.titlepage div.description
+    margin: 3rem auto 0.5rem auto
+    max-width: 44rem
+    text-align: justify
+    hyphens: auto
+div.titlepage div.description p
+    margin: 0
+div.titlepage div.description p + p:not(.rationale)
+    margin-top: 0.4rem
+    text-indent: 3.0rem
 
 /*  the fuzzy search tab (screen-only): the middle tab riding right of
     the brand bar between the info tab and the folding

@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.2.14 (2026-09-18)
+-------------------
+
+-   IMPROVEMENT [code]: Description of the Title Object Rendered as the Abstract
+    The description of `META: Title` closes the title page of the HTML/PDF export below the
+    `Modified` date as the abstract: justified, with the follow-up paragraphs indented.
+
 1.2.13 (2026-09-14)
 -------------------
 

@@ -379,6 +379,9 @@ The `META: Title` object drives the document beyond the title page:
 `TITLE`/`SUBTITLE`/`AUTHOR`/`VERSION`/`LOGO` fill the title page (a
 `{theme}` placeholder in a `LOGO` reference yields one variant per
 theme, and an absent `LOGO` falls back onto the bundled SpecBook logo),
+the description of the object closes the title page below the
+`Modified` date as the abstract (justified, the follow-up paragraphs
+indented on their first line),
 `LANG` selects the smart typography quote style, `CHARSET` (US-ASCII,
 ISO-8859-1, ISO-8859-15, or UTF-8) subsets the embedded fonts,
 `THEME-STYLE` presets the light/dark theme, `THEME-TONE` seeds the theme
