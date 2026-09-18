@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-14 14:01
+Modified: 2026-09-14 16:20
 ---
 
 #   DATA: Data Model (DM)
@@ -218,6 +218,10 @@ BECAUSE the entire data model is event-centric and every other entity hangs off 
     Periodic cumulative statistics snapshots,
     BECAUSE trend visualization requires periodic counts.
 
+-   RELATION: userStatistics; TARGET: [[ENTITY:UserStatistic]]; KIND: Composition; ARITY: `0..n`;
+    Viewer statistics recorded for the users of the event,
+    BECAUSE the statistics stay attributable to the event after their users are deleted and are dropped with it.
+
 -   RELATION: availableQuestionTags; TARGET: [[ENTITY:QuestionTag]]; KIND: Composition; ARITY: `0..n`;
     Tags available for use on questions,
     BECAUSE the event defines the vocabulary for tagging questions.
@@ -274,8 +278,8 @@ BECAUSE an event groups its streams by language and resolution into channels.
     BECAUSE attendees choose between named channels.
 
 -   ATTRIBUTE: active; TYPE: `boolean`; DEFAULT: `false`;
-    Whether the channel is the currently active one,
-    BECAUSE only one channel of an event is active at once.
+    Whether the channel is the currently active one, derived to true for the first channel of an event ([[RULE:initial-channel]]),
+    BECAUSE only one channel of an event is active at once ([[RULE:single-channel]]).
 
 -   ATTRIBUTE: default; TYPE: `boolean`; DEFAULT: `false`;
     Whether this channel is activated by default on entering an event,
@@ -308,8 +312,8 @@ BECAUSE a channel must map to concrete provider endpoints to be playable.
     BECAUSE a resource binds to a specific configured streaming provider.
 
 -   ATTRIBUTE: active; TYPE: `boolean`; DEFAULT: `false`;
-    Whether this resource is the active resource of the channel,
-    BECAUSE only one resource of a channel is active at once for provider switching.
+    Whether this resource is the active resource of the channel, derived to true for the first resource of a channel ([[RULE:initial-resource]]),
+    BECAUSE only one resource of a channel is active at once for provider switching ([[RULE:single-resource]]).
 
 -   RELATION: params; TARGET: [[ENTITY:ResourceProviderParam]]; KIND: Composition; ARITY: `0..n`;
     Provider key-value parameters assigned to this resource,
@@ -541,6 +545,14 @@ BECAUSE questions are categorized by topic or addressed person for routing and g
     Logical group the tag belongs to such as a topic or person,
     BECAUSE tags are organized into meaningful groups.
 
+-   RELATION: messages; TARGET: [[ENTITY:Message]]; KIND: Association; ARITY: `0..n`;
+    The question messages the tag is attached to,
+    BECAUSE a tag categorizes many questions and its removal has to detach it from all of them.
+
+-   RELATION: agendaPoints; TARGET: [[ENTITY:AgendaPoint]]; KIND: Association; ARITY: `0..n`;
+    The agenda points the tag corresponds to,
+    BECAUSE a tag can relate to several phases of the event.
+
 ##  ENTITY: AuthorizationToken
 
 -   REQUIREMENTS: [[REQUIREMENT:authentication]], [[REQUIREMENT:automatic-url]], [[REQUIREMENT:registration-import]],
@@ -696,3 +708,7 @@ BECAUSE audience composition informs reporting and default localization.
 -   ATTRIBUTE: viewportHeight (*); TYPE: `integer?`;
     Height in pixels of the browser viewport,
     BECAUSE viewport sizing informs layout decisions.
+
+-   RELATION: event; TARGET: [[ENTITY:Event]]; KIND: Association; ARITY: `1`;
+    The event the statistic was recorded in,
+    BECAUSE the statistic must stay selectable per event once its user reference is dropped.

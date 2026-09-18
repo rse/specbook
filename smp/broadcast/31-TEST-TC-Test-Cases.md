@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-14 14:01
+Modified: 2026-09-14 16:19
 ---
 
 TEST: Test Cases (TC)
@@ -123,6 +123,38 @@ TEST: Test Cases (TC)
 -   INPUT:          The manager activates the second channel.
 -   EXPECTED:       The second channel becomes active and the first one is deactivated in the same step.
 -   POST-CONDITION: Exactly one channel of the event is active.
+
+##  TEST-CASE: First Channel Activated on Creation {{initial-channel}}
+
+-   VERIFIES:       [[RULE:initial-channel]], [[RULE:single-channel]], [[PERMISSION:manager-channels]]
+-   PRE-CONDITION:  A provisioned event without any channel.
+-   INPUT:          The manager creates a channel without marking it as active.
+-   EXPECTED:       The system stores the channel as the active one.
+-   POST-CONDITION: Exactly one channel of the event is active.
+
+##  TEST-CASE: First Resource Activated on Creation {{initial-resource}}
+
+-   VERIFIES:       [[RULE:initial-resource]], [[RULE:single-resource]], [[PERMISSION:administrator-resources]]
+-   PRE-CONDITION:  A channel without any resource.
+-   INPUT:          The administrator creates a resource without marking it as active.
+-   EXPECTED:       The system stores the resource as the active one.
+-   POST-CONDITION: Exactly one resource of the channel is active.
+
+##  TEST-CASE: Active Channel Not Deactivated Directly {{active-channel-locked}}
+
+-   VERIFIES:       [[RULE:single-channel]], [[PERMISSION:manager-channels]]
+-   PRE-CONDITION:  An event with two channels, the first one active.
+-   INPUT:          The manager deactivates the first channel directly, then deletes it.
+-   EXPECTED:       The system rejects both the deactivation and the deletion, as another channel would have to be activated first.
+-   POST-CONDITION: The first channel still exists and is the only active channel of the event.
+
+##  TEST-CASE: Active Resource Not Deactivated Directly {{active-resource-locked}}
+
+-   VERIFIES:       [[RULE:single-resource]], [[PERMISSION:administrator-resources]]
+-   PRE-CONDITION:  A channel with two resources, the first one active.
+-   INPUT:          The administrator deactivates the first resource directly, then deletes it.
+-   EXPECTED:       The system rejects both the deactivation and the deletion, as another resource would have to be activated first.
+-   POST-CONDITION: The first resource still exists and is the only active resource of the channel.
 
 ##  TEST-CASE: Config Change Reaches Clients {{config-propagation}}
 

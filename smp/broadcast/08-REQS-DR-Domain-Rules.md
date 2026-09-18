@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-14 10:13
+Modified: 2026-09-14 16:20
 ---
 
 #   REQS: Domain Rules (DR)
@@ -42,8 +42,21 @@ intends.
 -   GOVERNS:    [[TERM:channel]], [[TERM:event]]
 -   CONSTRAINS: [[REQUIREMENT:provider-switch]]
 
-Exactly one [[TERM:Channel]] of an [[TERM:Event]] MUST be active at any time, BECAUSE [[TERM:Attendee]]s follow one logical
-content stream that defines the current [[TERM:Event]] feed.
+Exactly one [[TERM:Channel]] of an [[TERM:Event]] MUST be active at any time once the [[TERM:Event]] has at least one
+[[TERM:Channel]], so the active [[TERM:Channel]] MUST NOT be deactivated directly and MUST NOT be deleted while another
+[[TERM:Channel]] of the [[TERM:Event]] exists, BECAUSE [[TERM:Attendee]]s follow one logical content stream that defines
+the current [[TERM:Event]] feed.
+
+##  RULE: Initial Channel Becomes Active {{initial-channel}}
+
+-   CATEGORY:   Derivation
+-   SOURCE:     Domain
+-   GOVERNS:    [[TERM:channel]], [[TERM:event]]
+-   CONSTRAINS: [[REQUIREMENT:provider-switch]]
+
+A [[TERM:Channel]] created for an [[TERM:Event]] without an active [[TERM:Channel]] MUST become the active
+[[TERM:Channel]] of the [[TERM:Event]], BECAUSE [[RULE:single-channel]] has to hold from the first [[TERM:Channel]] on,
+without a [[TERM:Manager]] having to activate it.
 
 ##  RULE: Single Active Resource per Channel {{single-resource}}
 
@@ -52,8 +65,21 @@ content stream that defines the current [[TERM:Event]] feed.
 -   GOVERNS:    [[TERM:resource]], [[TERM:channel]], [[TERM:provider]]
 -   CONSTRAINS: [[REQUIREMENT:provider-switch]], [[REQUIREMENT:multi-provider]]
 
-Exactly one [[TERM:Resource]] of a [[TERM:Channel]] MUST be active at any time, BECAUSE switching the active
-[[TERM:Resource]] is the mechanism by which the live [[TERM:Streaming Provider]] is changed.
+Exactly one [[TERM:Resource]] of a [[TERM:Channel]] MUST be active at any time once the [[TERM:Channel]] has at least one
+[[TERM:Resource]], so the active [[TERM:Resource]] MUST NOT be deactivated directly and MUST NOT be deleted while another
+[[TERM:Resource]] of the [[TERM:Channel]] exists, BECAUSE switching the active [[TERM:Resource]] is the mechanism by which
+the live [[TERM:Streaming Provider]] is changed.
+
+##  RULE: Initial Resource Becomes Active {{initial-resource}}
+
+-   CATEGORY:   Derivation
+-   SOURCE:     Domain
+-   GOVERNS:    [[TERM:resource]], [[TERM:channel]]
+-   CONSTRAINS: [[REQUIREMENT:provider-switch]], [[REQUIREMENT:multi-provider]]
+
+A [[TERM:Resource]] created for a [[TERM:Channel]] without an active [[TERM:Resource]] MUST become the active
+[[TERM:Resource]] of the [[TERM:Channel]], BECAUSE [[RULE:single-resource]] has to hold from the first [[TERM:Resource]]
+on, without a [[TERM:Manager]] having to activate it.
 
 ##  RULE: Moderation Determines Initial Visibility {{moderation-gate}}
 
@@ -121,13 +147,14 @@ makes automated moderation predictable.
 -   GOVERNS:    [[TERM:anonymization]], [[TERM:event]], [[TERM:message]], [[TERM:chat]], [[TERM:question]],
                 [[TERM:like]], [[TERM:authtoken]], [[TERM:sessiontoken]], [[TERM:accesslist]], [[TERM:user]],
                 [[TERM:role]], [[TERM:moderator]], [[TERM:manager]]
--   CONSTRAINS: [[REQUIREMENT:user-consent]], [[REQUIREMENT:gdpr-eu]]
+-   CONSTRAINS: [[REQUIREMENT:user-consent]], [[REQUIREMENT:gdpr-eu]], [[REQUIREMENT:user-stats]]
 -   PREMISES:   [[PREMISE:message-personal-data]]
 
 When an [[TERM:Event]] finishes, its [[TERM:Anonymization]] MUST reduce its [[TERM:Message]]s to a bare [[TERM:Like]] count
 with [[TERM:Chat]] and [[TERM:Question]] sender names set to "Anonymous" and liker and sender relations dropped, delete its
 [[TERM:Authorization Token]]s and [[TERM:Session Token]]s, clear its [[TERM:Access List]] and delete the referenced
-[[TERM:User]]s, and delete its [[TERM:Moderator]] [[TERM:Role]]s while retaining its [[TERM:Manager]] [[TERM:Role]]s,
+[[TERM:User]]s while retaining their viewer statistics unlinked from any [[TERM:User]], and delete its [[TERM:Moderator]]
+[[TERM:Role]]s while retaining its [[TERM:Manager]] [[TERM:Role]]s,
 BECAUSE personal data must not be retained beyond the [[TERM:Event]] (GDPR Art. 5(1)(e), storage limitation).
 
 ##  RULE: Likes Conserved as Count on Finish {{like-count}}

@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-14 10:13
+Modified: 2026-09-14 16:20
 ---
 
 REQS: Domain Glossary (DG)
@@ -181,8 +181,8 @@ REQS: Domain Glossary (DG)
     PREMISES: [[PREMISE:message-personal-data]];
     The automated procedure on [[TERM:Event]] finish that reduces
     [[TERM:Message]]s to like counts, anonymizes sender names, drops
-    personal relations, deletes tokens and Users, and removes
-    [[TERM:Moderator]] roles.
+    personal relations, deletes tokens and Users, unlinks the viewer
+    statistics from their Users, and removes [[TERM:Moderator]] roles.
 
 -   TERM: Sentiment Analysis {{sentiment}};
     TYPE: Activity;

@@ -1,6 +1,6 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-05 01:30
+Modified: 2026-09-14 16:20
 ---
 
 DATA: State Model (SM)
@@ -161,3 +161,23 @@ LIFECYCLE: AuthorizationToken {{authtoken}}
     RULES: [[RULE:token-format]];
     USE-CASES: [[SCENARIO:authenticate-auto]];
     The pre-generated token is marked spent by the use of an automatic-access URL carrying it.
+
+LIFECYCLE: UserStatistic {{userstatistic}}
+------------------------------------------
+
+-   ENTITY:  [[ENTITY:UserStatistic]]
+
+### STATE
+
+-   `Linked`; INITIAL: true;
+    The statistic is attributed to the user it was recorded for.
+
+-   `Unlinked`; FINAL: true;
+    The statistic is retained without any reference to a user.
+
+### TRANSITION
+
+-   `unlink`; FROM: [[STATE:Linked]]; TO: [[STATE:Unlinked]]; ACTOR: System;
+    RULES: [[RULE:anonymize]];
+    USE-CASES: [[SCENARIO:publish-start-finish-main]];
+    The anonymization drops the user reference of the statistic on event finish.
