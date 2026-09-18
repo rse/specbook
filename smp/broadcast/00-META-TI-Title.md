@@ -27,13 +27,13 @@ mainly meant to carry different language translations of the audio content.
 presenters. It allows an attendee to send messages and see messages sent by
 other attendees or a moderator. Sent messages may be reviewed by an artificial
 or human operator before they are allowed to spread to the audience. Attendees
-may like specific messages to signal their support. Additionally, a moderator is
-able to select questions coming from the audience which are then forwarded to
-the video production studio to be answered by the presenters with a small time
-delay. It can also optionally embed an external application, for instance to
-provide live voting. Here the attendee's choice is transferred back to the video
-production studio, aggregated there and presented to moderators and presenters
-as the audience's opinion.
+may like specific messages to signal their support. Additionally, a moderator
+can select questions coming from the audience which are then forwarded to the
+video production studio to be answered by the presenters with a small time
+delay. **Broadcast** can also optionally embed an external application, for
+instance to provide live voting. Here the attendee's choice is transferred back
+to the video production studio, aggregated there and presented to moderators
+and presenters as the audience's opinion.
 
 **Broadcast** optionally enforces a closed group policy by only allowing a
 certain list of people (identified by their e-mail addresses) to join. It
@@ -45,9 +45,9 @@ and swift delivery of chat messages.
 
 **Broadcast** provides several statistics to assess the technical reception
 of the event program by the audience (number of viewers, used client setup,
-event-wide counts). None of this data can be linked to specific persons. It
-complies with data protection rules by reliably deleting personal data after
-the event. Chat content including likes may be saved for later review (e.g. for
-assessing information needs, detecting unanswered questions), but also here no
-link to specific persons is ever provided.
+event-wide counts). None of this data can be linked to specific persons.
+**Broadcast** complies with data protection rules by reliably deleting personal
+data after the event. Chat content including likes may be saved for later
+review (e.g. for assessing information needs, detecting unanswered questions),
+but here, too, no link to specific persons is ever provided.
 
