@@ -31,7 +31,7 @@ may like specific messages to signal their support. Additionally, a moderator is
 able to select questions coming from the audience which are then forwarded to
 the video production studio to be answered by the presenters with a small time
 delay. It can also optionally embed an external application, for instance to
-provide live-voting. Here the attendee's choice is transferred back to the video
+provide live voting. Here the attendee's choice is transferred back to the video
 production studio, aggregated there and presented to moderators and presenters
 as the audience's opinion.
 
@@ -40,7 +40,7 @@ certain list of people (identified by their e-mail addresses) to join. It
 seamlessly switches to an alternative video stream provider if requested by the
 people overseeing the event production. This helps to overcome video quality or
 scaling issues without interrupting the broadcasting of the program. It supports
-an audience up to 10,000 attendees, specifically employing a fast join process
+an audience of up to 10,000 attendees, specifically employing a fast join process
 and swift delivery of chat messages.
 
 **Broadcast** provides several statistics to assess the technical reception
@@ -48,6 +48,6 @@ of the event program by the audience (number of viewers, used client setup,
 event-wide counts). None of this data can be linked to specific persons. It
 complies with data protection rules by reliably deleting personal data after
 the event. Chat content including likes may be saved for later review (e.g. for
-assessing information needs, detecting unanswered questions) but also here no
+assessing information needs, detecting unanswered questions), but also here no
 link to specific persons is ever provided.
 
