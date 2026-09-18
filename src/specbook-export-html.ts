@@ -56,9 +56,9 @@ const templates = {
                 <div class="theme-switch" onclick="themeSwitch()" title="switch color theme"><svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5 A 8.5 8.5 0 0 0 12 20.5 Z" fill="currentColor" stroke="none"/></svg></div>
                 {% if Document.info %}<div class="info-switch" title="toggle description popups"><svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="7.75" x2="12.01" y2="7.75"/></svg></div>{% endif %}
                 <div class="search" id="search">
-                    <div class="search-toggle" id="search-toggle" title="toggle search field"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><line x1="15" y1="15" x2="21" y2="21"/></svg></div>
+                    <div class="search-toggle" id="search-toggle" title="toggle search field"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3.5,4.5 20.5,4.5 14,12.5 14,20 10,17.5 10,12.5"/></svg></div>
                     <div class="search-field">
-                        <input type="text" id="search-input" placeholder="Search&hellip;" autocomplete="off" spellcheck="false"/>
+                        <input type="text" id="search-input" placeholder="Filter&hellip; (fuzzy matched keywords)" autocomplete="off" spellcheck="false"/>
                         <span class="search-clear" id="search-clear" title="clear search">&#x00D7;</span>
                     </div>
                 </div>

@@ -9,6 +9,10 @@ ChangeLog
     The client-side search of the HTML export now filters and highlights the paragraphs of the
     title page abstract, which previously stayed fully visible during a search.
 
+-   IMPROVEMENT [code]: Filter Icon and Telling Placeholder for the Search Filter
+    The search tab of the HTML export now shows a funnel icon instead of a magnifying glass, and
+    its input field the placeholder "Filter... (fuzzy matched keywords)".
+
 1.2.14 (2026-09-18)
 -------------------
 
