@@ -779,4 +779,3 @@ code, documentation, or other files are ever touched.
     <else>
     Finish the skill processing. Do not output anything in this item.
     </else>
-
