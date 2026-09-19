@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.2.16 (2026-09-19)
+-------------------
+
+-   FEATURE [code]: Project Configuration File `.specbook.yaml` with `config` and `basedir` Entries
+    An absent `--config`/`--basedir` (option and environment variable) now defaults to the validated
+    entries of the closest `.specbook.yaml`, searched upwards from the (API/MCP `cwd`) directory.
+
 1.2.15 (2026-09-18)
 -------------------
 

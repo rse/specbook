@@ -182,8 +182,9 @@ Options:
     of a reference coverage.
 
 -   `-c|--config <schema-yaml-file>`:
-    The YAML schema configuration (default: the bundled standard schema
-    configuration `specbook-format.yaml`) determines the specification:
+    The YAML schema configuration (default: the `config` entry of the
+    project configuration file `.specbook.yaml`, else the bundled standard
+    schema configuration `specbook-format.yaml`) determines the specification:
     exactly the artifact files its `file` fields reference are loaded and
     parsed; all other Markdown files below the base directory are ignored.
     A referenced file which is absent is reported, unless all of its
@@ -210,9 +211,10 @@ Options:
     the schema of the configuration.
 
 -   `-b|--basedir <spec-md-file-basedir>`:
-    The base directory (default: `.`) is the directory the referenced
-    artifact files are resolved against, and generated specification
-    Markdown files are placed inside it, too.
+    The base directory (default: the `basedir` entry of the project
+    configuration file `.specbook.yaml`, else `.`) is the directory the
+    referenced artifact files are resolved against, and generated
+    specification Markdown files are placed inside it, too.
 
 -   `-o|--output [<format>:]<output-file>` (`export` only):
     The output file (default: `-` for stdout) can be given multiple times.
@@ -278,6 +280,26 @@ Options:
     or embedded with `-e|--embed`, else the bundled standard one,
     embedded), or `spec` for the reference to the base directory.
 
+The defaults of `-c|--config` and `-b|--basedir` are, unless
+`SPECBOOK_CONFIG` and `SPECBOOK_BASEDIR` provide them (see below), taken
+from the optional project configuration file `.specbook.yaml`, which is searched
+in the current working directory and then upwards in all of its parent
+directories (the closest one wins), so SpecBook works from any directory
+below the project root:
+
+```yaml
+config:  docs/spec/schema.yaml
+basedir: docs/spec
+```
+
+The entry `config` is a single file or glob pattern or a list of them
+(exactly like the repeatable `-c|--config`, including the literal
+`std`), and the entry `basedir` is a directory. Relative paths resolve
+against the directory of the `.specbook.yaml` itself, the file is
+validated (an unknown entry or a wrongly typed value fails the command),
+and both an explicitly supplied option and its environment variable
+win over its entry.
+
 The default value of every CLI option `--xxx` can be overridden
 by a corresponding `SPECBOOK_XXX` environment variable (e.g.
 `SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_OUTPUT`,
@@ -297,6 +319,48 @@ is unset, the downloaded Playwright Chromium is used (the equivalent of
 Chrome* (the equivalent of `chrome`). An explicitly configured browser
 failing to launch fails the export instead of falling back onto another
 browser.
+
+Agent Skill
+-----------
+
+For *Claude Code*, SpecBook ships the plugin `specbook`, which registers
+the MCP service `specbook mcp` and provides the skill `/specbook` on top
+of it:
+
+```bash
+$ claude plugin marketplace add rse/specbook
+$ claude plugin install specbook@specbook
+```
+
+```text
+/specbook        [-c|--config <yaml-file>] [-b|--basedir <basedir>] [<query>]
+/specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>]
+/specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
+/specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
+                 [-o|--output [<format>:]<output-file>] [...]
+/specbook edit   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--grill]
+                 [-r|--grill-rounds <n>] [-v|--verify] [-l|--loop] [<query>]
+```
+
+Without a command, the skill *activates* the SpecBook know-how: it
+learns the format and the schema configuration through the MCP tool
+`specbook_describe`, so the specification can be queried and changed
+ad-hoc in plain conversation for the remainder of the session, and it
+directly serves an optional *query*. The agent invokes the skill this
+way on its own, as soon as you want to read or change the specification.
+
+The commands `init`, `lint`, and `export` just pass their options
+through to the corresponding MCP tools. The command `edit` edits the
+specification in one shot from a *query*: it learns the format and the
+schema configuration through the MCP tool `specbook_describe`, reads the
+related specification files, optionally interviews you about the open
+points of the query first (`--grill`, for `--grill-rounds` rounds),
+applies the change set, optionally lints the result and fixes the
+reported diagnostics (`--verify`), and optionally asks for the next
+query (`--loop`). All commands fall back onto `SPECBOOK_CONFIG` and
+`SPECBOOK_BASEDIR` for an absent `--config` and `--basedir`, and leave
+still absent ones to the MCP service, which resolves them through the
+`.specbook.yaml` found from the working directory of the session upwards.
 
 Example: Simple
 ---------------

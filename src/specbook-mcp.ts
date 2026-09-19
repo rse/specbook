@@ -5,12 +5,13 @@
 */
 
 import * as fs                  from "node:fs"
+import * as path                from "node:path"
 import { McpServer }            from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z }                    from "zod"
 
 import { SpecBook, renderDiagnostic, renderVerbose, formats, parseOutputSpec, describeFormats,
-    describeParts, compressLevels, version, type VerboseSink } from "./specbook-api.js"
+    describeParts, compressLevels, projectFile, version, type VerboseSink } from "./specbook-api.js"
 
 /*  render an error with its cause chain into a tool error result  */
 const errorResult = (err: unknown) => {
@@ -30,6 +31,15 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
     const server   = new McpServer({ name: "specbook", version })
     const specbook = new SpecBook({ verbose })
 
+    /*  the working directory of the client, which this server does not
+        necessarily share: it anchors the relative paths and starts the
+        upward search for the project configuration file  */
+    const cwd = z.string().optional().describe("absolute working directory of the caller, against which " +
+        "the relative paths are resolved and from which the project configuration file " +
+        `"${projectFile}" is searched upwards (default: the working directory of the server)`)
+    const outputOf = (args: { cwd?: string }, output: string) =>
+        args.cwd !== undefined ? path.resolve(args.cwd, output) : output
+
     server.registerTool("specbook_init", {
         title:       "Initialize Specification",
         description: "Initialize the configured specification artifact files below the base directory " +
@@ -37,8 +47,11 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         inputSchema: {
             config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
                 "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
-                "default: the bundled standard schema configuration)"),
-            basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")")
+                "default: the \"config\" entry of the project configuration file, else the bundled standard " +
+                "schema configuration)"),
+            basedir: z.string().optional().describe("base directory of the specification Markdown files " +
+                "(default: the \"basedir\" entry of the project configuration file, else \".\")"),
+            cwd
         }
     }, async (args) => {
         try {
@@ -59,11 +72,14 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         inputSchema: {
             config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
                 "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
-                "default: the bundled standard schema configuration)"),
-            basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
+                "default: the \"config\" entry of the project configuration file, else the bundled standard " +
+                "schema configuration)"),
+            basedir: z.string().optional().describe("base directory of the specification Markdown files " +
+                "(default: the \"basedir\" entry of the project configuration file, else \".\")"),
             gitignore: z.boolean().optional().describe("skip the artifact files excluded by the Git " +
                 "exclude rules (the \".gitignore\" files, \"info/exclude\", and the global excludes " +
-                "file), treating such a file exactly like an absent one (default: false)")
+                "file), treating such a file exactly like an absent one (default: false)"),
+            cwd
         }
     }, async (args) => {
         try {
@@ -87,14 +103,17 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         inputSchema: {
             config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
                 "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
-                "default: the bundled standard schema configuration)"),
-            basedir: z.string().optional().describe("base directory of the specification Markdown files (default: \".\")"),
+                "default: the \"config\" entry of the project configuration file, else the bundled standard " +
+                "schema configuration)"),
+            basedir: z.string().optional().describe("base directory of the specification Markdown files " +
+                "(default: the \"basedir\" entry of the project configuration file, else \".\")"),
             format:  z.enum(formats).optional().describe("output format (default: inferred from the " +
                 "output file extension, else json)"),
             output:  z.string().optional().describe("output file path (\"-\" or omitted returns the result directly)"),
             gitignore: z.boolean().optional().describe("skip the artifact files excluded by the Git " +
                 "exclude rules (the \".gitignore\" files, \"info/exclude\", and the global excludes " +
-                "file), treating such a file exactly like an absent one (default: false)")
+                "file), treating such a file exactly like an absent one (default: false)"),
+            cwd
         }
     }, async (args) => {
         try {
@@ -105,9 +124,9 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
                 { format: args.format ?? "json", output: args.output } :
                 parseOutputSpec(args.output)
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
-                formats: [ spec.format ], gitignore: args.gitignore })
+                cwd: args.cwd, formats: [ spec.format ], gitignore: args.gitignore })
             if (spec.output !== undefined && spec.output !== "-") {
-                await fs.promises.writeFile(spec.output, data)
+                await fs.promises.writeFile(outputOf(args, spec.output), data)
                 return { content: [ { type: "text", text: `exported specification into "${spec.output}" (${data.length} bytes)` } ] }
             }
             else if (spec.format === "pdf")
@@ -133,8 +152,10 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         inputSchema: {
             config:   z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
                 "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
-                "default: the bundled standard schema configuration, embedded)"),
-            basedir:  z.string().optional().describe("base directory of the specification Markdown files"),
+                "default: the \"config\" entry of the project configuration file, else the bundled standard " +
+                "schema configuration, embedded)"),
+            basedir:  z.string().optional().describe("base directory of the specification Markdown files " +
+                "(default: the \"basedir\" entry of the project configuration file)"),
             embed:    z.boolean().optional().describe("embed the given YAML schema configuration instead " +
                 "of just referencing it (default: false; the bundled standard one is always embedded)"),
             compress: z.literal(compressLevels).optional().describe("compression level of the emitted " +
@@ -147,13 +168,14 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
                 "description, \"meta\" for the generic models and formats, \"schema\" for the YAML schema " +
                 "configuration, or \"spec\" for the specification files (default: \"all\"; \"raw\" is " +
                 "available for \"meta\" and \"schema\" only)"),
-            output:   z.string().optional().describe("output file path (\"-\" or omitted returns the description directly)")
+            output:   z.string().optional().describe("output file path (\"-\" or omitted returns the description directly)"),
+            cwd
         }
     }, async (args) => {
         try {
             const text = await specbook.describe(args)
             if (args.output !== undefined && args.output !== "-") {
-                await fs.promises.writeFile(args.output, text)
+                await fs.promises.writeFile(outputOf(args, args.output), text)
                 return { content: [ { type: "text", text: `described specification format into "${args.output}"` } ] }
             }
             return { content: [ { type: "text", text } ] }

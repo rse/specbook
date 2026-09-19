@@ -13,7 +13,7 @@ import chalk                       from "chalk"
 import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, renderVerbose, literal,
     parseOutputSpec, previewAddr, previewPort, describeFormats, describeParts,
     parseDescribeFormat, parseDescribePart, parseCompressLevel, parseVerbosity, verbosityOf,
-    version, type VerboseSink, type VerboseLevel } from "./specbook-api.js"
+    projectFile, version, type VerboseSink, type VerboseLevel } from "./specbook-api.js"
 import { serveMcp }                from "./specbook-mcp.js"
 
 /*  the parsed value of the verbose option: a bare flag, a level, or the
@@ -89,23 +89,30 @@ const withVerboseOption = (command: Command): Command => command
 /*  provide the repeatable schema configuration option, whose files or
     glob patterns are merged in order (with "std" naming the bundled
     standard one), and determine its value, where the environment default
-    carries a path-delimiter-separated list of patterns  */
+    carries a path-delimiter-separated list of patterns and an entirely
+    absent one is left to the project configuration file  */
 const withConfigOption = (command: Command, fallback: string): Command => command
     .option("-c, --config <yaml-file>", "YAML schema configuration file or glob pattern " +
         "(repeatable, merged in order, \"std\" for the bundled standard schema configuration; " +
-        `default: ${fallback})`,
+        `default: the "config" entry of "${projectFile}", else ${fallback})`,
     (value: string, previous: string[]) => previous.concat(value), new Array<string>())
 const configOf = (opts: { config: string[] }): string[] | undefined =>
     opts.config.length > 0 ? opts.config : envDefault("config")?.split(path.delimiter)
 
+/*  provide the base directory option, where an absent one (even in
+    the environment) is left to the project configuration file  */
+const withBasedirOption = (command: Command, fallback: string): Command => command
+    .option("-b, --basedir <directory>", "base directory of the specification Markdown files " +
+        `(default: the "basedir" entry of "${projectFile}", else ${fallback})`, envDefault("basedir"))
+
 /*  provide the common options of the specification processing sub-commands,
     for which the YAML schema configuration falls back onto the standard one  */
 const withCommonOptions = (command: Command): Command =>
-    withConfigOption(withVerboseOption(command), "the bundled standard schema configuration")
-        .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir", "."))
+    withBasedirOption(withConfigOption(withVerboseOption(command),
+        "the bundled standard schema configuration"), "\".\"")
 
 /*  the parsed values of the common options  */
-type CommonOptions = VerboseOption & { config: string[], basedir: string }
+type CommonOptions = VerboseOption & { config: string[], basedir?: string }
 
 /*  provide the Git exclude option of the specification *reading*
     sub-commands (not of "init", which creates artifact files instead of
@@ -230,10 +237,9 @@ withGitignoreOption(withCommonOptions(program.command("preview")))
 
 /*  the describe command also describes the generic SpecBook models and
     formats alone, so its YAML schema configuration stays optional  */
-withConfigOption(withVerboseOption(program.command("describe")),
-    "the bundled standard schema configuration, embedded")
+withBasedirOption(withConfigOption(withVerboseOption(program.command("describe")),
+    "the bundled standard schema configuration, embedded"), "none")
     .description("describe the SpecBook models and formats as Markdown")
-    .option("-b, --basedir <directory>", "base directory of the specification Markdown files", envDefault("basedir"))
     .option("-e, --embed", "embed the given YAML schema configuration instead of just referencing it",
         envDefaultFlag("embed", false))
     .option("-z, --compress [level]", "compression level of the emitted YAML schema configuration " +

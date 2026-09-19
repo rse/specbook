@@ -18,7 +18,7 @@ type YamlPath = (string | number)[]
 
 /*  determine line/column of a YAML document path via the node ranges
     of the parsed document, falling back to the closest ancestor node  */
-const lineColOfPath = (doc: Document, lines: LineCounter, path: YamlPath) => {
+export const lineColOfPath = (doc: Document, lines: LineCounter, path: YamlPath) => {
     for (let i = path.length; i >= 0; i--) {
         const node  = doc.getIn(path.slice(0, i), true)
         const start = isNode(node) ? node.range?.[0] : undefined

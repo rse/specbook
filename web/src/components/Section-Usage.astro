@@ -163,7 +163,9 @@ const options = [
             The default value of every option <code>--xxx</code> can be overridden by its{" "}
             <code>SPECBOOK_XXX</code> environment variable, while an explicitly supplied option always wins.
             As <code>-c</code> is repeatable, <code>SPECBOOK_CONFIG</code> carries a list of patterns separated
-            by the path delimiter of the platform.
+            by the path delimiter of the platform. An entirely absent <code>-c</code> or <code>-b</code> falls
+            back onto the <code>config</code> and <code>basedir</code> entries of the closest{" "}
+            <code>.specbook.yaml</code>, searched from the current directory upwards.
         </p>
     </div>
 </section>

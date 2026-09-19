@@ -58,6 +58,9 @@ API.
         nesting of the nodes), their validation, and the in-memory
         cache of the rendered SVGs
     -   `src/specbook-config.ts`: YAML schema configuration loading, merging, and validation (Valibot)
+    -   `src/specbook-project.ts`: the upward search, loading, and
+        validation (Valibot) of the YAML project configuration file
+        `.specbook.yaml` with its `config` and `basedir` entries
     -   `src/specbook-diagnostic.ts`: the `Diagnostic` type and its
         single-line/verbose renderers, shared by all layers
     -   `src/specbook-verbose.ts`: the marking (`literal`) and rendering
@@ -212,6 +215,19 @@ The API methods and MCP tools take the patterns as `string[]`, and
 With several files, `describe` references each of them, and embeds (or
 emits raw) the merged configuration re-emitted as YAML instead of a
 verbatim file.
+
+An absent `-c`/`-b` (also absent as `SPECBOOK_CONFIG`/`SPECBOOK_BASEDIR`,
+which the CLI and the skill map onto the options) is resolved on the API level through the optional
+project configuration file `.specbook.yaml` (Valibot-validated entries
+`config`, a pattern or a list of them, and `basedir`), which is searched
+from the working directory upwards to the filesystem root (the closest
+one wins) and whose relative paths resolve against its own directory; an
+explicit option wins, and the fallbacks are the standard schema
+configuration and `.`. The API/MCP option `cwd` names the working
+directory of a caller not sharing the one of the process (the skill
+passes it): it starts the search, anchors the explicit relative paths
+(the MCP output files included), and keeps all paths absolute, while
+otherwise the project paths are rendered relative to the process one.
 
 Exactly the artifact files referenced by its `file` fields are loaded and parsed,
 resolved against the base directory, in which generated specification

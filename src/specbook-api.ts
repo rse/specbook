@@ -10,6 +10,7 @@ import { fileURLToPath }                                 from "node:url"
 import { glob }                                          from "glob"
 
 import { loadConfig, configStatistics }                  from "./specbook-config.js"
+import { loadProject, projectFile }                      from "./specbook-project.js"
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
     from "./specbook-diagnostic.js"
 import { initSpecification }                             from "./specbook-cmd-init.js"
@@ -29,6 +30,7 @@ export { literal, renderVerbose, verbosities, verbosityOf, parseVerbosity }
 export { type Verbose, type VerboseLevel, type Verbosity }
 export { formats, parseOutputSpec, type ExportFormat }
 export { previewAddr, previewPort }
+export { projectFile }
 export { describeFormats, describeParts, parseDescribeFormat, parseDescribePart }
 export { compressLevels, parseCompressLevel }
 export { type DescribeFormat, type DescribePart, type CompressLevel }
@@ -59,6 +61,15 @@ export interface SpecBookOptions {
     verbose?: VerboseSink
 }
 
+/*  the project options of all commands: the YAML schema configuration
+    patterns, the base directory, and the working directory, from which
+    the project configuration file is searched upwards  */
+export interface ProjectOptions {
+    config?:  string[]
+    basedir?: string
+    cwd?:     string
+}
+
 /*  the SpecBook API  */
 export class SpecBook {
     private verbose: VerboseSink
@@ -69,6 +80,29 @@ export class SpecBook {
     /*  bind the verbose sink to a particular command  */
     private verboseOf (cmd: string): Verbose {
         return (msg: string, level: VerboseLevel = "notice") => this.verbose(cmd, msg, level)
+    }
+
+    /*  determine the effective project options: a given option wins over
+        its entry in the project configuration file. A given working
+        directory anchors the given relative paths and keeps all paths
+        absolute, else the project ones are rendered relative to ours  */
+    private project (options: ProjectOptions, verbose: Verbose): { config?: string[], basedir?: string } {
+        const cwd     = path.resolve(options.cwd ?? ".")
+        const project = loadProject(cwd)
+        if (project !== undefined)
+            verbose(`using project configuration "${literal(project.file)}"`)
+        const given   = (value: string) =>
+            options.cwd !== undefined ? path.resolve(cwd, value) : value
+        const derived = (value: string) =>
+            options.cwd !== undefined ? value : path.relative(cwd, value) || "."
+        return {
+            config: options.config !== undefined && options.config.length > 0 ?
+                options.config.map((pattern) => pattern === "std" ? pattern : given(pattern)) :
+                project?.config?.map((pattern) => pattern === "std" ? pattern : derived(pattern)),
+            basedir: options.basedir !== undefined ? given(options.basedir) :
+                project?.basedir !== undefined ? derived(project.basedir) :
+                    options.cwd !== undefined ? cwd : undefined
+        }
     }
 
     /*  determine the files of the YAML schema configuration out of the
@@ -110,20 +144,21 @@ export class SpecBook {
 
     /*  initialize the configured specification artifact files
         below the base directory  */
-    async init (options: { config?: string[], basedir?: string }): Promise<string[]> {
+    async init (options: ProjectOptions): Promise<string[]> {
         const verbose = this.verboseOf("init")
-        return initSpecification({ config: this.requireConfig(await this.configFiles(options.config), verbose),
-            basedir: options.basedir ?? ".", verbose })
+        const project = this.project(options, verbose)
+        return initSpecification({ config: this.requireConfig(await this.configFiles(project.config), verbose),
+            basedir: project.basedir ?? ".", verbose })
     }
 
     /*  lint the specification Markdown files below the base directory,
         where "gitignore" treats an artifact file Git excludes from its
         project exactly like an absent one  */
-    async lint (options: { config?: string[], basedir?: string,
-        gitignore?: boolean }): Promise<LintResult> {
-        return lint({ config: await this.configFiles(options.config),
-            basedir: options.basedir ?? ".", gitignore: options.gitignore === true,
-            verbose: this.verboseOf("lint") })
+    async lint (options: ProjectOptions & { gitignore?: boolean }): Promise<LintResult> {
+        const verbose = this.verboseOf("lint")
+        const project = this.project(options, verbose)
+        return lint({ config: await this.configFiles(project.config),
+            basedir: project.basedir ?? ".", gitignore: options.gitignore === true, verbose })
     }
 
     /*  render an already parsed specification into the requested formats
@@ -151,18 +186,19 @@ export class SpecBook {
         as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown,
         parsing the input just once and returning one buffer per
         requested format  */
-    async export (options: { config?: string[], basedir?: string, formats?: ExportFormat[],
+    async export (options: ProjectOptions & { formats?: ExportFormat[],
         realtime?: boolean, gitignore?: boolean }): Promise<Buffer[]> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
+        const project   = this.project(options, verbose)
 
         /*  a missing browser is an environment problem, so let the PDF
             export fail before the specification is even parsed  */
         if (requested.includes("pdf"))
             await requireBrowser(verbose)
 
-        const result = lint({ config: await this.configFiles(options.config),
-            basedir: options.basedir ?? ".", gitignore: options.gitignore === true, verbose })
+        const result = lint({ config: await this.configFiles(project.config),
+            basedir: project.basedir ?? ".", gitignore: options.gitignore === true, verbose })
         return this.renderFormats(result, requested, verbose, options.realtime === true)
     }
 
@@ -175,17 +211,18 @@ export class SpecBook {
         configuration) does not end the watch. The returned promise settles
         once the initial export is done, while the active watcher keeps the
         process alive afterwards  */
-    private async observe (options: { config?: string[], basedir?: string, formats: ExportFormat[],
+    private async observe (options: ProjectOptions & { formats: ExportFormat[],
         realtime: boolean, gitignore?: boolean, outputs?: string[],
         onExport: (buffers: Buffer[]) => void | Promise<void> },
     verbose: Verbose): Promise<void> {
-        const config = await this.configFiles(options.config)
+        const project = this.project(options, verbose)
+        const config  = await this.configFiles(project.config)
         return watchSpecification(async () => {
             /*  the lint result carries the files to observe even for an
                 invalid specification, and the configuration files are
                 observed, too, so a failing export (even one due to an
                 invalid configuration) still keeps the observe loop fed  */
-            const result = lint({ config, basedir: options.basedir ?? ".",
+            const result = lint({ config, basedir: project.basedir ?? ".",
                 gitignore: options.gitignore === true, verbose })
             const files  = [ ...config.map((file) => path.resolve(file)), ...result.files ]
 
@@ -213,7 +250,7 @@ export class SpecBook {
         in sync with its sources (see "observe"), where "outputs" names the
         files "onExport" writes, so an output which is itself an observed
         source can be refused  */
-    async watch (options: { config?: string[], basedir?: string, formats?: ExportFormat[],
+    async watch (options: ProjectOptions & { formats?: ExportFormat[],
         realtime?: boolean, gitignore?: boolean, outputs?: string[],
         onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
         const verbose   = this.verboseOf("export")
@@ -229,12 +266,12 @@ export class SpecBook {
         sources (see "observe") and every fresh export is pushed to the
         connected browsers as an in-place document update, through the
         client-side script the "realtime" export injects into the HTML  */
-    async preview (options: { config?: string[], basedir?: string, addr?: string,
+    async preview (options: ProjectOptions & { addr?: string,
         port?: number, gitignore?: boolean }): Promise<void> {
         const verbose = this.verboseOf("preview")
         const server  = await servePreview({ addr: options.addr ?? previewAddr,
             port: options.port ?? previewPort, verbose })
-        return this.observe({ config: options.config, basedir: options.basedir,
+        return this.observe({ config: options.config, basedir: options.basedir, cwd: options.cwd,
             formats: [ "html" ], realtime: true, gitignore: options.gitignore,
             onExport: ([ html ]) => server.update(html) }, verbose)
     }
@@ -244,20 +281,21 @@ export class SpecBook {
         a single part, optionally pointing to the artifacts of the
         particular project, whose YAML schema configuration is validated
         before use and optionally emitted compressed by level  */
-    async describe (options: { config?: string[], basedir?: string, embed?: boolean, compress?: CompressLevel,
+    async describe (options: ProjectOptions & { embed?: boolean, compress?: CompressLevel,
         format?: DescribeFormat, part?: DescribePart }): Promise<string> {
         const verbose = this.verboseOf("describe")
         const format  = options.format ?? "md"
         const part    = options.part   ?? "all"
+        const project = this.project(options, verbose)
 
         /*  the schema-bearing parts require a schema configuration, so
             they fall back onto the bundled standard one, which is always
             embedded, as its bundled file is no meaningful reference  */
-        const given    = options.config !== undefined && options.config.length > 0
+        const given    = project.config !== undefined
         const standard = !given && (part === "all" || part === "schema")
-        const config   = given || standard ? await this.configFiles(options.config) : undefined
+        const config   = given || standard ? await this.configFiles(project.config) : undefined
         const embed    = options.embed === true || standard
-        const basedir  = options.basedir ?? (part === "spec" ? "." : undefined)
+        const basedir  = project.basedir ?? (part === "spec" ? "." : undefined)
         const schema   = config !== undefined ? this.requireConfig(config, verbose) : undefined
         verbose(`describing the "${literal(part)}" part of the SpecBook models and formats ` +
             `in the "${literal(format)}" format`)
