@@ -55,7 +55,8 @@ API.
     -   `src/specbook-diagram.ts`: the derivation of the Gradia specs of
         the configured `graph`/`hub`/`grid` diagrams from the object
         model and its references (including the `nest` container
-        nesting of the nodes), their validation, and the in-memory
+        nesting of the nodes), the compact Gradia geometry presets a
+        diagram `config` overrides, their validation, and the in-memory
         cache of the rendered SVGs
     -   `src/specbook-config.ts`: YAML schema configuration loading, merging, and validation (Valibot)
     -   `src/specbook-project.ts`: the upward search, loading, and
@@ -309,6 +310,17 @@ the observe loop intact and where `-` (stdout) and an output which is
 itself an observed source file are rejected as an output. The observed
 set is re-synchronized after every re-export, as an edit can add or drop
 an embedded asset.
+
+The HTML export embeds the diagram SVGs at half their coordinate scale
+(the node names at about the document text size) and strips their
+`<style>` elements: as Gradia names a CSS class after its declarations,
+the union of the few distinct rules is appended once to the document
+stylesheet. Likewise, the description popup attributes (`data-info`,
+`data-info-path`, `data-info-spec`) carry just the indices of the
+injected INFO (schema nodes) and SPEC (objects: anchor id, parent index,
+kind, plain name, description HTML) tables, from which the client-side
+script composes the title paths (a trailing `^` of `data-info-path`
+keeps the last segment kind-only).
 
 The rendered diagram SVGs are cached in memory per Gradia spec and swept
 to the diagrams of the latest rendering, so the repeated renderings of a

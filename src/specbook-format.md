@@ -584,6 +584,12 @@ node only, `qualified` labels every node with its object kind,
 nodes as key/value annotations (with every `[[xxx]]` reference stripped
 to its target object name), and `config` passes arbitrary Gradia
 rendering options (e.g. `grid-columns-max: 5`) through to the diagram.
+As the Gradia defaults are dimensioned for a stand-alone canvas,
+SpecBook presets a compact geometry for every diagram, which `config`
+overrides: `size-canvas-margin: 8`, `size-node-height-scale: 2`,
+`hub-node-gap: 10`, `hub-node-count-max: 6` (a `hub` column of more
+nodes wraps into two staggered sub-columns), `grid-gap-horizontal: 24`,
+and `grid-gap-vertical: 12`.
 
 `ordered` replaces the layered layout of a `graph` by the document
 order of the objects: the top-level nodes stack top-down in that order

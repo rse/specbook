@@ -21,6 +21,14 @@ ChangeLog
     An edge object of the center targeting the center itself is no longer dropped: Gradia 1.2.4
     places the center again among its outputs, as a dashed box in a darker grey than the ghosts.
 
+-   IMPROVEMENT [code, infr]: More Compact Diagrams in the HTML/PDF Export
+    Compact Gradia geometry presets (overridable by `config`), `hub` columns of more than 6 nodes
+    wrapped into two sub-columns (Gradia 1.3.0), and node names zoomed to the document text size.
+
+-   IMPROVEMENT [code, infr]: Smaller HTML Export through Shared Diagram Styles and Popup Tables
+    The CSS class rules of the Gradia 1.3.0 diagrams are declared once in the document stylesheet,
+    and the description popup attributes carry table indices instead of repeated title paths.
+
 -   IMPROVEMENT [code, infr]: `SPECBOOK_CONFIG` and `SPECBOOK_BASEDIR` Resolved by the API Itself
     The API now resolves both environment variables (instead of the CLI and the skill), so they
     apply to the API methods and the MCP tools, too, still winning over the project entries.

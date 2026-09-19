@@ -46,6 +46,23 @@ export interface DiagramResult {
     errors:   DiagramError[]
 }
 
+/*  the Gradia rendering options preset for every diagram, which the
+    "config" of a diagram configuration overrides: inside a document
+    the diagrams are rendered compactly, as their defaults are
+    dimensioned for a stand-alone canvas -- no canvas margin beyond the
+    box strokes (the document spaces the diagram), the node boxes at
+    their content height, tighter gaps between the stacked nodes and
+    the tiles, and a "hub" column of more than six nodes wrapped into
+    two staggered sub-columns  */
+const diagramPresets: NonNullable<SchemaDiagram["config"]> = {
+    "size-canvas-margin":     8,
+    "size-node-height-scale": 2,
+    "hub-node-gap":           10,
+    "hub-node-count-max":     6,
+    "grid-gap-horizontal":    24,
+    "grid-gap-vertical":      12
+}
+
 /*  the diagram shape, i.e., the "type" of a diagram configuration
     with its default applied  */
 type DiagramType = NonNullable<SchemaDiagram["type"]>
@@ -116,7 +133,7 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
     index: LinkIndex, anchors: Map<SpecObject, string>, positions: Map<SpecObject, number>,
     parenProps: ParenProps): string => {
     const lines  = [ `#type ${type}` ]
-    const config = diagram.config ?? {}
+    const config = { ...diagramPresets, ...diagram.config }
     for (const [ key, value ] of Object.entries(config))
         if (value !== undefined)
             lines.push(`#config ${key} ${configValue(value)}`)
@@ -710,7 +727,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         return { errors }
 
     return { spec: renderSpec(diagram, type, center, centerUrl, nodes, edges, nesting, index, anchors,
-        positions, parenProps), config: diagram.config, columns, errors }
+        positions, parenProps), config: { ...diagramPresets, ...diagram.config }, columns, errors }
 }
 
 /*  the memoized diagram derivations, keyed by specification, as the
