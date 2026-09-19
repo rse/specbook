@@ -196,8 +196,12 @@ withGitignoreOption(withCommonOptions(program.command("export")))
         (value: string, previous: string[]) => previous.concat(value), new Array<string>())
     .action(async (opts: ProcessOptions & { output: string[], watch: boolean }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const outputs = (opts.output.length > 0 ? opts.output : [ envDefault("output") ?? "-" ])
-            .map(parseOutputSpec)
+        const fallback = envDefault("output")
+        const given    = opts.output.length > 0 ? opts.output : (fallback !== undefined ? [ fallback ] : [])
+        if (given.length === 0)
+            throw new Error("the export requires at least one output " +
+                "(use option \"-o [<format>:]<output-file>\", with \"-\" for stdout)")
+        const outputs = given.map(parseOutputSpec)
 
         /*  a re-export has to land somewhere it can be picked up again,
             which a one-shot stdout stream cannot provide  */

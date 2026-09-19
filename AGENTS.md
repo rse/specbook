@@ -295,7 +295,8 @@ the AST exports attach the counts as its `coverage` field. The standard
 schema configuration reports the use case, scenario, requirement, and
 rule coverage on the Test Cases artifact.
 
-The export output option `-o`/`--output` (default: `-` for stdout) can
+The export output option `-o`/`--output` (`-` for stdout) is required
+(an absent one is an error, unless `SPECBOOK_OUTPUT` provides it) and can
 occur multiple times; the format is inferred from the filename extension,
 unless explicitly given as a `<format>:` prefix, and plain `-` (stdout)
 defaults to JSON.

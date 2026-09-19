@@ -21,6 +21,10 @@ ChangeLog
     The API now resolves both environment variables (instead of the CLI and the skill), so they
     apply to the API methods and the MCP tools, too, still winning over the project entries.
 
+-   IMPROVEMENT [code]: CLI `specbook export` Requires an Explicit `-o`/`--output` Option
+    An absent `--output` (option and `SPECBOOK_OUTPUT`) is now an error instead of silently
+    exporting JSON to stdout, which still is available through an explicit `-o -`.
+
 1.2.15 (2026-09-18)
 -------------------
 

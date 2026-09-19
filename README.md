@@ -217,7 +217,7 @@ Options:
     specification Markdown files are placed inside it, too.
 
 -   `-o|--output [<format>:]<output-file>` (`export` only):
-    The output file (default: `-` for stdout) can be given multiple times.
+    The output file (`-` for stdout) is required and can be given multiple times.
     The format (`json`, `json5`, `yaml`, `toon`, `html`, `pdf`, or `md`)
     is inferred from the filename extension, unless it is explicitly given
     as a `<format>:` prefix, and plain `-` (stdout) defaults to JSON.
