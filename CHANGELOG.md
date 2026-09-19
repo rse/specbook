@@ -9,6 +9,10 @@ ChangeLog
     An absent `--config`/`--basedir` (option and environment variable) now defaults to the validated
     entries of the closest `.specbook.yaml`, searched upwards from the (API/MCP `cwd`) directory.
 
+-   FEATURE [code]: Optional Second Color Tone in `THEME-TONE` for the Complement Color
+    `THEME-TONE` now accepts `#RRGGBB #RRGGBB`, where the second tone seeds the signal color spread,
+    which otherwise still derives from the complement of the first (accent) tone.
+
 -   IMPROVEMENT [code, infr]: `SPECBOOK_CONFIG` and `SPECBOOK_BASEDIR` Resolved by the API Itself
     The API now resolves both environment variables (instead of the CLI and the skill), so they
     apply to the API methods and the MCP tools, too, still winning over the project entries.

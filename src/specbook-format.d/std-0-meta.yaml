@@ -154,7 +154,7 @@
             value: enum(Dark,Light)
             optional: true
         -   name: THEME-TONE
-            desc: The theme color tone.
-            value: /^#[0-9a-fA-F]{6}$/
+            desc: The theme color tone, optionally followed by the complement color tone (else derived).
+            value: /^#[0-9a-fA-F]{6}(\s+#[0-9a-fA-F]{6})?$/
             optional: true
 

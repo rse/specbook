@@ -404,9 +404,11 @@ indented on their first line),
 `LANG` selects the smart typography quote style, `CHARSET` (US-ASCII,
 ISO-8859-1, ISO-8859-15, or UTF-8) subsets the embedded fonts,
 `THEME-STYLE` presets the light/dark theme, `THEME-TONE` seeds the theme
-color spreads, and `PAPER-SIZE` (A4, Letter, or Legal) sets up the PDF
-pagination and the print-time height cap of the diagrams. The subsetted
-stylesheets are memoized per charset.
+color spreads (one `#RRGGBB` for the accent spread, optionally followed
+by a second one for the signal spread, which else derives from the
+complement of the first), and `PAPER-SIZE` (A4, Letter, or Legal) sets
+up the PDF pagination and the print-time height cap of the diagrams. The
+subsetted stylesheets are memoized per charset.
 
 The PDF export prints the HTML through Playwright/Chromium (the browser
 explicitly configured by `SPECBOOK_BROWSER`, else the downloaded
