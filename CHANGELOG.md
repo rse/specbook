@@ -29,9 +29,9 @@ ChangeLog
     The AST exports now carry the embedded images optimized like the HTML export (72% smaller for
     the sample), and the new `export` option `-s`/`--slim` drops them entirely (89% smaller).
 
--   IMPROVEMENT [code]: `describe` Compression Level 2 Drops the `diagram` Fields, too
-    Beside the `refs` fields, `--compress` level 2 (and higher) now also leaves out the rendering-only
-    `diagram` fields, and the MCP tool `specbook_describe` now defaults to level 2 instead of 1.
+-   IMPROVEMENT [code]: `describe` Compression Level 2 Drops the `diagram` and `format` Fields, too
+    Beside the `refs` fields, `--compress` level 2 (and higher) now also leaves out the
+    rendering-only `diagram` and `format` fields, and MCP `specbook_describe` defaults to level 2.
 
 -   IMPROVEMENT [code]: Far Smaller PDF Export through Halo-Less Diagram Edge Labels in Print
     The edge labels of the diagrams drop their halo stroke in print, as Chromium prints a stroked

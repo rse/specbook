@@ -259,7 +259,8 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE relations buried in references are graspable only when drawn
 
 -   `SchemaObject.format?: SchemaFormat`:
-    HTML/PDF rendering format of the objects of this kind,
+    HTML/PDF rendering format of the objects of this kind (left out when
+    the configuration is emitted compressed by level 2 or higher),
     BECAUSE rich objects need sections, uniform ones read as tables
 
 -   `SchemaObject.props?: SchemaProperty[]`:
