@@ -32,12 +32,12 @@ export const comparison: Comparison[] = [
     {
         topic:    "Cross-referencing",
         office:   "Manual cross-references that silently rot when a chapter is renamed.",
-        markdown: "Hand-written anchors, checked by nothing.",
+        markdown: "Hand-written anchors to relative filenames, checked by nothing.",
         specbook: "Wiki-style `[[xxx]]` references, resolved against object ids and names; an unresolvable one is an **error**."
     },
     {
         topic:    "Drawing a diagram",
-        office:   "With a drawing tool, exported as a bitmap image, updated by hand — if at all.",
+        office:   "With a drawing tool, exported and updated by hand — if at all.",
         markdown: "An embedded image or a hand-written diagram source, maintained separately.",
         specbook: "Derived **automatically** from the object model, so it cannot drift away from the text."
     },
@@ -51,7 +51,7 @@ export const comparison: Comparison[] = [
         topic:    "Feeding an AI agent",
         office:   "Extract the text first and lose the structure on the way.",
         markdown: "The agent sees prose and has to *infer* the intended structure.",
-        specbook: "The agent reads the **AST** and the `specbook describe` output — content *and* rules, so it can also write back."
+        specbook: "The agent gets the `specbook describe` output, so it understands the specification structure and can also write back."
     },
     {
         topic:    "Checking test coverage",

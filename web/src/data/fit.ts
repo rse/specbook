@@ -57,14 +57,14 @@ export const fitFor: Fit[] = [
     {
         icon:  Bot,
         title: "You want AI agents to read and write your specification",
-        body:  "The AST exports (JSON, JSON5, YAML, TOON) plus the <code>specbook describe</code> command give an " +
-               "LLM both the content and the rules of the format, so it can consume and produce a " +
+        body:  "The AST exports (JSON, JSON5, YAML, TOON) and the <code>specbook describe</code> command give an " +
+               "LLM both the plain content and rules of the source format, so it can consume and produce a " +
                "specification instead of guessing at one."
     },
     {
         icon:  FileOutput,
         title: "You need one source but several renderings",
-        body:  "The same specification corpus becomes a searchable HTML document for developers, a paginated PDF for " +
+        body:  "The same specification corpus becomes a filterable HTML document for developers, a paginated PDF for " +
                "customers, a normalized Markdown file, and a machine-readable AST &mdash; from a single " +
                "<code>specbook export</code> run."
     },
@@ -72,7 +72,7 @@ export const fitFor: Fit[] = [
         icon:  SquareTerminal,
         title: "You like the Unix command-line style",
         body:  "<b>SpecBook</b> is a CLI with explicit commands and Unix-style options, like " +
-               "<code>specbook export -b docs -o spec.pdf</code> &mdash; scriptable, watchable, and " +
+               "<code>specbook export -b docs/spec -o spec.pdf</code> &mdash; scriptable, watchable, and " +
                "CI-friendly."
     },
     {
@@ -80,7 +80,7 @@ export const fitFor: Fit[] = [
         title: "Your domain needs its own object kinds",
         body:  "The YAML schema configuration defines the objects and properties a specification may contain. An " +
                "extensive, bundled, standard configuration applies out of the box, and several configurations can be " +
-               "merged into one effective schema."
+               "merged into one effective custom schema."
     }
 ]
 
@@ -102,24 +102,25 @@ export const fitAgainst: Fit[] = [
         icon:  Users,
         title: "You need real-time collaborative editing",
         body:  "Collaboration happens through your version control system, with branches, pull requests, " +
-               "and reviews &mdash; not through simultaneous cursors in a shared document."
+               "and reviews &mdash; not through simultaneous cursors in a shared document. But you can " +
+               "use a collaborative text editing application to author your Markdown files in the team."
     },
     {
         icon:  Table,
         title: "You are looking for a requirements management suite",
         body:  "There is no issue tracker, no baseline management, no approval workflow, and no user " +
-               "administration. <b>SpecBook</b> is a specification <i>format</i> plus its tooling."
+               "administration. <b>SpecBook</b> is a specification <i>format</i> plus its tooling only."
     },
     {
         icon:  SlidersHorizontal,
         title: "You want an unopinionated document generator",
         body:  "<b>SpecBook</b> ships a fixed object model, a fixed Markdown mapping, and a fixed theming " +
-               "mechanism. You configure it through the schema, but you cannot make it neutral."
+               "mechanism. You configure it through the schema, but you cannot make it fully neutral."
     },
     {
         icon:  Gauge,
         title: "Your specification is a single short page of prose",
         body:  "Below a certain size the schema configuration, the linting, and the export pipeline cost " +
-               "more than they return. Plain Markdown is then simply the better tool."
+               "more than they return. For small specifications, plain Markdown is simply the better tool."
     }
 ]

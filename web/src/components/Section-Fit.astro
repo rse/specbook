@@ -130,7 +130,7 @@ const inline = (text: string) => text
                 <thead>
                     {/*  the icon sits on its own flex line, which makes the
                          following <i> subtitle start a new line by itself  */}
-                    <tr class="border-b border-border-strong text-accent">
+                    <tr class="text-accent">
                         <th class="pb-2 pr-1 font-semibold sm:pr-2"></th>
                         <th class="pb-2 px-1 font-semibold sm:px-2">
                             <span class="flex items-center gap-1.5"><FileType class="h-4 w-4 shrink-0" stroke-width={0.75}/>Office Document</span>
@@ -139,8 +139,28 @@ const inline = (text: string) => text
                             <span class="flex items-center gap-1.5"><FileText class="h-4 w-4 shrink-0" stroke-width={0.75}/>Plain Markdown</span>
                         </th>
                         <th class="pb-2 pl-1 font-semibold sm:pl-2">
-                            <span class="flex items-center gap-1.5"><BookCheck class="h-4 w-4 shrink-0" stroke-width={0.75}/>SpecBook Format</span>
+                            <span class="flex items-center gap-1.5"><BookCheck class="h-4 w-4 shrink-0" stroke-width={0.75}/>SpecBook Markdown</span>
                         </th>
+                    </tr>
+                    {/*  the progression arrow: a thin accent line spanning the
+                         three format columns, its head pointing to the
+                         rightmost SpecBook one. The line ends at 100% of the SVG
+                         width, the marker's reference point is its tip, so the
+                         head sits flush with the right edge of the last column.  */}
+                    <tr class="border-b border-border-strong">
+                        <td class="pr-1 sm:pr-2"></td>
+                        <td colspan="3" class="pb-2 px-1 sm:px-2">
+                            <svg class="block h-3 w-full text-accent" aria-hidden="true">
+                                <defs>
+                                    <marker id="fit-arrow-head" markerUnits="userSpaceOnUse"
+                                        markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto">
+                                        <path d="M0,0 L12,6 L0,12 Z" fill="currentColor"/>
+                                    </marker>
+                                </defs>
+                                <line x1="0" y1="50%" x2="100%" y2="50%" stroke="currentColor" stroke-width="2"
+                                    marker-end="url(#fit-arrow-head)"/>
+                            </svg>
+                        </td>
                     </tr>
                 </thead>
                 <tbody>

@@ -48,7 +48,7 @@
     --foreground-muted:     #777777;
 
     --border:               var(--brand-200);
-    --border-strong:        var(--brand-200);
+    --border-strong:        var(--brand-300);
 
     --accent:               var(--brand-600);
     --accent-hover:         var(--brand-700);
@@ -225,6 +225,13 @@ code {
     border-radius: 0.3rem;
     color: var(--color-foreground);
     background: var(--color-brand-200);
-    padding: 0.05em 0.35em;
+    padding: 0 0.35em;
     font-size: 0.9em;
+}
+
+/*  inside a notice blockquote the chip sits on a pale elevated ground, so
+    it takes the lightest accent step instead, its border keeping the frame.  */
+:where(blockquote code:not(.code-plain)) {
+    background: var(--color-brand-100);
+    border-color: var(--brand-200);
 }

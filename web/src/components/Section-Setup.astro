@@ -72,7 +72,7 @@ import Annotation  from "./Widget-Annotation.astro"
                             "**npm** install --save-dev @rse/specbook"
                         ] },
                         { label: "One-Shot", commands: [
-                            "**npx** @rse/specbook lint -b docs/"
+                            "**npx** @rse/specbook lint -b docs/spec/"
                         ] }
                     ]}
                 />
@@ -104,7 +104,7 @@ import Annotation  from "./Widget-Annotation.astro"
                             "**npm** uninstall -g @rse/specbook"
                         ] },
                         { label: "Project", commands: [
-                            "**npm** uninstall @rse/specbook"
+                            "**npm** uninstall --save-dev @rse/specbook"
                         ] }
                     ]}
                 />
@@ -159,13 +159,13 @@ import Annotation  from "./Widget-Annotation.astro"
                         copy={true}
                         title="Browser Installation"
                         tabs={[
-                            { label: "Playwright", commands: [
+                            { label: "Internal Browser", commands: [
                                 "**npx** playwright install chromium"
                             ] },
-                            { label: "System", commands: [
+                            { label: "System Browser", commands: [
                                 "export SPECBOOK_BROWSER=\"**chrome**\""
                             ] },
-                            { label: "Explicit", commands: [
+                            { label: "Explicit Browser", commands: [
                                 "export SPECBOOK_BROWSER=\"**/path/to/browser**\""
                             ] }
                         ]}
@@ -178,7 +178,7 @@ import Annotation  from "./Widget-Annotation.astro"
                         copy={true}
                         title="PDF Export"
                         commands={[
-                            "**specbook** export -b docs/ -o spec.pdf"
+                            "**specbook** export -b docs/spec/ -o spec.pdf"
                         ]}
                     />
                 </div>
@@ -212,11 +212,10 @@ import Annotation  from "./Widget-Annotation.astro"
             <blockquote class="mt-4 border-l-4 border-accent bg-background-elevated/60 px-6 py-2 text-foreground-secondary sb-justify">
                 <b class="text-accent">NOTICE:</b>
                 <span class="mt-1 block text-foreground-secondary">
-                    The MCP service is <b>NOT</b> required for <b>SpecBook</b> to
-                    work. It is fully optional, but lets an AI agent lint and
-                    export your specification itself &mdash; and, together with{" "}
-                    <code>specbook describe</code>, understand the format well
-                    enough to write one.
+                    For a full-featured AI integration of <b>SpecBook</b>, check out
+                    the sibling project <a href="https://ase.tools/"><b>Agentic Software Engineering (ASE)</b></a>
+                    and its <code>/ase-spec-activate</code> (based on <code>specbook describe</code>), <code>/ase-spec-edit</code>, <code>/ase-sync-import</code>,
+                    <code>/ase-sync-export</code> (based on <code>specbook export</code>) and <code>/ase-sync-reconcile</code> skills.
                 </span>
             </blockquote>
         </div>
@@ -239,11 +238,22 @@ import Annotation  from "./Widget-Annotation.astro"
                     copy={true}
                     title="Format Description for the LLM"
                     commands={[
-                        "**specbook** describe -b docs/ -e -z 2",
+                        "**specbook** describe -b docs/spec/ -e -z 2",
                         "**specbook** describe -p schema -f raw"
                     ]}
                 />
             </div>
+
+            <blockquote class="mt-12 border-l-4 border-accent bg-background-elevated/60 px-6 py-2 text-foreground-secondary sb-justify">
+                <b class="text-accent">NOTICE:</b>
+                <span class="mt-1 block text-foreground-secondary">
+                    The MCP service is <b>NOT</b> required for <b>SpecBook</b> to
+                    work. It is fully optional, but lets an AI agent lint and
+                    export your specification itself &mdash; and, together with{" "}
+                    <code>specbook describe</code>, understand the format well
+                    enough to write one.
+                </span>
+            </blockquote>
         </div>
     </div>
 </section>

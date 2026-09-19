@@ -95,9 +95,9 @@ const options = [
                         copy={true}
                         title="Authoring"
                         commands={[
-                            "**specbook** init -b docs/",
-                            "**specbook** preview -b docs/",
-                            "**specbook** lint -v -b docs/"
+                            "**specbook** init -b docs/spec/",
+                            "**specbook** preview -b docs/spec/",
+                            "**specbook** lint -v -b docs/spec/"
                         ]}
                     />
                     <Terminal
@@ -106,9 +106,9 @@ const options = [
                         copy={true}
                         title="Exporting"
                         commands={[
-                            "**specbook** export -b docs/\n-o spec.html -o spec.pdf",
-                            "**specbook** export -b docs/ -o spec.yaml",
-                            "**specbook** export -b docs/ -w -o spec.html"
+                            "**specbook** export -b docs/spec/\n-o spec.html -o spec.pdf",
+                            "**specbook** export -b docs/spec/ -o spec.yaml",
+                            "**specbook** export -b docs/spec/ -w -o spec.html"
                         ]}
                     />
                 </div>

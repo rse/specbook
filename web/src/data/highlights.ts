@@ -43,12 +43,14 @@ export type Highlight = {
 export const highlights: Highlight[] = [
     {
         icon:    ListTree,
-        eyebrow: "Hierarchical Object Model",
-        title:   "A specification is a tree of typed objects",
+        eyebrow: "Schema-Based Graph Object Model",
+        title:   "A specification is a graph of typed objects",
         body:    "Every object carries a kind and a name, an optional id, optional properties, " +
                  "an optional description, and optional child objects. Which object kinds are " +
                  "allowed, how they may nest, and which properties they carry is defined per " +
-                 "context by the YAML schema configuration &mdash; not hard-wired into the tool."
+                 "context by the YAML schema configuration &mdash; not hard-wired into the tool.",
+        figure:  "/assets/screenshot-schema.png",
+        label:   "SpecBook YAML schema specification"
     },
     {
         icon:    FileText,
@@ -58,17 +60,19 @@ export const highlights: Highlight[] = [
                  "description prose &mdash; readable and diff-able in any editor and any code review. " +
                  "The very same object model maps onto nested sections (the <i>complex</i> format) " +
                  "or onto compact bullet point lists (the <i>concise</i> and <i>group</i> formats).",
-        figure:  "/assets/screenshot-sample.png",
-        label:   "SpecBook HTML rendering of the simple sample specification"
+        figure:  "/assets/screenshot-spec.png",
+        label:   "SpecBook Markdown specification"
     },
     {
         icon:    Link,
         eyebrow: "Wiki-Style Object Linking",
-        title:   "Objects reference each other through [[xxx]] links",
+        title:   "Objects reference each other through Wiki [[xxx]] links",
         body:    "References are resolved against the locally-unique ids and names of all objects " +
                  "across the entire corpus, so a fact lives in exactly one place and every other " +
                  "place points at it. In the HTML and PDF exports the references become navigable " +
-                 "links onto precise anchors."
+                 "links onto precise anchors.",
+        figure:  "/assets/screenshot-links.png",
+        label:   "SpecBook Wiki Links"
     },
     {
         icon:    ShieldCheck,
@@ -81,7 +85,9 @@ export const highlights: Highlight[] = [
                  "reference-valued property (local, symmetric, and/or acyclic), and it can declare " +
                  "the child objects of an object kind a finite state machine, whose reachability, " +
                  "dead-ends, and livelocks are then checked. Violations are reported as file- and " +
-                 "line-precise diagnostics."
+                 "line-precise diagnostics.",
+        figure:  "/assets/screenshot-lint.png",
+        label:   "SpecBook Lint Errors"
     },
     {
         icon:    Workflow,
@@ -93,18 +99,8 @@ export const highlights: Highlight[] = [
                  "specification it depicts. The rendering is done by the sibling project " +
                  "<a href=\"https://github.com/rse/gradia\">Gradia</a>, which is specialized in " +
                  "rendering object models.",
-        figure:  "/assets/poster-2.png",
-        label:   "SpecBook object model and diagram overview poster"
-    },
-    {
-        icon:    Braces,
-        eyebrow: "AST Exports for AI/LLMs",
-        title:   "Machine-readable, so agents read and write specifications",
-        body:    "The parsed Abstract Syntax Tree (AST) exports into JSON, JSON5, YAML, or TOON for " +
-                 "machine consumption, with the derived diagram of an object attached as a textual " +
-                 "Gradia spec and the reference coverage it reports attached as its counts. " +
-                 "Together with the <code>describe</code> command, which explains the models and " +
-                 "formats, this enables LLMs to both read and write specifications."
+        figure:  "/assets/screenshot-gradia.png",
+        label:   "SpecBook diagram rendering"
     },
     {
         icon:    MonitorSmartphone,
@@ -125,9 +121,22 @@ export const highlights: Highlight[] = [
         body:    "The PDF export prints the HTML rendering through Chromium and post-processes it " +
                  "with page numbers, headers and footers, a brand bar, and a hierarchical PDF " +
                  "outline. The paper size (A4, Letter, or Legal) drives the pagination and scales " +
-                 "the diagrams down to fit onto a single page.",
+                 "the diagrams down to fit onto a single page. This export format is especially " +
+                 "intended for creating contract-relevant binding specification documents in " +
+                 "customer contexts.",
         figure:  "/assets/screenshot-broadcast-print.png",
         label:   "SpecBook PDF rendering of the complex Broadcast specification"
+    },
+    /*
+    {
+        icon:    Braces,
+        eyebrow: "AST Exports for AI/LLMs",
+        title:   "Machine-readable, so agents read and write specifications",
+        body:    "The parsed Abstract Syntax Tree (AST) exports into JSON, JSON5, YAML, or TOON for " +
+                 "machine consumption, with the derived diagram of an object attached as a textual " +
+                 "Gradia spec and the reference coverage it reports attached as its counts. " +
+                 "Together with the <code>describe</code> command, which explains the models and " +
+                 "formats, this enables LLMs to both read and write specifications."
     },
     {
         icon:    Palette,
@@ -139,4 +148,5 @@ export const highlights: Highlight[] = [
                  "dark theme, and the character set subsets the embedded fonts down to the actually " +
                  "needed glyphs."
     }
+    */
 ]
