@@ -342,6 +342,12 @@ and the optimized images are cached in memory per target medium and
 embedded content and swept to the images of the latest rendering,
 exactly like the diagrams.
 
+In print (and hence the PDF export), the edge labels of the diagrams
+drop their halo (the `stroke` with `paint-order: stroke` of Gradia), as
+Chromium prints a stroked text as the curve outlines of its glyphs
+instead of as text, which alone made up nearly half of the size of the
+PDF: a label sitting on an edge hence is crossed by its line in print.
+
 The rendered diagram SVGs are cached in memory per Gradia spec and swept
 to the diagrams of the latest rendering, so the repeated renderings of a
 process (watch, preview, MCP, and the passes and formats of a single
