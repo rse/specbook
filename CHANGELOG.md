@@ -26,8 +26,8 @@ ChangeLog
     HTML and as JPEG in PDF), and SVG images are minified with SVGO, each kept only if smaller.
 
 -   IMPROVEMENT [code]: Far Smaller JSON/JSON5/YAML/TOON Exports through Optimized Embedded Images
-    The AST exports now carry the embedded images optimized like the HTML export (72% smaller for
-    the sample), and the new `export` option `-s`/`--slim` drops them entirely (89% smaller).
+    The AST exports now carry the embedded images optimized exactly like the HTML export (sharing
+    its cache), which makes them 72% smaller for the sample while they still stand alone.
 
 -   IMPROVEMENT [code]: `describe` Compression Level 2 Drops the `diagram` and `format` Fields, too
     Beside the `refs` fields, `--compress` level 2 (and higher) now also leaves out the

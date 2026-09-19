@@ -32,9 +32,8 @@ API.
         `LANG`, `CHARSET`, `THEME-STYLE`, `THEME-TONE`, `PAPER-SIZE`,
         the latter also yielding the print stylesheet)
     -   `src/specbook-export-ast.ts`: the AST renderer (JSON, JSON5,
-        YAML, TOON), optimizing (or, as `slim`, dropping) the embedded
-        images and attaching the derived Gradia spec of a
-        diagram-configured object as its `diagram` field (except for the
+        YAML, TOON), optimizing the embedded images and attaching the
+        derived Gradia spec of a diagram-configured object as its `diagram` field (except for the
         title object, whose diagram the HTML/PDF export reserves) and
         the covered/total counts of a coverage-configured object as its
         `coverage` field
@@ -212,7 +211,7 @@ blue hero flag).
 ```
 specbook init     [-v [<level>]] [-c <yaml-file>] [-b <basedir>]
 specbook lint     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g]
-specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-w] [-s] [-o [<format>:]<output-file>] [...]
+specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-w] [-o [<format>:]<output-file>] [...]
 specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-a <ip-addr>] [-p <tcp-port>]
 specbook describe [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-e] [-z [<level>]] [-f <format>] [-p <part>] [-o <markdown-file>]
 specbook mcp      [-v [<level>]]
@@ -330,9 +329,8 @@ keeps the last segment kind-only).
 The HTML export (and hence the PDF one) optimizes the embedded images
 on-the-fly, and so do the AST exports, which carry the images optimized
 exactly like the HTML export (sharing its cache), as the images are by
-far the bulk of such an export -- unless the export option `-s`/`--slim`
-(the API/MCP option `slim`, default `false`) drops their `embedding`
-fields entirely, for a consumer like an LLM. A PNG/JPEG
+far the bulk of such an export, which still has to stand alone (so the
+images are never dropped). A PNG/JPEG
 image is re-encoded with Sharp at quality 85, downscaled if it is wider
 than twice the 60rem content width (1920px) -- a JPEG as JPEG again,
 and a PNG as WebP for the HTML export, but as JPEG (flattened onto the

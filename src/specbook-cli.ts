@@ -190,14 +190,11 @@ withGitignoreOption(withCommonOptions(program.command("export")))
         "as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown")
     .option("-w, --watch", "keep the outputs in sync by re-exporting on every source change",
         envDefaultFlag("watch", false))
-    .option("-s, --slim", "drop the embedded images from the JSON, JSON5, YAML, and TOON exports " +
-        "(instead of just optimizing them)",
-    envDefaultFlag("slim", false))
     .option("-o, --output [<format>:]<output-file>",
         "output file (\"-\" for stdout, repeatable), with the format inferred " +
         "from the filename extension unless explicitly prefixed",
         (value: string, previous: string[]) => previous.concat(value), new Array<string>())
-    .action(async (opts: ProcessOptions & { output: string[], watch: boolean, slim: boolean }) => {
+    .action(async (opts: ProcessOptions & { output: string[], watch: boolean }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const fallback = envDefault("output")
         const given    = opts.output.length > 0 ? opts.output : (fallback !== undefined ? [ fallback ] : [])
@@ -220,11 +217,11 @@ withGitignoreOption(withCommonOptions(program.command("export")))
         }
         if (opts.watch)
             await specbook.watch({ config: configOf(opts), basedir: opts.basedir,
-                formats: distinct, gitignore: opts.gitignore, slim: opts.slim,
+                formats: distinct, gitignore: opts.gitignore,
                 outputs: outputs.map(({ output }) => output), onExport: write })
         else
             await write(await specbook.export({ config: configOf(opts), basedir: opts.basedir,
-                formats: distinct, gitignore: opts.gitignore, slim: opts.slim }))
+                formats: distinct, gitignore: opts.gitignore }))
     })
 
 /*  the preview command serves the HTML export live in the browser  */

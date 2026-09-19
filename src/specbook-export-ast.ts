@@ -36,16 +36,15 @@ interface PlainCoverage      { pattern: string, covered: number, total: number }
 interface PlainObject        { diagram?: string, coverage?: PlainCoverage[], children: PlainObject[] }
 interface PlainSpecification { artifacts: { objects: PlainObject[] }[] }
 
-/*  render the specification AST into a serialization format, where
-    "slim" drops the embedded images instead of optimizing them  */
+/*  render the specification AST into a serialization format  */
 export const renderAst = async (specification: Spec, format: AstFormat,
-    config?: Schema, slim = false, verbose?: Verbose): Promise<Buffer> => {
+    config?: Schema, verbose?: Verbose): Promise<Buffer> => {
     /*  reduce the specification to plain JSON values (ISO date strings),
-        with the embedded images (by far the bulk of the export) either
-        optimized like the ones of the HTML export or dropped entirely  */
-    const optimized = slim ? undefined : await optimizeImages(specification, false, verbose)
+        with the embedded images (by far the bulk of the export)
+        optimized like the ones of the HTML export  */
+    const optimized = await optimizeImages(specification, false, verbose)
     const plain = JSON.parse(JSON.stringify(specification, (key: string, value: unknown) =>
-        key !== "embedding" ? value : optimized === undefined ? undefined :
+        key !== "embedding" ? value :
             (value as string[]).map((content) => optimized.get(content) ?? content)
     )) as PlainSpecification
 
