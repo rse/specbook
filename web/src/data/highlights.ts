@@ -127,26 +127,28 @@ export const highlights: Highlight[] = [
         figure:  "/assets/screenshot-broadcast-print.png",
         label:   "SpecBook PDF rendering of the complex Broadcast specification"
     },
-    /*
     {
         icon:    Braces,
-        eyebrow: "AST Exports for AI/LLMs",
+        eyebrow: "AI/LLM Comprehension",
         title:   "Machine-readable, so agents read and write specifications",
-        body:    "The parsed Abstract Syntax Tree (AST) exports into JSON, JSON5, YAML, or TOON for " +
-                 "machine consumption, with the derived diagram of an object attached as a textual " +
-                 "Gradia spec and the reference coverage it reports attached as its counts. " +
-                 "Together with the <code>describe</code> command, which explains the models and " +
-                 "formats, this enables LLMs to both read and write specifications."
+        body:    "The <code>specbook describe</code> command can tell an AI/LLM " +
+                 "about the particular specfication schema, so AI agents can directly " +
+                 "read and write the SpecBook Markdown files. An easy integration into " +
+                 "a typical agent harness like Claude Code exists through the a " +
+                 "dedicated <code>/specbook</code> skill and companion <code>specbook mcp</code> command",
+        figure:  "/assets/screenshot-skill.png",
+        label:   "SpecBook Skill and MCP"
     },
     {
         icon:    Palette,
         eyebrow: "Theming and Typography",
-        title:   "The title object drives the whole document",
+        title:   "Dark and Light Theme",
         body:    "Title, subtitle, author, version, and logo fill the title page (with an optional " +
                  "light/dark variant of the logo), the language selects the smart typography quote " +
                  "style, the color tone seeds the theme color spreads of both the light and the " +
                  "dark theme, and the character set subsets the embedded fonts down to the actually " +
-                 "needed glyphs."
+                 "needed glyphs.",
+        figure:  "/assets/screenshot-theme.png",
+        label:   "SpecBook Theming"
     }
-    */
 ]
