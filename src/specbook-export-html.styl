@@ -1144,6 +1144,13 @@ div.diagram svg
 div.diagram svg.hub
     display: block
     margin: 0 auto
+
+/*  the halo of the diagram edge labels is dropped for print, as Chromium
+    prints a stroked text as the curve outlines of its glyphs instead of
+    as text, which alone made up nearly half of the size of the PDF  */
+@media print
+    div.diagram svg text
+        stroke: none
 span.rationale
     color: var(--theme-color-specbook-muted)
 p.rationale
