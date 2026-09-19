@@ -22,8 +22,8 @@ ChangeLog
     places the center again among its outputs, as a dashed box in a darker grey than the ghosts.
 
 -   IMPROVEMENT [code, infr]: Embedded Images Optimized On-the-Fly in the HTML/PDF Export
-    PNG/JPEG images are capped to twice the content width and re-encoded (PNG as WebP) with Sharp,
-    and SVG images are minified with SVGO, each memoized and kept only if smaller than the original.
+    PNG/JPEG images are capped to twice the content width and re-encoded with Sharp (PNG as WebP in
+    HTML and as JPEG in PDF), and SVG images are minified with SVGO, each kept only if smaller.
 
 -   IMPROVEMENT [code, infr]: More Compact Diagrams in the HTML/PDF Export
     Compact Gradia geometry presets (overridable by `config`), `hub` columns of more than 6 nodes

@@ -212,7 +212,7 @@ const renderFormat = async (
     else
         /*  the PDF export (like print in general) always uses the light
             theme, so its decoration colors are the light mapping, too  */
-        return htmlToPdf((tocPages) => renderHtml(specification, config, tocPages, css, false, verbose),
+        return htmlToPdf((tocPages) => renderHtml(specification, config, tocPages, css, false, verbose, true),
             { ...documentTitle(specification), logo: documentLogo(specification) },
             htmlOutline(specification, config), titlePageObject(specification) !== undefined,
             verbose, css, themeMapping(colors, "light"), paper)

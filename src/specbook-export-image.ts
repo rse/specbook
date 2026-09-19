@@ -14,12 +14,16 @@ const maxWidth = 60 * 16 * 2
 /*  the lossy encoding quality of the re-encoded raster images  */
 const quality = 85
 
-/*  the in-memory cache of the optimized images, keyed by the embedded
-    image content and swept to the images of the latest optimization, so
-    it serves the repeated renderings of a process (watch, preview, MCP,
-    and the passes and formats of a single export) without growing over
-    a long-running one  */
-let imageCache = new Map<string, string>()
+/*  the in-memory caches of the optimized images (one per target medium,
+    as the two optimize a PNG differently), keyed by the embedded image
+    content and swept to the images of the latest optimization for the
+    medium, so they serve the repeated renderings of a process (watch,
+    preview, MCP, and the passes and formats of a single export) without
+    growing over a long-running one  */
+const imageCaches = {
+    screen: new Map<string, string>(),
+    print:  new Map<string, string>()
+}
 
 /*  optimize a single SVG image with SVGO (the identifiers and classes
     are free to be minified, as the image is rendered in isolation
@@ -40,10 +44,12 @@ const optimizeSvg = async (content: string): Promise<string> => {
 }
 
 /*  optimize a single raster image given as a base64 data: URL with
-    Sharp: an image wider than the cap is downscaled, a PNG is
-    converted to WebP, and a JPEG stays a JPEG, as the PDF export
-    passes just this format through into the PDF unchanged  */
-const optimizeRaster = async (content: string): Promise<string> => {
+    Sharp: an image wider than the cap is downscaled and a JPEG stays a
+    JPEG, while a PNG is converted to WebP for the screen and to JPEG
+    for print, as Chromium passes just this format through into the PDF
+    unchanged and embeds every other one losslessly (as JPEG knows no
+    transparency, the PNG is flattened onto the white of the paper)  */
+const optimizeRaster = async (content: string, print: boolean): Promise<string> => {
     const m = content.match(/^data:(image\/(?:png|jpeg));base64,(.*)$/s)
     if (m === null)
         return content
@@ -51,10 +57,11 @@ const optimizeRaster = async (content: string): Promise<string> => {
     const image = sharp(Buffer.from(m[2], "base64"))
         .rotate()
         .resize({ width: maxWidth, withoutEnlargement: true })
-    const data = m[1] === "image/png" ?
+    const webp = m[1] === "image/png" && !print
+    const data = webp ?
         await image.webp({ quality }).toBuffer() :
-        await image.jpeg({ quality, mozjpeg: true }).toBuffer()
-    const type = m[1] === "image/png" ? "image/webp" : m[1]
+        await image.flatten({ background: "#ffffff" }).jpeg({ quality, mozjpeg: true }).toBuffer()
+    const type = webp ? "image/webp" : "image/jpeg"
     return `data:${type};base64,${data.toString("base64")}`
 }
 
@@ -72,14 +79,16 @@ const collect = (object: SpecObject, contents: Set<string>) => {
         collect(child, contents)
 }
 
-/*  optimize the embedded images of a specification for the HTML/PDF
-    export, yielding the map from the embedded image contents onto their
-    optimized ones, served from the cache where possible: an optimization
-    which fails (an image the libraries cannot process, or a platform
-    Sharp provides no binary for) or which does not shrink the image
-    keeps the original, so the export never depends on it  */
-export const optimizeImages = async (specification: Spec,
+/*  optimize the embedded images of a specification for the HTML export
+    (the screen) or the PDF export (print), yielding the map from the
+    embedded image contents onto their optimized ones, served from the
+    cache where possible: an optimization which fails (an image the
+    libraries cannot process, or a platform Sharp provides no binary
+    for) or which does not shrink the image keeps the original, so the
+    export never depends on it  */
+export const optimizeImages = async (specification: Spec, print: boolean,
     verbose?: Verbose): Promise<Map<string, string>> => {
+    const medium   = print ? "print" : "screen"
     const contents = new Set<string>()
     for (const artifact of specification.artifacts)
         for (const object of artifact.objects)
@@ -89,13 +98,13 @@ export const optimizeImages = async (specification: Spec,
     let   before = 0
     let   after  = 0
     for (const content of contents) {
-        let optimized = imageCache.get(content)
+        let optimized = imageCaches[medium].get(content)
         if (optimized !== undefined)
             cached++
         else {
             try {
                 optimized = content.startsWith("data:") ?
-                    await optimizeRaster(content) : await optimizeSvg(content)
+                    await optimizeRaster(content, print) : await optimizeSvg(content)
             }
             catch {
                 optimized = content
@@ -107,9 +116,9 @@ export const optimizeImages = async (specification: Spec,
         before += content.length
         after  += optimized.length
     }
-    imageCache = cache
+    imageCaches[medium] = cache
     if (contents.size > 0)
-        verbose?.(`optimizing ${literal(contents.size)} image(s) (${literal(cached)} cached): ` +
+        verbose?.(`optimizing ${literal(contents.size)} image(s) for ${medium} (${literal(cached)} cached): ` +
             `${literal(Math.round(before / 1024))} KB -> ${literal(Math.round(after / 1024))} KB`)
     return cache
 }

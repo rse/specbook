@@ -1968,17 +1968,18 @@ export const renderPlaceholder = (message: string): string =>
 /*  render the entire specification into a self-contained HTML document,
     with the build-time pre-assembled stylesheet embedded inline, the
     artifact timestamps aggregated into min(Created)/max(Modified),
-    optional per-anchor page numbers attached to the ToC entries, and
-    optionally the client-side script of the live preview injected  */
+    optional per-anchor page numbers attached to the ToC entries,
+    optionally the client-side script of the live preview injected, and
+    the embedded images optimized for the screen or for print (the PDF)  */
 export const renderHtml = async (specification: Spec, config?: Schema,
     tocPages?: Map<string, number>, css?: string, realtime = false,
-    verbose?: Verbose): Promise<string> => {
+    verbose?: Verbose, print = false): Promise<string> => {
     /*  pre-render the configured diagrams as scaled embeddable SVGs  */
     const rendered = config !== undefined ?
         await scaledDiagrams(specification, config, verbose) : null
 
     /*  pre-optimize the embedded images (downscaled and re-encoded)  */
-    const optimized = await optimizeImages(specification, verbose)
+    const optimized = await optimizeImages(specification, print, verbose)
 
     /*  the document language selects the smart typography quote style  */
     const lang = documentLang(specification)

@@ -328,16 +328,19 @@ keeps the last segment kind-only).
 
 The HTML export (and hence the PDF one, while the AST exports keep the
 original contents) optimizes the embedded images on-the-fly: a PNG/JPEG
-image wider than twice the 60rem content width (1920px) is downscaled
-with Sharp and re-encoded at quality 85 (a PNG as WebP, a JPEG as JPEG
-again, the one format Chromium passes through into a PDF unchanged),
-and an SVG image is minified with SVGO, after the `content` attribute
-draw.io leaves on the root element (the entire entity-escaped diagram
-source, which exceeds the entity limit of the SVGO parser) got
+image is re-encoded with Sharp at quality 85, downscaled if it is wider
+than twice the 60rem content width (1920px) -- a JPEG as JPEG again,
+and a PNG as WebP for the HTML export, but as JPEG (flattened onto the
+white of the paper) for the PDF one, as JPEG is the one format Chromium
+passes through into a PDF unchanged, while it embeds every other one
+losslessly. An SVG image is minified with SVGO, after the `content`
+attribute draw.io leaves on the root element (the entire entity-escaped
+diagram source, which exceeds the entity limit of the SVGO parser) got
 stripped. An optimization which fails (also a platform Sharp provides
 no binary for) or which does not shrink the image keeps the original,
-and the optimized images are cached in memory per embedded content and
-swept to the images of the latest rendering, exactly like the diagrams.
+and the optimized images are cached in memory per target medium and
+embedded content and swept to the images of the latest rendering,
+exactly like the diagrams.
 
 The rendered diagram SVGs are cached in memory per Gradia spec and swept
 to the diagrams of the latest rendering, so the repeated renderings of a
