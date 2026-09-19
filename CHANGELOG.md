@@ -2,8 +2,12 @@
 ChangeLog
 =========
 
-1.2.16 (2026-09-19)
--------------------
+1.3.0 (2026-09-19)
+------------------
+
+-   FEATURE [infr]: Claude Code Plugin with the Skill `/specbook init|lint|export|edit`
+    The new `plugin/` registers the MCP service and passes `init`, `lint`, and `export` through to
+    it, `edit` edits the specification from a query, and no command activates the know-how ad-hoc.
 
 -   FEATURE [code]: Project Configuration File `.specbook.yaml` with `config` and `basedir` Entries
     An absent `--config`/`--basedir` (option and environment variable) now defaults to the validated

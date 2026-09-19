@@ -1,0 +1,17 @@
+{
+    "name":                "specbook",
+    "owner": {
+        "name":            "Dr. Ralf S. Engelschall",
+        "email":           "rse@engelschall.com"
+    },
+    "metadata": {
+        "description":     "Specification Book (SpecBook)"
+    },
+    "plugins": [
+        {
+            "name":        "specbook",
+            "source":      "./plugin/",
+            "description": "Specification Book (SpecBook)"
+        }
+    ]
+}

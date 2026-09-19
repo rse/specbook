@@ -98,6 +98,9 @@ API.
 -   `etc/`: the tool configurations (`eslint.mjs`, `markdownlint.yaml`,
     `tsconfig.json`, `postcss.config.mjs`, `stx.conf`), the assembler of
     the standard schema configuration (`specbook-format-assemble.mjs`),
+    the version bumper of the `publish` target (`version.mjs`, keeping
+    `package.json`, `plugin/.claude-plugin/plugin.json`, and
+    `web/package.json` in sync),
     and the artwork (logos, posters, screenshots)
 -   `smp/`: the sample specification corpus (`broadcast/`, based on the
     standard schema configuration, exported into the git-ignored
@@ -106,6 +109,21 @@ API.
 -   `web/`: the project website, a self-contained Astro/Tailwind
     single-page application with its own `package.json`, `etc/stx.conf`,
     and `node_modules/` (see "Website" below)
+-   `plugin/`: the Claude Code plugin `specbook` (listed by the
+    marketplace manifest `.claude-plugin/marketplace.json` at the
+    repository root), comprised of the manifest
+    `plugin/.claude-plugin/plugin.json`, the MCP server registration
+    `plugin/.mcp.json` (running `specbook mcp`), and the single,
+    self-contained skill `plugin/skills/specbook/SKILL.md`: `/specbook
+    init|lint|export` parse their CLI-style options ad-hoc and pass them
+    through to the `specbook_<cmd>` MCP tools, while `/specbook edit`
+    edits the specification in one shot from a query (format and schema
+    known through `specbook_describe`, with `--grill`, `--grill-rounds`,
+    `--verify`, and `--loop`), and a command-less `/specbook [<query>]`
+    activates the format and schema know-how for ad-hoc work (its
+    frontmatter `description` forces the model to invoke it before any
+    reading or changing of a specification); it never enters the npm
+    package either
 -   `dst/`: the compiled output (`main` is `dst/specbook-api.js`,
     `bin` `specbook` is `dst/specbook-cli.js`) -- never edit it, it is regenerated
 
@@ -125,7 +143,7 @@ npm start sample-broadcast # lint smp/broadcast/, export it into all formats, an
 npm start sample-sample    # lint smp/sample/ and export it into HTML and PDF
 npm start dev              # chokidar rebuild + dev-sample on src/ and smp/broadcast/ changes
 npm start dev-sample       # export smp/broadcast/ into smp/broadcast.html only
-npm start publish          # kickout, GitHub release from the CHANGELOG.md section
+npm start publish          # version bump (-i<part>), commit, tag, push, npm publish, GitHub release
 npm start clean            # remove regularly built files
 npm start distclean        # also remove node_modules and package-lock.json
 ```

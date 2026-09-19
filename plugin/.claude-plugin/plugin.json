@@ -1,0 +1,14 @@
+{
+    "name":        "specbook",
+    "version":     "1.2.16",
+    "description": "Specification Book (SpecBook)",
+    "keywords":    [ "specification", "markdown", "specbook" ],
+    "homepage":    "https://specbook.tools",
+    "repository":  "https://github.com/rse/specbook",
+    "license":     "Apache-2.0",
+    "author": {
+        "name":    "Dr. Ralf S. Engelschall",
+        "email":   "rse@engelschall.com",
+        "url":     "http://engelschall.com"
+    }
+}
