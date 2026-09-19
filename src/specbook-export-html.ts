@@ -252,7 +252,7 @@ const templates = {
             <thead>
                 <tr>
                     <th class="object-kind" style="width: {{ Table.width }}%"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}"{% endif %}>{{ Table.head }}</span></th>
-                    <th class="description">Properties</th>
+                    <th class="description">Properties{% if Table.desc %} &amp; Description{% endif %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -1671,6 +1671,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
         head:     children[0].kind !== "" ? children[0].kind : "Name",
         info:     infoKeyOf(children[0]),
         infopath: infoPathOf(children[0], false),
+        desc,
         fold:     formatOf(children[0])?.maxCellHeight,
         width:    Math.round(100 / maxColumns),
         rows:     children.map((child, i) => scoped(child, () => {

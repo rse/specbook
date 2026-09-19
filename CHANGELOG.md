@@ -29,6 +29,10 @@ ChangeLog
     An absent `--output` (option and `SPECBOOK_OUTPUT`) is now an error instead of silently
     exporting JSON to stdout, which still is available through an explicit `-o -`.
 
+-   IMPROVEMENT [code]: More Compact Rendering of the Embedded Sub-Tables in the HTML Export
+    The headers of the embedded per-object tables now render at 80% font size, and their column is
+    headed "Properties & Description" (instead of "Properties") once it carries description cells.
+
 -   BUGFIX [code]: Text Fold Chevrons of the HTML Export Follow the Line Breaks
     The cell text folds were cut once at page load, so a later viewport width or font arrival left
     the chevron stranded early in the line: they are now redone on every such change.
