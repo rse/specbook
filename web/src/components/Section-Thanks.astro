@@ -5,8 +5,8 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-/*  "Thanks" sections: the individual contributors as a four-column grid of name
-    plates, followed by the supporting organizations as a two-column grid of logo
+/*  "Thanks" sections: the individual contributors as a narrower, centered three-column
+    grid of name plates, followed by the supporting organizations as a two-column grid of logo
     plates and the sibling projects. Being the final page sections, the latter
     carries the closing bottom margin. The plates sit on the white ground, so the
     logos take the blue-ink variant.  */
@@ -55,8 +55,8 @@ const siblings = [
         </p>
     </header>
 
-    <div class="mt-12 w-full" data-reveal>
-        <div class="grid grid-cols-1 gap-2 sm:grid-cols-4">
+    <div class="mx-auto mt-12 w-full max-w-2xl" data-reveal>
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {contributors.map((name) => (
                 <div class="bg-background-elevated overflow-hidden rounded-xl border border-border-strong p-1 text-center text-accent">{name}</div>
             ))}
