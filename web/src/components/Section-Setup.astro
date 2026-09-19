@@ -188,7 +188,7 @@ import Annotation  from "./Widget-Annotation.astro"
 
     <header class="mt-12 sb-section-head" data-reveal>
         <h2 class="text-xl font-bold sm:text-2xl">
-            Power-Up with the <span class="text-accent">MCP Service</span>
+            Power-Up with the <span class="text-accent">MCP Service and Agent Skill</span>
         </h2>
     </header>
 
@@ -209,15 +209,10 @@ import Annotation  from "./Widget-Annotation.astro"
                 path. There is deliberately no <code>preview</code> tool, as
                 that one is a long-running server.
             </p>
-            <blockquote class="mt-4 border-l-4 border-accent bg-background-elevated/60 px-6 py-2 text-foreground-secondary sb-justify">
-                <b class="text-accent">NOTICE:</b>
-                <span class="mt-1 block text-foreground-secondary">
-                    For a full-featured AI integration of <b>SpecBook</b>, check out
-                    the sibling project <a href="https://ase.tools/"><b>Agentic Software Engineering (ASE)</b></a>
-                    and its <code>/ase-spec-activate</code> (based on <code>specbook describe</code>), <code>/ase-spec-edit</code>, <code>/ase-sync-import</code>,
-                    <code>/ase-sync-export</code> (based on <code>specbook export</code>) and <code>/ase-sync-reconcile</code> skills.
-                </span>
-            </blockquote>
+            <p class="text-foreground-secondary sb-indent-p sb-justify">
+                For even more practical convenience, a <code>specbook</code> skill
+                can automatically use these MCP tools.
+            </p>
         </div>
 
         <div class="relative mt-6">
@@ -227,31 +222,20 @@ import Annotation  from "./Widget-Annotation.astro"
                     copy={true}
                     title="MCP Service"
                     commands={[
-                        "**specbook** mcp"
+                        "**claude** plugin marketplace add rse/specbook",
+                        "**claude** plugin install specbook@specbook"
                     ]}
                 />
             </div>
-
-            <div data-reveal="left">
-                <Terminal
-                    class="mx-auto mt-8 max-w-2xl"
-                    copy={true}
-                    title="Format Description for the LLM"
-                    commands={[
-                        "**specbook** describe -b docs/spec/ -e -z 2",
-                        "**specbook** describe -p schema -f raw"
-                    ]}
-                />
-            </div>
-
-            <blockquote class="mt-12 border-l-4 border-accent bg-background-elevated/60 px-6 py-2 text-foreground-secondary sb-justify">
+            <blockquote class="mt-4 border-l-4 border-accent bg-background-elevated/60 px-6 py-2 text-foreground-secondary sb-justify">
                 <b class="text-accent">NOTICE:</b>
                 <span class="mt-1 block text-foreground-secondary">
-                    The MCP service is <b>NOT</b> required for <b>SpecBook</b> to
-                    work. It is fully optional, but lets an AI agent lint and
-                    export your specification itself &mdash; and, together with{" "}
-                    <code>specbook describe</code>, understand the format well
-                    enough to write one.
+                    For an even more full-featured AI integration of <b>SpecBook</b>, check out
+                    the sibling project <a href="https://ase.tools/"><b>Agentic Software Engineering (ASE)</b></a>.
+                    It has <b>SpecBook</b> fully pre-integrated.
+                    Check out its <code>ase-spec-activate</code> (based on <code>specbook describe</code>), <code>ase-spec-edit</code>, <code>ase-sync-import</code>,
+                    <code>ase-sync-export</code> (based on <code>specbook export</code>) and <code>ase-sync-reconcile</code> skills
+                    and its <code>ase spec</code> CLI command.
                 </span>
             </blockquote>
         </div>
