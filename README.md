@@ -378,7 +378,7 @@ example data model:
 ### Generation
 
 ```bash
-$ specbook lint -v \
+$ specbook export -v \
     -b smp/sample \
     -o smp/sample/sample.html \
     -o smp/sample/sample.pdf
@@ -403,7 +403,7 @@ application, based on **SpecBook**'s built-in "standard" schema:
 ### Generation
 
 ```bash
-$ specbook lint -v \
+$ specbook export -v \
     -b smp/broadcast \
     -o smp/broadcast/broadcast.html \
     -o smp/broadcast/broadcast.pdf
