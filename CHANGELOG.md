@@ -5,6 +5,10 @@ ChangeLog
 1.3.0 (2026-09-19)
 ------------------
 
+-   IMPROVEMENT [code]: Larger Node Types and Edge Labels in the Diagrams
+    The presets raise `size-font-type`, `size-font-edge`, and `size-font-arity` by about 20% to 19,
+    as the half coordinate scale of the HTML export shrank them below a readable size.
+
 -   IMPROVEMENT [code, infr]: Four Tiles per Row in the `grid` Diagrams
     The preset `grid-columns-min: 4` widens the grids the square column derivation left at 72% of
     the content width, and the standard schema caps their columns at 4, as 5 overflowed the width.
