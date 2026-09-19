@@ -273,8 +273,10 @@ Options:
     schema configuration (embedded into the Markdown or emitted as the
     raw file content), so the configuration costs fewer tokens: `0`
     emits it verbatim, `1` re-emits it with 2-space indentation, unwrapped
-    lines, and without comments, `2` additionally leaves out its `refs` fields, and
-    `3` additionally leaves out its `desc` fields of objects and properties.
+    lines, and without comments, `2` additionally leaves out its `refs` and
+    `diagram` fields, and `3` additionally leaves out its `desc` fields of
+    objects and properties. The MCP tool `specbook_describe` defaults to
+    `2` instead, as its consumer is an LLM.
 
 -   `-f|--format <format>` (`describe` only):
     The output format (default: `md`) switches from the rendered Markdown

@@ -254,7 +254,8 @@ type SchemaGradiaConfig = Partial<{
     livelocks are ruled out
 
 -   `SchemaObject.diagram?: SchemaDiagram`:
-    diagram generated for every object of this kind,
+    diagram generated for every object of this kind (left out when the
+    configuration is emitted compressed by level 2 or higher),
     BECAUSE relations buried in references are graspable only when drawn
 
 -   `SchemaObject.format?: SchemaFormat`:

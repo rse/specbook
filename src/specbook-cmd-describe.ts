@@ -31,8 +31,9 @@ export const parseDescribePart = (value: string): DescribePart =>
 
 /*  the supported compression levels of the emitted YAML schema
     configuration: verbatim (0), re-emitted with 2-space indentation and
-    without comments (1), additionally without its "refs" fields (2), and
-    additionally without its "desc" fields of objects and properties (3)  */
+    without comments (1), additionally without its "refs" and "diagram"
+    fields (2), and additionally without its "desc" fields of objects and
+    properties (3)  */
 export const compressLevels = [ 0, 1, 2, 3 ] as const
 export type CompressLevel   = typeof compressLevels[number]
 
@@ -59,7 +60,7 @@ const compressYaml = (yaml: string, level: CompressLevel): string => {
     if (level === 0)
         return yaml
     const doc  = parseDocument(yaml)
-    const drop = [ "refs", "desc" ].slice(0, level - 1)
+    const drop = [ [ "refs", "diagram" ], [ "desc" ] ].slice(0, level - 1).flat()
     doc.commentBefore = null
     doc.comment       = null
     visit(doc, {
