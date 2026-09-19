@@ -1,0 +1,150 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  a before/after comparison figure: two equally sized images stacked over
+    each other in the framed box of the zoomable figures, separated by a
+    vertical split handle. The `left` image shows left of the handle and the
+    `right` one right of it, so the handle at the right edge leaves the left
+    image alone and vice versa. The handle is dragged manually (or moved by
+    the arrow keys), and swipes by itself while the pointer is elsewhere:
+    2s to the right, a 4s rest, 2s back to the left, a 4s rest, and so on.
+    `class` is forwarded to the wrapping <div>.  */
+
+interface Props {
+    left:       string
+    right:      string
+    leftLabel:  string
+    rightLabel: string
+    label:      string
+    class?:     string
+}
+
+const { left, right, leftLabel, rightLabel, label, class: className = "" } = Astro.props
+---
+<div class={className}>
+    <div class="rounded-xl border border-border-strong bg-background-elevated/40 p-4 shadow-xl sm:p-6">
+        <div class="compare relative cursor-ew-resize touch-pan-y select-none" data-compare>
+            {/*  the right image is the base layer and defines the box size,
+                 the left one is clipped onto the area left of the handle  */}
+            <img src={right} alt={rightLabel} draggable="false" class="block h-auto w-full"/>
+            <img src={left}  alt={leftLabel}  draggable="false" class="compare-left absolute inset-0 block h-full w-full"/>
+
+            {/*  the split handle: a vertical line carrying a round grip  */}
+            <div
+                class="compare-handle absolute inset-y-0 w-0.5 -translate-x-1/2 bg-accent"
+                role="slider"
+                tabindex="0"
+                aria-label={label}
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+            >
+                <span class="absolute left-1/2 top-1/2 grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-accent/85 text-white shadow-lg backdrop-blur-xs">
+                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="9 6 3 12 9 18" />
+                        <polyline points="15 6 21 12 15 18" />
+                    </svg>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script is:inline>
+    (function () {
+        const SWIPE = 2000
+        const REST  = 4000
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        document.querySelectorAll("[data-compare]:not([data-compare-ready])").forEach(function (box) {
+            box.setAttribute("data-compare-ready", "")
+            const handle = box.querySelector(".compare-handle")
+
+            /*  the linear swipe time `t` (0..1) and its eased split position:
+                a sine ease-in-out applied twice, for a slower start and end  */
+            const sine   = function (t) { return (1 - Math.cos(Math.PI * t)) / 2 }
+            const unsine = function (x) { return Math.acos(1 - 2 * x) / Math.PI }
+            const ease   = function (t) { return sine(sine(t)) }
+            const unease = function (x) { return unsine(unsine(x)) }
+            let t = reduced ? 0.5 : 0
+            const render = function () {
+                const x = ease(t) * 100
+                box.style.setProperty("--compare-split", x + "%")
+                handle.setAttribute("aria-valuenow", String(Math.round(x)))
+            }
+            render()
+
+            /*  manual swiping: drag anywhere on the box, or use the arrow keys  */
+            let dragging = false
+            let hovering = false
+            const drag = function (ev) {
+                const rect = box.getBoundingClientRect()
+                t = unease(Math.min(1, Math.max(0, (ev.clientX - rect.left) / rect.width)))
+                render()
+            }
+            box.addEventListener("pointerdown", function (ev) {
+                dragging = true
+                box.setPointerCapture(ev.pointerId)
+                drag(ev)
+            })
+            box.addEventListener("pointermove", function (ev) {
+                if (dragging)
+                    drag(ev)
+            })
+            const release = function () { dragging = false }
+            box.addEventListener("pointerup",     release)
+            box.addEventListener("pointercancel", release)
+            box.addEventListener("pointerenter",  function () { hovering = true })
+            box.addEventListener("pointerleave",  function () { hovering = false })
+            handle.addEventListener("keydown", function (ev) {
+                if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight")
+                    return
+                ev.preventDefault()
+                const x = ease(t) + (ev.key === "ArrowRight" ? 0.05 : -0.05)
+                t = unease(Math.min(1, Math.max(0, x)))
+                render()
+            })
+            if (reduced)
+                return
+
+            /*  automatic swiping, suspended while the pointer is over the box,
+                the handle is keyboard-focused, or the box is outside the viewport  */
+            let visible = false
+            new IntersectionObserver(function (entries) {
+                visible = entries[entries.length - 1].isIntersecting
+            }).observe(box)
+            let dir  = 1
+            let rest = 0
+            let last = performance.now()
+            const tick = function (now) {
+                const dt = Math.min(100, now - last)
+                last = now
+                if (visible && !dragging && !hovering && !handle.matches(":focus-visible")) {
+                    if (rest > 0)
+                        rest -= dt
+                    else {
+                        t = Math.min(1, Math.max(0, t + dir * dt / SWIPE))
+                        if (t === 0 || t === 1) {
+                            dir  = t === 0 ? 1 : -1
+                            rest = REST
+                        }
+                        render()
+                    }
+                }
+                requestAnimationFrame(tick)
+            }
+            requestAnimationFrame(tick)
+        })
+    })()
+</script>
+
+<style is:global>
+    /*  the split position drives both the clipping of the left image and
+        the position of the handle  */
+    .compare                 { --compare-split: 0%; }
+    .compare .compare-left   { clip-path: inset(0 calc(100% - var(--compare-split)) 0 0); }
+    .compare .compare-handle { left: var(--compare-split); }
+</style>

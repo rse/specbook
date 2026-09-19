@@ -6,12 +6,12 @@
 */
 
 /*  the hero: the SpecBook logo, the title, a rotating quote carousel, the
-    GitHub badges, the introductory paragraphs, and the theme screenshot.  */
+    GitHub badges, the introductory paragraphs, and the theme comparison.  */
 
 import LogoSpecBook from "./Widget-Logo-SpecBook.astro"
 import Flag         from "./Widget-Flag.astro"
 import Annotation   from "./Widget-Annotation.astro"
-import Diagram      from "./Widget-Diagram.astro"
+import Compare      from "./Widget-Compare.astro"
 /*  import Terminal     from "./Widget-Terminal.astro"  */
 import {
     Swiper,
@@ -142,7 +142,9 @@ const badges = [
                     PDF, and normalized Markdown), <i>previewed</i> (HTML, live in the browser), and{" "}
                     <i>described</i> to LLMs &mdash; so a single source of truth becomes the document your
                     developers read, the document your customers receive, and the model your
-                    agents consume.
+                    agents consume. Its <b>diagrams</b> are <i>rendered automatically</i>, as their nodes
+                    and edges are derived from the objects and their references &mdash; so no diagram
+                    is ever drawn by hand or drifts away from the specification.
                 </p>
             </div>
 
@@ -150,40 +152,21 @@ const badges = [
                 <p class="sb-indent-p text-base sm:text-lg leading-snug text-foreground-secondary sb-justify">
                     In an alternative view, as <b>SpecBook</b> allows arbitrary specifications
                     comprised of objects and relationships, it can be considered as some sort of a graph "database"
-                    in the corset of <b>Markdown</b> files.
+                    in the corset of <b>Markdown</b> files and with a document-style rendering as its data view.
                 </p>
             </div>
 
-            {/* the theme screenshot, spanning the full width of the hero column */}
-            <Diagram
+            {/* the light/dark theme comparison, spanning the full width of the hero column */}
+            <Compare
                 class="mt-10 w-full"
-                src="/assets/screenshot-theme.png"
+                left="/assets/theming-light.png"
+                right="/assets/theming-dark.png"
+                leftLabel="SpecBook Light Theme"
+                rightLabel="SpecBook Dark Theme"
                 label="SpecBook Theming"
             />
-
-            {/* the shortest possible path from zero to a rendered specification */}
-            <!--
-            <Terminal
-                class="mx-auto mt-10 w-full max-w-2xl text-left"
-                copy={true}
-                title="Quick Start"
-                commands={[
-                    "**npm** install -g @rse/specbook",
-                    "**specbook** init -b docs/",
-                    "**specbook** preview -b docs/"
-                ]}
-            />
-            -->
         </div>
     </div>
-
-    {/* scroll-down indicator (desktop only, fades against the hero base). */}
-    <a
-        href="#fit"
-        aria-label="Scroll to fit check"
-        class="absolute inset-x-0 bottom-8 mx-auto hidden w-max flex-col items-center text-accent md:flex">
-        <span class="chevron-bounce text-2xl leading-none">⌄</span>
-    </a>
 </section>
 
 <style is:global>
