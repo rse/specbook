@@ -266,8 +266,8 @@ withBasedirOption(withConfigOption(withVerboseOption(program.command("describe")
     .option("-p, --part <part>", `document part (${describeParts.join(", ")})`,
         envDefault("part", "all"))
     .option("-o, --output <markdown-file>", "output file (\"-\" for stdout)", envDefault("output", "-"))
-    .action(async (opts: VerboseOption & { config: string[], basedir?: string,
-        embed: boolean, compress: string | boolean, format: string, part: string, output: string }) => {
+    .action(async (opts: CommonOptions & { embed: boolean, compress: string | boolean,
+        format: string, part: string, output: string }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const text = await specbook.describe({ config: configOf(opts), basedir: opts.basedir,
             embed: opts.embed, compress: parseCompressLevel(opts.compress),

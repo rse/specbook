@@ -11,8 +11,8 @@ import { marked, type Tokens } from "marked"
 
 import { type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
-import { ParseContext, becauseRegex, embeddingRegex, embeddingDataRegex, embeddingMimeType, embeddingVariants,
-    type SourceFile } from "./specbook-parse-common.js"
+import { type ParseContext, type SourceFile, becauseRegex, embeddingRegex, embeddingDataRegex,
+    embeddingMimeType, embeddingVariants } from "./specbook-parse-common.js"
 
 /*  a grouping container context (e.g. "### STATE")  */
 interface Group {
@@ -42,8 +42,8 @@ const parseMarkers = (raw: string) => {
     for (;;) {
         const am = text.match(/\{\{([^{}]+)\}\}\s*$/)
         if (am !== null && am.index !== undefined && anchor === undefined) {
-            anchor   = am[1].trim()
-            text     = text.slice(0, am.index).trim()
+            anchor = am[1].trim()
+            text   = text.slice(0, am.index).trim()
             continue
         }
         const sm = text.match(/\(\*\)\s*$/)
@@ -184,7 +184,7 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string, defs: Map<st
             }
         }
     }
-    const line = ctx.objectMeta.get(object)?.line ?? 1
+    const line = ctx.metaOf(object).line
     if (object.description !== undefined)
         load(object.description, object.description.description, line)
     for (const property of object.properties)

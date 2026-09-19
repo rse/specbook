@@ -362,7 +362,7 @@ export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Dia
 
     /*  semantically validate the merged result against the schema of the configuration  */
     const posOfPath = (path: YamlPath) => posOfMergedPath(docs, merged, path)
-    const result = v.safeParse(Schema, merged)
+    const result    = v.safeParse(Schema, merged)
     if (!result.success) {
         for (const issue of result.issues) {
             /*  the path is rendered as it is in the positioned file  */

@@ -12,7 +12,7 @@ import { referenceRegex, resolveUnique, resolveSet, chainOf, plainText, assignId
     from "./specbook-link.js"
 import { compileValueExpr, splitItems, anchored, type ValueExpr }
     from "./specbook-parse-value.js"
-import { ParseContext, type ObjectMeta }
+import { type ParseContext, type ObjectMeta }
     from "./specbook-parse-common.js"
 import { referencedCoverage }
     from "./specbook-coverage.js"

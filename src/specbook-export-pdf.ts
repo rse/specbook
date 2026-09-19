@@ -72,7 +72,7 @@ const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
     type OutlineItem = { title: string, dest: PDFArray, children: OutlineItem[] }
     const resolve = (entries: OutlineEntry[]): OutlineItem[] =>
         entries.flatMap((entry) => {
-            const dest   = targets.get(entry.anchor)
+            const dest     = targets.get(entry.anchor)
             const children = resolve(entry.children)
             return dest !== undefined ? [ { title: entry.title, dest, children } ] : children
         })
@@ -206,6 +206,8 @@ const resolveBrowser = async (verbose: Verbose): Promise<LaunchOptions | undefin
         return options
     }
 
+    /*  prefer the downloaded Playwright Chromium and
+        else probe a system-installed Google Chrome  */
     let executable = ""
     try {
         executable = chromium.executablePath()

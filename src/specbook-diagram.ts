@@ -579,7 +579,7 @@ const liftEdges = (edges: DiagramEdge[], parentOf: Map<SpecObject, SpecObject>,
     }
     const lift = (end: SpecObject, other: SpecObject): SpecObject => {
         const enclosing = new Set<SpecObject>([ other, ...ancestors(other) ])
-        let lifted = end
+        let   lifted    = end
         for (const ancestor of ancestors(end)) {
             if (enclosing.has(ancestor))
                 break
@@ -593,8 +593,8 @@ const liftEdges = (edges: DiagramEdge[], parentOf: Map<SpecObject, SpecObject>,
         const source = mode === "both" ? lift(edge.source, edge.target) : edge.source
         if (source === target)
             continue
-        const key   = `${anchors.get(source) ?? source.id} ${anchors.get(target) ?? target.id}` +
-            ` ${edge.name ?? ""}`
+        const key   = `${anchors.get(source) ?? source.id}\u0000${anchors.get(target) ?? target.id}` +
+            `\u0000${edge.name ?? ""}`
         const known = merged.get(key)
         if (known === undefined)
             merged.set(key, { source, target, name: edge.name, arity: edge.arity })
@@ -756,7 +756,7 @@ export const specDiagrams = (specification: Spec,
         name tokens, as the derivation sees the AST alone, while the
         parsing context holding them is long gone by export time  */
     const parenProps = collectParenProps(schemas)
-    const results = new Map<SpecObject, DiagramResult>()
+    const results    = new Map<SpecObject, DiagramResult>()
     for (const [ object, schema ] of schemas)
         if (schema.diagram !== undefined)
             results.set(object, deriveDiagram(object, schema.diagram, index, anchors, positions, parents,
@@ -788,7 +788,7 @@ export const renderDiagrams = async (specification: Spec, config: Schema,
         if (result.spec === undefined)
             continue
         const key = result.spec + JSON.stringify(result.config ?? {})
-        let svg = svgCache.get(key) ?? cache.get(key)
+        let   svg = svgCache.get(key) ?? cache.get(key)
         if (svg !== undefined)
             cached++
         else {

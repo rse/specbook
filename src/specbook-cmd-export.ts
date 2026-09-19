@@ -135,17 +135,19 @@ export const watchSpecification = async (
         change arriving during a run cannot start a concurrent one (the
         chained catch keeps an unexpected failure from breaking the chain
         and hence silently ending the observe loop)  */
-    let chain = Promise.resolve()
+    let chain   = Promise.resolve()
+    let pending = 0
     let timer: ReturnType<typeof setTimeout> | undefined
     const schedule = () => {
         if (timer !== undefined)
             clearTimeout(timer)
         timer = setTimeout(() => {
             timer = undefined
+            pending += 1
             chain = chain.then(cycle).catch((err: unknown) => {
                 verbose("re-export failed: " +
                     (err instanceof Error ? err.message : String(err)), "none")
-            })
+            }).finally(() => { pending -= 1 })
         }, watchDelay)
     }
 
@@ -157,6 +159,9 @@ export const watchSpecification = async (
         regains it on its own and the following changes would be caught
         by the scan only  */
     setInterval(() => {
+        /*  a pending or running re-export legitimately lags behind  */
+        if (timer !== undefined || pending > 0)
+            return
         for (const [ file, time ] of snapshot(observed))
             if (times.get(file) !== time) {
                 verbose(`observing missed the change of "${literal(file)}" ` +

@@ -40,7 +40,7 @@ export const findProject = (dir: string): string | undefined => {
     let current = path.resolve(dir)
     for (;;) {
         const file = path.join(current, projectFile)
-        if (fs.existsSync(file) && fs.statSync(file).isFile())
+        if (fs.statSync(file, { throwIfNoEntry: false })?.isFile() === true)
             return file
         const parent = path.dirname(current)
         if (parent === current)

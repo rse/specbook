@@ -42,7 +42,7 @@ const compileRule = (line: string, base: string): Rule | null => {
         pattern = pattern.slice(1)
     const glob    = anchored ? (base === "" ? pattern : `${base}/${pattern}`) : `**/${pattern}`
     const isMatch = picomatch(glob, { dot: true })
-    return { matcher: (p: string) => isMatch(p), negated, dirOnly }
+    return { matcher: isMatch, negated, dirOnly }
 }
 
 /*  load the rules of a single exclude file, given as an absolute "file"
@@ -83,11 +83,11 @@ const workingTree = (dir: string): string | null => {
 /*  resolve the global Git excludes file: the configured
     "core.excludesFile", or else the XDG location Git falls back onto
     when that configuration value is unset  */
-const globalFile = (): string => {
+const globalFile = (root: string): string => {
     let file = ""
     try {
         file = execFileSync("git", [ "config", "--get", "core.excludesFile" ],
-            { encoding: "utf8", stdio: [ "ignore", "pipe", "ignore" ] }).trim()
+            { cwd: root, encoding: "utf8", stdio: [ "ignore", "pipe", "ignore" ] }).trim()
     }
     catch {
         /*  no such configuration value, or no Git at all  */
@@ -140,7 +140,7 @@ export const excluder = (dir: string): Excluder => {
 
     /*  the rules which no directory of the working tree owns and which
         hence govern it as a whole, in ascending Git precedence  */
-    const base = [ ...loadRules(globalFile(), ""), ...loadRules(infoFile(root), "") ]
+    const base = [ ...loadRules(globalFile(root), ""), ...loadRules(infoFile(root), "") ]
 
     /*  the per-directory ".gitignore" rules, loaded on first use, as one
         run queries many files sharing the very same directories  */

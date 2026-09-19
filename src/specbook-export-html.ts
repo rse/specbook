@@ -342,17 +342,17 @@ const realtimeScript = textframe`
             /*  a superseded update (an overlapping newer one started
                 meanwhile) is dropped, as its stale page could arrive last  */
             const mine = ++seq
-            let response
+            let html
             try {
-                response = await fetch(window.location.pathname, { cache: "no-store" })
+                const response = await fetch(window.location.pathname, { cache: "no-store" })
+                if (!response.ok)
+                    return
+                html = await response.text()
             }
             catch {
                 /*  an unreachable server just skips the update  */
                 return
             }
-            if (!response.ok)
-                return
-            const html = await response.text()
             if (mine !== seq)
                 return
             const doc = new DOMParser().parseFromString(html, "text/html")
@@ -364,6 +364,9 @@ const realtimeScript = textframe`
             if (style !== null && fresh !== null && style.textContent !== fresh.textContent)
                 style.replaceWith(fresh)
             document.body.replaceWith(doc.body)
+
+            /*  a swapped-out maximization overlay can no longer unlock the scrolling  */
+            document.documentElement.classList.remove("maximized")
             for (const script of document.body.querySelectorAll("script:not(.realtime)")) {
                 const clone = document.createElement("script")
                 clone.textContent = script.textContent
@@ -446,16 +449,14 @@ const scrollProgressScript = textframe`
 
 /*  the client-side script of the folding: it wraps every diagram of the
     content into a fold container carrying a chevron mark at its top
-    left corner, folds the
-    text of every table cell towering over the other cells of its row
-    behind a chevron mark of its own, and lets the two
-    controls of the fold tab fold and unfold all diagrams and all cell
-    texts at once, with their state persisted across page loads and
-    their icons (plus the tab icon) marked while anything of their kind
-    is folded. The script
-    runs at the end of the body, as the content it wraps has to exist
-    already, and a live preview body swap replaces the containers and
-    their listeners along with the body  */
+    left corner, folds the text of every table cell towering over the
+    other cells of its row behind a chevron mark of its own, and lets
+    the two controls of the fold tab fold and unfold all diagrams and
+    all cell texts at once, with their state persisted across page loads
+    and their icons (plus the tab icon) marked while anything of their
+    kind is folded. The script runs at the end of the body, as the
+    content it wraps has to exist already, and a live preview body swap
+    replaces the containers and their listeners along with the body  */
 const foldScript = textframe`
     (function () {
         const tab = document.querySelector("div.fold-switch")
@@ -813,14 +814,14 @@ const maximizeScript = textframe`
             overlay.classList.add("open")
             document.documentElement.classList.add("maximized")
             if (fullscreen)
-                overlay.requestFullscreen().catch(() => {})
+                overlay.requestFullscreen().catch(() => { /*  a refused request leaves the viewport overlay  */ })
         }
         const shut = () => {
             overlay.classList.remove("open")
             document.documentElement.classList.remove("maximized")
             content.replaceChildren()
             if (document.fullscreenElement === overlay)
-                document.exitFullscreen().catch(() => {})
+                document.exitFullscreen().catch(() => { /*  a fullscreen left already needs no exit  */ })
         }
         close.addEventListener("click", shut)
         overlay.addEventListener("click", (event) => {
@@ -1343,11 +1344,12 @@ type SpecEntry = [ id: string, parent: number, kind: string, name: string, desc:
 
 /*  inject the description popup tables into their client-side script ("<"
     escaped, so no embedded HTML can close the surrounding <script>
-    element)  */
+    element, and the trailing table first, so a placeholder text
+    inside an injected table is never taken for the placeholder)  */
 const infoScript = (info: InfoEntry[], spec: SpecEntry[]): string =>
     infoPopupScript
-        .replace("@INFO@", () => JSON.stringify(info).replace(/</g, "\\u003c"))
         .replace("@SPEC@", () => JSON.stringify(spec).replace(/</g, "\\u003c"))
+        .replace("@INFO@", () => JSON.stringify(info).replace(/</g, "\\u003c"))
 
 /*  expand the inline Markdown of a text (code spans, emphasis, etc.),
     with Wiki-style references expanded upfront (in their compact form
@@ -1381,9 +1383,9 @@ const renderImage = (original: string, alt: string): string => {
 /*  wrap the theme variants of an image into their layout-neutral theme
     containers, of which the stylesheet shows just the one matching the
     color theme currently active in the document  */
-const renderThemed = (images: string[]): string =>
-    images.map((image, i) =>
-        `<span class="theme-${embeddingThemes[i]}-only">${image}</span>`).join("")
+const renderThemed = (variants: string[]): string =>
+    variants.map((variant, i) =>
+        `<span class="theme-${embeddingThemes[i]}-only">${variant}</span>`).join("")
 
 /*  render the embedded image files of a text into HTML, taking the image
     alternate texts from the corresponding "![alt](file)" markups and
@@ -1397,13 +1399,13 @@ const renderEmbeddings = (text: string, embedding: string[]): string[] => {
         if (count === 0)
             continue
         const contents = embedding.slice(i, i + count)
-        const images   = contents.filter((content) => content !== "")
+        const variants = contents.filter((content) => content !== "")
             .map((content) => renderImage(content, m[1].trim()))
         i += count
-        if (count > 1 && images.length === count)
-            result.push(renderThemed(images))
+        if (count > 1 && variants.length === count)
+            result.push(renderThemed(variants))
         else
-            result.push(...images)
+            result.push(...variants)
     }
     return result
 }
@@ -1431,10 +1433,10 @@ const renderDescription = (description: SpecDescription): string => {
     } })
 }
 
-/*  collect the description popup map of the object instances: the
-    corpus description Markdown of every object, pre-rendered to HTML
-    and keyed by the fully-qualified anchor path (the embedded images
-    and the rationale are left out, as the popup shows the prose alone)  */
+/*  collect the description popups of the object instances: the corpus
+    description Markdown of every object, pre-rendered to HTML into
+    its SPEC table entry (the embedded images and the rationale are
+    left out, as the popup shows the prose alone)  */
 const collectSpec = (objects: SpecObject[], spec: SpecEntry[]) => {
     for (const object of objects) {
         const text = (object.description?.description ?? "")
@@ -1855,8 +1857,8 @@ export const htmlOutline = (specification: Spec,
     const paths     = anchorPaths(buildLinkIndex(specification))
     const schemaMap = config !== undefined ? collectSchemas(specification, config) : null
     const entry = (object: SpecObject): OutlineEntry => ({
-        title:  (object.kind !== "" ? `${object.kind}: ` : "") + plainText(object.name),
-        anchor: paths.get(object) ?? object.id,
+        title:    (object.kind !== "" ? `${object.kind}: ` : "") + plainText(object.name),
+        anchor:   paths.get(object) ?? object.id,
         children: groupChildren(flowChildren(object))
             .filter((group) => !conciseGroup(group, schemaMap, false))
             .flatMap((group) => group.map(entry))

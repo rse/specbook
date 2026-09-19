@@ -50,15 +50,14 @@ const isCovered = (index: LinkIndex, referrers: Map<SpecObject, Set<SpecObject>>
 
 /*  the objects matching the reference patterns of a schema field  */
 const matchingObjects = (index: LinkIndex, patterns: string[]): SpecObject[] => {
-    const objects = new Array<SpecObject>()
+    const objects = new Set<SpecObject>()
     for (const pattern of patterns) {
         const expr = compileValueExpr(pattern)
         if (expr.kind === "reference")
             for (const object of resolveSet(index, expr.pattern))
-                if (!objects.includes(object))
-                    objects.push(object)
+                objects.add(object)
     }
-    return objects
+    return Array.from(objects)
 }
 
 /*  the coverage the objects of a "referenced"-flagged kind receive:

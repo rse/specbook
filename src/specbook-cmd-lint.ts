@@ -84,9 +84,9 @@ export const lint = (options: LintOptions): LintResult => {
         like an absent one -- it is no part of the project and hence no
         part of its specification  */
     const excluded = options.gitignore ? excluder(options.basedir) : () => false
-    const sources = new Array<SourceFile>()
-    const present = new Set<string>()
-    const watched = new Array<string>()
+    const sources  = new Array<SourceFile>()
+    const present  = new Set<string>()
+    const watched  = new Array<string>()
     for (const [ name, optional ] of files) {
         const file = path.join(options.basedir, name)
         watched.push(path.resolve(file))

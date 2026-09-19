@@ -252,7 +252,8 @@ export class SpecBook {
             /*  an output which is itself an observed source would re-trigger
                 the observation with its own write and hence feed an endless
                 re-export loop, so refuse it before it is ever written  */
-            const collision = options.outputs?.find((output) => files.includes(path.resolve(output)))
+            const collision = options.outputs?.find((output) =>
+                files.includes(path.resolve(options.cwd ?? ".", output)))
             if (collision !== undefined)
                 throw new Error(`the output "${collision}" is an observed source file, ` +
                     "which would re-trigger the observation endlessly")
