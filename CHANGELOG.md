@@ -5,6 +5,10 @@ ChangeLog
 1.3.0 (2026-09-19)
 ------------------
 
+-   IMPROVEMENT [code, infr]: Four Tiles per Row in the `grid` Diagrams
+    The preset `grid-columns-min: 4` widens the grids the square column derivation left at 72% of
+    the content width, and the standard schema caps their columns at 4, as 5 overflowed the width.
+
 -   FEATURE [infr]: Claude Code Plugin with the Skill `/specbook init|lint|export|edit`
     The new `plugin/` registers the MCP service and passes `init`, `lint`, and `export` through to
     it, `edit` edits the specification from a query, and no command activates the know-how ad-hoc.

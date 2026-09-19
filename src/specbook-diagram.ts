@@ -52,15 +52,18 @@ export interface DiagramResult {
     dimensioned for a stand-alone canvas -- no canvas margin beyond the
     box strokes (the document spaces the diagram), the node boxes at
     their content height, tighter gaps between the stacked nodes and
-    the tiles, and a "hub" column of more than six nodes wrapped into
-    two staggered sub-columns  */
+    the tiles, a "hub" column of more than six nodes wrapped into
+    two staggered sub-columns, and four tiles per "grid" row, as the
+    square derivation of the column count otherwise leaves a third of
+    the document width unused at the reduced coordinate scale  */
 const diagramPresets: NonNullable<SchemaDiagram["config"]> = {
     "size-canvas-margin":     8,
     "size-node-height-scale": 2,
     "hub-node-gap":           10,
     "hub-node-count-max":     6,
     "grid-gap-horizontal":    24,
-    "grid-gap-vertical":      12
+    "grid-gap-vertical":      12,
+    "grid-columns-min":       4
 }
 
 /*  the diagram shape, i.e., the "type" of a diagram configuration
