@@ -115,6 +115,17 @@ export const highlights: Highlight[] = [
         label:   "SpecBook HTML rendering of the complex Broadcast specification"
     },
     {
+        icon:    Palette,
+        eyebrow: "Full Theming Support",
+        title:   "Dark and Light Theme",
+        body:    "The specification can define its own base accent color (default is RGB #336699), " +
+                 "plus optionally also the signal color, for coloring the specification's texts, " +
+                 "tables and diagram boxes. In the HTML rendering you can even ad-hoc toggle between " +
+                 "a light and a dark variant of this theme.",
+        figure:  "/assets/screenshot-theme.png",
+        label:   "SpecBook Theming"
+    },
+    {
         icon:    Printer,
         eyebrow: "PDF Export for Customers",
         title:   "A polished, paginated document to hand over",
@@ -138,16 +149,5 @@ export const highlights: Highlight[] = [
                  "dedicated <code>/specbook</code> skill and companion <code>specbook mcp</code> command",
         figure:  "/assets/screenshot-skill.png",
         label:   "SpecBook Skill and MCP"
-    },
-    {
-        icon:    Palette,
-        eyebrow: "Full Theming Support",
-        title:   "Dark and Light Theme",
-        body:    "The specification can define its own base accent color (default is RGB #336699), " +
-                 "plus optionally also the signal color, for coloring the specification's texts, " +
-                 "tables and diagram boxes. In the HTML rendering you can even ad-hoc toggle between " +
-                 "a light and a dark variant of this theme.",
-        figure:  "/assets/screenshot-theme.png",
-        label:   "SpecBook Theming"
     }
 ]

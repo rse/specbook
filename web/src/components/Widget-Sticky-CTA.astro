@@ -5,13 +5,23 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-/*  sticky install call-to-action: a fixed bar along the bottom viewport edge
-    carrying the one-line install command, a copy button (wired globally by the
+/*  install call-to-action, in two variants of the very same content: the
+    "bar" (default) is a fixed one-line bar along the bottom viewport edge,
+    carrying the install command, a copy button (wired globally by the
     Feature-Clipboard-Copy component in BaseLayout), a shortcut into the Setup
-    section, and a dismiss button. Its visibility is driven by the shared scroll
-    logic in Feature-Progress.astro, which must also be on the page.  */
+    section, and a dismiss button; its visibility is driven by the shared scroll
+    logic in Feature-Progress.astro, which must also be on the page. The "block"
+    is the same call stacked -- brand label, command, buttons -- for places where
+    the width of a single line is not available, such as the footer, and hence
+    carries neither frame nor background of its own.  */
 
 import LogoSpecBook from "./Widget-Logo-SpecBook.astro"
+
+interface Props {
+    variant?: "bar" | "block"  /*  fixed one-line bar (default) or stacked block  */
+}
+
+const { variant } = Astro.props
 
 /*  the one-line install command of the Setup section  */
 const command = "**npm** install -g @rse/specbook"
@@ -28,7 +38,46 @@ const tokenize = (cmd: string) =>
 /*  the raw command without the **...** highlight markers, i.e. the actual
     shell command handed over to the clipboard  */
 const plain = (cmd: string) => cmd.replace(/\*\*([^*]*)\*\*/g, "$1")
+
+/*  the block variant breaks a chained command at its "&&" into one line per
+    step, each but the last closed by the shell line-continuation backslash  */
+const steps = command.split(/\s*&&\s*/)
 ---
+{variant === "block" ?
+<div
+    role="region"
+    aria-label="Install SpecBook"
+    class="w-full text-[0.8rem] leading-tight"
+>
+    {/*  the same three parts the bar lines up side by side, stacked instead:
+         the brand block, the command, and the buttons  */}
+    <span class="flex items-center gap-2">
+        <LogoSpecBook class="h-[0.85rem] w-auto"/>
+        <span class="font-semibold text-foreground-secondary">Easy <span class="text-accent">Setup:</span></span>
+    </span>
+    <div class="mt-1.5 flex gap-2">
+        <span class="select-none font-mono text-brand-500">❯</span>
+        {/*  every step opens at the very same column, so the commands line up
+             underneath each other  */}
+        <code class="code-plain min-w-0 break-words font-mono tracking-[-0.03em] text-foreground-secondary">{steps.map((step, index) => (
+            <span class="block">{tokenize(step).map((t) => (
+                t.meta ? <span class="text-accent">{t.text}</span> : t.text
+            ))}{index < steps.length - 1 ? " && \\" : ""}</span>
+        ))}</code>
+    </div>
+    <div class="mt-2 flex items-center gap-2">
+        <button
+            type="button"
+            class="shrink-0 cursor-grab rounded-md border border-border-strong px-2 py-1 text-xs text-foreground-muted transition hover:border-accent hover:text-accent"
+            data-copy={plain(command)}
+            aria-label="Copy command"
+        >Copy ⧉</button>
+        <a
+            href="#setup"
+            class="cta-btn shrink-0 rounded-md border border-border-strong px-2 py-1 text-xs transition hover:border-accent"
+        >Setup ↑</a>
+    </div>
+</div> :
 <div
     id="sticky-cta"
     role="region"
@@ -66,6 +115,7 @@ const plain = (cmd: string) => cmd.replace(/\*\*([^*]*)\*\*/g, "$1")
         >✕</button>
     </div>
 </div>
+}
 
 {/*  dismiss: drop the bar for the current page view only — no storage, so a
      reload brings it back. The Feature-Progress.astro scroll logic notices the

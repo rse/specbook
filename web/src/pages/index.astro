@@ -7,9 +7,10 @@
 
 import BaseLayout          from "../layouts/BaseLayout.astro"
 import Hero                from "../components/Section-Title.astro"
-import SectionFit          from "../components/Section-Fit.astro"
 import SectionHighlights   from "../components/Section-Highlights.astro"
-import SectionSetup        from "../components/Section-Setup.astro"
+import SectionDifference   from "../components/Section-Difference.astro"
+import SectionFit          from "../components/Section-Fit.astro"
+import SectionSetup       from "../components/Section-Setup.astro"
 import SectionUsage        from "../components/Section-Usage.astro"
 import SectionFormat       from "../components/Section-Format.astro"
 import SectionArchitecture from "../components/Section-Architecture.astro"
@@ -20,12 +21,13 @@ import SectionThanks       from "../components/Section-Thanks.astro"
 <BaseLayout>
     <Hero/>
     <SectionHighlights/>
+    <SectionDifference/>
     <SectionFit/>
     <SectionSetup/>
     <SectionUsage/>
     <SectionFormat/>
-    <SectionArchitecture/>
     <SectionExport/>
+    <SectionArchitecture/>
     <SectionAuthor/>
     <SectionThanks/>
 </BaseLayout>

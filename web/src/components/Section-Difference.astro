@@ -1,0 +1,144 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  "Practical Difference" section: the three-way comparison table, staging
+    some recurring work-steps in a classic office document, in plain
+    unconstrained Markdown, and in the SpecBook format.  */
+
+import SectionGlow             from "./Section-Glow.astro"
+import Annotation              from "./Widget-Annotation.astro"
+import { comparison }          from "../data/comparison.ts"
+
+/*  the three comparison-table column icons, staging the same progression the
+    columns themselves describe: bound document, free-form text, checked model  */
+
+import FileType                from "@lucide/astro/icons/file-type"
+import FileText                from "@lucide/astro/icons/file-text"
+import BookCheck               from "@lucide/astro/icons/book-check"
+
+/*  render lightweight inline markup in the comparison cells: turn "**...**"
+    into <b>...</b>, "*...*" into <i>...</i>, and "`...`" into <code>...</code>.
+    The "**" pass runs first so the single-asterisk pass never consumes a bold
+    marker.  */
+const inline = (text: string) => text
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+    .replace(/\*(.+?)\*/g,     "<i>$1</i>")
+    .replace(/`(.+?)`/g,       "<code>$1</code>")
+---
+<section id="difference" class="relative isolate mx-auto max-w-4xl px-6 py-8">
+    <SectionGlow variant="section" side="right" />
+
+    {/*  the top margin keeps the heading's Annotation clear of the fixed
+         header when the section is reached through its "#difference" anchor  */}
+    <header class="mt-12 sb-section-head" data-reveal>
+        <h2 class="sb-h2 relative inline-block">
+            <Annotation flat class="right-0 translate-x-2/4">
+                Same work-step,<br/>
+                three different worlds!
+            </Annotation>
+            See the <span class="text-accent">Practical Difference</span>
+        </h2>
+        <p class="mt-4 text-foreground-secondary sb-justify">
+            Markdown alone is already fantastic for a specification, but it
+            leaves every structural rule to discipline. Some recurring
+            work-steps, done three ways: in a classic office document, in
+            plain unconstrained Markdown, and in <b>SpecBook</b> format.
+        </p>
+    </header>
+
+    <div class="bg-background-elevated mt-6 overflow-hidden rounded-xl border border-border-strong p-3 shadow-xl sm:p-4" data-reveal>
+        <table class="sb-compat-table w-full text-left text-xs sm:text-sm">
+            <thead>
+                {/*  the icon sits on its own flex line, which makes the
+                     following <i> subtitle start a new line by itself  */}
+                <tr class="text-accent">
+                    <th class="pb-2 pr-1 font-semibold sm:pr-2"></th>
+                    <th class="pb-2 px-1 font-semibold sm:px-2">
+                        <span class="flex items-center gap-1.5"><FileType class="h-4 w-4 shrink-0" stroke-width={0.75}/>Office Document</span>
+                    </th>
+                    <th class="pb-2 px-1 font-semibold sm:px-2">
+                        <span class="flex items-center gap-1.5"><FileText class="h-4 w-4 shrink-0" stroke-width={0.75}/>Plain Markdown</span>
+                    </th>
+                    <th class="pb-2 pl-1 font-semibold sm:pl-2">
+                        <span class="flex items-center gap-1.5"><BookCheck class="h-4 w-4 shrink-0" stroke-width={0.75}/>SpecBook Markdown</span>
+                    </th>
+                </tr>
+                {/*  the progression arrow: a thin accent line spanning the
+                     three format columns, its head pointing to the
+                     rightmost SpecBook one. The line ends at 100% of the SVG
+                     width, the marker's reference point is its tip, so the
+                     head sits flush with the right edge of the last column.  */}
+                <tr class="border-b border-border-strong">
+                    <td class="pr-1 sm:pr-2"></td>
+                    <td colspan="3" class="pb-2 px-1 sm:px-2">
+                        <svg class="block h-3 w-full text-accent" aria-hidden="true">
+                            <defs>
+                                <marker id="difference-arrow-head" markerUnits="userSpaceOnUse"
+                                    markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto">
+                                    <path d="M0,0 L12,6 L0,12 Z" fill="currentColor"/>
+                                </marker>
+                            </defs>
+                            <line x1="0" y1="50%" x2="100%" y2="50%" stroke="currentColor" stroke-width="2"
+                                marker-end="url(#difference-arrow-head)"/>
+                        </svg>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                {comparison.map((row) => (
+                    <tr class="border-b border-border-strong last:border-0">
+                        <td class="py-1 pr-1 align-top font-bold text-accent     sm:pr-2" set:html={inline(row.topic)} />
+                        <td class="py-1 px-1 align-top text-foreground-muted     sm:px-2" data-label="Office Document:" set:html={inline(row.office)} />
+                        <td class="py-1 px-1 align-top text-foreground-secondary sm:px-2" data-label="Plain Markdown:"  set:html={inline(row.markdown)} />
+                        <td class="py-1 pl-1 align-top text-foreground           sm:pl-2" data-label="SpecBook:"        set:html={inline(row.specbook)} />
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<style>
+    /*  on small screens, collapse the multi-column comparison table into a
+        single-column, stacked-card layout: the header row is hidden, each
+        row becomes a card, the topic cell its heading, and every data cell
+        a labelled line prefixed by its column name via the "data-label"
+        attribute. above the "sm" breakpoint the native table layout applies.  */
+    @media (max-width: 639px) {
+        .sb-compat-table,
+        .sb-compat-table tbody,
+        .sb-compat-table tr,
+        .sb-compat-table td {
+            display: block;
+            width: 100%;
+        }
+        .sb-compat-table thead {
+            display: none;
+        }
+        .sb-compat-table tr {
+            padding: 0.75rem 0;
+        }
+        .sb-compat-table td {
+            padding-left: 0;
+            padding-right: 0;
+        }
+        .sb-compat-table td:first-child {
+            margin-bottom: 0.375rem;
+            font-size: 0.875rem;
+        }
+        .sb-compat-table td[data-label]::before {
+            content: attr(data-label);
+            display: block;
+            font-weight: 600;
+            font-style: italic;
+            color: var(--color-accent);
+        }
+        .sb-compat-table td[data-label] {
+            margin-top: 0.375rem;
+        }
+    }
+</style>
