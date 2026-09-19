@@ -29,6 +29,10 @@ ChangeLog
     An absent `--output` (option and `SPECBOOK_OUTPUT`) is now an error instead of silently
     exporting JSON to stdout, which still is available through an explicit `-o -`.
 
+-   BUGFIX [code]: Text Fold Chevrons of the HTML Export Follow the Line Breaks
+    The cell text folds were cut once at page load, so a later viewport width or font arrival left
+    the chevron stranded early in the line: they are now redone on every such change.
+
 1.2.15 (2026-09-18)
 -------------------
 

@@ -561,31 +561,6 @@ const foldScript = textframe`
             && cell.querySelector("div.diagram") === null
             && (cell.textContent.trim() !== "" || cell.querySelector("img") !== null)
 
-        /*  decide which table cells fold: one which is taller than the
-            configured percentage above every other cell of its row (the
-            leading name column of a compact table excluded, as it is no
-            text of its own). All rows are measured before the first cut,
-            as every cut shifts the layout of the ones still to come  */
-        const cuts = []
-        document.querySelectorAll("article table tr").forEach((row) => {
-            const table = row.closest("table")
-            let cells = Array.from(row.children).filter((el) => el.tagName === "TD")
-            if (!table.classList.contains("chunks"))
-                cells = cells.slice(1)
-            cells = cells.filter(candidate)
-            if (cells.length < 2)
-                return
-            const configured = row.closest("table[data-fold-height]")
-            const percent = Number(configured?.getAttribute("data-fold-height")) || cellHeight
-            const heights = cells.map((cell) => height(cell))
-            cells.forEach((cell, i) => {
-                const other = Math.max(...heights.filter((_, j) => j !== i))
-                const limit = other * (1 + percent / 100)
-                if (heights[i] > limit)
-                    cuts.push({ cell, limit, full: heights[i] })
-            })
-        })
-
         /*  hide a node of the folded remainder of a table cell: an
             element carries the class itself, a text node gets wrapped  */
         const rest = (node) => {
@@ -593,10 +568,25 @@ const foldScript = textframe`
                 node.classList.add("fold-rest")
             else if (node.nodeType === Node.TEXT_NODE) {
                 const span = document.createElement("span")
-                span.className = "fold-rest"
+                span.className = "fold-rest fold-wrap"
                 node.parentNode.insertBefore(span, node)
                 span.appendChild(node)
             }
+        }
+
+        /*  take the cut of a table cell back again: the chevron mark
+            leaves, the remainder sheds its class or wrapper, and the
+            split text nodes merge  */
+        const uncut = (cell) => {
+            cell.classList.remove("folded")
+            cell.querySelectorAll("span.fold-more").forEach((el) => { el.remove() })
+            cell.querySelectorAll(".fold-rest").forEach((el) => {
+                if (el.classList.contains("fold-wrap"))
+                    el.replaceWith(...el.childNodes)
+                else
+                    el.classList.remove("fold-rest")
+            })
+            cell.normalize()
         }
 
         /*  the minimum percentage of its own height a cell has to gain
@@ -605,60 +595,96 @@ const foldScript = textframe`
             the cut, as the chevron itself can claim a line of its own)  */
         const cellGain = 25
 
-        /*  fold the decided cells back onto their height limit: the last
-            word position still fitting is found by a binary search over
-            the measured word positions, the text node is split there and
-            the chevron mark takes its place, followed by the remainder
-            hidden up the ancestor chain of the cell  */
-        for (const cut of cuts) {
-            const list = positions(cut.cell)
-            if (list.length === 0)
-                continue
-            let lo = 0
-            let hi = list.length - 1
-            while (lo < hi) {
-                const mid = Math.ceil((lo + hi) / 2)
-                if (height(cut.cell, list[mid]) <= cut.limit)
-                    lo = mid
-                else
-                    hi = mid - 1
-            }
-            const tail    = list[lo].node.splitText(list[lo].offset)
-            const chevron = mark("fold-more", "fold/unfold the remaining text")
-            tail.parentNode.insertBefore(chevron, tail)
-            let current = chevron
-            while (current !== cut.cell) {
-                let next = current.nextSibling
-                while (next !== null) {
-                    const following = next.nextSibling
-                    rest(next)
-                    next = following
-                }
-                current = current.parentNode
-            }
-            /*  the gain is measured on the applied fold, as only that
-                one tells the real one, and a fold gaining less than the
-                minimum share is taken back again, which the chevron
-                alone has to leave behind, as the hidden remainder stays
-                inert without the class -- which a kept fold sheds
-                again, too, as every cell starts out unfolded  */
-            cut.cell.classList.add("folded")
-            const gained = height(cut.cell) <= cut.full * (1 - cellGain / 100)
-            cut.cell.classList.remove("folded")
-            if (!gained) {
-                chevron.remove()
-                continue
-            }
-            folds.text.push(cut.cell)
-            chevron.addEventListener("click", (event) => {
-                /*  the cut can land inside a hyperlink, whose navigation
-                    the chevron has to suppress for its own click alone,
-                    so the remaining link text still follows the link  */
-                event.preventDefault()
-                cut.cell.classList.toggle("folded")
-                sync()
+        /*  lay out the text folds, which holds for the current line
+            breaks only and hence is redone on every change of them: the
+            previous cuts are taken back, with their fold state carried
+            over (a cell folding anew follows the others)  */
+        const layout = () => {
+            const all = folds.text.length > 0 && folds.text.every((cell) => cell.classList.contains("folded"))
+            const state = new Map(folds.text.map((cell) => [ cell, cell.classList.contains("folded") ]))
+            folds.text.forEach(uncut)
+            folds.text.length = 0
+
+            /*  decide which table cells fold: one which is taller than the
+                configured percentage above every other cell of its row (the
+                leading name column of a compact table excluded, as it is no
+                text of its own). All rows are measured before the first cut,
+                as every cut shifts the layout of the ones still to come  */
+            const cuts = []
+            document.querySelectorAll("article table tr").forEach((row) => {
+                const table = row.closest("table")
+                let cells = Array.from(row.children).filter((el) => el.tagName === "TD")
+                if (!table.classList.contains("chunks"))
+                    cells = cells.slice(1)
+                cells = cells.filter(candidate)
+                if (cells.length < 2)
+                    return
+                const configured = row.closest("table[data-fold-height]")
+                const percent = Number(configured?.getAttribute("data-fold-height")) || cellHeight
+                const heights = cells.map((cell) => height(cell))
+                cells.forEach((cell, i) => {
+                    const other = Math.max(...heights.filter((_, j) => j !== i))
+                    const limit = other * (1 + percent / 100)
+                    if (heights[i] > limit)
+                        cuts.push({ cell, limit, full: heights[i] })
+                })
             })
+
+            /*  fold the decided cells back onto their height limit: the last
+                word position still fitting is found by a binary search over
+                the measured word positions, the text node is split there and
+                the chevron mark takes its place, followed by the remainder
+                hidden up the ancestor chain of the cell  */
+            for (const cut of cuts) {
+                const list = positions(cut.cell)
+                if (list.length === 0)
+                    continue
+                let lo = 0
+                let hi = list.length - 1
+                while (lo < hi) {
+                    const mid = Math.ceil((lo + hi) / 2)
+                    if (height(cut.cell, list[mid]) <= cut.limit)
+                        lo = mid
+                    else
+                        hi = mid - 1
+                }
+                const tail    = list[lo].node.splitText(list[lo].offset)
+                const chevron = mark("fold-more", "fold/unfold the remaining text")
+                tail.parentNode.insertBefore(chevron, tail)
+                let current = chevron
+                while (current !== cut.cell) {
+                    let next = current.nextSibling
+                    while (next !== null) {
+                        const following = next.nextSibling
+                        rest(next)
+                        next = following
+                    }
+                    current = current.parentNode
+                }
+
+                /*  the gain is measured on the applied fold, as only that
+                    one tells the real one, and a fold gaining less than the
+                    minimum share is taken back again, while a kept fold
+                    sheds the class again, as every cell starts out unfolded  */
+                cut.cell.classList.add("folded")
+                const gained = height(cut.cell) <= cut.full * (1 - cellGain / 100)
+                if (!gained) {
+                    uncut(cut.cell)
+                    continue
+                }
+                cut.cell.classList.toggle("folded", state.get(cut.cell) ?? all)
+                folds.text.push(cut.cell)
+                chevron.addEventListener("click", (event) => {
+                    /*  the cut can land inside a hyperlink, whose navigation
+                        the chevron has to suppress for its own click alone,
+                        so the remaining link text still follows the link  */
+                    event.preventDefault()
+                    cut.cell.classList.toggle("folded")
+                    sync()
+                })
+            }
         }
+        layout()
 
         /*  mark the control of a kind while anything of that kind is
             folded, and the tab itself while any kind at all is  */
@@ -689,6 +715,40 @@ const foldScript = textframe`
         }
         sync()
 
+        /*  redo the text folds once the line breaks change, which a new
+            viewport width and the arrival of the embedded fonts (still
+            loading while this script runs) cause. A running search
+            (which shows the remainders) defers it, and a live preview
+            body swap, which left this script behind, ends it  */
+        let width = document.documentElement.clientWidth
+        let timer = 0
+        const relayout = () => {
+            if (!tab.isConnected)
+                return
+            if (document.body.classList.contains("searching")) {
+                schedule()
+                return
+            }
+            layout()
+            sync()
+        }
+        const schedule = () => {
+            clearTimeout(timer)
+            timer = setTimeout(relayout, 250)
+        }
+        const resized = () => {
+            if (!tab.isConnected)
+                window.removeEventListener("resize", resized)
+            else if (width !== document.documentElement.clientWidth) {
+                width = document.documentElement.clientWidth
+                schedule()
+            }
+        }
+        window.addEventListener("resize", resized)
+        document.fonts.ready.then(() => {
+            if (tab.isConnected)
+                schedule()
+        })
     })()
 `
 

@@ -387,7 +387,10 @@ a diagram, and the cells carrying further cells excluded -- gets a fold
 back onto
 that height, offered by its own chevron in a rounded grey box behind
 the last word still shown while folded -- unless that fold would hide
-less than 25% of the height of the cell, which is no visible relief. A
+less than 25% of the height of the cell, which is no visible relief. As
+a cut holds for the current line breaks only, the cell text folds are
+redone (fold states kept) once the viewport width changes or the
+embedded fonts arrive. A
 folded diagram leaves the icon of its tab control behind in the muted
 color,
 and a running search unfolds
