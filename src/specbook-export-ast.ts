@@ -22,6 +22,10 @@ import { collectSchemas }
     from "./specbook-parse-semantic.js"
 import { isTitleObject }
     from "./specbook-export-common.js"
+import { optimizeImages }
+    from "./specbook-export-image.js"
+import type { Verbose }
+    from "./specbook-verbose.js"
 
 /*  the Abstract Syntax Tree (AST) export formats  */
 export type AstFormat = "json" | "json5" | "yaml" | "toon"
@@ -32,11 +36,18 @@ interface PlainCoverage      { pattern: string, covered: number, total: number }
 interface PlainObject        { diagram?: string, coverage?: PlainCoverage[], children: PlainObject[] }
 interface PlainSpecification { artifacts: { objects: PlainObject[] }[] }
 
-/*  render the specification AST into a serialization format  */
-export const renderAst = (specification: Spec, format: AstFormat,
-    config?: Schema): Buffer => {
-    /*  reduce the specification to plain JSON values (ISO date strings)  */
-    const plain = JSON.parse(JSON.stringify(specification)) as PlainSpecification
+/*  render the specification AST into a serialization format, where
+    "slim" drops the embedded images instead of optimizing them  */
+export const renderAst = async (specification: Spec, format: AstFormat,
+    config?: Schema, slim = false, verbose?: Verbose): Promise<Buffer> => {
+    /*  reduce the specification to plain JSON values (ISO date strings),
+        with the embedded images (by far the bulk of the export) either
+        optimized like the ones of the HTML export or dropped entirely  */
+    const optimized = slim ? undefined : await optimizeImages(specification, false, verbose)
+    const plain = JSON.parse(JSON.stringify(specification, (key: string, value: unknown) =>
+        key !== "embedding" ? value : optimized === undefined ? undefined :
+            (value as string[]).map((content) => optimized.get(content) ?? content)
+    )) as PlainSpecification
 
     /*  attach the Gradia specs of the diagram-configured objects as
         "diagram" fields onto the corresponding plain object nodes

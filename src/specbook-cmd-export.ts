@@ -169,16 +169,18 @@ export const watchSpecification = async (
 }
 
 /*  render a specification into the requested format, where "realtime"
-    injects the client-side script of the live preview into the HTML  */
+    injects the client-side script of the live preview into the HTML
+    and "slim" drops the embedded images of the AST formats  */
 const renderFormat = async (
     specification:   Spec,
     format:          ExportFormat,
     verbose:         Verbose,
     config?:         Schema,
-    realtime         = false
+    realtime         = false,
+    slim             = false
 ): Promise<Buffer> => {
     if (format === "json" || format === "json5" || format === "yaml" || format === "toon")
-        return renderAst(specification, format satisfies AstFormat, config)
+        return renderAst(specification, format satisfies AstFormat, config, slim, verbose)
     else if (format === "md")
         return Buffer.from(renderMarkdown(specification, config), "utf8")
 
@@ -225,13 +227,14 @@ export const exportSpecification = async (
     format:          ExportFormat,
     verbose:         Verbose,
     config?:         Schema,
-    realtime         = false
+    realtime         = false,
+    slim             = false
 ): Promise<Buffer> => {
     if (!formats.includes(format))
         throw new Error(`unknown export format "${format}"`)
     verbose(`exporting specification as "${literal(format)}"`)
     const started = performance.now()
-    const buffer  = await renderFormat(specification, format, verbose, config, realtime)
+    const buffer  = await renderFormat(specification, format, verbose, config, realtime, slim)
     const seconds = ((performance.now() - started) / 1000).toFixed(3)
     verbose(`exported specification as "${literal(format)}" in ${literal(seconds)}s`)
     return buffer

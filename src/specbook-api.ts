@@ -172,9 +172,10 @@ export class SpecBook {
         (strict: any error diagnostic prevents the export, as a partial or
         invalid specification must never be emitted, while the warnings
         are just surfaced as notices), where "realtime" injects the
-        client-side script of the live preview into the HTML  */
+        client-side script of the live preview into the HTML and "slim"
+        drops the embedded images of the AST formats  */
     private async renderFormats (result: LintResult, requested: ExportFormat[],
-        verbose: Verbose, realtime: boolean): Promise<Buffer[]> {
+        verbose: Verbose, realtime: boolean, slim: boolean): Promise<Buffer[]> {
         if (result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
             throw new Error("invalid specification:\n" +
                 result.diagnostics.map(renderDiagnostic).join("\n"))
@@ -185,7 +186,7 @@ export class SpecBook {
         const buffers = new Array<Buffer>()
         for (const format of requested)
             buffers.push(await exportSpecification(result.specification, format,
-                verbose, result.config, realtime))
+                verbose, result.config, realtime, slim))
         return buffers
     }
 
@@ -194,7 +195,7 @@ export class SpecBook {
         parsing the input just once and returning one buffer per
         requested format  */
     async export (options: ProjectOptions & { formats?: ExportFormat[],
-        realtime?: boolean, gitignore?: boolean }): Promise<Buffer[]> {
+        realtime?: boolean, gitignore?: boolean, slim?: boolean }): Promise<Buffer[]> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
         const project   = this.project(options, verbose)
@@ -206,7 +207,8 @@ export class SpecBook {
 
         const result = lint({ config: await this.configFiles(project.config),
             basedir: project.basedir ?? ".", gitignore: options.gitignore === true, verbose })
-        return this.renderFormats(result, requested, verbose, options.realtime === true)
+        return this.renderFormats(result, requested, verbose, options.realtime === true,
+            options.slim === true)
     }
 
     /*  keep an export in sync with its sources (the shared core of
@@ -219,7 +221,7 @@ export class SpecBook {
         once the initial export is done, while the active watcher keeps the
         process alive afterwards  */
     private async observe (options: ProjectOptions & { formats: ExportFormat[],
-        realtime: boolean, gitignore?: boolean, outputs?: string[],
+        realtime: boolean, gitignore?: boolean, slim?: boolean, outputs?: string[],
         onExport: (buffers: Buffer[]) => void | Promise<void> },
     verbose: Verbose): Promise<void> {
         const project = this.project(options, verbose)
@@ -243,7 +245,7 @@ export class SpecBook {
 
             try {
                 await options.onExport(await this.renderFormats(result, options.formats,
-                    verbose, options.realtime))
+                    verbose, options.realtime, options.slim === true))
             }
             catch (err) {
                 verbose("export failed: " +
@@ -258,7 +260,7 @@ export class SpecBook {
         files "onExport" writes, so an output which is itself an observed
         source can be refused  */
     async watch (options: ProjectOptions & { formats?: ExportFormat[],
-        realtime?: boolean, gitignore?: boolean, outputs?: string[],
+        realtime?: boolean, gitignore?: boolean, slim?: boolean, outputs?: string[],
         onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]

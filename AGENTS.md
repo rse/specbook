@@ -32,7 +32,8 @@ API.
         `LANG`, `CHARSET`, `THEME-STYLE`, `THEME-TONE`, `PAPER-SIZE`,
         the latter also yielding the print stylesheet)
     -   `src/specbook-export-ast.ts`: the AST renderer (JSON, JSON5,
-        YAML, TOON), attaching the derived Gradia spec of a
+        YAML, TOON), optimizing (or, as `slim`, dropping) the embedded
+        images and attaching the derived Gradia spec of a
         diagram-configured object as its `diagram` field (except for the
         title object, whose diagram the HTML/PDF export reserves) and
         the covered/total counts of a coverage-configured object as its
@@ -47,7 +48,7 @@ API.
         contents side panel, description popups, and live preview -- are
         inlined in the module itself)
     -   `src/specbook-export-image.ts`: the on-the-fly optimization of
-        the embedded images for the HTML/PDF export (Sharp for the
+        the embedded images for the HTML/PDF and AST exports (Sharp for the
         PNG/JPEG rescaling and re-encoding, SVGO for the SVG
         minification) and the in-memory cache of the optimized images
     -   `src/specbook-export-pdf.ts`: the PDF renderer (HTML printed
@@ -211,7 +212,7 @@ blue hero flag).
 ```
 specbook init     [-v [<level>]] [-c <yaml-file>] [-b <basedir>]
 specbook lint     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g]
-specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-w] [-o [<format>:]<output-file>] [...]
+specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-w] [-s] [-o [<format>:]<output-file>] [...]
 specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-a <ip-addr>] [-p <tcp-port>]
 specbook describe [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-e] [-z [<level>]] [-f <format>] [-p <part>] [-o <markdown-file>]
 specbook mcp      [-v [<level>]]
@@ -326,8 +327,12 @@ kind, plain name, description HTML) tables, from which the client-side
 script composes the title paths (a trailing `^` of `data-info-path`
 keeps the last segment kind-only).
 
-The HTML export (and hence the PDF one, while the AST exports keep the
-original contents) optimizes the embedded images on-the-fly: a PNG/JPEG
+The HTML export (and hence the PDF one) optimizes the embedded images
+on-the-fly, and so do the AST exports, which carry the images optimized
+exactly like the HTML export (sharing its cache), as the images are by
+far the bulk of such an export -- unless the export option `-s`/`--slim`
+(the API/MCP option `slim`, default `false`) drops their `embedding`
+fields entirely, for a consumer like an LLM. A PNG/JPEG
 image is re-encoded with Sharp at quality 85, downscaled if it is wider
 than twice the 60rem content width (1920px) -- a JPEG as JPEG again,
 and a PNG as WebP for the HTML export, but as JPEG (flattened onto the

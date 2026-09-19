@@ -25,6 +25,10 @@ ChangeLog
     PNG/JPEG images are capped to twice the content width and re-encoded with Sharp (PNG as WebP in
     HTML and as JPEG in PDF), and SVG images are minified with SVGO, each kept only if smaller.
 
+-   IMPROVEMENT [code]: Far Smaller JSON/JSON5/YAML/TOON Exports through Optimized Embedded Images
+    The AST exports now carry the embedded images optimized like the HTML export (72% smaller for
+    the sample), and the new `export` option `-s`/`--slim` drops them entirely (89% smaller).
+
 -   IMPROVEMENT [code]: Far Smaller PDF Export through Halo-Less Diagram Edge Labels in Print
     The edge labels of the diagrams drop their halo stroke in print, as Chromium prints a stroked
     text as glyph curve outlines, which alone made up nearly half of the size of the PDF.

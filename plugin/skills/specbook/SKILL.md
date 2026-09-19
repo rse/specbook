@@ -177,7 +177,7 @@ Usage
 /specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>]
 /specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
 /specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
-                 [-o|--output [<format>:]<output-file>] [...]
+                 [-s|--slim] [-o|--output [<format>:]<output-file>] [...]
 /specbook edit   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--grill]
                  [-r|--grill-rounds <n>] [-v|--verify] [-l|--loop] [<query>]
 ```
@@ -229,6 +229,8 @@ Procedure
         -   <opt-basedir/> to the `-b`|`--basedir` value (default: empty),
         -   <opt-gitignore/> to `true` for `-g`|`--gitignore` of `lint`
             and `export` (default: `false`),
+        -   <opt-slim/> to `true` for `-s`|`--slim` of `export`
+            (default: `false`),
         -   <opt-output/> to the list of all `-o`|`--output` values of
             `export` (the option is repeatable; default: the single
             entry `-`),
@@ -426,10 +428,11 @@ Command: export
 1.  For each entry of <opt-output/>, parse it as `[<format/>:]<file/>`,
     where a <format/> prefix is recognized only if it is one of `json`,
     `json5`, `yaml`, `toon`, `html`, `pdf`, or `md`, and call the
-    `specbook_export(<params/>, gitignore: <opt-gitignore/>, output: <file/>)`
-    tool, additionally passing `format: <format/>` only if <format/> is
-    given. The tool itself infers an absent format from the extension
-    of <file/> and returns the result directly for the <file/> `-`.
+    `specbook_export(<params/>, gitignore: <opt-gitignore/>, slim:
+    <opt-slim/>, output: <file/>)` tool, additionally passing `format:
+    <format/>` only if <format/> is given. The tool itself infers an
+    absent format from the extension of <file/> and returns the result
+    directly for the <file/> `-`.
 
 2.  Only output the following <template/>, where <result/> is, per
     entry of <opt-output/>, the *verbatim* diagnostics of a failed

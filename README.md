@@ -149,6 +149,7 @@ $ specbook export \
   [-b|--basedir <spec-md-file-basedir>] \
   [-o|--output [<format>:]<output-file>] \
   [-w|--watch] \
+  [-s|--slim] \
   [...]
 
 $ specbook preview \
@@ -235,6 +236,14 @@ Options:
     receive a repeated export, and none of them may be an observed source
     file itself, as its own write would re-trigger the observation
     endlessly.
+
+-   `-s|--slim` (`export` only):
+    Drop the embedded images (the `embedding` fields) from the `json`,
+    `json5`, `yaml`, and `toon` exports. By default, those exports carry
+    the images optimized exactly like the `html` export (PNG/JPEG capped
+    in width and re-encoded, a PNG as WebP, and SVG minified), so they
+    still stand alone. The images usually are by far the bulk of such an
+    export and are dead weight for a consumer like an LLM.
 
 -   `-a|--addr <ip-addr>`, `-p|--port <tcp-port>` (`preview` only):
     The IP address (default: `127.0.0.1`) and TCP port (default: `12345`)
@@ -339,7 +348,7 @@ $ claude plugin install specbook@specbook
 /specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>]
 /specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
 /specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
-                 [-o|--output [<format>:]<output-file>] [...]
+                 [-s|--slim] [-o|--output [<format>:]<output-file>] [...]
 /specbook edit   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--grill]
                  [-r|--grill-rounds <n>] [-v|--verify] [-l|--loop] [<query>]
 ```

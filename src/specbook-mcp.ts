@@ -119,6 +119,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             gitignore: z.boolean().optional().describe("skip the artifact files excluded by the Git " +
                 "exclude rules (the \".gitignore\" files, \"info/exclude\", and the global excludes " +
                 "file), treating such a file exactly like an absent one (default: false)"),
+            slim:    z.boolean().optional().describe("drop the embedded images from the JSON, JSON5, " +
+                "YAML, and TOON exports, instead of just optimizing them (default: false)"),
             cwd
         }
     }, async (args) => {
@@ -130,7 +132,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
                 { format: args.format ?? "json", output: args.output } :
                 parseOutputSpec(args.output)
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
-                cwd: args.cwd, formats: [ spec.format ], gitignore: args.gitignore })
+                cwd: args.cwd, formats: [ spec.format ], gitignore: args.gitignore,
+                slim: args.slim })
             if (spec.output !== undefined && spec.output !== "-") {
                 await fs.promises.writeFile(outputOf(args, spec.output), data)
                 return { content: [ { type: "text", text: `exported specification into "${spec.output}" (${data.length} bytes)` } ] }
