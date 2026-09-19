@@ -145,7 +145,7 @@ const parseFrontmatter = (text: string) => {
 }
 
 /*  recursively load the image files embedded via "![alt](file)" into the
-    description and the property values of an object (SVG as-is, PNG/JPEG
+    description and the property values of an object (SVG as-is, PNG/JPEG/WebP
     as base64 data: URLs), resolving the references relative to the source
     file and expanding a "{theme}" reference into its theme variants,
     which are loaded into consecutive embedding entries (an unreadable

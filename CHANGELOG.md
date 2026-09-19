@@ -25,6 +25,10 @@ ChangeLog
     PNG/JPEG images are capped to twice the content width and re-encoded with Sharp (PNG as WebP in
     HTML and as JPEG in PDF), and SVG images are minified with SVGO, each kept only if smaller.
 
+-   FEATURE [code]: WebP Images Embeddable like PNG/JPEG Ones
+    A local `.webp` file is embedded and optimized, too: downscaled if wider than the cap, else
+    kept untouched for HTML (no repeated lossy re-encoding), and converted to JPEG for PDF.
+
 -   IMPROVEMENT [code]: Standalone Markdown Export through Embedded Images
     An embedded image becomes `![alt][img-N]` with an optimized `[img-N]: data:...` definition at
     the document end, which the parser resolves again, so the export re-parses identically.

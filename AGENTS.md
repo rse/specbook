@@ -50,7 +50,7 @@ API.
         inlined in the module itself)
     -   `src/specbook-export-image.ts`: the on-the-fly optimization of
         the embedded images for the HTML/PDF and AST exports (Sharp for the
-        PNG/JPEG rescaling and re-encoding, SVGO for the SVG
+        PNG/JPEG/WebP rescaling and re-encoding, SVGO for the SVG
         minification) and the in-memory cache of the optimized images
     -   `src/specbook-export-pdf.ts`: the PDF renderer (HTML printed
         via Playwright/Chromium, post-processed with `pdf-lib`)
@@ -317,8 +317,7 @@ ends the document, so the prose stays readable. A `{theme}` reference
 takes its `light` variant, as Markdown knows no themes. The parser
 resolves this form again (`def` tokens carrying such a `data:` URL are
 the only supported link definitions, an unresolvable label is an error),
-so the export re-parses into the same images and re-exports identically,
-and a WebP image of such a re-parse is converted for print (PDF) only.
+so the export re-parses into the same images and re-exports identically.
 
 The normalized Markdown export merges all artifact files into one
 output file, so it re-bases the remaining (not embeddable) local relative image references
@@ -355,13 +354,14 @@ The HTML export (and hence the PDF one) optimizes the embedded images
 on-the-fly, and so do the AST exports, which carry the images optimized
 exactly like the HTML export (sharing its cache), as the images are by
 far the bulk of such an export, which still has to stand alone (so the
-images are never dropped). A PNG/JPEG
+images are never dropped). A PNG/JPEG/WebP
 image is re-encoded with Sharp at quality 85, downscaled if it is wider
 than twice the 60rem content width (1920px) -- a JPEG as JPEG again,
-and a PNG as WebP for the HTML export, but as JPEG (flattened onto the
+and a PNG or WebP as WebP for the HTML export, but as JPEG (flattened onto the
 white of the paper) for the PDF one, as JPEG is the one format Chromium
 passes through into a PDF unchanged, while it embeds every other one
-losslessly. An SVG image is minified with SVGO, after the `content`
+losslessly. A WebP within that width stays untouched for the HTML
+export, as re-encoding it again would just degrade it. An SVG image is minified with SVGO, after the `content`
 attribute draw.io leaves on the root element (the entire entity-escaped
 diagram source, which exceeds the entity limit of the SVGO parser) got
 stripped. An optimization which fails (also a platform Sharp provides
