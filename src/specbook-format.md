@@ -1039,7 +1039,10 @@ constrain reference-valued properties (e.g. `[[PERSONA:*]]` or
 A Markdown image `![<alt/>](<file/>)` inside a description or property
 value embeds a local image file, resolved relative to the artifact file:
 SVG files are inlined as-is; PNG/JPEG files are embedded as base64
-`data:` URLs. URLs and other file types are left untouched.
+`data:` URLs. URLs and other file types are left untouched. The
+HTML/PDF export optimizes the embedded images on its own (downscaled
+and re-encoded PNG/JPEG, minified SVG), so the files can stay in their
+original resolution.
 
 A reference carrying the `{theme}` placeholder -- e.g.
 `![Logo](logo-{theme}.svg)` -- is a *theme-aware* embedding: it expands

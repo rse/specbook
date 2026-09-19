@@ -46,6 +46,10 @@ API.
         scroll progress meter, folding, diagram maximization, table of
         contents side panel, description popups, and live preview -- are
         inlined in the module itself)
+    -   `src/specbook-export-image.ts`: the on-the-fly optimization of
+        the embedded images for the HTML/PDF export (Sharp for the
+        PNG/JPEG rescaling and re-encoding, SVGO for the SVG
+        minification) and the in-memory cache of the optimized images
     -   `src/specbook-export-pdf.ts`: the PDF renderer (HTML printed
         via Playwright/Chromium, post-processed with `pdf-lib`)
     -   `src/specbook-theme.ts`: the theme color spreads generated from
@@ -321,6 +325,19 @@ injected INFO (schema nodes) and SPEC (objects: anchor id, parent index,
 kind, plain name, description HTML) tables, from which the client-side
 script composes the title paths (a trailing `^` of `data-info-path`
 keeps the last segment kind-only).
+
+The HTML export (and hence the PDF one, while the AST exports keep the
+original contents) optimizes the embedded images on-the-fly: a PNG/JPEG
+image wider than twice the 60rem content width (1920px) is downscaled
+with Sharp and re-encoded at quality 85 (a PNG as WebP, a JPEG as JPEG
+again, the one format Chromium passes through into a PDF unchanged),
+and an SVG image is minified with SVGO, after the `content` attribute
+draw.io leaves on the root element (the entire entity-escaped diagram
+source, which exceeds the entity limit of the SVGO parser) got
+stripped. An optimization which fails (also a platform Sharp provides
+no binary for) or which does not shrink the image keeps the original,
+and the optimized images are cached in memory per embedded content and
+swept to the images of the latest rendering, exactly like the diagrams.
 
 The rendered diagram SVGs are cached in memory per Gradia spec and swept
 to the diagrams of the latest rendering, so the repeated renderings of a

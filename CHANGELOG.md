@@ -21,6 +21,10 @@ ChangeLog
     An edge object of the center targeting the center itself is no longer dropped: Gradia 1.2.4
     places the center again among its outputs, as a dashed box in a darker grey than the ghosts.
 
+-   IMPROVEMENT [code, infr]: Embedded Images Optimized On-the-Fly in the HTML/PDF Export
+    PNG/JPEG images are capped to twice the content width and re-encoded (PNG as WebP) with Sharp,
+    and SVG images are minified with SVGO, each memoized and kept only if smaller than the original.
+
 -   IMPROVEMENT [code, infr]: More Compact Diagrams in the HTML/PDF Export
     Compact Gradia geometry presets (overridable by `config`), `hub` columns of more than 6 nodes
     wrapped into two sub-columns (Gradia 1.3.0), and node names zoomed to the document text size.

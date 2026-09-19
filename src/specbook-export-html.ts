@@ -28,6 +28,8 @@ import { collectSchemas }
     from "./specbook-parse-semantic.js"
 import { renderDiagrams }
     from "./specbook-diagram.js"
+import { optimizeImages }
+    from "./specbook-export-image.js"
 import { specCoverage, coverageRatio, type Coverage }
     from "./specbook-coverage.js"
 import type { Verbose }
@@ -1241,14 +1243,15 @@ const render = (name: keyof typeof templates, context: object): string => {
 
 /*  the active per-document reference expander, fully-qualified
     anchor paths, member-carrying property value constraints, object
-    schema nodes, pre-rendered diagram SVGs, reference coverages,
-    description popup keys of the schema nodes, and description popup
-    keys of the objects (all set during HTML rendering)  */
+    schema nodes, pre-rendered diagram SVGs, optimized embedded images,
+    reference coverages, description popup keys of the schema nodes, and
+    description popup keys of the objects (all set during HTML rendering)  */
 let linker:      ((text: string, compact: boolean) => string) | null = null
 let anchors:     Map<SpecObject, string> | null       = null
 let members:     Map<string, ValueExpr> | null        = null
 let schemas:     Map<SpecObject, SchemaObject> | null = null
 let diagrams:    Map<SpecObject, string> | null       = null
+let images:      Map<string, string> | null           = null
 let coverages:   Map<SpecObject, Coverage[]> | null   = null
 let infoKeys:    Map<SchemaObject, string> | null     = null
 let infoObjects: Map<SpecObject, string> | null       = null
@@ -1364,11 +1367,12 @@ const isBlock = (text: string): boolean => {
     return tokens.length > 0 && !(tokens.length === 1 && tokens[0].type === "paragraph")
 }
 
-/*  render a single embedded image file onto an <img> tag with a
-    self-contained data: URL (converting the SVG text into one, as an
-    SVG inlined as-is would leak its document-global <style> rules
-    into all other inlined SVGs sharing the same class names)  */
-const renderImage = (content: string, alt: string): string => {
+/*  render a single embedded image file (in its optimized form) onto an
+    <img> tag with a self-contained data: URL (converting the SVG text
+    into one, as an SVG inlined as-is would leak its document-global
+    <style> rules into all other inlined SVGs sharing the same class names)  */
+const renderImage = (original: string, alt: string): string => {
+    const content = images?.get(original) ?? original
     const url = content.startsWith("data:") ? content :
         `data:image/svg+xml;base64,${Buffer.from(content, "utf8").toString("base64")}`
     return `<img src="${url}" alt="${escapeHtml(alt)}"/>`
@@ -1973,6 +1977,9 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     const rendered = config !== undefined ?
         await scaledDiagrams(specification, config, verbose) : null
 
+    /*  pre-optimize the embedded images (downscaled and re-encoded)  */
+    const optimized = await optimizeImages(specification, verbose)
+
     /*  the document language selects the smart typography quote style  */
     const lang = documentLang(specification)
     quotes = quoteStyles[lang?.toLowerCase().split(/[-_]/)[0] ?? "en"] ?? quoteStyles.en
@@ -1985,6 +1992,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         members   = config !== undefined ? collectMembers(config, new Map()) : null
         schemas   = config !== undefined ? collectSchemas(specification, config) : null
         diagrams  = rendered?.svgs ?? null
+        images    = optimized
         coverages = schemas !== null ? specCoverage(index, schemas) : null
 
         /*  collect the schema descriptions for the description popups,
@@ -2061,6 +2069,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         members     = null
         schemas     = null
         diagrams    = null
+        images      = null
         coverages   = null
         infoKeys    = null
         infoObjects = null
