@@ -362,8 +362,11 @@
         onlyConnected: true
         qualified: true
         config:
+            size-node-width-min: 300
             size-node-width-max: 440
-            graph-channel-width-max: 340
+            graph-channel-width-max: 700
+            graph-node-degree-max: 8
+            size-edge-port-gap: 18
     children:
         -   kind: PERMISSION
             desc: >
