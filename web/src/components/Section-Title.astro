@@ -128,20 +128,28 @@ const badges = [
                 tooling of renowned and prolific author <a href="#author">Dr. Ralf S. Engelschall</a> for a generic,{" "}
                 <b>Markdown-based specification format</b>, which can be configured for the specifications of
                 particular contexts through a <b>YAML-based schema configuration</b>.
-                It ships as an <b>API</b>, a <b>CLI</b>, and an{" "}
+                It ships as an <b>API</b>, a <b>CLI</b>, and a{" "}
                 <a href="https://modelcontextprotocol.io">Model-Context-Protocol (MCP)</a> service &mdash;
-                so humans, scripts, and AI agents all reach the very same functionality.
+                so humans, scripts, and AI agents all reach the same functionality.
             </p>
 
             <div class="w-full max-w-2xl">
                 <p class="sb-indent-p text-base sm:text-lg leading-snug text-foreground-secondary sb-justify">
-                    A specification is a tree of typed objects, authored as plain <b>Markdown</b> and
+                    A specification is a graph of typed objects, authored as plain <b>Markdown</b> and
                     validated strictly against its schema. <b>SpecBook</b> lets it be{" "}
                     <i>initialized</i>, <i>linted</i>, <i>exported</i> (JSON, JSON5, YAML, TOON, HTML,
                     PDF, and normalized Markdown), <i>previewed</i> (HTML, live in the browser), and{" "}
-                    <i>described</i> to LLMs &mdash; so one single source becomes the document your
+                    <i>described</i> to LLMs &mdash; so a single source of truth becomes the document your
                     developers read, the document your customers receive, and the model your
                     agents consume.
+                </p>
+            </div>
+
+            <div class="w-full max-w-2xl">
+                <p class="sb-indent-p text-base sm:text-lg leading-snug text-foreground-secondary sb-justify">
+                    In an alternative view, as <b>SpecBook</b> allows arbitrary specifications
+                    comprised of objects and relationships, it can be considered as some sort of a graph "database"
+                    in the corset of <b>Markdown</b> files.
                 </p>
             </div>
 
