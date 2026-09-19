@@ -151,6 +151,9 @@ type SchemaGradiaConfig = Partial<{
     "color-node-ghost-name":     string
     "color-node-ghost-box":      string
     "color-node-ghost-border":   string
+    "color-node-self-name":      string
+    "color-node-self-box":       string
+    "color-node-self-border":    string
     "color-group-name":          string
     "color-group-box":           string
     "color-group-border":        string
@@ -498,7 +501,8 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE an embedded font renders alike where it is not installed
 
 -   `SchemaGradiaConfig."color-node-*": string`:
-    colors of the node boxes in their regular, primary, and ghost role,
+    colors of the node boxes in their regular, primary, ghost, and self
+    role,
     BECAUSE the role of a node has to be readable at a glance
 
 -   `SchemaGradiaConfig."color-group-*", "color-edge-*": string`:
@@ -557,7 +561,9 @@ that kind. Its `type` selects the diagram shape (`graph`, `hub`, or
 `grid`), `nodes` and `edges` select the participating objects through
 comma-separated `[[xxx]]` reference patterns (`nodes` defaults to the
 object itself plus all objects below it), and `center` names the object
-a `hub` is projected onto (default: `self`).
+a `hub` is projected onto (default: `self`). An edge object of the
+center targeting the center itself (a self-reference) places the center
+a second time among its outputs, rendered as a dashed "self" node.
 
 Instead of naming an existing object, `center` can also declare a
 *synthetic* center node, which represents something no specification

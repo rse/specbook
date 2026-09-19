@@ -17,6 +17,10 @@ ChangeLog
     `THEME-TONE` now accepts `#RRGGBB #RRGGBB`, where the second tone seeds the signal color spread,
     which otherwise still derives from the complement of the first (accent) tone.
 
+-   FEATURE [code, infr]: Self-References Rendered in `hub` Diagrams as a Dashed "Self" Node
+    An edge object of the center targeting the center itself is no longer dropped: Gradia 1.2.4
+    places the center again among its outputs, as a dashed box in a darker grey than the ghosts.
+
 -   IMPROVEMENT [code, infr]: `SPECBOOK_CONFIG` and `SPECBOOK_BASEDIR` Resolved by the API Itself
     The API now resolves both environment variables (instead of the CLI and the skill), so they
     apply to the API methods and the MCP tools, too, still winning over the project entries.

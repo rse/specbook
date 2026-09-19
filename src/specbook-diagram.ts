@@ -646,18 +646,17 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
 
     /*  a "hub" diagram is the hub-projection onto its center object:
         only the edges incident to the center and only the nodes
-        connected through them remain, with self-loops dropped, as
-        Gradia requires exactly this constrained topology (and the
-        occupied columns are the center plus the input column, when
-        an edge targets the center, plus the output column, when an
-        edge originates from the center)  */
+        connected through them remain, as Gradia requires exactly this
+        constrained topology (and the occupied columns are the center
+        plus the input column, when an edge of another node targets the
+        center, plus the output column, when an edge originates from the
+        center, where Gradia places the target of its self-loop, too)  */
     let columns: number | undefined
     if (type === "hub") {
         if (!nodeSet.has(center))
             errors.push({ reason: `"hub" diagram center "${center.name}" is not part of the node set` })
         else {
-            edges = edges.filter((edge) => (edge.source === center || edge.target === center)
-                && edge.source !== edge.target)
+            edges = edges.filter((edge) => edge.source === center || edge.target === center)
             const connected = new Set<SpecObject>([ center ])
             for (const edge of edges) {
                 connected.add(edge.source)
@@ -665,7 +664,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
             }
             nodes = nodes.filter((node) => connected.has(node))
             columns = 1 +
-                (edges.some((edge) => edge.target === center) ? 1 : 0) +
+                (edges.some((edge) => edge.target === center && edge.source !== center) ? 1 : 0) +
                 (edges.some((edge) => edge.source === center) ? 1 : 0)
         }
     }
