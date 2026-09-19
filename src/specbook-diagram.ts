@@ -55,10 +55,17 @@ export interface DiagramResult {
     the tiles, a "hub" column of more than six nodes wrapped into
     two staggered sub-columns, and four tiles per "grid" row, as the
     square derivation of the column count otherwise leaves a third of
-    the document width unused at the reduced coordinate scale  */
+    the document width unused at the reduced coordinate scale. The node
+    types and the edge labels are raised by about 20% over their Gradia
+    defaults, as that very coordinate scale would otherwise shrink them
+    below a comfortably readable size (the "--gradia-size-font-*" custom
+    properties of the stylesheet mirror them for a display-time tweak)  */
 const diagramPresets: NonNullable<SchemaDiagram["config"]> = {
     "size-canvas-margin":     8,
     "size-node-height-scale": 2,
+    "size-font-type":         19,
+    "size-font-edge":         19,
+    "size-font-arity":        19,
     "hub-node-gap":           10,
     "hub-node-count-max":     6,
     "grid-gap-horizontal":    24,
