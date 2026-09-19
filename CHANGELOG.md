@@ -9,6 +9,10 @@ ChangeLog
     An absent `--config`/`--basedir` (option and environment variable) now defaults to the validated
     entries of the closest `.specbook.yaml`, searched upwards from the (API/MCP `cwd`) directory.
 
+-   IMPROVEMENT [code, infr]: `SPECBOOK_CONFIG` and `SPECBOOK_BASEDIR` Resolved by the API Itself
+    The API now resolves both environment variables (instead of the CLI and the skill), so they
+    apply to the API methods and the MCP tools, too, still winning over the project entries.
+
 1.2.15 (2026-09-18)
 -------------------
 

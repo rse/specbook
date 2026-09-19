@@ -6,7 +6,6 @@
 */
 
 import * as fs                     from "node:fs"
-import * as path                   from "node:path"
 import { Command, CommanderError } from "commander"
 import chalk                       from "chalk"
 
@@ -88,22 +87,23 @@ const withVerboseOption = (command: Command): Command => command
 
 /*  provide the repeatable schema configuration option, whose files or
     glob patterns are merged in order (with "std" naming the bundled
-    standard one), and determine its value, where the environment default
-    carries a path-delimiter-separated list of patterns and an entirely
-    absent one is left to the project configuration file  */
+    standard one), and determine its value, where an absent one is left
+    to the API, which resolves it through the environment variable
+    SPECBOOK_CONFIG and the project configuration file  */
 const withConfigOption = (command: Command, fallback: string): Command => command
     .option("-c, --config <yaml-file>", "YAML schema configuration file or glob pattern " +
         "(repeatable, merged in order, \"std\" for the bundled standard schema configuration; " +
-        `default: the "config" entry of "${projectFile}", else ${fallback})`,
+        `default: SPECBOOK_CONFIG, else the "config" entry of "${projectFile}", else ${fallback})`,
     (value: string, previous: string[]) => previous.concat(value), new Array<string>())
 const configOf = (opts: { config: string[] }): string[] | undefined =>
-    opts.config.length > 0 ? opts.config : envDefault("config")?.split(path.delimiter)
+    opts.config.length > 0 ? opts.config : undefined
 
-/*  provide the base directory option, where an absent one (even in
-    the environment) is left to the project configuration file  */
+/*  provide the base directory option, where an absent one is left to
+    the API, which resolves it through the environment variable
+    SPECBOOK_BASEDIR and the project configuration file  */
 const withBasedirOption = (command: Command, fallback: string): Command => command
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files " +
-        `(default: the "basedir" entry of "${projectFile}", else ${fallback})`, envDefault("basedir"))
+        `(default: SPECBOOK_BASEDIR, else the "basedir" entry of "${projectFile}", else ${fallback})`)
 
 /*  provide the common options of the specification processing sub-commands,
     for which the YAML schema configuration falls back onto the standard one  */

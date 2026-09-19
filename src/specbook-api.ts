@@ -83,6 +83,8 @@ export class SpecBook {
     }
 
     /*  determine the effective project options: a given option wins over
+        its environment variable (SPECBOOK_CONFIG, a path-delimiter-separated
+        list of patterns, and SPECBOOK_BASEDIR), which in turn wins over
         its entry in the project configuration file. A given working
         directory anchors the given relative paths and keeps all paths
         absolute, else the project ones are rendered relative to ours  */
@@ -91,15 +93,20 @@ export class SpecBook {
         const project = loadProject(cwd)
         if (project !== undefined)
             verbose(`using project configuration "${literal(project.file)}"`)
+        const env     = (name: string) =>
+            process.env[name] !== undefined && process.env[name] !== "" ? process.env[name] : undefined
+        const config  = options.config !== undefined && options.config.length > 0 ? options.config :
+            env("SPECBOOK_CONFIG")?.split(path.delimiter).filter((pattern) => pattern !== "")
+        const basedir = options.basedir ?? env("SPECBOOK_BASEDIR")
         const given   = (value: string) =>
             options.cwd !== undefined ? path.resolve(cwd, value) : value
         const derived = (value: string) =>
             options.cwd !== undefined ? value : path.relative(cwd, value) || "."
         return {
-            config: options.config !== undefined && options.config.length > 0 ?
-                options.config.map((pattern) => pattern === "std" ? pattern : given(pattern)) :
+            config: config !== undefined && config.length > 0 ?
+                config.map((pattern) => pattern === "std" ? pattern : given(pattern)) :
                 project?.config?.map((pattern) => pattern === "std" ? pattern : derived(pattern)),
-            basedir: options.basedir !== undefined ? given(options.basedir) :
+            basedir: basedir !== undefined ? given(basedir) :
                 project?.basedir !== undefined ? derived(project.basedir) :
                     options.cwd !== undefined ? cwd : undefined
         }

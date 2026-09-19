@@ -47,10 +47,12 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         inputSchema: {
             config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
                 "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
-                "default: the \"config\" entry of the project configuration file, else the bundled standard " +
+                "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
+                "of the project configuration file, else the bundled standard " +
                 "schema configuration)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files " +
-                "(default: the \"basedir\" entry of the project configuration file, else \".\")"),
+                "(default: the SPECBOOK_BASEDIR environment variable, else the \"basedir\" entry " +
+                "of the project configuration file, else \".\")"),
             cwd
         }
     }, async (args) => {
@@ -72,10 +74,12 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         inputSchema: {
             config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
                 "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
-                "default: the \"config\" entry of the project configuration file, else the bundled standard " +
+                "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
+                "of the project configuration file, else the bundled standard " +
                 "schema configuration)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files " +
-                "(default: the \"basedir\" entry of the project configuration file, else \".\")"),
+                "(default: the SPECBOOK_BASEDIR environment variable, else the \"basedir\" entry " +
+                "of the project configuration file, else \".\")"),
             gitignore: z.boolean().optional().describe("skip the artifact files excluded by the Git " +
                 "exclude rules (the \".gitignore\" files, \"info/exclude\", and the global excludes " +
                 "file), treating such a file exactly like an absent one (default: false)"),
@@ -103,10 +107,12 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         inputSchema: {
             config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
                 "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
-                "default: the \"config\" entry of the project configuration file, else the bundled standard " +
+                "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
+                "of the project configuration file, else the bundled standard " +
                 "schema configuration)"),
             basedir: z.string().optional().describe("base directory of the specification Markdown files " +
-                "(default: the \"basedir\" entry of the project configuration file, else \".\")"),
+                "(default: the SPECBOOK_BASEDIR environment variable, else the \"basedir\" entry " +
+                "of the project configuration file, else \".\")"),
             format:  z.enum(formats).optional().describe("output format (default: inferred from the " +
                 "output file extension, else json)"),
             output:  z.string().optional().describe("output file path (\"-\" or omitted returns the result directly)"),
@@ -152,10 +158,12 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         inputSchema: {
             config:   z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
                 "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
-                "default: the \"config\" entry of the project configuration file, else the bundled standard " +
+                "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
+                "of the project configuration file, else the bundled standard " +
                 "schema configuration, embedded)"),
             basedir:  z.string().optional().describe("base directory of the specification Markdown files " +
-                "(default: the \"basedir\" entry of the project configuration file)"),
+                "(default: the SPECBOOK_BASEDIR environment variable, else the \"basedir\" entry " +
+                "of the project configuration file)"),
             embed:    z.boolean().optional().describe("embed the given YAML schema configuration instead " +
                 "of just referencing it (default: false; the bundled standard one is always embedded)"),
             compress: z.literal(compressLevels).optional().describe("compression level of the emitted " +

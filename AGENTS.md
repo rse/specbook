@@ -216,13 +216,16 @@ With several files, `describe` references each of them, and embeds (or
 emits raw) the merged configuration re-emitted as YAML instead of a
 verbatim file.
 
-An absent `-c`/`-b` (also absent as `SPECBOOK_CONFIG`/`SPECBOOK_BASEDIR`,
-which the CLI and the skill map onto the options) is resolved on the API level through the optional
-project configuration file `.specbook.yaml` (Valibot-validated entries
+An absent `-c`/`-b` is resolved on the API level (so the CLI, the MCP
+service, and the skill never resolve it themselves): first through the
+environment variables `SPECBOOK_CONFIG`/`SPECBOOK_BASEDIR`, whose
+relative paths anchor like the ones of an explicit option, and then
+through the optional project configuration file `.specbook.yaml` (Valibot-validated entries
 `config`, a pattern or a list of them, and `basedir`), which is searched
 from the working directory upwards to the filesystem root (the closest
 one wins) and whose relative paths resolve against its own directory; an
-explicit option wins, and the fallbacks are the standard schema
+explicit option wins over its environment variable, which wins over the
+project entry, and the fallbacks are the standard schema
 configuration and `.`. The API/MCP option `cwd` names the working
 directory of a caller not sharing the one of the process (the skill
 passes it): it starts the search, anchors the explicit relative paths

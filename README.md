@@ -306,7 +306,9 @@ by a corresponding `SPECBOOK_XXX` environment variable (e.g.
 `SPECBOOK_VERBOSE`, `SPECBOOK_ADDR`, `SPECBOOK_PORT`), while an
 explicitly supplied option always wins. As `-c|--config` is repeatable,
 `SPECBOOK_CONFIG` carries a list of patterns separated by the path
-delimiter of the platform (`:` on Unix, `;` on Windows).
+delimiter of the platform (`:` on Unix, `;` on Windows). Unlike all
+others, `SPECBOOK_CONFIG` and `SPECBOOK_BASEDIR` are resolved by the API
+itself, so they apply to the API methods and the MCP tools, too.
 
 Beyond those, the option-less `SPECBOOK_BROWSER` selects the browser
 printing the PDF export: a value carrying a path separator is taken as
@@ -357,9 +359,9 @@ related specification files, optionally interviews you about the open
 points of the query first (`--grill`, for `--grill-rounds` rounds),
 applies the change set, optionally lints the result and fixes the
 reported diagnostics (`--verify`), and optionally asks for the next
-query (`--loop`). All commands fall back onto `SPECBOOK_CONFIG` and
-`SPECBOOK_BASEDIR` for an absent `--config` and `--basedir`, and leave
-still absent ones to the MCP service, which resolves them through the
+query (`--loop`). All commands leave an absent `--config` and
+`--basedir` to the MCP service, which resolves them through
+`SPECBOOK_CONFIG` and `SPECBOOK_BASEDIR` and then through the
 `.specbook.yaml` found from the working directory of the session upwards.
 
 Example: Simple
