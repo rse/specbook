@@ -6,11 +6,12 @@
 */
 
 /*  the hero: the SpecBook logo, the title, a rotating quote carousel, the
-    GitHub badges, and the two introductory paragraphs.  */
+    GitHub badges, the introductory paragraphs, and the theme screenshot.  */
 
 import LogoSpecBook from "./Widget-Logo-SpecBook.astro"
 import Flag         from "./Widget-Flag.astro"
 import Annotation   from "./Widget-Annotation.astro"
+import Diagram      from "./Widget-Diagram.astro"
 /*  import Terminal     from "./Widget-Terminal.astro"  */
 import {
     Swiper,
@@ -152,6 +153,13 @@ const badges = [
                     in the corset of <b>Markdown</b> files.
                 </p>
             </div>
+
+            {/* the theme screenshot, spanning the full width of the hero column */}
+            <Diagram
+                class="mt-10 w-full"
+                src="/assets/screenshot-theme.png"
+                label="SpecBook Theming"
+            />
 
             {/* the shortest possible path from zero to a rendered specification */}
             <!--

@@ -141,13 +141,12 @@ export const highlights: Highlight[] = [
     },
     {
         icon:    Palette,
-        eyebrow: "Theming and Typography",
+        eyebrow: "Full Theming Support",
         title:   "Dark and Light Theme",
-        body:    "Title, subtitle, author, version, and logo fill the title page (with an optional " +
-                 "light/dark variant of the logo), the language selects the smart typography quote " +
-                 "style, the color tone seeds the theme color spreads of both the light and the " +
-                 "dark theme, and the character set subsets the embedded fonts down to the actually " +
-                 "needed glyphs.",
+        body:    "The specification can define its own base accent color (default is RGB #336699), " +
+                 "plus optionally also the signal color, for coloring the specification's texts, " +
+                 "tables and diagram boxes. In the HTML rendering you can even ad-hoc toggle between " +
+                 "a light and a dark variant of this theme.",
         figure:  "/assets/screenshot-theme.png",
         label:   "SpecBook Theming"
     }
