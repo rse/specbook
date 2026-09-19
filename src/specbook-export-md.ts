@@ -4,16 +4,22 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import type { Spec, SpecObject, SpecProperty, SpecDescription }
+import * as path from "node:path"
+
+import type { Spec, SpecArtifact, SpecObject, SpecProperty, SpecDescription }
     from "./specbook-format-spec.js"
 import type { Schema }
     from "./specbook-format-schema.js"
 import { specDiagrams }
     from "./specbook-diagram.js"
-import { becauseRegex }
+import { becauseRegex, embeddingRegex, embeddingCount }
     from "./specbook-parse-common.js"
 import { isTitleObject }
     from "./specbook-export-common.js"
+import { optimizeImages }
+    from "./specbook-export-image.js"
+import type { Verbose }
+    from "./specbook-verbose.js"
 
 /*  format a timestamp in the frontmatter format  */
 const formatTimestamp = (date: Date): string => {
@@ -115,9 +121,29 @@ const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecOb
     return parts.filter((part) => part !== "").join("\n\n")
 }
 
-/*  render the entire specification into normalized Markdown  */
-export const renderMarkdown = (specification: Spec,
-    config?: Schema): string => {
+/*  the re-basing of the embedded image references: the source file
+    every artifact stems from and the directory of the output file  */
+export interface MarkdownRebase {
+    origins: Map<SpecArtifact, string>
+    dir:     string
+}
+
+/*  re-base the local relative image references of a text from the
+    directory of their source file onto the one of the output file  */
+const rebaseMd = (text: string, from: string, to: string): string =>
+    text.replace(embeddingRegex, (match: string, alt: string, reference?: string) => {
+        const file = reference?.trim()
+        if (file === undefined || /^[a-z][a-z0-9+.-]+:/i.test(file) || path.isAbsolute(file))
+            return match
+        const rebased = path.relative(to, path.resolve(from, file)).split(path.sep).join("/")
+        return `![${alt}](${rebased})`
+    })
+
+/*  render the entire specification into normalized Markdown, embedding
+    the images (so the export stands alone) and optionally re-basing the
+    remaining image references onto the output directory  */
+export const renderMarkdown = async (specification: Spec,
+    config?: Schema, rebase?: MarkdownRebase, verbose?: Verbose): Promise<string> => {
     /*  derive the Gradia specs of the diagram-configured objects
         (an invalid diagram situation omits the diagram, as it is
         already reported as a lint diagnostic, and the diagram of
@@ -127,6 +153,58 @@ export const renderMarkdown = (specification: Spec,
         for (const [ object, result ] of specDiagrams(specification, config))
             if (result.spec !== undefined && !isTitleObject(object))
                 diagrams.set(object, result.spec)
+
+    /*  embed the images of a text, optimized like the ones of the HTML
+        export: an embeddable "![alt](file)" becomes the reference-style
+        "![alt][img-N]", whose "[img-N]: data:..." definition ends the
+        document (a "{theme}" one takes its light variant, as Markdown
+        knows no themes), and only the remaining ones are re-based  */
+    const optimized = await optimizeImages(specification, false, verbose)
+    const labels    = new Map<string, string>()
+    const embedMd = (text: string, embedding: string[], from?: string, to?: string): string => {
+        let i = 0
+        const embedded = text.replace(embeddingRegex, (match: string, alt: string, reference?: string) => {
+            const count   = embeddingCount(reference)
+            const content = count > 0 ? embedding[i] : undefined
+            i += count
+            if (content === undefined || content === "")
+                return match
+            const image = optimized.get(content) ?? content
+            const url   = image.startsWith("data:") ? image :
+                `data:image/svg+xml;base64,${Buffer.from(image, "utf8").toString("base64")}`
+            const label = labels.get(url) ?? `img-${labels.size + 1}`
+            labels.set(url, label)
+            return `![${alt}][${label}]`
+        })
+        return from !== undefined && to !== undefined && from !== to ?
+            rebaseMd(embedded, from, to) : embedded
+    }
+
+    /*  embed and re-base on clones of the objects (as the AST is shared
+        with the other exports), moving the diagrams along  */
+    const localized = (object: SpecObject, from?: string, to?: string): SpecObject => {
+        const clone: SpecObject = {
+            ...object,
+            properties: object.properties.map((property) =>
+                ({ ...property, value: embedMd(property.value, property.embedding ?? [], from, to) })),
+            children:   object.children.map((child) => localized(child, from, to))
+        }
+        if (object.description !== undefined)
+            clone.description = { ...object.description,
+                description: embedMd(object.description.description,
+                    object.description.embedding ?? [], from, to) }
+        const spec = diagrams.get(object)
+        if (spec !== undefined)
+            diagrams.set(clone, spec)
+        return clone
+    }
+    const objects = specification.artifacts.flatMap((artifact) => {
+        const origin = rebase?.origins.get(artifact)
+        const from   = origin !== undefined ? path.resolve(path.dirname(origin)) : undefined
+        const to     = rebase !== undefined ? path.resolve(rebase.dir)           : undefined
+        return artifact.objects.map((object) => localized(object, from, to))
+    })
+    const definitions = Array.from(labels, ([ url, label ]) => `[${label}]: ${url}\n`).join("")
 
     /*  the single frontmatter block (only recognized at the start of a
         file on re-parse) carries the earliest creation and the latest
@@ -139,6 +217,6 @@ export const renderMarkdown = (specification: Spec,
         `Created:  ${formatTimestamp(created)}\n` +
         `Modified: ${formatTimestamp(modified)}\n` +
         "---\n\n" +
-        specification.artifacts.flatMap((artifact) => artifact.objects)
-            .map((object) => renderObjectMd(object, 1, diagrams)).join("\n\n") + "\n"
+        objects.map((object) => renderObjectMd(object, 1, diagrams)).join("\n\n") + "\n" +
+        (definitions !== "" ? `\n${definitions}` : "")
 }

@@ -37,7 +37,9 @@ API.
         title object, whose diagram the HTML/PDF export reserves) and
         the covered/total counts of a coverage-configured object as its
         `coverage` field
-    -   `src/specbook-export-md.ts`: the normalized Markdown renderer
+    -   `src/specbook-export-md.ts`: the normalized Markdown renderer,
+        embedding the images as reference-style `data:` URL definitions and
+        re-basing the remaining image references onto the output directory
     -   `src/specbook-export-html.ts`: the HTML renderer
         (with `src/specbook-export-html.styl` as its inlined stylesheet,
         compiled from Stylus to CSS at build time, and
@@ -305,6 +307,29 @@ The export output option `-o`/`--output` (`-` for stdout) is required
 occur multiple times; the format is inferred from the filename extension,
 unless explicitly given as a `<format>:` prefix, and plain `-` (stdout)
 defaults to JSON.
+
+The normalized Markdown export stands alone like all other exports: it
+embeds every embedded image (optimized like the ones of the HTML export,
+sharing its cache) by turning its `![alt](file)` into the reference-style
+`![alt][img-N]`, whose definition `[img-N]: data:image/...;base64,...`
+(an SVG base64-encoded, too, and equal images sharing one definition)
+ends the document, so the prose stays readable. A `{theme}` reference
+takes its `light` variant, as Markdown knows no themes. The parser
+resolves this form again (`def` tokens carrying such a `data:` URL are
+the only supported link definitions, an unresolvable label is an error),
+so the export re-parses into the same images and re-exports identically,
+and a WebP image of such a re-parse is converted for print (PDF) only.
+
+The normalized Markdown export merges all artifact files into one
+output file, so it re-bases the remaining (not embeddable) local relative image references
+(`![alt](file)`, which resolve against the directory of their artifact
+file below the base directory) onto the directory of the output file,
+while `-` (stdout) keeps them unchanged. The parser hence reports the
+source file of every artifact (`origins`), and the API option `rebase`
+of `export`/`watch` names, per requested format, the output directory
+(anchored at `cwd`), which the CLI and the MCP service derive from the
+output file -- the CLI rendering the Markdown once per distinct output
+directory.
 
 The export option `-w`/`--watch` performs the regular export and then
 observes the schema configuration files, the referenced artifact files,

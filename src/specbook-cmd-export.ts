@@ -20,7 +20,8 @@ import { documentTitle, documentLogo, documentCharset, documentThemeTone, subset
 import { themeColors, themeStylesheet, themeMapping }
     from "./specbook-theme.js"
 import { renderAst, type AstFormat } from "./specbook-export-ast.js"
-import { renderMarkdown }            from "./specbook-export-md.js"
+import { renderMarkdown, type MarkdownRebase }
+    from "./specbook-export-md.js"
 import { renderHtml, htmlOutline, titlePageObject }
     from "./specbook-export-html.js"
 import { htmlToPdf, requireBrowser } from "./specbook-export-pdf.js"
@@ -169,18 +170,20 @@ export const watchSpecification = async (
 }
 
 /*  render a specification into the requested format, where "realtime"
-    injects the client-side script of the live preview into the HTML  */
+    injects the client-side script of the live preview into the HTML and
+    "rebase" re-bases the image references of the normalized Markdown  */
 const renderFormat = async (
     specification:   Spec,
     format:          ExportFormat,
     verbose:         Verbose,
     config?:         Schema,
-    realtime         = false
+    realtime         = false,
+    rebase?:         MarkdownRebase
 ): Promise<Buffer> => {
     if (format === "json" || format === "json5" || format === "yaml" || format === "toon")
         return renderAst(specification, format satisfies AstFormat, config, verbose)
     else if (format === "md")
-        return Buffer.from(renderMarkdown(specification, config), "utf8")
+        return Buffer.from(await renderMarkdown(specification, config, rebase, verbose), "utf8")
 
     /*  the HTML-based formats share the stylesheet, with the embedded
         fonts subsetted to the CHARSET of the specification (if any)  */
@@ -225,13 +228,14 @@ export const exportSpecification = async (
     format:          ExportFormat,
     verbose:         Verbose,
     config?:         Schema,
-    realtime         = false
+    realtime         = false,
+    rebase?:         MarkdownRebase
 ): Promise<Buffer> => {
     if (!formats.includes(format))
         throw new Error(`unknown export format "${format}"`)
     verbose(`exporting specification as "${literal(format)}"`)
     const started = performance.now()
-    const buffer  = await renderFormat(specification, format, verbose, config, realtime)
+    const buffer  = await renderFormat(specification, format, verbose, config, realtime, rebase)
     const seconds = ((performance.now() - started) / 1000).toFixed(3)
     verbose(`exported specification as "${literal(format)}" in ${literal(seconds)}s`)
     return buffer

@@ -1053,3 +1053,11 @@ both of which are embedded, as two consecutive entries in this order. The
 HTML export shows just the variant matching the color theme currently
 active in the document, while the PDF export (like print in general)
 always uses the `light` variant.
+
+The reference-style image `![<alt/>][<label/>]` embeds the image of its
+definition `[<label/>]: data:image/<type/>;base64,<data/>` (SVG, PNG,
+JPEG, or WebP) in the same file, the only supported link definition.
+This is the form the normalized Markdown export emits for every embedded
+image (a theme-aware one by its `light` variant), with the definitions
+at the end of the document, so it stands alone without the image files.
+Author the inline form; the reference-style one is for re-parsing only.

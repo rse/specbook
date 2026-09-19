@@ -172,9 +172,11 @@ export class SpecBook {
         (strict: any error diagnostic prevents the export, as a partial or
         invalid specification must never be emitted, while the warnings
         are just surfaced as notices), where "realtime" injects the
-        client-side script of the live preview into the HTML  */
+        client-side script of the live preview into the HTML and "rebase"
+        names, per requested format, the directory the image references
+        of the normalized Markdown are re-based onto  */
     private async renderFormats (result: LintResult, requested: ExportFormat[],
-        verbose: Verbose, realtime: boolean): Promise<Buffer[]> {
+        verbose: Verbose, realtime: boolean, rebase?: (string | undefined)[]): Promise<Buffer[]> {
         if (result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
             throw new Error("invalid specification:\n" +
                 result.diagnostics.map(renderDiagnostic).join("\n"))
@@ -183,18 +185,23 @@ export class SpecBook {
         if (result.specification.artifacts.length === 0)
             throw new Error("unexportable specification: no artifacts found")
         const buffers = new Array<Buffer>()
-        for (const format of requested)
+        for (const [ i, format ] of requested.entries()) {
+            const dir = rebase?.[i]
             buffers.push(await exportSpecification(result.specification, format,
-                verbose, result.config, realtime))
+                verbose, result.config, realtime,
+                dir !== undefined ? { origins: result.origins, dir } : undefined))
+        }
         return buffers
     }
 
     /*  export the specification Markdown files below the base directory
         as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown,
         parsing the input just once and returning one buffer per
-        requested format  */
+        requested format, where "rebase" names, per requested format, the
+        directory of the output file, onto which the image references of
+        the normalized Markdown are re-based (an absent one keeps them)  */
     async export (options: ProjectOptions & { formats?: ExportFormat[],
-        realtime?: boolean, gitignore?: boolean }): Promise<Buffer[]> {
+        realtime?: boolean, gitignore?: boolean, rebase?: (string | undefined)[] }): Promise<Buffer[]> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
         const project   = this.project(options, verbose)
@@ -206,7 +213,16 @@ export class SpecBook {
 
         const result = lint({ config: await this.configFiles(project.config),
             basedir: project.basedir ?? ".", gitignore: options.gitignore === true, verbose })
-        return this.renderFormats(result, requested, verbose, options.realtime === true)
+        return this.renderFormats(result, requested, verbose, options.realtime === true,
+            this.rebaseOf(options))
+    }
+
+    /*  anchor the given relative re-basing directories
+        at a given working directory  */
+    private rebaseOf (options: { cwd?: string, rebase?: (string | undefined)[] }) {
+        const cwd = options.cwd
+        return cwd === undefined ? options.rebase : options.rebase?.map((dir) =>
+            dir !== undefined ? path.resolve(cwd, dir) : dir)
     }
 
     /*  keep an export in sync with its sources (the shared core of
@@ -219,7 +235,7 @@ export class SpecBook {
         once the initial export is done, while the active watcher keeps the
         process alive afterwards  */
     private async observe (options: ProjectOptions & { formats: ExportFormat[],
-        realtime: boolean, gitignore?: boolean, outputs?: string[],
+        realtime: boolean, gitignore?: boolean, outputs?: string[], rebase?: (string | undefined)[],
         onExport: (buffers: Buffer[]) => void | Promise<void> },
     verbose: Verbose): Promise<void> {
         const project = this.project(options, verbose)
@@ -243,7 +259,7 @@ export class SpecBook {
 
             try {
                 await options.onExport(await this.renderFormats(result, options.formats,
-                    verbose, options.realtime))
+                    verbose, options.realtime, this.rebaseOf(options)))
             }
             catch (err) {
                 verbose("export failed: " +
@@ -256,9 +272,9 @@ export class SpecBook {
     /*  export the specification like "export" and then keep the export
         in sync with its sources (see "observe"), where "outputs" names the
         files "onExport" writes, so an output which is itself an observed
-        source can be refused  */
+        source can be refused, and "rebase" is the one of "export"  */
     async watch (options: ProjectOptions & { formats?: ExportFormat[],
-        realtime?: boolean, gitignore?: boolean, outputs?: string[],
+        realtime?: boolean, gitignore?: boolean, outputs?: string[], rebase?: (string | undefined)[],
         onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]

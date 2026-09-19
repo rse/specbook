@@ -103,7 +103,10 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         description: "Export the specification Markdown files the YAML schema configuration references " +
             "below the base directory as JSON, JSON5, " +
             "YAML, TOON, HTML, PDF, or normalized Markdown. The result is written to the output file " +
-            "if an output path is given, else it is returned directly (PDF as a base64-encoded resource).",
+            "if an output path is given, else it is returned directly (PDF as a base64-encoded resource). " +
+            "The normalized Markdown embeds its images as \"data:\" URL definitions (so it is large), and " +
+            "its remaining image references are re-based onto the directory of the " +
+            "output file, while a directly returned result keeps them unchanged.",
         inputSchema: {
             config:  z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
                 "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
@@ -129,8 +132,12 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             const spec = args.format !== undefined || args.output === undefined ?
                 { format: args.format ?? "json", output: args.output } :
                 parseOutputSpec(args.output)
+            /*  the image references of the normalized Markdown are re-based
+                onto the directory of the output file (anchored by the API)  */
+            const rebase = spec.format === "md" && spec.output !== undefined && spec.output !== "-" ?
+                path.dirname(spec.output) : undefined
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
-                cwd: args.cwd, formats: [ spec.format ], gitignore: args.gitignore })
+                cwd: args.cwd, formats: [ spec.format ], rebase: [ rebase ], gitignore: args.gitignore })
             if (spec.output !== undefined && spec.output !== "-") {
                 await fs.promises.writeFile(outputOf(args, spec.output), data)
                 return { content: [ { type: "text", text: `exported specification into "${spec.output}" (${data.length} bytes)` } ] }

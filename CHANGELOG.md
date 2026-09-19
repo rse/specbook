@@ -25,6 +25,14 @@ ChangeLog
     PNG/JPEG images are capped to twice the content width and re-encoded with Sharp (PNG as WebP in
     HTML and as JPEG in PDF), and SVG images are minified with SVGO, each kept only if smaller.
 
+-   IMPROVEMENT [code]: Standalone Markdown Export through Embedded Images
+    An embedded image becomes `![alt][img-N]` with an optimized `[img-N]: data:...` definition at
+    the document end, which the parser resolves again, so the export re-parses identically.
+
+-   IMPROVEMENT [code]: Image References Re-Based onto the Output Directory in the Markdown Export
+    The remaining (not embeddable) local `![alt](file)` references now resolve from the directory
+    of the `-o` file, while `-` (stdout) keeps them unchanged (API option `rebase`).
+
 -   IMPROVEMENT [code]: Far Smaller JSON/JSON5/YAML/TOON Exports through Optimized Embedded Images
     The AST exports now carry the embedded images optimized exactly like the HTML export (sharing
     its cache), which makes them 72% smaller for the sample while they still stand alone.

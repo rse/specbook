@@ -6,6 +6,7 @@
 */
 
 import * as fs                     from "node:fs"
+import * as path                   from "node:path"
 import { Command, CommanderError } from "commander"
 import chalk                       from "chalk"
 
@@ -209,19 +210,29 @@ withGitignoreOption(withCommonOptions(program.command("export")))
             throw new Error("the watch mode requires regular output files " +
                 "(\"-\" for stdout is not supported)")
 
-        /*  parse the input once and export each distinct format once  */
-        const distinct = Array.from(new Set(outputs.map(({ format }) => format)))
+        /*  parse the input once and export each distinct format once, the
+            normalized Markdown once per output directory, as its image
+            references are re-based onto it (but never for stdout)  */
+        const rebaseOf = ({ format, output }: { format: string, output: string }) =>
+            format === "md" && output !== "-" ? path.dirname(path.resolve(output)) : undefined
+        const keyOf    = (spec: { format: string, output: string }) =>
+            `${spec.format}:${rebaseOf(spec) ?? ""}`
+        const distinct = outputs.filter((spec, i) =>
+            outputs.findIndex((other) => keyOf(other) === keyOf(spec)) === i)
         const write = async (buffers: Buffer[]) => {
-            for (const { format, output } of outputs)
-                await writeOutput(output, buffers[distinct.indexOf(format)], "export", verboseOf(opts))
+            for (const spec of outputs)
+                await writeOutput(spec.output, buffers[distinct.findIndex((other) =>
+                    keyOf(other) === keyOf(spec))], "export", verboseOf(opts))
         }
+        const formats = distinct.map(({ format }) => format)
+        const rebase  = distinct.map(rebaseOf)
         if (opts.watch)
             await specbook.watch({ config: configOf(opts), basedir: opts.basedir,
-                formats: distinct, gitignore: opts.gitignore,
+                formats, rebase, gitignore: opts.gitignore,
                 outputs: outputs.map(({ output }) => output), onExport: write })
         else
             await write(await specbook.export({ config: configOf(opts), basedir: opts.basedir,
-                formats: distinct, gitignore: opts.gitignore }))
+                formats, rebase, gitignore: opts.gitignore }))
     })
 
 /*  the preview command serves the HTML export live in the browser  */

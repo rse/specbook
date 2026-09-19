@@ -11,8 +11,8 @@ import { marked, type Tokens } from "marked"
 
 import { type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
-import { ParseContext, becauseRegex, embeddingRegex, embeddingMimeType, embeddingVariants, type SourceFile }
-    from "./specbook-parse-common.js"
+import { ParseContext, becauseRegex, embeddingRegex, embeddingDataRegex, embeddingMimeType, embeddingVariants,
+    type SourceFile } from "./specbook-parse-common.js"
 
 /*  a grouping container context (e.g. "### STATE")  */
 interface Group {
@@ -149,10 +149,20 @@ const parseFrontmatter = (text: string) => {
     as base64 data: URLs), resolving the references relative to the source
     file and expanding a "{theme}" reference into its theme variants,
     which are loaded into consecutive embedding entries (an unreadable
-    file leaves an empty entry, keeping the positions aligned)  */
-const embed = (ctx: ParseContext, object: SpecObject, file: string) => {
+    file leaves an empty entry, keeping the positions aligned), while a
+    reference-style "![alt][label]" takes the image of its definition  */
+const embed = (ctx: ParseContext, object: SpecObject, file: string, defs: Map<string, string>) => {
     const load = (target: { embedding?: string[] }, text: string, line: number) => {
         for (const m of text.matchAll(embeddingRegex)) {
+            if (m[2] === undefined) {
+                const label = m[3].trim().toLowerCase().replace(/\s+/g, " ")
+                const image = defs.get(label)
+                target.embedding ??= []
+                target.embedding.push(image ?? "")
+                if (image === undefined)
+                    ctx.diagnose(file, line, `unresolvable image reference "${m[3].trim()}"`)
+                continue
+            }
             const reference = m[2].trim()
             const type = embeddingMimeType(reference)
             if (type === undefined)
@@ -180,7 +190,7 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string) => {
     for (const property of object.properties)
         load(property, property.value, ctx.propMeta.get(property)?.line ?? line)
     for (const child of object.children)
-        embed(ctx, child, file)
+        embed(ctx, child, file, defs)
 }
 
 /*  parse an unordered list of key-values and/or concise-format objects  */
@@ -396,6 +406,7 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
     }
     let   parts     = new Array<string>()
     let   partsLine = 1
+    const defs      = new Map<string, string>()
 
     /*  collect a description part, remembering the line of the first one  */
     const collect = (raw: string, line: number) => {
@@ -451,8 +462,15 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
                 collect(token.raw, line)
         }
         else {
+            /*  an image definition of the Markdown renderer is the one
+                supported link definition (its SVG kept as-is again)  */
+            const def = token.type === "def" ? token as Tokens.Def : undefined
+            const m   = def?.href.match(embeddingDataRegex) ?? null
             const unsupported = unsupportedTokens[token.type]
-            if (unsupported !== undefined)
+            if (def !== undefined && m !== null)
+                defs.set(def.tag, m[1] === "image/svg+xml" ?
+                    Buffer.from(m[2], "base64").toString("utf8") : def.href)
+            else if (unsupported !== undefined)
                 ctx.diagnose(source.file, line, `unsupported ${unsupported} content ignored`)
         }
         line += (token.raw.match(/\n/g) ?? []).length
@@ -462,7 +480,7 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
     /*  load the embedded image files of all fully parsed objects  */
     for (const artifact of state.artifacts)
         for (const object of artifact.objects)
-            embed(ctx, object, source.file)
+            embed(ctx, object, source.file, defs)
     if (state.artifacts.length === 0)
         ctx.diagnose(source.file, 1, "no artifact (level 1 heading) found")
     return state.artifacts

@@ -19,7 +19,7 @@ import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths, plainText
     from "./specbook-link.js"
 import { compileValueExpr, splitItems, type ValueExpr }
     from "./specbook-parse-value.js"
-import { embeddingRegex, embeddingMimeType, embeddingThemes, embeddingVariants }
+import { embeddingRegex, embeddingCount, embeddingThemes }
     from "./specbook-parse-common.js"
 import { escapeHtml, stylesheet, searchScript, fallbackLogo,
     isTitleObject, titleObject, documentTitle, documentLang, documentThemeStyle }
@@ -1393,15 +1393,14 @@ const renderEmbeddings = (text: string, embedding: string[]): string[] => {
     const result = new Array<string>()
     let i = 0
     for (const m of text.matchAll(embeddingRegex)) {
-        const reference = m[2].trim()
-        if (embeddingMimeType(reference) === undefined)
+        const count = embeddingCount(m[2])
+        if (count === 0)
             continue
-        const variants = embeddingVariants(reference)
-        const contents = embedding.slice(i, i + variants.length)
+        const contents = embedding.slice(i, i + count)
         const images   = contents.filter((content) => content !== "")
             .map((content) => renderImage(content, m[1].trim()))
-        i += variants.length
-        if (variants.length > 1 && images.length === variants.length)
+        i += count
+        if (count > 1 && images.length === count)
             result.push(renderThemed(images))
         else
             result.push(...images)
@@ -1417,8 +1416,8 @@ const embeddingMarkup = new RegExp(`[ \\t]*${embeddingRegex.source}`, "g")
     moving the file embeddings to the end of the description  */
 const renderDescription = (description: SpecDescription): string => {
     const text = description.description
-        .replace(embeddingMarkup, (markup, _alt, reference: string) =>
-            embeddingMimeType(reference.trim()) !== undefined ? "" : markup)
+        .replace(embeddingMarkup, (markup, _alt, reference?: string) =>
+            embeddingCount(reference) > 0 ? "" : markup)
         .trim()
     const embeddings = renderEmbeddings(description.description,
         description.embedding ?? []).map((content) => safe(content))
@@ -1439,8 +1438,8 @@ const renderDescription = (description: SpecDescription): string => {
 const collectSpec = (objects: SpecObject[], spec: SpecEntry[]) => {
     for (const object of objects) {
         const text = (object.description?.description ?? "")
-            .replace(embeddingMarkup, (markup, _alt, reference: string) =>
-                embeddingMimeType(reference.trim()) !== undefined ? "" : markup)
+            .replace(embeddingMarkup, (markup, _alt, reference?: string) =>
+                embeddingCount(reference) > 0 ? "" : markup)
             .trim()
         const key = infoObjects?.get(object)
         if (key !== undefined && text !== "")
@@ -1492,8 +1491,8 @@ const inlineValue = (kind: string, property: SpecProperty | undefined) => {
     const { key, value, embedding } = property
     const expr = members?.get(`${kind} ${key}`)
     const text = value
-        .replace(embeddingMarkup, (markup, _alt, reference: string) =>
-            embeddingMimeType(reference.trim()) !== undefined ? "" : markup)
+        .replace(embeddingMarkup, (markup, _alt, reference?: string) =>
+            embeddingCount(reference) > 0 ? "" : markup)
         .trim()
     const embeddings = renderEmbeddings(value, embedding ?? [])
         .map((content) => `<div class="embedding">${content}</div>`).join("")

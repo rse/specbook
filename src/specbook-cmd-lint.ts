@@ -12,7 +12,7 @@ import { literal, type Verbose }                                from "./specbook
 import { type Diagnostic }                                      from "./specbook-diagnostic.js"
 import { parseSpecification, specStatistics, resolveArtifact, collectSchemas, type SourceFile }
     from "./specbook-parse.js"
-import { type Spec, type SpecObject }                           from "./specbook-format-spec.js"
+import { type Spec, type SpecArtifact, type SpecObject }        from "./specbook-format-spec.js"
 import { type Schema, type SchemaObject }                       from "./specbook-format-schema.js"
 import { buildLinkIndex, chainOf, plainText }                   from "./specbook-link.js"
 import { referencedCoverage, specCoverage, coverageRatio }      from "./specbook-coverage.js"
@@ -36,6 +36,9 @@ export interface LintResult {
         the referenced artifact files (an absent one included) plus their
         embedded assets -- so a watching consumer knows what to observe  */
     files:         string[]
+
+    /*  the source file every artifact of the specification stems from  */
+    origins:       Map<SpecArtifact, string>
 }
 
 /*  collect the distinct artifact files the schema configuration
@@ -171,5 +174,6 @@ export const lint = (options: LintOptions): LintResult => {
                 message: `missing artifact "${schema.kind}: ${schema.name ?? ""}${paren}"` })
         }
     }
-    return { specification: result.specification, diagnostics, config, files: watched }
+    return { specification: result.specification, diagnostics, config, files: watched,
+        origins: result.origins }
 }

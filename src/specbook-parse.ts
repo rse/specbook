@@ -35,8 +35,12 @@ export const parseSpecification = (sources: SourceFile[], config?: Schema): Pars
 
     /*  parse all source files into their artifacts  */
     const artifacts = new Array<SpecArtifact>()
+    const origins   = new Map<SpecArtifact, string>()
     for (const source of sources)
-        artifacts.push(...parseFile(ctx, source))
+        for (const artifact of parseFile(ctx, source)) {
+            artifacts.push(artifact)
+            origins.set(artifact, source.file)
+        }
     const specification: Spec = { artifacts }
 
     /*  validate the resulting specification AST  */
@@ -54,7 +58,7 @@ export const parseSpecification = (sources: SourceFile[], config?: Schema): Pars
                 ctx.diagnose(sources[0].file, 1, `internal AST invalid at "${path}": ${issue.message}`)
             }
     }
-    return { specification, diagnostics: ctx.diagnostics, assets: Array.from(ctx.assets) }
+    return { specification, diagnostics: ctx.diagnostics, assets: Array.from(ctx.assets), origins }
 }
 
 /*  the statistics of a specification: the number of defined objects

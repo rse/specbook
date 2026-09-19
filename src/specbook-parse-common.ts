@@ -4,7 +4,7 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import { type Spec, type SpecObject, type SpecProperty }
+import { type Spec, type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
 import { type Diagnostic, type DiagnosticSeverity }
     from "./specbook-diagnostic.js"
@@ -17,11 +17,13 @@ export interface SourceFile {
     text: string
 }
 
-/*  the result of parsing a set of specification Markdown files  */
+/*  the result of parsing a set of specification Markdown files, where
+    "origins" maps every artifact onto the source file it stems from  */
 export interface ParseResult {
     specification: Spec
     diagnostics:   Diagnostic[]
     assets:        string[]
+    origins:       Map<SpecArtifact, string>
 }
 
 /*  per-object parsing meta information, kept outside the AST  */
@@ -61,8 +63,10 @@ export class ParseContext {
 /*  the marker separating a statement from its rationale  */
 export const becauseRegex = /,\s*(?:\*\*BECAUSE\*\*|BECAUSE)\s+/
 
-/*  the Markdown image embedding syntax ("![alt](file)")  */
-export const embeddingRegex = /!\[([^\]]*)\]\(([^()]+)\)/g
+/*  the Markdown image embedding syntax: inline ("![alt](file)") or
+    reference-style ("![alt][label]", the label naming a "[label]: data:..."
+    definition, as the normalized Markdown export embeds the images)  */
+export const embeddingRegex = /!\[([^\]]*)\](?:\(([^()]+)\)|\[([^[\]]+)\])/g
 
 /*  the theme variants of a theme-aware image embedding  */
 export const embeddingThemes = [ "light", "dark" ] as const
@@ -91,3 +95,15 @@ export const embeddingMimeType = (reference: string): string | undefined => {
     const extension = reference.match(/\.([a-z0-9]+)$/i)?.[1].toLowerCase()
     return extension !== undefined ? embeddingTypes[extension] : undefined
 }
+
+/*  the number of embedding entries an image embedding markup occupies,
+    given its inline reference: one per variant of an embeddable one, none
+    for any other one, and one for a reference-style markup (no reference)  */
+export const embeddingCount = (reference: string | undefined): number =>
+    reference === undefined ? 1 :
+        (embeddingMimeType(reference.trim()) !== undefined ?
+            embeddingVariants(reference.trim()).length : 0)
+
+/*  the image definition ("[label]: data:...") a reference-style image
+    embedding refers to: a base64 data: URL of an embeddable image type  */
+export const embeddingDataRegex = /^data:(image\/(?:svg\+xml|png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/

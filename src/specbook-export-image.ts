@@ -48,10 +48,11 @@ const optimizeSvg = async (content: string): Promise<string> => {
     JPEG, while a PNG is converted to WebP for the screen and to JPEG
     for print, as Chromium passes just this format through into the PDF
     unchanged and embeds every other one losslessly (as JPEG knows no
-    transparency, the PNG is flattened onto the white of the paper)  */
+    transparency, the PNG is flattened onto the white of the paper), and
+    a WebP (of a re-parsed Markdown export) is converted for print only  */
 const optimizeRaster = async (content: string, print: boolean): Promise<string> => {
-    const m = content.match(/^data:(image\/(?:png|jpeg));base64,(.*)$/s)
-    if (m === null)
+    const m = content.match(/^data:(image\/(?:png|jpeg|webp));base64,(.*)$/s)
+    if (m === null || (m[1] === "image/webp" && !print))
         return content
     const { default: sharp } = await import("sharp")
     const image = sharp(Buffer.from(m[2], "base64"))
