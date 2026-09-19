@@ -53,9 +53,14 @@ export const titleObject = (specification: Spec): SpecObject | undefined => {
     return search(specification.artifacts.flatMap((artifact) => artifact.objects))
 }
 
-/*  determine a property value of the title object  */
-const titleProperty = (specification: Spec, name: string): string | undefined =>
-    titleObject(specification)?.properties.find((property) => property.key === name)?.value
+/*  determine a property value of the title object (a present but empty
+    value counting as an absent property, so every consumer falls back
+    onto its own default)  */
+const titleProperty = (specification: Spec, name: string): string | undefined => {
+    const value = titleObject(specification)
+        ?.properties.find((property) => property.key === name)?.value
+    return value !== undefined && value.trim() !== "" ? value : undefined
+}
 
 /*  determine the document language (LANG) from the title object  */
 export const documentLang = (specification: Spec): string | undefined =>

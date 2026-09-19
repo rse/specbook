@@ -55,6 +55,34 @@ const schemaFiles = (config: Schema): Map<string, boolean> => {
     return files
 }
 
+/*  report the reference coverage the "referenced"-flagged object kinds
+    receive and the "coverage"-configured objects report as additional
+    figures, the unreferenced objects of the latter by name as a lengthy
+    detail (the ones of the former are already reported as warnings)  */
+const reportCoverage = (specification: Spec, config: Schema, verbose: Verbose) => {
+    const index   = buildLinkIndex(specification)
+    const schemas = collectSchemas(specification, config)
+    const label   = (object: SpecObject) => `${object.kind} "${literal(plainText(object.name))}"`
+    const ratio   = (covered: SpecObject[], uncovered: SpecObject[]) =>
+        `${literal(covered.length)} of ${literal(covered.length + uncovered.length)} ` +
+        `(${literal(coverageRatio(covered.length, covered.length + uncovered.length))}%)`
+    for (const { schema, covered, uncovered } of referencedCoverage(index, schemas)) {
+        const chain = chainOf(index, covered[0] ?? uncovered[0])
+        verbose((schema.referenced ?? []).map((entry) => `"${literal(entry)}"`).join(" or ") +
+            ` references ${ratio(covered, uncovered)} ${schema.kind} object(s)` +
+            (chain.length > 1 ? ` below ${label(chain[0])}` : ""), "detail")
+    }
+    for (const [ object, entries ] of specCoverage(index, schemas))
+        for (const { pattern, covered, uncovered } of entries) {
+            verbose(`${label(object)} references ${ratio(covered, uncovered)} ` +
+                `"${literal(pattern)}" object(s)`, "detail")
+            if (uncovered.length > 0)
+                verbose(`${label(object)} leaves ${literal(uncovered.length)} ` +
+                    `"${literal(pattern)}" object(s) unreferenced: ` +
+                    uncovered.map(label).join(", "), "trace")
+        }
+}
+
 /*  lint the specification Markdown files below the base directory
     against the configuration  */
 export const lint = (options: LintOptions): LintResult => {
@@ -124,34 +152,9 @@ export const lint = (options: LintOptions): LintResult => {
     options.verbose(`parsed specification defining ${literal(stats.objects)} object(s) ` +
         `and ${literal(stats.links)} link relationship(s)`)
 
-    /*  report the reference coverage the "referenced"-flagged object
-        kinds receive and the "coverage"-configured objects report as
-        additional figures, the unreferenced objects of the latter by
-        name as a lengthy detail (the ones of the former are already
-        reported as warnings)  */
-    if (config !== undefined && result.specification.artifacts.length > 0) {
-        const index   = buildLinkIndex(result.specification)
-        const schemas = collectSchemas(result.specification, config)
-        const label   = (object: SpecObject) => `${object.kind} "${literal(plainText(object.name))}"`
-        const ratio   = (covered: SpecObject[], uncovered: SpecObject[]) =>
-            `${literal(covered.length)} of ${literal(covered.length + uncovered.length)} ` +
-            `(${literal(coverageRatio(covered.length, covered.length + uncovered.length))}%)`
-        for (const { schema, covered, uncovered } of referencedCoverage(index, schemas)) {
-            const chain = chainOf(index, covered[0] ?? uncovered[0])
-            options.verbose((schema.referenced ?? []).map((entry) => `"${literal(entry)}"`).join(" or ") +
-                ` references ${ratio(covered, uncovered)} ${schema.kind} object(s)` +
-                (chain.length > 1 ? ` below ${label(chain[0])}` : ""), "detail")
-        }
-        for (const [ object, entries ] of specCoverage(index, schemas))
-            for (const { pattern, covered, uncovered } of entries) {
-                options.verbose(`${label(object)} references ${ratio(covered, uncovered)} ` +
-                    `"${literal(pattern)}" object(s)`, "detail")
-                if (uncovered.length > 0)
-                    options.verbose(`${label(object)} leaves ${literal(uncovered.length)} ` +
-                        `"${literal(pattern)}" object(s) unreferenced: ` +
-                        uncovered.map(label).join(", "), "trace")
-            }
-    }
+    /*  report the reference coverage as additional figures  */
+    if (config !== undefined && result.specification.artifacts.length > 0)
+        reportCoverage(result.specification, config, options.verbose)
 
     /*  report the non-optional artifacts absent from the specification,
         against their loaded artifact file (an absent or unreadable file

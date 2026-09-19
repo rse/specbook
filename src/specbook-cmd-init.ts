@@ -9,14 +9,7 @@ import * as path from "node:path"
 
 import { literal, type Verbose }          from "./specbook-verbose.js"
 import { type Schema, type SchemaObject } from "./specbook-format-schema.js"
-
-/*  the current time in the frontmatter timestamp format  */
-const timestamp = (): string => {
-    const d   = new Date()
-    const pad = (n: number) => String(n).padStart(2, "0")
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
-        `${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
+import { formatTimestamp }                from "./specbook-export-md.js"
 
 /*  the options of the init command  */
 export interface InitOptions {
@@ -31,7 +24,7 @@ export interface InitOptions {
     side, following each other on level 1  */
 export const initSpecification = (options: InitOptions): string[] => {
     fs.mkdirSync(options.basedir, { recursive: true })
-    const now     = timestamp()
+    const now     = formatTimestamp(new Date())
     const created = new Array<string>()
 
     /*  group the configured artifacts by their file, preserving the

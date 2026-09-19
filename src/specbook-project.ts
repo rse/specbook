@@ -36,7 +36,7 @@ export interface Project {
 /*  find the project configuration file in the closest ancestor-or-self
     of the directory (up to the filesystem root, as the file can reside
     even above a nested Git working tree)  */
-export const findProject = (dir: string): string | undefined => {
+const findProject = (dir: string): string | undefined => {
     let current = path.resolve(dir)
     for (;;) {
         const file = path.join(current, projectFile)
@@ -46,6 +46,21 @@ export const findProject = (dir: string): string | undefined => {
         if (parent === current)
             return undefined
         current = parent
+    }
+}
+
+/*  read the project configuration file, reporting an unreadable file
+    as a positioned diagnostic instead of a raw I/O error  */
+const readProject = (file: string): string => {
+    try {
+        return fs.readFileSync(file, "utf8")
+    }
+    catch (err) {
+        throw new Error("invalid project configuration:\n" + renderDiagnostic({
+            file, line: 1, column: 1, severity: "error",
+            message: "cannot read project configuration file: " +
+                (err instanceof Error ? err.message : String(err))
+        }), { cause: err })
     }
 }
 
@@ -60,7 +75,8 @@ export const loadProject = (dir: string): Project | undefined => {
         return undefined
     const diagnostics = new Array<Diagnostic>()
     const lines = new LineCounter()
-    const doc   = parseDocument(fs.readFileSync(file, "utf8"), { lineCounter: lines })
+    const yaml  = readProject(file)
+    const doc   = parseDocument(yaml, { lineCounter: lines })
     for (const err of doc.errors)
         diagnostics.push({
             file,

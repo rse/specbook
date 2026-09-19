@@ -175,8 +175,9 @@ withGitignoreOption(withCommonOptions(program.command("lint")))
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         const result = await specbook.lint({ config: configOf(opts), basedir: opts.basedir,
             gitignore: opts.gitignore })
+        const detailed = parseVerbosity(opts.verbose) > 0
         for (const diagnostic of result.diagnostics)
-            await writeStdout(parseVerbosity(opts.verbose) > 0 ?
+            await writeStdout(detailed ?
                 renderDiagnosticVerbose(diagnostic, process.stdout.isTTY === true) :
                 `${renderDiagnostic(diagnostic)}\n`)
         if (result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
@@ -196,7 +197,8 @@ withGitignoreOption(withCommonOptions(program.command("export")))
         "from the filename extension unless explicitly prefixed",
         (value: string, previous: string[]) => previous.concat(value), new Array<string>())
     .action(async (opts: ProcessOptions & { output: string[], watch: boolean }) => {
-        const specbook = new SpecBook({ verbose: verboseOf(opts) })
+        const verbose  = verboseOf(opts)
+        const specbook = new SpecBook({ verbose })
         const fallback = envDefault("output")
         const given    = opts.output.length > 0 ? opts.output : (fallback !== undefined ? [ fallback ] : [])
         if (given.length === 0)
@@ -222,7 +224,7 @@ withGitignoreOption(withCommonOptions(program.command("export")))
         const write = async (buffers: Buffer[]) => {
             for (const spec of outputs)
                 await writeOutput(spec.output, buffers[distinct.findIndex((other) =>
-                    keyOf(other) === keyOf(spec))], "export", verboseOf(opts))
+                    keyOf(other) === keyOf(spec))], "export", verbose)
         }
         const formats = distinct.map(({ format }) => format)
         const rebase  = distinct.map(rebaseOf)

@@ -97,9 +97,14 @@ const schemaSection = (config: string[], schema: Schema | undefined,
     if (standard)
         yaml = yaml.replace(/^(?:[ \t]*##.*\n)+\s*/, "")
     yaml = compressYaml(yaml, compress)
+
+    /*  the fence has to outgrow every backtick run inside the content,
+        so an embedded code block can never break out of it  */
+    const fence = "`".repeat(Math.max(3, ...Array.from(
+        yaml.matchAll(/^[ \t]*(`{3,})/gm), (match) => match[1].length + 1)))
     return textframe(`
         The **SpecBook SCHEMA Model** is the following YAML schema configuration:
-    `) + "\n```yaml\n" + yaml.replace(/\n*$/, "\n") + "```\n"
+    `) + `\n${fence}yaml\n` + yaml.replace(/\n*$/, "\n") + `${fence}\n`
 }
 
 /*  render the reference to the specification Markdown files  */

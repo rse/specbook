@@ -206,7 +206,7 @@ const nearest = (index: LinkIndex, matches: SpecObject[], from: SpecObject): Spe
         return i
     }
     const proximities = matches.map((object) => proximity(object))
-    const best        = Math.max(...proximities)
+    const best        = proximities.reduce((max, p) => Math.max(max, p), 0)
     return matches.filter((_, i) => proximities[i] === best)
 }
 

@@ -43,7 +43,7 @@ export const renderAst = async (specification: Spec, format: AstFormat,
         with the embedded images (by far the bulk of the export)
         optimized like the ones of the HTML export  */
     const optimized = await optimizeImages(specification, false, verbose)
-    const plain = JSON.parse(JSON.stringify(specification, (key: string, value: unknown) =>
+    const plain     = JSON.parse(JSON.stringify(specification, (key: string, value: unknown) =>
         key !== "embedding" ? value :
             (value as string[]).map((content) => optimized.get(content) ?? content)
     )) as PlainSpecification

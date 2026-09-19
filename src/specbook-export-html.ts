@@ -1050,8 +1050,8 @@ const infoPopupScript = textframe`
                 return span
             }
             const ref      = spec ?? source.getAttribute("data-info-path") ?? ""
-            const segments = SPEC[parseInt(ref)] !== undefined ?
-                pathOf(parseInt(ref), !ref.endsWith("^")) : []
+            const index    = parseInt(ref, 10)
+            const segments = SPEC[index] !== undefined ? pathOf(index, !ref.endsWith("^")) : []
             for (const [ i, segment ] of segments.entries()) {
                 if (i > 0)
                     title.appendChild(pointer())
@@ -1418,7 +1418,7 @@ const embeddingMarkup = new RegExp(`[ \\t]*${embeddingRegex.source}`, "g")
     moving the file embeddings to the end of the description  */
 const renderDescription = (description: SpecDescription): string => {
     const text = description.description
-        .replace(embeddingMarkup, (markup, _alt, reference?: string) =>
+        .replace(embeddingMarkup, (markup: string, _alt: string, reference?: string) =>
             embeddingCount(reference) > 0 ? "" : markup)
         .trim()
     const embeddings = renderEmbeddings(description.description,
@@ -1440,7 +1440,7 @@ const renderDescription = (description: SpecDescription): string => {
 const collectSpec = (objects: SpecObject[], spec: SpecEntry[]) => {
     for (const object of objects) {
         const text = (object.description?.description ?? "")
-            .replace(embeddingMarkup, (markup, _alt, reference?: string) =>
+            .replace(embeddingMarkup, (markup: string, _alt: string, reference?: string) =>
                 embeddingCount(reference) > 0 ? "" : markup)
             .trim()
         const key = infoObjects?.get(object)
@@ -1493,7 +1493,7 @@ const inlineValue = (kind: string, property: SpecProperty | undefined) => {
     const { key, value, embedding } = property
     const expr = members?.get(`${kind} ${key}`)
     const text = value
-        .replace(embeddingMarkup, (markup, _alt, reference?: string) =>
+        .replace(embeddingMarkup, (markup: string, _alt: string, reference?: string) =>
             embeddingCount(reference) > 0 ? "" : markup)
         .trim()
     const embeddings = renderEmbeddings(value, embedding ?? [])
@@ -1652,7 +1652,7 @@ const coverageOf = (object: SpecObject) => {
     headers of a plain table  */
 const renderTable = (children: SpecObject[], maxColumns: number): string => {
     const { keys, desc } = tableShape(children)
-    const diagrammed = children.some((child) => diagramOf(child) !== "")
+    const diagrammed = children.some((child) => diagrams?.has(child) === true)
     if (!diagrammed && 1 + keys.length + (desc ? 1 : 0) <= maxColumns)
         return render("Table", { Table: {
             head:     children[0].kind !== "" ? children[0].kind : "Name",
@@ -2013,7 +2013,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
                     node.object.kind, plainText(node.object.name).trim(), "" ])
             infoObjects = objects
         }
-        linker   = makeLinker(index)
+        linker    = makeLinker(index)
 
         /*  collect the corpus descriptions of the object instances for the
             description popups (after the linker is in place, as the

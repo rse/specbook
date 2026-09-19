@@ -31,6 +31,8 @@ const anchorPages = async (pdf: Uint8Array): Promise<Map<string, number>> => {
     const doc = await PDFDocument.load(pdf)
     const indexes = new Map<string, number>()
     doc.getPages().forEach((page, index) => indexes.set(page.ref.toString(), index + 1))
+
+    /*  map every named destination onto the page number of its target  */
     const pages = new Map<string, number>()
     const dests = doc.catalog.lookupMaybe(PDFName.of("Dests"), PDFDict)
     if (dests !== undefined) {
@@ -70,8 +72,8 @@ const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
     /*  resolve the outline entries against the live destinations,
         hoisting the children of an entry without a live destination  */
     type OutlineItem = { title: string, dest: PDFArray, children: OutlineItem[] }
-    const resolve = (entries: OutlineEntry[]): OutlineItem[] =>
-        entries.flatMap((entry) => {
+    const resolve = (list: OutlineEntry[]): OutlineItem[] =>
+        list.flatMap((entry) => {
             const dest     = targets.get(entry.anchor)
             const children = resolve(entry.children)
             return dest !== undefined ? [ { title: entry.title, dest, children } ] : children
@@ -82,9 +84,9 @@ const addOutline = async (doc: PDFDocument, entries: OutlineEntry[]) => {
 
     /*  recursively materialize the outline items, wiring up the
         Parent/Prev/Next/First/Last cross-references of the tree  */
-    const materialize = (items: OutlineItem[], parent: PDFRef) => {
-        const refs = items.map(() => context.nextRef())
-        items.forEach((item, i) => {
+    const materialize = (list: OutlineItem[], parent: PDFRef) => {
+        const refs = list.map(() => context.nextRef())
+        list.forEach((item, i) => {
             const children = item.children.length > 0 ? materialize(item.children, refs[i]) : undefined
             context.assign(refs[i], context.obj({
                 Title:  PDFHexString.fromText(item.title),

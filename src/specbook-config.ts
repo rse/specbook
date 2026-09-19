@@ -254,6 +254,13 @@ const checkConstraints = (
             if (depth > 1 && object.file !== undefined)
                 diagnose([ ...at, "file" ],
                     `"file" field is only allowed on the first (artifact) level (found on level ${depth})`)
+
+            /*  an artifact file is placed below the base directory, so
+                it must neither be absolute nor escape that directory  */
+            if (object.file !== undefined
+                && ((/^[/\\]/).test(object.file) || (/(?:^|[/\\])\.\.(?:[/\\]|$)/).test(object.file)))
+                diagnose([ ...at, "file" ],
+                    `"file" field "${object.file}" is not a relative path below the base directory`)
             checkProperties(object.props ?? [], at, diagnose)
             checkAutomaton(object, at, diagnose)
             for (const field of [ "referenced", "coverage" ] as const)

@@ -26,15 +26,10 @@ export const verbosityOf: Record<VerboseLevel, Verbosity> = { none: 0, notice: 1
 /*  parse and validate a verbosity specification, where a bare flag (or
     a boolean word) selects the regular processing information  */
 export const parseVerbosity = (value: string | number | boolean): Verbosity => {
-    let level: number
-    if (typeof value === "boolean")
-        level = value ? 1 : 0
-    else if (typeof value === "string" && (/^(?:true|yes|on)$/i).test(value))
-        level = 1
-    else if (typeof value === "string" && (/^(?:false|no|off)$/i).test(value))
-        level = 0
-    else
-        level = typeof value === "string" && !(/^\d+$/).test(value) ? NaN : Number(value)
+    const text  = String(value)
+    const level = (/^(?:true|yes|on)$/i).test(text) ? 1 :
+        (/^(?:false|no|off)$/i).test(text) ? 0 :
+            (/^\d+$/).test(text) ? Number(text) : NaN
     if (!(verbosities as readonly number[]).includes(level))
         throw new Error(`unknown verbosity "${value}" ` +
             `(supported: ${verbosities.join(", ")})`)

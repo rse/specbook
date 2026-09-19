@@ -70,11 +70,14 @@ const diagramPresets: NonNullable<SchemaDiagram["config"]> = {
     with its default applied  */
 type DiagramType = NonNullable<SchemaDiagram["type"]>
 
+/*  render a text as a double-quoted Gradia string, with the
+    backslashes and the double quotes escaped  */
+const quoted = (text: string): string =>
+    `"${text.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}"`
+
 /*  render a text as a Gradia atom: a bareword where possible
     (no whitespace, no special characters, no "--"), a quoted
     string otherwise  */
-const quoted = (text: string): string =>
-    `"${text.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}"`
 const atom = (text: string): string => {
     const plain = text.replace(/\s+/g, " ").trim()
     return /^[^\s[\]():,">#]+$/.test(plain) && !plain.includes("--") ? plain : quoted(plain)
@@ -331,16 +334,10 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
             }
     }
     else {
-        if (diagram.edges !== undefined)
-            errors.push({ reason: "\"grid\" diagram cannot carry an \"edges\" configuration" })
-        if (diagram.hierarchy === true)
-            errors.push({ reason: "\"grid\" diagram cannot carry a \"hierarchy\" configuration" })
-        if (diagram.deep === true)
-            errors.push({ reason: "\"grid\" diagram cannot carry a \"deep\" configuration" })
-        if (diagram.labeled === true)
-            errors.push({ reason: "\"grid\" diagram cannot carry a \"labeled\" configuration" })
-        if (diagram.onlyConnected === true)
-            errors.push({ reason: "\"grid\" diagram cannot carry an \"onlyConnected\" configuration" })
+        for (const field of [ "edges", "hierarchy", "deep", "labeled", "onlyConnected" ] as const)
+            if (diagram[field] !== undefined && diagram[field] !== false)
+                errors.push({ reason: "\"grid\" diagram cannot carry " +
+                    `${(/^[aeiou]/).test(field) ? "an" : "a"} "${field}" configuration` })
     }
 
     return edges

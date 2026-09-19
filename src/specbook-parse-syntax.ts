@@ -126,6 +126,8 @@ const parseFrontmatter = (text: string) => {
     const missing: FrontmatterKey = { date: null, line: 1, value: null }
     if (m === null)
         return { present: false, created: missing, modified: missing, body: text, offset: 0 }
+
+    /*  grab a single timestamp key with its raw value and source line  */
     const grab = (key: string): FrontmatterKey => {
         const km = m[1].match(new RegExp(`^${key}:\\s*(.+)$`, "m"))
         if (km === null || km.index === undefined)
@@ -164,7 +166,7 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string, defs: Map<st
                 continue
             }
             const reference = m[2].trim()
-            const type = embeddingMimeType(reference)
+            const type      = embeddingMimeType(reference)
             if (type === undefined)
                 continue
             for (const variant of embeddingVariants(reference)) {
@@ -464,8 +466,8 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
         else {
             /*  an image definition of the Markdown renderer is the one
                 supported link definition (its SVG kept as-is again)  */
-            const def = token.type === "def" ? token as Tokens.Def : undefined
-            const m   = def?.href.match(embeddingDataRegex) ?? null
+            const def         = token.type === "def" ? token as Tokens.Def : undefined
+            const m           = def?.href.match(embeddingDataRegex) ?? null
             const unsupported = unsupportedTokens[token.type]
             if (def !== undefined && m !== null)
                 defs.set(def.tag, m[1] === "image/svg+xml" ?
@@ -481,6 +483,8 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
     for (const artifact of state.artifacts)
         for (const object of artifact.objects)
             embed(ctx, object, source.file, defs)
+
+    /*  report a source file carrying no artifact at all  */
     if (state.artifacts.length === 0)
         ctx.diagnose(source.file, 1, "no artifact (level 1 heading) found")
     return state.artifacts

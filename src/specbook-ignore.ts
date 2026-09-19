@@ -41,7 +41,7 @@ const compileRule = (line: string, base: string): Rule | null => {
     if (pattern.startsWith("/"))
         pattern = pattern.slice(1)
     const glob    = anchored ? (base === "" ? pattern : `${base}/${pattern}`) : `**/${pattern}`
-    const isMatch = picomatch(glob, { dot: true })
+    const isMatch = picomatch(glob, { dot: true, nobrace: true, noextglob: true, nonegate: true })
     return { matcher: isMatch, negated, dirOnly }
 }
 
