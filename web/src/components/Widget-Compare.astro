@@ -26,7 +26,7 @@ interface Props {
 const { left, right, leftLabel, rightLabel, label, class: className = "" } = Astro.props
 ---
 <div class={className}>
-    <div class="rounded-xl border border-border-strong bg-background-elevated/40 p-4 shadow-xl sm:p-6">
+    <div class="rounded-xl border border-border-strong bg-background-elevated/40 p-2 shadow-xl sm:p-3">
         <div class="compare relative cursor-ew-resize touch-pan-y select-none" data-compare>
             {/*  the right image is the base layer and defines the box size,
                  the left one is clipped onto the area left of the handle  */}
