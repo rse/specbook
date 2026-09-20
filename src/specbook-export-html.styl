@@ -1384,3 +1384,10 @@ nav.doc
 nav.doc h1
     color: var(--theme-color-specbook-accent)
     font-weight: normal
+
+/*  in print, both front matter headings open a fresh page, where
+    their top margin is kept after the forced page break  */
+@media print
+    nav.toc h1,
+    nav.doc h1
+        margin-top: 0
