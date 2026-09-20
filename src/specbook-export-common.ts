@@ -125,10 +125,19 @@ export const documentPaperSize = (specification: Spec): string => {
     would defeat the "break-after: avoid" bundling of the stylesheet  */
 const headingReserve = 6
 
+/*  the vertical room (in rem) the "Diagram of Contents" heading claims
+    above its diagram: this <h1> opens its page and hence carries its
+    full margins (3rem above, 2rem below) plus its own 2.4rem line and
+    the 2rem margins of the diagram, which the flat reserve above
+    underestimates, so the diagram would be pushed onto the next page  */
+const docHeadingReserve = 10
+
 /*  provide the paper-dependent print stylesheet: a diagram is scaled
     down to still fit onto a single page (the paper height less the
     print margins, the own vertical margins of the diagram, and the
-    heading reserve above it) and is never broken across a page boundary  */
+    heading reserve above it) and is never broken across a page boundary,
+    where the diagram of the "Diagram of Contents" page gets the larger
+    reserve its own heading demands  */
 export const paperStylesheet = (paper: string): string => {
     const setup = paperSetup(paper)
     const avail = setup.height - setup.margin.top - setup.margin.bottom
@@ -136,6 +145,7 @@ export const paperStylesheet = (paper: string): string => {
         "div.diagram { break-inside: avoid; }\n" +
         `div.diagram svg { max-height: calc(${paperLength(setup, avail)} - ${headingReserve}rem);` +
         " width: auto; height: auto; }\n" +
+        `nav.doc div.diagram svg { max-height: calc(${paperLength(setup, avail)} - ${docHeadingReserve}rem); }\n` +
         "}\n"
 }
 
