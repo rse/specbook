@@ -5,6 +5,10 @@ ChangeLog
 1.3.0 (2026-09-19)
 ------------------
 
+-   IMPROVEMENT [code]: No Orphaned Chunk Headers at a Page End of the PDF Export
+    In print, a chunk header row ("Diagram", property names) sticks to its value row, so an object
+    whose diagram wraps moves to the next page as a whole instead of leaving an empty row behind.
+
 -   IMPROVEMENT [code]: Diagram Folding per Type and per Nesting Level in the HTML Export
     The folding tab folds the `graph`, `hub`, and `grid` diagrams individually and all diagrams from
     the object tree nesting level 1, 2, or 3 on, as OR-combined sticky filters marked while active.
