@@ -11,7 +11,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z }                    from "zod"
 
 import { SpecBook, renderDiagnostic, renderVerbose, formats, parseOutputSpec, describeFormats,
-    describeParts, compressLevels, projectFile, version, type VerboseSink } from "./specbook-api.js"
+    describeParts, compressLevels, projectFile, omitAspects, version, type VerboseSink } from "./specbook-api.js"
 
 /*  render an error with its cause chain into a tool error result  */
 const errorResult = (err: unknown) => {
@@ -102,7 +102,10 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         inputSchema: { config, basedir, gitignore, cwd,
             format:    z.enum(formats).optional().describe("output format (default: inferred from the " +
                 "output file extension, else json)"),
-            output:    z.string().optional().describe("output file path (\"-\" or omitted returns the result directly)")
+            output:    z.string().optional().describe("output file path (\"-\" or omitted returns the result directly)"),
+            omit:      z.array(z.string()).optional().describe("content aspects to omit from the HTML, " +
+                "the PDF, and (the diagrams) the AST output, instead of leaving them foldable: \"diagram\" " +
+                `(all diagrams) or "${omitAspects.join("\", \"")}" (default: none)`)
         }
     }, async (args) => {
         try {
@@ -117,7 +120,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             const rebase = spec.format === "md" && spec.output !== undefined && spec.output !== "-" ?
                 path.dirname(spec.output) : undefined
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
-                cwd: args.cwd, formats: [ spec.format ], rebase: [ rebase ], gitignore: args.gitignore })
+                cwd: args.cwd, formats: [ spec.format ], rebase: [ rebase ], omit: args.omit,
+                gitignore: args.gitignore })
             if (spec.output !== undefined && spec.output !== "-") {
                 await fs.promises.writeFile(outputOf(args, spec.output), data)
                 return { content: [ { type: "text", text: `exported specification into "${spec.output}" (${data.length} bytes)` } ] }

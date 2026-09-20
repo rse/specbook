@@ -213,8 +213,8 @@ blue hero flag).
 ```
 specbook init     [-v [<level>]] [-c <yaml-file>] [-b <basedir>]
 specbook lint     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g]
-specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-w] [-o [<format>:]<output-file>] [...]
-specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-a <ip-addr>] [-p <tcp-port>]
+specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-w] [-O <aspect>[,...]] [-o [<format>:]<output-file>] [...]
+specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-O <aspect>[,...]] [-a <ip-addr>] [-p <tcp-port>]
 specbook describe [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-e] [-z [<level>]] [-f <format>] [-p <part>] [-o <markdown-file>]
 specbook mcp      [-v [<level>]]
 ```
@@ -479,6 +479,34 @@ diagrams at least one active control covers are folded. A diagram
 control carries the search filter mark colors while it is active, the
 cell text control while any cell text is folded, and the tab icon
 while anything at all is folded.
+
+The option `-O`/`--omit <aspect>[,...]` of `export` and `preview`
+(repeatable, comma-separated, the API/MCP option `omit` as `string[]`,
+validated up-front by `parseOmit` of `src/specbook-export-common.ts`)
+omits content aspects at generation time instead of leaving them
+foldable. The aspects match the sets of the folding controls:
+`diagram:graph`, `diagram:hub`, `diagram:grid`, `diagram:1` (alias
+`diagram`, hence all diagrams, the "Diagram of Contents" page included),
+`diagram:2`, `diagram:3`, and `text:long`. An omitted diagram
+(`omittedDiagrams` of `src/specbook-diagram.ts`) is never rendered and
+leaves nothing behind, and the AST exports drop its `diagram` field, too,
+while the Markdown export ignores the option. As no browser measures the
+cells at generation time, `text:long` is a server-side heuristic
+(`omitLong` of the HTML renderer): the height of a table cell is
+estimated as its number of text lines (its plain text per block, wrapped
+at the characters its column width share holds of the 140 ones of a full
+content width line), and a cell exceeding every other comparable cell of
+its row by more than the `maxCellHeight` percentage is cut back onto the
+whole lines of that limit at a word boundary and ends in a grey `[...]`
+(`span.omit`), unless that hides less than 25% of it, and the client-side
+cell text folding is off. The
+fold controls of the omitted aspects leave the folding tab along with
+the implied ones (`diagram:2` also drops `level3`, no diagrams at all
+drop all six diagram controls, and everything omitted drops the tab,
+the tabs below moving up). The few extra style rules and the two script
+variations are emitted under the option only, so an export without it
+stays byte-identical. The rendering options `realtime` and `omit` travel
+bundled as `ExportOptions` from the API into the renderers.
 
 The HTML export (screen only, too) maximizes every diagram on demand:
 hovering a diagram fades in two controls at its top right corner (in

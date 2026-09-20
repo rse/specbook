@@ -33,6 +33,32 @@ export const fallbackLogo = (theme: typeof embeddingThemes[number]): string =>
     "data:image/svg+xml;base64," +
     fs.readFileSync(new URL(`specbook-export-logo-${theme}.svg`, import.meta.url)).toString("base64")
 
+/*  the content aspects an export can omit, each matching the set of a
+    folding control of the HTML export: the diagrams of a type, the
+    diagrams from an object tree nesting level on, and the long texts  */
+export const omitAspects = [ "diagram:graph", "diagram:hub", "diagram:grid",
+    "diagram:1", "diagram:2", "diagram:3", "text:long" ] as const
+export type OmitAspect = typeof omitAspects[number]
+
+/*  parse the (comma-separated) aspects to omit, where the
+    plain "diagram" is the alias of "diagram:1", hence of all diagrams  */
+export const parseOmit = (omit: string[] = []): Set<OmitAspect> => {
+    const aspects = new Set<OmitAspect>()
+    for (const item of omit.flatMap((list) => list.split(",")).map((item) => item.trim())) {
+        const aspect = item === "diagram" ? "diagram:1" : item
+        if (!(omitAspects as readonly string[]).includes(aspect))
+            throw new Error(`unknown omit aspect "${item}" ` +
+                `(expected "diagram" or one of "${omitAspects.join("\", \"")}")`)
+        aspects.add(aspect as OmitAspect)
+    }
+    return aspects
+}
+
+/*  the rendering options of an export: "realtime" injects the client-side
+    script of the live preview into the HTML and "omit" names the
+    aspects left out of the HTML, the PDF, and (the diagrams) the AST  */
+export interface ExportOptions { realtime?: boolean, omit?: Set<OmitAspect> }
+
 /*  check whether an object is the specification title object  */
 export const isTitleObject = (object: SpecObject): boolean =>
     object.kind === "META" && object.name.toUpperCase() === "TITLE"

@@ -12,7 +12,7 @@ import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
 import type { Schema }
     from "./specbook-format-schema.js"
-import { specDiagrams }
+import { specDiagrams, omittedDiagrams }
     from "./specbook-diagram.js"
 import { specCoverage }
     from "./specbook-coverage.js"
@@ -20,7 +20,7 @@ import { buildLinkIndex }
     from "./specbook-link.js"
 import { collectSchemas }
     from "./specbook-parse-semantic.js"
-import { isTitleObject }
+import { isTitleObject, type OmitAspect }
     from "./specbook-export-common.js"
 import { optimizeImages }
     from "./specbook-export-image.js"
@@ -36,9 +36,10 @@ interface PlainCoverage      { pattern: string, covered: number, total: number }
 interface PlainObject        { diagram?: string, coverage?: PlainCoverage[], children: PlainObject[] }
 interface PlainSpecification { artifacts: { objects: PlainObject[] }[] }
 
-/*  render the specification AST into a serialization format  */
+/*  render the specification AST into a serialization format,
+    where "omit" names the aspects whose diagrams are left out  */
 export const renderAst = async (specification: Spec, format: AstFormat,
-    config?: Schema, verbose?: Verbose): Promise<Buffer> => {
+    config?: Schema, verbose?: Verbose, omit = new Set<OmitAspect>()): Promise<Buffer> => {
     /*  reduce the specification to plain JSON values (ISO date strings),
         with the embedded images (by far the bulk of the export)
         optimized like the ones of the HTML export  */
@@ -51,17 +52,19 @@ export const renderAst = async (specification: Spec, format: AstFormat,
     /*  attach the Gradia specs of the diagram-configured objects as
         "diagram" fields onto the corresponding plain object nodes
         (an invalid diagram situation omits the diagram, as it is
-        already reported as a lint diagnostic, and the diagram of
-        the title object is reserved for the HTML/PDF export), and
+        already reported as a lint diagnostic, the diagram of the
+        title object is reserved for the HTML/PDF export, and the
+        diagrams of the omitted aspects are left out), and
         the reference coverage of the coverage-configured objects as
         "coverage" fields (the counts only, as the export is intended
         for machine consumption)  */
     if (config !== undefined) {
         const diagrams  = specDiagrams(specification, config)
+        const omitted   = omittedDiagrams(specification, config, omit)
         const coverages = specCoverage(buildLinkIndex(specification), collectSchemas(specification, config))
         const walk = (object: SpecObject, node: PlainObject) => {
             const result = diagrams.get(object)
-            if (result?.spec !== undefined && !isTitleObject(object))
+            if (result?.spec !== undefined && !isTitleObject(object) && !omitted.has(object))
                 node.diagram = result.spec
             const coverage = coverages.get(object)
             if (coverage !== undefined)

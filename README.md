@@ -149,12 +149,14 @@ $ specbook export \
   [-b|--basedir <spec-md-file-basedir>] \
   [-o|--output [<format>:]<output-file>] \
   [-w|--watch] \
+  [-O|--omit <aspect>[,...]] \
   [...]
 
 $ specbook preview \
   [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
+  [-O|--omit <aspect>[,...]] \
   [-a|--addr <ip-addr>] \
   [-p|--port <tcp-port>]
 
@@ -235,6 +237,23 @@ Options:
     receive a repeated export, and none of them may be an observed source
     file itself, as its own write would re-trigger the observation
     endlessly.
+
+-   `-O|--omit <aspect>[,...]` (`export` and `preview` only):
+    Omit content aspects (comma-separated, repeatable) from the HTML and
+    PDF outputs at generation time, instead of just leaving them foldable
+    in the browser. The aspects match the folding controls of the HTML
+    export: `diagram:graph`, `diagram:hub`, and `diagram:grid` omit all
+    diagrams of a type, `diagram:1` (alias: `diagram`), `diagram:2`, and
+    `diagram:3` omit all diagrams from an object tree nesting level on
+    (level 1 hence all, including the "Diagram of Contents" page), and
+    `text:long` cuts every table cell whose estimated number of text
+    lines towers over all other cells of its row (by the `maxCellHeight`
+    percentage of the object kind, default 40) at a word boundary, ending
+    it in a grey `[...]`. An omitted diagram leaves nothing behind and is not even
+    rendered, the folding controls of the omitted aspects leave the brand
+    bar, and the AST outputs (`json`, `json5`, `yaml`, `toon`) drop the
+    `diagram` fields of the omitted diagrams, too, while the `md` output
+    ignores the option.
 
 -   `-a|--addr <ip-addr>`, `-p|--port <tcp-port>` (`preview` only):
     The IP address (default: `127.0.0.1`) and TCP port (default: `12345`)
@@ -341,7 +360,7 @@ $ claude plugin install specbook@specbook
 /specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>]
 /specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
 /specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
-                 [-o|--output [<format>:]<output-file>] [...]
+                 [-O|--omit <aspect>[,...]] [-o|--output [<format>:]<output-file>] [...]
 /specbook edit   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--grill]
                  [-r|--grill-rounds <n>] [-v|--verify] [-l|--loop] [<query>]
 ```

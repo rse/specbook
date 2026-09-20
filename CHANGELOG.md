@@ -5,6 +5,10 @@ ChangeLog
 1.3.0 (2026-09-19)
 ------------------
 
+-   FEATURE [code, docs, infr]: Option `--omit`/`-O <aspect>[,...]` for the HTML/PDF Exports
+    The aspects `diagram[:graph|hub|grid|1|2|3]` and `text:long` omit the content of the matching
+    folding controls at generation time (the AST drops the `diagram` fields), controls included.
+
 -   IMPROVEMENT [code]: No Orphaned Chunk Headers at a Page End of the PDF Export
     In print, a chunk header row ("Diagram", property names) sticks to its value row, so an object
     whose diagram wraps moves to the next page as a whole instead of leaving an empty row behind.

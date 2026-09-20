@@ -15,7 +15,7 @@ import { minify }                    from "@swc/html"
 import type { Spec }                 from "./specbook-format-spec.js"
 import type { Schema }               from "./specbook-format-schema.js"
 import { documentTitle, documentLogo, documentCharset, documentThemeTone, subsetStylesheet,
-    documentPaperSize, paperStylesheet, charsetCodepoints }
+    documentPaperSize, paperStylesheet, charsetCodepoints, parseOmit, omitAspects, type ExportOptions }
     from "./specbook-export-common.js"
 import { themeColors, themeStylesheet, themeMapping }
     from "./specbook-theme.js"
@@ -30,6 +30,9 @@ import { literal, type Verbose }     from "./specbook-verbose.js"
 /*  re-export the browser pre-check of the PDF renderer, so the API
     facade reaches the renderers through this command module only  */
 export { requireBrowser }
+
+/*  re-export the omit aspects of the renderers for the very same reason  */
+export { parseOmit, omitAspects, type ExportOptions }
 
 /*  the supported export formats  */
 export const formats = [ "json", "json5", "yaml", "toon", "html", "pdf", "md" ] as const
@@ -174,19 +177,19 @@ export const watchSpecification = async (
     }, scanDelay)
 }
 
-/*  render a specification into the requested format, where "realtime"
-    injects the client-side script of the live preview into the HTML and
+/*  render a specification into the requested format, where "options"
+    carries the rendering options of the HTML, PDF, and AST formats and
     "rebase" re-bases the image references of the normalized Markdown  */
 const renderFormat = async (
     specification:   Spec,
     format:          ExportFormat,
     verbose:         Verbose,
     config?:         Schema,
-    realtime         = false,
+    options:         ExportOptions = {},
     rebase?:         MarkdownRebase
 ): Promise<Buffer> => {
     if (format === "json" || format === "json5" || format === "yaml" || format === "toon")
-        return renderAst(specification, format satisfies AstFormat, config, verbose)
+        return renderAst(specification, format satisfies AstFormat, config, verbose, options.omit)
     else if (format === "md")
         return Buffer.from(await renderMarkdown(specification, config, rebase, verbose), "utf8")
 
@@ -208,7 +211,7 @@ const renderFormat = async (
     const css    = themeStylesheet(colors) + await subsetStylesheet(charset) + paperStylesheet(paper)
     if (format === "html") {
         /*  compress the rendered HTML (whitespace, comments, and inline CSS/JS)  */
-        const html     = await renderHtml(specification, config, undefined, css, realtime, verbose)
+        const html     = await renderHtml(specification, config, undefined, css, options, verbose)
         const minified = await minify(Buffer.from(html, "utf8"), {
             collapseWhitespaces: "smart",
             removeComments:      true,
@@ -217,13 +220,16 @@ const renderFormat = async (
         })
         return Buffer.from(minified.code, "utf8")
     }
-    else
+    else {
         /*  the PDF export (like print in general) always uses the light
             theme, so its decoration colors are the light mapping, too  */
-        return htmlToPdf((tocPages) => renderHtml(specification, config, tocPages, css, false, verbose, true),
+        const pass = (tocPages?: Map<string, number>) =>
+            renderHtml(specification, config, tocPages, css, { omit: options.omit }, verbose, true)
+        return htmlToPdf(pass,
             { ...documentTitle(specification), logo: documentLogo(specification) },
             htmlOutline(specification, config), titlePageObject(specification) !== undefined,
             verbose, css, themeMapping(colors, "light"), paper)
+    }
 }
 
 /*  export a specification into the requested format (see "renderFormat"),
@@ -233,14 +239,14 @@ export const exportSpecification = async (
     format:          ExportFormat,
     verbose:         Verbose,
     config?:         Schema,
-    realtime         = false,
+    options:         ExportOptions = {},
     rebase?:         MarkdownRebase
 ): Promise<Buffer> => {
     if (!formats.includes(format))
         throw new Error(`unknown export format "${format}"`)
     verbose(`exporting specification as "${literal(format)}"`)
     const started = performance.now()
-    const buffer  = await renderFormat(specification, format, verbose, config, realtime, rebase)
+    const buffer  = await renderFormat(specification, format, verbose, config, options, rebase)
     const seconds = ((performance.now() - started) / 1000).toFixed(3)
     verbose(`exported specification as "${literal(format)}" in ${literal(seconds)}s`)
     return buffer

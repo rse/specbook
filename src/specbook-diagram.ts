@@ -18,6 +18,8 @@ import type { ParseContext }
     from "./specbook-parse-common.js"
 import { collectSchemas, collectParenProps }
     from "./specbook-parse-semantic.js"
+import type { OmitAspect }
+    from "./specbook-export-common.js"
 import { literal, type Verbose }
     from "./specbook-verbose.js"
 
@@ -777,6 +779,29 @@ export const specDiagrams = (specification: Spec,
     return results
 }
 
+/*  determine the diagram-configured objects whose diagrams the given
+    aspects omit: the ones of a diagram type and the ones from an object
+    tree nesting level on (the top-level objects being level 1)  */
+export const omittedDiagrams = (specification: Spec, config: Schema,
+    omit: Set<OmitAspect>): Set<SpecObject> => {
+    const omitted = new Set<SpecObject>()
+    if (omit.size === 0)
+        return omitted
+    const schemas = collectSchemas(specification, config)
+    for (const node of buildLinkIndex(specification)) {
+        const diagram = schemas.get(node.object)?.diagram
+        if (diagram === undefined)
+            continue
+        let level = 1
+        for (let parent = node.parent; parent !== undefined; parent = parent.parent)
+            level++
+        if (omit.has(`diagram:${diagram.type ?? "graph"}`)
+            || ([ 1, 2, 3 ] as const).some((n) => n <= level && omit.has(`diagram:${n}`)))
+            omitted.add(node.object)
+    }
+    return omitted
+}
+
 /*  the in-memory cache of the rendered diagram SVGs, keyed by Gradia
     spec text plus rendering options, as a long-running process (the
     live preview, the export watch, the MCP service) and the multiple
@@ -790,14 +815,15 @@ let svgCache = new Map<string, string>()
     detectable invalid situations are already reported as lint
     diagnostics), served from the cache where possible, which is
     afterwards swept to the diagrams of this very rendering, so it never
-    grows beyond a single document  */
+    grows beyond a single document; the omitted diagrams are skipped  */
 export const renderDiagrams = async (specification: Spec, config: Schema,
-    verbose?: Verbose): Promise<Map<SpecObject, DiagramResult & { svg: string }>> => {
+    verbose?: Verbose, omit = new Set<OmitAspect>()): Promise<Map<SpecObject, DiagramResult & { svg: string }>> => {
     const cache    = new Map<string, string>()
     const rendered = new Map<SpecObject, DiagramResult & { svg: string }>()
+    const omitted  = omittedDiagrams(specification, config, omit)
     let   cached   = 0
     for (const [ object, result ] of specDiagrams(specification, config)) {
-        if (result.spec === undefined)
+        if (result.spec === undefined || omitted.has(object))
             continue
         const key = result.spec + JSON.stringify(result.config ?? {})
         let   svg = svgCache.get(key) ?? cache.get(key)

@@ -13,7 +13,7 @@ import chalk                       from "chalk"
 import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, renderVerbose, literal,
     parseOutputSpec, previewAddr, previewPort, describeFormats, describeParts,
     parseDescribeFormat, parseDescribePart, parseCompressLevel, parseVerbosity, verbosityOf,
-    projectFile, version, type VerboseSink, type VerboseLevel } from "./specbook-api.js"
+    projectFile, omitAspects, version, type VerboseSink, type VerboseLevel } from "./specbook-api.js"
 import { serveMcp }                from "./specbook-mcp.js"
 
 /*  the parsed value of the verbose option: a bare flag, a level, or the
@@ -127,6 +127,18 @@ const withGitignoreOption = (command: Command): Command => command
 /*  the parsed values of the common options plus the Git exclude one  */
 type ProcessOptions = CommonOptions & { gitignore: boolean }
 
+/*  provide the repeatable omit option of the HTML-rendering sub-commands,
+    whose aspects are left out of the output instead of being foldable,
+    and determine its value (validated by the API)  */
+const withOmitOption = (command: Command): Command => command
+    .option("-O, --omit <aspect>[,...]", "omit content aspects from the HTML, the PDF, and (the " +
+        `diagrams) the AST outputs (repeatable): "diagram" (all) or "${omitAspects.join("\", \"")}"`,
+    (value: string, previous: string[]) => previous.concat(value), new Array<string>())
+const omitOf = (opts: { omit: string[] }): string[] | undefined => {
+    const fallback = envDefault("omit")
+    return opts.omit.length > 0 ? opts.omit : (fallback !== undefined ? [ fallback ] : undefined)
+}
+
 /*  the help, version, and usage-error output Commander produces, which
     is collected instead of written directly, as Commander writes it
     synchronously and then terminates the process, truncating a piped
@@ -187,7 +199,7 @@ withGitignoreOption(withCommonOptions(program.command("lint")))
     })
 
 /*  the export command parses the input once and writes every output  */
-withGitignoreOption(withCommonOptions(program.command("export")))
+withOmitOption(withGitignoreOption(withCommonOptions(program.command("export"))))
     .description("export the specification Markdown files below the base directory " +
         "as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown")
     .option("-w, --watch", "keep the outputs in sync by re-exporting on every source change",
@@ -196,7 +208,7 @@ withGitignoreOption(withCommonOptions(program.command("export")))
         "output file (\"-\" for stdout, repeatable), with the format inferred " +
         "from the filename extension unless explicitly prefixed",
         (value: string, previous: string[]) => previous.concat(value), new Array<string>())
-    .action(async (opts: ProcessOptions & { output: string[], watch: boolean }) => {
+    .action(async (opts: ProcessOptions & { output: string[], watch: boolean, omit: string[] }) => {
         const verbose  = verboseOf(opts)
         const specbook = new SpecBook({ verbose })
         const fallback = envDefault("output")
@@ -230,26 +242,26 @@ withGitignoreOption(withCommonOptions(program.command("export")))
         const rebase  = distinct.map(rebaseOf)
         if (opts.watch)
             await specbook.watch({ config: configOf(opts), basedir: opts.basedir,
-                formats, rebase, gitignore: opts.gitignore,
+                formats, rebase, omit: omitOf(opts), gitignore: opts.gitignore,
                 outputs: outputs.map(({ output }) => output), onExport: write })
         else
             await write(await specbook.export({ config: configOf(opts), basedir: opts.basedir,
-                formats, rebase, gitignore: opts.gitignore }))
+                formats, rebase, omit: omitOf(opts), gitignore: opts.gitignore }))
     })
 
 /*  the preview command serves the HTML export live in the browser  */
-withGitignoreOption(withCommonOptions(program.command("preview")))
+withOmitOption(withGitignoreOption(withCommonOptions(program.command("preview"))))
     .description("serve the HTML export of the specification Markdown files below the base " +
         "directory as a live preview, re-exported and reloaded on every source change")
     .option("-a, --addr <ip-addr>",  "IP address to listen on", envDefault("addr", previewAddr))
     .option("-p, --port <tcp-port>", "TCP port to listen on",   envDefault("port", String(previewPort)))
-    .action(async (opts: ProcessOptions & { addr: string, port: string }) => {
+    .action(async (opts: ProcessOptions & { addr: string, port: string, omit: string[] }) => {
         const port = Number(opts.port)
         if (!Number.isInteger(port) || port < 1 || port > 65535)
             throw new Error(`invalid TCP port "${opts.port}"`)
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         await specbook.preview({ config: configOf(opts), basedir: opts.basedir, addr: opts.addr, port,
-            gitignore: opts.gitignore })
+            omit: omitOf(opts), gitignore: opts.gitignore })
     })
 
 /*  the describe command also describes the generic SpecBook models and

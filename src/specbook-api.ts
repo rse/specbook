@@ -16,7 +16,8 @@ import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type Diagno
 import { initSpecification }                             from "./specbook-cmd-init.js"
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
 import { exportSpecification, watchSpecification, parseOutputSpec, formats,
-    requireBrowser, type ExportFormat }                  from "./specbook-cmd-export.js"
+    requireBrowser, parseOmit, omitAspects, type ExportFormat, type ExportOptions }
+    from "./specbook-cmd-export.js"
 import { servePreview, previewAddr, previewPort }        from "./specbook-cmd-preview.js"
 import { describeFormat, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
     compressLevels, parseCompressLevel, type DescribeFormat, type DescribePart, type CompressLevel }
@@ -28,7 +29,7 @@ import { type Schema }                                   from "./specbook-format
 /*  re-export the central types for API consumers  */
 export { literal, renderVerbose, verbosities, verbosityOf, parseVerbosity }
 export { type Verbose, type VerboseLevel, type Verbosity }
-export { formats, parseOutputSpec, type ExportFormat }
+export { formats, parseOutputSpec, omitAspects, type ExportFormat }
 export { previewAddr, previewPort }
 export { projectFile }
 export { describeFormats, describeParts, parseDescribeFormat, parseDescribePart }
@@ -173,12 +174,12 @@ export class SpecBook {
     /*  render an already parsed specification into the requested formats
         (strict: any error diagnostic prevents the export, as a partial or
         invalid specification must never be emitted, while the warnings
-        are just surfaced as notices), where "realtime" injects the
-        client-side script of the live preview into the HTML and "rebase"
-        names, per requested format, the directory the image references
-        of the normalized Markdown are re-based onto  */
+        are just surfaced as notices), where "rendering" carries the
+        rendering options (the live preview script, the omitted aspects)
+        and "rebase" names, per requested format, the directory the image
+        references of the normalized Markdown are re-based onto  */
     private async renderFormats (result: LintResult, requested: ExportFormat[],
-        verbose: Verbose, realtime: boolean, rebase?: (string | undefined)[]): Promise<Buffer[]> {
+        verbose: Verbose, rendering: ExportOptions, rebase?: (string | undefined)[]): Promise<Buffer[]> {
         if (result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
             throw new Error("invalid specification:\n" +
                 result.diagnostics.map(renderDiagnostic).join("\n"))
@@ -190,7 +191,7 @@ export class SpecBook {
         for (const [ i, format ] of requested.entries()) {
             const dir = rebase?.[i]
             buffers.push(await exportSpecification(result.specification, format,
-                verbose, result.config, realtime,
+                verbose, result.config, rendering,
                 dir !== undefined ? { origins: result.origins, dir } : undefined))
         }
         return buffers
@@ -201,11 +202,14 @@ export class SpecBook {
         parsing the input just once and returning one buffer per
         requested format, where "rebase" names, per requested format, the
         directory of the output file, onto which the image references of
-        the normalized Markdown are re-based (an absent one keeps them)  */
-    async export (options: ProjectOptions & { formats?: ExportFormat[],
-        realtime?: boolean, gitignore?: boolean, rebase?: (string | undefined)[] }): Promise<Buffer[]> {
+        the normalized Markdown are re-based (an absent one keeps them),
+        and "omit" names the (comma-separated) aspects the HTML, the PDF,
+        and (the diagrams) the AST leave out (see "omitAspects")  */
+    async export (options: ProjectOptions & { formats?: ExportFormat[], realtime?: boolean,
+        omit?: string[], gitignore?: boolean, rebase?: (string | undefined)[] }): Promise<Buffer[]> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
+        const omit      = parseOmit(options.omit)
         const project   = this.project(options, verbose)
 
         /*  a missing browser is an environment problem, so let the PDF
@@ -215,8 +219,8 @@ export class SpecBook {
 
         const result = lint({ config: await this.configFiles(project.config),
             basedir: project.basedir ?? ".", gitignore: options.gitignore === true, verbose })
-        return this.renderFormats(result, requested, verbose, options.realtime === true,
-            this.rebaseOf(options))
+        return this.renderFormats(result, requested, verbose,
+            { realtime: options.realtime === true, omit }, this.rebaseOf(options))
     }
 
     /*  anchor the given relative re-basing directories
@@ -236,10 +240,11 @@ export class SpecBook {
         configuration) does not end the watch. The returned promise settles
         once the initial export is done, while the active watcher keeps the
         process alive afterwards  */
-    private async observe (options: ProjectOptions & { formats: ExportFormat[],
-        realtime: boolean, gitignore?: boolean, outputs?: string[], rebase?: (string | undefined)[],
+    private async observe (options: ProjectOptions & { formats: ExportFormat[], realtime: boolean,
+        omit?: string[], gitignore?: boolean, outputs?: string[], rebase?: (string | undefined)[],
         onExport: (buffers: Buffer[]) => void | Promise<void> },
     verbose: Verbose): Promise<void> {
+        const omit    = parseOmit(options.omit)
         const project = this.project(options, verbose)
         const config  = await this.configFiles(project.config)
         return watchSpecification(async () => {
@@ -262,7 +267,7 @@ export class SpecBook {
 
             try {
                 await options.onExport(await this.renderFormats(result, options.formats,
-                    verbose, options.realtime, this.rebaseOf(options)))
+                    verbose, { realtime: options.realtime, omit }, this.rebaseOf(options)))
             }
             catch (err) {
                 verbose("export failed: " +
@@ -275,9 +280,9 @@ export class SpecBook {
     /*  export the specification like "export" and then keep the export
         in sync with its sources (see "observe"), where "outputs" names the
         files "onExport" writes, so an output which is itself an observed
-        source can be refused, and "rebase" is the one of "export"  */
-    async watch (options: ProjectOptions & { formats?: ExportFormat[],
-        realtime?: boolean, gitignore?: boolean, outputs?: string[], rebase?: (string | undefined)[],
+        source can be refused, and "rebase" and "omit" are the ones of "export"  */
+    async watch (options: ProjectOptions & { formats?: ExportFormat[], realtime?: boolean,
+        omit?: string[], gitignore?: boolean, outputs?: string[], rebase?: (string | undefined)[],
         onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
@@ -291,14 +296,15 @@ export class SpecBook {
         "http://<addr>:<port>/": the export is kept in sync with its
         sources (see "observe") and every fresh export is pushed to the
         connected browsers as an in-place document update, through the
-        client-side script the "realtime" export injects into the HTML  */
+        client-side script the "realtime" export injects into the HTML,
+        where "omit" is the one of "export"  */
     async preview (options: ProjectOptions & { addr?: string,
-        port?: number, gitignore?: boolean }): Promise<void> {
+        port?: number, omit?: string[], gitignore?: boolean }): Promise<void> {
         const verbose = this.verboseOf("preview")
         const server  = await servePreview({ addr: options.addr ?? previewAddr,
             port: options.port ?? previewPort, verbose })
         return this.observe({ config: options.config, basedir: options.basedir, cwd: options.cwd,
-            formats: [ "html" ], realtime: true, gitignore: options.gitignore,
+            formats: [ "html" ], realtime: true, omit: options.omit, gitignore: options.gitignore,
             onExport: ([ html ]) => server.update(html) }, verbose)
     }
 

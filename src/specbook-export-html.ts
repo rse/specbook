@@ -22,7 +22,8 @@ import { compileValueExpr, splitItems, type ValueExpr }
 import { embeddingRegex, embeddingCount, embeddingThemes }
     from "./specbook-parse-common.js"
 import { escapeHtml, stylesheet, searchScript, fallbackLogo,
-    isTitleObject, titleObject, documentTitle, documentLang, documentThemeStyle }
+    isTitleObject, titleObject, documentTitle, documentLang, documentThemeStyle,
+    type ExportOptions, type OmitAspect }
     from "./specbook-export-common.js"
 import { collectSchemas }
     from "./specbook-parse-semantic.js"
@@ -64,16 +65,18 @@ const templates = {
                         <span class="search-clear" id="search-clear" title="clear search">&#x00D7;</span>
                     </div>
                 </div>
+                {%- if not Document.omitted.all %}
                 <div class="fold-switch">
                     <div class="fold-toggle" title="toggle folding controls"><svg class="fold-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5l5 5 5-5"/><path d="M7 20.5l5-5 5 5"/></svg></div>
                     <div class="fold-controls">
-                        <div class="fold-graphs" title="fold/unfold all graph diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5.5" r="3"/><circle cx="18.5" cy="5.5" r="3"/><circle cx="12" cy="18.5" r="3"/><path d="M7.3 8.1 10.6 15.9"/><path d="M16.7 8.1 13.4 15.9"/></svg></div>
-                        <div class="fold-hubs" title="fold/unfold all hub diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.5"/><circle cx="3.5" cy="4.5" r="2"/><circle cx="3.5" cy="19.5" r="2"/><circle cx="20.5" cy="4.5" r="2"/><circle cx="20.5" cy="19.5" r="2"/><path d="M5.5 4.5H10V9.1"/><path d="M18.5 4.5H14V9.1"/><path d="M5.5 19.5H10V14.9"/><path d="M18.5 19.5H14V14.9"/></svg></div>
-                        <div class="fold-grids" title="fold/unfold all grid diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg></div>
-                        {% for level in [ 1, 2, 3 ] %}<div class="fold-level{{ level }}" title="fold/unfold all diagrams from nesting level {{ level }} on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><rect x="6.5" y="6.5" width="3" height="3" rx="0.5"/><text x="19.5" y="23" text-anchor="middle" font-size="14.5" font-weight="bold" fill="currentColor" stroke="none">{{ level }}</text></svg></div>{% endfor %}
-                        <div class="fold-texts" title="fold/unfold all cell texts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7V4.5h15V7"/><path d="M12 4.5v15"/><path d="M8.5 19.5h7"/></svg></div>
+                        {% if not Document.omitted.graph %}<div class="fold-graphs" title="fold/unfold all graph diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5.5" r="3"/><circle cx="18.5" cy="5.5" r="3"/><circle cx="12" cy="18.5" r="3"/><path d="M7.3 8.1 10.6 15.9"/><path d="M16.7 8.1 13.4 15.9"/></svg></div>{% endif %}
+                        {% if not Document.omitted.hub %}<div class="fold-hubs" title="fold/unfold all hub diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.5"/><circle cx="3.5" cy="4.5" r="2"/><circle cx="3.5" cy="19.5" r="2"/><circle cx="20.5" cy="4.5" r="2"/><circle cx="20.5" cy="19.5" r="2"/><path d="M5.5 4.5H10V9.1"/><path d="M18.5 4.5H14V9.1"/><path d="M5.5 19.5H10V14.9"/><path d="M18.5 19.5H14V14.9"/></svg></div>{% endif %}
+                        {% if not Document.omitted.grid %}<div class="fold-grids" title="fold/unfold all grid diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg></div>{% endif %}
+                        {% for level in [ 1, 2, 3 ] %}{% if not Document.omitted["level" ~ level] %}<div class="fold-level{{ level }}" title="fold/unfold all diagrams from nesting level {{ level }} on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><rect x="6.5" y="6.5" width="3" height="3" rx="0.5"/><text x="19.5" y="23" text-anchor="middle" font-size="14.5" font-weight="bold" fill="currentColor" stroke="none">{{ level }}</text></svg></div>{% endif %}{% endfor %}
+                        {% if not Document.omitted.text %}<div class="fold-texts" title="fold/unfold all cell texts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7V4.5h15V7"/><path d="M12 4.5v15"/><path d="M8.5 19.5h7"/></svg></div>{% endif %}
                     </div>
                 </div>
+                {%- endif %}
                 <div class="scroll-progress" title="scroll to top"><svg class="scroll-ring" viewBox="0 0 44 44" fill="none" stroke-width="2.5"><circle class="scroll-todo" cx="22" cy="22" r="20"/><circle class="scroll-done" cx="22" cy="22" r="20" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></svg><svg class="scroll-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></div>
                 {{ Document.tocpanel }}
                 {{ Document.titlepage }}
@@ -462,8 +465,10 @@ const scrollProgressScript = textframe`
     (the tab icon while anything at all is). The script runs at
     the end of the body, as the content it wraps has to exist already,
     and a live preview body swap replaces the containers and their
-    listeners along with the body  */
-const foldScript = textframe`
+    listeners along with the body. An export omitting aspects lacks
+    their controls ("standins" lets detached elements take their place)
+    and, with the long texts omitted, folds no cell text ("textless")  */
+const foldScript = (standins: boolean, textless: boolean) => textframe`
     (function () {
         const tab = document.querySelector("div.fold-switch")
         if (tab === null)
@@ -476,7 +481,9 @@ const foldScript = textframe`
             level2: tab.querySelector("div.fold-level2"),
             level3: tab.querySelector("div.fold-level3"),
             text:   tab.querySelector("div.fold-texts")
-        }
+        }${standins ? `
+        for (const kind of Object.keys(controls))
+            controls[kind] ??= document.createElement("div")` : ""}
 
         /*  let the fold icon slide the controls out of the tab (and
             back in again), remembering the choice across page loads  */
@@ -621,7 +628,8 @@ const foldScript = textframe`
             breaks only and hence is redone on every change of them: the
             previous cuts are taken back, with their fold state carried
             over (a cell folding anew follows the others)  */
-        const layout = () => {
+        const layout = () => {${textless ? `
+            return` : ""}
             const all = folds.text.length > 0 && folds.text.every((cell) => cell.classList.contains("folded"))
             const state = new Map(folds.text.map((cell) => [ cell, cell.classList.contains("folded") ]))
             folds.text.forEach(uncut)
@@ -1291,8 +1299,9 @@ const render = (name: keyof typeof templates, context: object): string => {
 /*  the active per-document reference expander, fully-qualified
     anchor paths, member-carrying property value constraints, object
     schema nodes, pre-rendered diagram blocks, optimized embedded images,
-    reference coverages, description popup keys of the schema nodes, and
-    description popup keys of the objects (all set during HTML rendering)  */
+    reference coverages, description popup keys of the schema nodes,
+    description popup keys of the objects, and omitted aspects (all set
+    during HTML rendering)  */
 let linker:      ((text: string, compact: boolean) => string) | null = null
 let anchors:     Map<SpecObject, string> | null       = null
 let members:     Map<string, ValueExpr> | null        = null
@@ -1302,6 +1311,7 @@ let images:      Map<string, string> | null           = null
 let coverages:   Map<SpecObject, Coverage[]> | null   = null
 let infoKeys:    Map<SchemaObject, string> | null     = null
 let infoObjects: Map<SpecObject, string> | null       = null
+let omits:       Set<OmitAspect> | null               = null
 
 /*  the object whose texts are currently rendered, scoping the
     resolution of the references inside them (nearest object wins),
@@ -1689,6 +1699,61 @@ const coverageOf = (object: SpecObject) => {
     })) }))
 }
 
+/*  the estimated number of characters a text line spanning the
+    entire content width holds (60rem at the document font)  */
+const lineChars = 140
+
+/*  omit the long texts of the comparable cells of a table row, the
+    server-side heuristic counterpart of the client-side cell text
+    folding, judging a cell by its estimated number of text lines (its
+    plain text per block, wrapped at the characters its column width
+    share holds per line) instead of its rendered height: a cell
+    exceeding every other one by more than the "maxCellHeight"
+    percentage is cut back onto the whole lines of that limit (less the
+    room of the mark) at a word boundary, its open elements closed
+    again, and ends in a grey "[...]" mark,
+    unless that hides less than 25% of it, where the empty cells and the
+    ones carrying further cells or a diagram take no part at all  */
+const omitLong = (cells: nunjucks.runtime.SafeString[], shares: number[], percent = 0) => {
+    if (omits?.has("text:long") !== true)
+        return cells
+    const htmls   = cells.map(String)
+    const plain   = (html: string) => html.replace(/<[^>]*>/g, "").trim().length
+    const lengths = htmls.map((html) => (/<td[\s>]|<div class="diagram"/).test(html) ? 0 : plain(html))
+    if (lengths.filter((length) => length > 0).length < 2)
+        return cells
+    const chars = shares.map((share) => Math.max(1, Math.floor(lineChars * share)))
+    const lines = htmls.map((html, i) => lengths[i] === 0 ? 0 :
+        html.split(/<\/(?:p|li|div|pre)>|<br\s*\/?>/)
+            .reduce((sum, block) => sum + Math.ceil(plain(block) / chars[i]), 0))
+    return htmls.map((html, i) => {
+        const limit = Math.floor(Math.max(...lines.filter((_, j) => j !== i)) *
+            (1 + (percent > 0 ? percent : 40) / 100)) * chars[i] - " [...]".length
+        if (lines[i] === 0 || limit > lengths[i] * 0.75)
+            return cells[i]
+        const open = new Array<string>()
+        let out   = ""
+        let count = 0
+        for (const [ token ] of html.matchAll(/<[^>]*>|[^<]+/g)) {
+            if (token.startsWith("<")) {
+                const tag = (/^<(\/?)([a-zA-Z][^\s/>]*)[^>]*?(\/?)>$/).exec(token)
+                if (tag?.[1] === "/")
+                    open.pop()
+                else if (tag !== null && tag[3] !== "/" && !(/^(?:br|hr|img|wbr)$/).test(tag[2]))
+                    open.push(tag[2])
+            }
+            else if (count + token.length > limit)
+                return safe(out + token.slice(0, limit - count).replace(/\S*$/, "") +
+                    "<span class=\"omit\">[...]</span>" +
+                    open.reverse().map((name) => `</${name}>`).join(""))
+            else
+                count += token.length
+            out += token
+        }
+        return cells[i]
+    })
+}
+
 /*  render a single-kind group of children into one compact table:
     the name first, then the property columns, then the description;
     a group wider than maxColumns, or carrying diagrams, instead chunks
@@ -1711,18 +1776,24 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
             /*  under the fixed table layout the description column claims
                 twice the share of a regular column, compressing the others  */
             width:    Math.round(200 / (keys.length + 3)),
-            rows:     children.map((child, i) => scoped(child, () => ({
-                id:          anchorOf(child),
-                anchor:      child.anchor,
-                paren:       child.paren,
-                primary:     child.primary,
-                spec:        infoRefOf(child),
-                name:        inline(child.name),
-                even:        i % 2 === 1,
-                values:      keys.map((key) =>
+            rows:     children.map((child, i) => scoped(child, () => {
+                const cells = omitLong([ ...keys.map((key) =>
                     inlineValue(child.kind, child.properties.find((property) => property.key === key))),
-                description: safe(renderCell(child))
-            })))
+                safe(renderCell(child)) ].slice(0, keys.length + (desc ? 1 : 0)),
+                [ ...keys.map(() => 1), 2 ].map((share) => share / (keys.length + (desc ? 3 : 1))),
+                formatOf(children[0])?.maxCellHeight)
+                return {
+                    id:          anchorOf(child),
+                    anchor:      child.anchor,
+                    paren:       child.paren,
+                    primary:     child.primary,
+                    spec:        infoRefOf(child),
+                    name:        inline(child.name),
+                    even:        i % 2 === 1,
+                    values:      cells.slice(0, keys.length),
+                    description: cells[keys.length]
+                }
+            }))
         } })
 
     /*  the embedded rows hold at most maxColumns - 1 cells (of the
@@ -1749,6 +1820,10 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
                 const last = chunks[chunks.length - 1]
                 last[last.length - 1].span = size - last.length + 1
             }
+            for (const chunk of chunks)
+                omitLong(chunk.map((cell) => cell.value), chunk.map((cell) => cell.span / maxColumns),
+                    formatOf(children[0])?.maxCellHeight)
+                    .forEach((value, k) => { chunk[k].value = value })
 
             /*  the diagram leads the chunks as a full-width chunk of its
                 own, headed like the description  */
@@ -1939,12 +2014,12 @@ export const titlePageObject = (specification: Spec): SpecObject | undefined => 
     inside an SVG, but plain text inside the HTML <style> element,
     which no unescaped "</" of a configured value may close)  */
 const scaledDiagrams = async (specification: Spec, config: Schema,
-    verbose?: Verbose): Promise<{ svgs: Map<SpecObject, string>, css: string }> => {
+    verbose?: Verbose, omit?: Set<OmitAspect>): Promise<{ svgs: Map<SpecObject, string>, css: string }> => {
     const scale    = 0.5
     const rendered = new Map<SpecObject, string>()
     const rules    = new Set<string>()
     const entities: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: "\"" }
-    for (const [ object, result ] of await renderDiagrams(specification, config, verbose)) {
+    for (const [ object, result ] of await renderDiagrams(specification, config, verbose, omit)) {
         const svg = result.svg.replace(/<style>([\s\S]*?)<\/style>\s*/g, (_, css: string) => {
             for (const rule of css.split("\n"))
                 if (rule.trim() !== "")
@@ -2016,14 +2091,39 @@ export const renderPlaceholder = (message: string): string =>
     with the build-time pre-assembled stylesheet embedded inline, the
     artifact timestamps aggregated into min(Created)/max(Modified),
     optional per-anchor page numbers attached to the ToC entries,
-    optionally the client-side script of the live preview injected, and
-    the embedded images optimized for the screen or for print (the PDF)  */
+    optionally the client-side script of the live preview injected and
+    aspects omitted (see "ExportOptions"), and the embedded images
+    optimized for the screen or for print (the PDF)  */
 export const renderHtml = async (specification: Spec, config?: Schema,
-    tocPages?: Map<string, number>, css?: string, realtime = false,
+    tocPages?: Map<string, number>, css?: string, options: ExportOptions = {},
     verbose?: Verbose, print = false): Promise<string> => {
-    /*  pre-render the configured diagrams as scaled embeddable SVGs  */
+    /*  pre-render the configured diagrams as scaled embeddable SVGs
+        (except for the omitted ones, which hence leave no trace at all)  */
+    const omit     = options.omit ?? new Set<OmitAspect>()
     const rendered = config !== undefined ?
-        await scaledDiagrams(specification, config, verbose) : null
+        await scaledDiagrams(specification, config, verbose, omit) : null
+
+    /*  the fold controls of the omitted aspects leave along with the
+        implied ones (no type control without diagrams of that type, no
+        level control without diagrams from that level on, no fold tab
+        without any control, which lets the tabs below it move up), and
+        the omitted long texts bring the style of their "[...]" mark  */
+    const none    = omit.has("diagram:1")
+        || (omit.has("diagram:graph") && omit.has("diagram:hub") && omit.has("diagram:grid"))
+    const omitted = {
+        graph:  none || omit.has("diagram:graph"),
+        hub:    none || omit.has("diagram:hub"),
+        grid:   none || omit.has("diagram:grid"),
+        level1: none,
+        level2: none || omit.has("diagram:2"),
+        level3: none || omit.has("diagram:2") || omit.has("diagram:3"),
+        text:   omit.has("text:long"),
+        all:    none && omit.has("text:long")
+    }
+    const omitCss =
+        (omitted.text ? "\nspan.omit { color: var(--theme-color-specbook-muted) }" : "") +
+        (omitted.all  ? "\nnav.toc-panel div.toc-tab { top: 10.66rem }" +
+            "\ndiv.realtime-status { top: 13.89rem }" : "")
 
     /*  pre-optimize the embedded images (downscaled and re-encoded)  */
     const optimized = await optimizeImages(specification, print, verbose)
@@ -2041,6 +2141,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         schemas   = config !== undefined ? collectSchemas(specification, config) : null
         images    = optimized
         coverages = schemas !== null ? specCoverage(index, schemas) : null
+        omits     = omit
 
         /*  wrap the diagrams into their blocks, carrying the diagram type
             and the object tree nesting level the folding distinguishes  */
@@ -2101,17 +2202,18 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             title:       documentTitle(specification).title,
             lang,
             theme:       documentThemeStyle(specification)?.toLowerCase(),
-            css:         safe((css ?? stylesheet()) + (rendered !== null ? `\n${rendered.css}` : "")),
+            css:         safe((css ?? stylesheet()) + (rendered !== null ? `\n${rendered.css}` : "") + omitCss),
             themescript: safe(themeScript),
             titlepage:   title !== undefined ?
                 safe(renderTitlePage(title,
                     formatDate(created), formatDate(modified))) : "",
             search:      safe(searchScript()),
             progress:    safe(scrollProgressScript),
-            fold:        safe(foldScript),
+            omitted,
+            fold:        safe(foldScript(omit.size > 0, omitted.text)),
             maximize:    safe(maximizeScript),
             info:        info !== null ? safe(infoScript(info, spec)) : "",
-            realtime:    realtime ? safe(realtimeScript) : "",
+            realtime:    options.realtime === true ? safe(realtimeScript) : "",
             toc:         entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
             tocpanel:    entries.length > 0 ?
                 safe(renderTocPanel(objects,
@@ -2134,5 +2236,6 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         coverages   = null
         infoKeys    = null
         infoObjects = null
+        omits       = null
     }
 }
