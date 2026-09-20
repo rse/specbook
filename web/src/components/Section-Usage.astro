@@ -24,9 +24,9 @@ const commands = [
     { name: "lint",     purpose: "Parse and validate the whole corpus, reporting file- and line-precise diagnostics.",
       options: [ "-v", "-c", "-b" ] },
     { name: "export",   purpose: "Render the specification into one or more output formats, optionally watching the sources.",
-      options: [ "-v", "-c", "-b", "-o", "-w" ] },
+      options: [ "-v", "-c", "-b", "-o", "-w", "-O" ] },
     { name: "preview",  purpose: "Serve the HTML export live in the browser, updating it in place on every change.",
-      options: [ "-v", "-c", "-b", "-a", "-p" ] },
+      options: [ "-v", "-c", "-b", "-O", "-a", "-p" ] },
     { name: "describe", purpose: "Emit the description of the SpecBook models, formats, and the effective schema.",
       options: [ "-v", "-c", "-b", "-e", "-z", "-f", "-p", "-o" ] },
     { name: "mcp",      purpose: "Run the Model-Context-Protocol service over stdio for an Agentic AI Coding tool.",
@@ -40,6 +40,7 @@ const options = [
     [ "-b, --basedir <dir>",               "SPECBOOK_BASEDIR", "base directory the artifact files resolve against" ],
     [ "-o, --output [<format>:]<file>",    "SPECBOOK_OUTPUT",  "output file, format inferred from its extension" ],
     [ "-w, --watch",                       "SPECBOOK_WATCH",   "re-export on every change of a source or an asset" ],
+    [ "-O, --omit <aspect>[,...]",         "SPECBOOK_OMIT",    "omit diagrams (by type or nesting level) and long cell texts" ],
     [ "-a, --addr <ip-addr>",              "SPECBOOK_ADDR",    "IP address of the live preview (default 127.0.0.1)" ],
     [ "-p, --port <tcp-port>",             "SPECBOOK_PORT",    "TCP port of the live preview (default 12345)" ],
     [ "-e, --embed",                       "SPECBOOK_EMBED",   "embed the schema configuration instead of referencing it" ],
@@ -108,7 +109,8 @@ const options = [
                         commands={[
                             "**specbook** export -b docs/spec/\n-o spec.html -o spec.pdf",
                             "**specbook** export -b docs/spec/ -o spec.yaml",
-                            "**specbook** export -b docs/spec/ -w -o spec.html"
+                            "**specbook** export -b docs/spec/ -w -o spec.html",
+                            "**specbook** export -b docs/spec/\n-O diagram:2,text:long -o brief.pdf"
                         ]}
                     />
                 </div>
