@@ -1912,7 +1912,8 @@ const scaledDiagrams = async (specification: Spec, config: Schema,
             occupy on its full three-column canvas (padded by the
             minimum widths of the absent columns and their channels),
             so all hub diagrams share the zoom level of the
-            three-column ones and are centered in the leftover space  */
+            three-column ones, the leftover space splitting evenly, as
+            the stylesheet centers every diagram  */
         const absent = result.columns !== undefined ? 3 - result.columns : 0
         const pad    = absent * (
             (result.config?.["size-node-width-min"]  ?? Gradia.config["size-node-width-min"]) +
@@ -1920,7 +1921,6 @@ const scaledDiagrams = async (specification: Spec, config: Schema,
         rendered.set(object, svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
             (_, head: string, w: string, h: string) =>
                 `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"` +
-                (result.columns !== undefined ? " class=\"hub\"" : "") +
                 (absent > 0 ? ` style="max-width: ${(Number(w) / (Number(w) + pad) * 100).toFixed(2)}%"` : "")))
     }
     return { svgs: rendered, css: Array.from(rules).join("\n") }
