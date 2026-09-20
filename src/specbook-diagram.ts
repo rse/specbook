@@ -818,7 +818,10 @@ export const renderDiagrams = async (specification: Spec, config: Schema,
         rendered.set(object, { ...result, svg })
     }
     svgCache = cache
-    verbose?.(`rendering ${literal(rendered.size)} diagram(s) (${literal(cached)} cached)`)
+    if (cached > 0 && cached === rendered.size)
+        verbose?.(`reusing ${literal(cached)} cached diagram(s)`)
+    else
+        verbose?.(`rendering ${literal(rendered.size)} diagram(s) (${literal(cached)} cached)`)
     return rendered
 }
 

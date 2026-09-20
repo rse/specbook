@@ -123,7 +123,9 @@ export const optimizeImages = async (specification: Spec, print: boolean,
     }
     imageCaches[medium] = cache
     if (contents.size > 0)
-        verbose?.(`optimizing ${literal(contents.size)} image(s) for ${medium} (${literal(cached)} cached): ` +
+        verbose?.((cached === contents.size ?
+            `reusing ${literal(cached)} cached image(s) for ${medium}: ` :
+            `optimizing ${literal(contents.size)} image(s) for ${medium} (${literal(cached)} cached): `) +
             `${literal(Math.round(before / 1024))} KB -> ${literal(Math.round(after / 1024))} KB`)
     return cache
 }
