@@ -59,18 +59,23 @@ export interface DiagramResult {
     types and the edge labels are raised by about 20% over their Gradia
     defaults, as that very coordinate scale would otherwise shrink them
     below a comfortably readable size (the "--gradia-size-font-*" custom
-    properties of the stylesheet mirror them for a display-time tweak)  */
+    properties of the stylesheet mirror them for a display-time tweak).
+    The parallel edges are spread further apart for the same reason, and
+    the "graph" channels are practically uncapped, as a capped channel
+    squeezes its many edges into an unreadable bundle  */
 const diagramPresets: NonNullable<SchemaDiagram["config"]> = {
-    "size-canvas-margin":     8,
-    "size-node-height-scale": 2,
-    "size-font-type":         19,
-    "size-font-edge":         19,
-    "size-font-arity":        19,
-    "hub-node-gap":           10,
-    "hub-node-count-max":     6,
-    "grid-gap-horizontal":    24,
-    "grid-gap-vertical":      12,
-    "grid-columns-min":       4
+    "size-canvas-margin":      8,
+    "size-node-height-scale":  2,
+    "size-font-type":          19,
+    "size-font-edge":          19,
+    "size-font-arity":         19,
+    "size-edge-track-gap":     20,
+    "graph-channel-width-max": 1000,
+    "hub-node-gap":            10,
+    "hub-node-count-max":      6,
+    "grid-gap-horizontal":     24,
+    "grid-gap-vertical":       12,
+    "grid-columns-min":        4
 }
 
 /*  the diagram shape, i.e., the "type" of a diagram configuration

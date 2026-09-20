@@ -5,6 +5,10 @@ ChangeLog
 1.3.0 (2026-09-19)
 ------------------
 
+-   BUGFIX [code]: Readable Parallel Edges in the `graph` Diagrams
+    The presets raise `size-edge-track-gap` to 20 and lift `graph-channel-width-max` to 1000, as the
+    capped channels squeezed many edges into a bundle and turned their arrow heads sideways.
+
 -   IMPROVEMENT [code]: Larger Node Types and Edge Labels in the Diagrams
     The presets raise `size-font-type`, `size-font-edge`, and `size-font-arity` by about 20% to 19,
     as the half coordinate scale of the HTML export shrank them below a readable size.
