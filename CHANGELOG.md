@@ -5,6 +5,11 @@ ChangeLog
 1.3.0 (2026-09-20)
 ------------------
 
+-   BUGFIX [infr]: fix version
+
+1.2.6 (2026-09-20)
+------------------
+
 -   FEATURE [code, docs, infr]: Option `--omit`/`-O <aspect>[,...]` for the HTML/PDF Exports
     The aspects `diagram[:graph|hub|grid|1|2|3]` and `text:long` omit the content of the matching
     folding controls at generation time (the AST drops the `diagram` fields), controls included.
