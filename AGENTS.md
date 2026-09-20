@@ -457,17 +457,28 @@ less than 25% of the height of the cell, which is no visible relief. As
 a cut holds for the current line breaks only, the cell text folds are
 redone (fold states kept) once the viewport width changes or the
 embedded fonts arrive. A
-folded diagram leaves the icon of its tab control behind in the muted
+folded diagram leaves the icon of its type control behind in the muted
 color,
 and a running search unfolds
 everything, so no match hides inside. Everything starts out
 unfolded, while the folding tab slides
-out two controls (exactly as the search tab slides out its input
-field), which fold and unfold all diagrams and all cell texts at once
-and persist their own state across page loads, a stored state
-overriding the rendered default. A control carries the search filter
-mark colors while anything of its kind is folded, and the tab icon
-carries them while either control does.
+out seven controls (exactly as the search tab slides out its input
+field), which fold and unfold at once all diagrams of a type (`graph`,
+`hub`, `grid`, each with an icon of its own), all diagrams from an
+object tree nesting level on (`1`, hence all, `2`, and `3`, a nesting
+glyph carrying the small digit at its bottom right), and all cell
+texts. The HTML renderer therefore emits the type and the nesting level
+(the top-level objects of an artifact and the "Diagram of Contents"
+being level 1) as the `data-type` and `data-level` attributes of every
+diagram block. The state persists across page loads, a stored state
+overriding the rendered default: the one of the cell texts as a whole,
+the one of the diagrams as the list of their active controls (like
+`graph,level2`). As the sets of the diagram controls overlap, such a
+control is a sticky filter: a click toggles it alone, and exactly the
+diagrams at least one active control covers are folded. A diagram
+control carries the search filter mark colors while it is active, the
+cell text control while any cell text is folded, and the tab icon
+while anything at all is folded.
 
 The HTML export (screen only, too) maximizes every diagram on demand:
 hovering a diagram fades in two controls at its top right corner (in

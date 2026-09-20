@@ -67,7 +67,10 @@ const templates = {
                 <div class="fold-switch">
                     <div class="fold-toggle" title="toggle folding controls"><svg class="fold-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5l5 5 5-5"/><path d="M7 20.5l5-5 5 5"/></svg></div>
                     <div class="fold-controls">
-                        <div class="fold-diagrams" title="fold/unfold all diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5.5" r="3"/><circle cx="18.5" cy="5.5" r="3"/><circle cx="12" cy="18.5" r="3"/><path d="M7.3 8.1 10.6 15.9"/><path d="M16.7 8.1 13.4 15.9"/></svg></div>
+                        <div class="fold-graphs" title="fold/unfold all graph diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5.5" r="3"/><circle cx="18.5" cy="5.5" r="3"/><circle cx="12" cy="18.5" r="3"/><path d="M7.3 8.1 10.6 15.9"/><path d="M16.7 8.1 13.4 15.9"/></svg></div>
+                        <div class="fold-hubs" title="fold/unfold all hub diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.5"/><circle cx="3.5" cy="4.5" r="2"/><circle cx="3.5" cy="19.5" r="2"/><circle cx="20.5" cy="4.5" r="2"/><circle cx="20.5" cy="19.5" r="2"/><path d="M5.5 4.5H10V9.1"/><path d="M18.5 4.5H14V9.1"/><path d="M5.5 19.5H10V14.9"/><path d="M18.5 19.5H14V14.9"/></svg></div>
+                        <div class="fold-grids" title="fold/unfold all grid diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg></div>
+                        {% for level in [ 1, 2, 3 ] %}<div class="fold-level{{ level }}" title="fold/unfold all diagrams from nesting level {{ level }} on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><rect x="6.5" y="6.5" width="3" height="3" rx="0.5"/><text x="19.5" y="23" text-anchor="middle" font-size="14.5" font-weight="bold" fill="currentColor" stroke="none">{{ level }}</text></svg></div>{% endfor %}
                         <div class="fold-texts" title="fold/unfold all cell texts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7V4.5h15V7"/><path d="M12 4.5v15"/><path d="M8.5 19.5h7"/></svg></div>
                     </div>
                 </div>
@@ -166,7 +169,7 @@ const templates = {
     "Doc": textframe`
         <nav class="doc" id="doc">
             <h1>Diagram of Contents</h1>
-            <div class="diagram">{{ Doc.diagram }}</div>
+            {{ Doc.diagram }}
         </nav>
     `,
 
@@ -451,21 +454,31 @@ const scrollProgressScript = textframe`
     content into a fold container carrying a chevron mark at its top
     left corner, folds the text of every table cell towering over the
     other cells of its row behind a chevron mark of its own, and lets
-    the two controls of the fold tab fold and unfold all diagrams and
-    all cell texts at once, with their state persisted across page loads
-    and their icons (plus the tab icon) marked while anything of their
-    kind is folded. The script runs at the end of the body, as the
-    content it wraps has to exist already, and a live preview body swap
-    replaces the containers and their listeners along with the body  */
+    the controls of the fold tab fold and unfold all diagrams of a type
+    ("graph", "hub", "grid"), all diagrams from an object tree nesting
+    level on (1, 2, 3), and all cell texts at once, with their state
+    persisted across page loads and their icons marked while they are
+    active (the diagram ones, OR-combined) or any cell text is folded
+    (the tab icon while anything at all is). The script runs at
+    the end of the body, as the content it wraps has to exist already,
+    and a live preview body swap replaces the containers and their
+    listeners along with the body  */
 const foldScript = textframe`
     (function () {
         const tab = document.querySelector("div.fold-switch")
         if (tab === null)
             return
-        const controls = { diagram: tab.querySelector("div.fold-diagrams"),
-            text: tab.querySelector("div.fold-texts") }
+        const controls = {
+            graph:  tab.querySelector("div.fold-graphs"),
+            hub:    tab.querySelector("div.fold-hubs"),
+            grid:   tab.querySelector("div.fold-grids"),
+            level1: tab.querySelector("div.fold-level1"),
+            level2: tab.querySelector("div.fold-level2"),
+            level3: tab.querySelector("div.fold-level3"),
+            text:   tab.querySelector("div.fold-texts")
+        }
 
-        /*  let the fold icon slide the two controls out of the tab (and
+        /*  let the fold icon slide the controls out of the tab (and
             back in again), remembering the choice across page loads  */
         try { if (localStorage.getItem("specbook-fold") === "open") tab.classList.add("open") }
         catch { /*  an inaccessible storage just means no stored state  */ }
@@ -504,23 +517,29 @@ const foldScript = textframe`
 
         /*  wrap every diagram into its fold container, carrying the
             chevron mark plus the muted placeholder the diagram leaves
-            behind while folded, which is the very icon of its tab
-            control  */
-        const folds = { diagram: [], text: [] }
+            behind while folded, which is the very icon of its type
+            control; a diagram joins the set of its type plus the sets
+            of all nesting levels up to its own one (3 standing for all
+            deeper ones), so the sets of the controls overlap  */
+        const folds = { graph: [], hub: [], grid: [], level1: [], level2: [], level3: [], text: [] }
         document.querySelectorAll("article div.diagram, nav.doc div.diagram").forEach((el) => {
-            const fold = document.createElement("div")
+            const type  = el.getAttribute("data-type") ?? "graph"
+            const level = Math.min(Number(el.getAttribute("data-level")) || 1, 3)
+            const fold  = document.createElement("div")
             fold.className = "fold"
             el.parentNode.insertBefore(fold, el)
             const chevron = mark("fold-mark", "fold/unfold this diagram")
             const label   = document.createElement("span")
             label.className = "fold-label"
-            label.appendChild(controls.diagram.querySelector("svg").cloneNode(true))
+            label.appendChild(controls[type].querySelector("svg").cloneNode(true))
             fold.append(chevron, label, el)
             chevron.addEventListener("click", () => {
                 fold.classList.toggle("folded")
                 sync()
             })
-            folds.diagram.push(fold)
+            folds[type].push(fold)
+            for (let n = 1; n <= level; n++)
+                folds["level" + n].push(fold)
         })
 
         /*  the rendered height of the content of a table cell, or of its
@@ -689,29 +708,56 @@ const foldScript = textframe`
         }
         layout()
 
-        /*  mark the control of a kind while anything of that kind is
-            folded, and the tab itself while any kind at all is  */
+        /*  mark the text control while any cell text is folded, a diagram
+            control while it is active itself (as the sets of the diagram
+            controls overlap, the fold state of their diagrams tells
+            nothing), and the tab itself while anything at all is folded  */
+        const active = new Set()
         const sync = () => {
-            let any = false
-            for (const kind of Object.keys(folds)) {
-                const folded = folds[kind].some((fold) => fold.classList.contains("folded"))
-                controls[kind].classList.toggle("folded", folded)
-                any ||= folded
-            }
-            tab.classList.toggle("folded", any)
+            for (const kind of Object.keys(folds))
+                controls[kind].classList.toggle("folded", kind === "text" ?
+                    folds.text.some((fold) => fold.classList.contains("folded")) : active.has(kind))
+            tab.classList.toggle("folded", Object.keys(folds).some((kind) =>
+                folds[kind].some((fold) => fold.classList.contains("folded"))))
+        }
+
+        /*  fold exactly the diagrams at least one active control covers  */
+        const apply = () => {
+            folds.level1.forEach((fold) => {
+                fold.classList.toggle("folded", Array.from(active).some((kind) => folds[kind].includes(fold)))
+            })
+        }
+
+        /*  without a stored state the rendered one stands, which is
+            everything unfolded: the cell texts store their state as a
+            whole, the diagrams as the list of their active controls  */
+        const stored = { text: null, diagrams: null }
+        for (const name of Object.keys(stored)) {
+            try { stored[name] = localStorage.getItem("specbook-fold-" + name) }
+            catch { /*  an inaccessible storage just means no stored state  */ }
+        }
+        if (stored.text !== null)
+            folds.text.forEach((fold) => { fold.classList.toggle("folded", stored.text === "folded") })
+        if (stored.diagrams !== null) {
+            stored.diagrams.split(",").filter((kind) => kind !== "text" && folds[kind] !== undefined)
+                .forEach((kind) => { active.add(kind) })
+            apply()
         }
         for (const kind of Object.keys(folds)) {
-            /*  without a stored state the rendered one stands, which is
-                everything unfolded  */
-            let stored = null
-            try { stored = localStorage.getItem("specbook-fold-" + kind) }
-            catch { /*  an inaccessible storage just means no stored state  */ }
-            if (stored !== null)
-                folds[kind].forEach((fold) => { fold.classList.toggle("folded", stored === "folded") })
             controls[kind].addEventListener("click", () => {
-                const all = !folds[kind].every((fold) => fold.classList.contains("folded"))
-                folds[kind].forEach((fold) => { fold.classList.toggle("folded", all) })
-                try { localStorage.setItem("specbook-fold-" + kind, all ? "folded" : "unfolded") }
+                try {
+                    if (kind === "text") {
+                        const all = !folds.text.every((fold) => fold.classList.contains("folded"))
+                        folds.text.forEach((fold) => { fold.classList.toggle("folded", all) })
+                        localStorage.setItem("specbook-fold-text", all ? "folded" : "unfolded")
+                    }
+                    else {
+                        if (!active.delete(kind))
+                            active.add(kind)
+                        apply()
+                        localStorage.setItem("specbook-fold-diagrams", Array.from(active).join(","))
+                    }
+                }
                 catch { /*  an inaccessible storage just loses the state  */ }
                 sync()
             })
@@ -1244,7 +1290,7 @@ const render = (name: keyof typeof templates, context: object): string => {
 
 /*  the active per-document reference expander, fully-qualified
     anchor paths, member-carrying property value constraints, object
-    schema nodes, pre-rendered diagram SVGs, optimized embedded images,
+    schema nodes, pre-rendered diagram blocks, optimized embedded images,
     reference coverages, description popup keys of the schema nodes, and
     description popup keys of the objects (all set during HTML rendering)  */
 let linker:      ((text: string, compact: boolean) => string) | null = null
@@ -1615,7 +1661,7 @@ const renderCell = (child: SpecObject): string => {
     (empty for an object without a configured or renderable diagram)  */
 const diagramOf = (object: SpecObject) => {
     const diagram = diagrams?.get(object)
-    return diagram !== undefined ? safe(`<div class="diagram">${diagram}</div>`) : ""
+    return diagram !== undefined ? safe(diagram) : ""
 }
 
 /*  the reference coverage of an object as a table: one row per
@@ -1993,9 +2039,22 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         anchors   = anchorPaths(index)
         members   = config !== undefined ? collectMembers(config, new Map()) : null
         schemas   = config !== undefined ? collectSchemas(specification, config) : null
-        diagrams  = rendered?.svgs ?? null
         images    = optimized
         coverages = schemas !== null ? specCoverage(index, schemas) : null
+
+        /*  wrap the diagrams into their blocks, carrying the diagram type
+            and the object tree nesting level the folding distinguishes  */
+        diagrams = rendered !== null ? new Map<SpecObject, string>() : null
+        for (const node of index) {
+            const svg = rendered?.svgs.get(node.object)
+            if (svg === undefined)
+                continue
+            let level = 1
+            for (let parent = node.parent; parent !== undefined; parent = parent.parent)
+                level++
+            const type = schemas?.get(node.object)?.diagram?.type ?? "graph"
+            diagrams?.set(node.object, `<div class="diagram" data-type="${type}" data-level="${level}">${svg}</div>`)
+        }
 
         /*  collect the schema descriptions for the description popups,
             plus the object table composing their title paths  */
@@ -2035,7 +2094,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         const artifacts = specification.artifacts
             .filter((artifact) => !artifact.objects.some(isTitleObject))
         const meta      = titleObject(specification)
-        const doc       = meta !== undefined ? rendered?.svgs.get(meta) : undefined
+        const doc       = meta !== undefined ? diagrams?.get(meta) : undefined
         const objects   = artifacts.flatMap((artifact) => artifact.objects)
         const entries   = tocEntries(objects, tocPages)
         return render("Document", { Document: {

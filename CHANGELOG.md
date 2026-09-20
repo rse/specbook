@@ -5,6 +5,10 @@ ChangeLog
 1.3.0 (2026-09-19)
 ------------------
 
+-   IMPROVEMENT [code]: Diagram Folding per Type and per Nesting Level in the HTML Export
+    The folding tab folds the `graph`, `hub`, and `grid` diagrams individually and all diagrams from
+    the object tree nesting level 1, 2, or 3 on, as OR-combined sticky filters marked while active.
+
 -   BUGFIX [code]: Readable Parallel Edges in the `graph` Diagrams
     The presets raise `size-edge-track-gap` to 20 and lift `graph-channel-width-max` to 1000, as the
     capped channels squeezed many edges into a bundle and turned their arrow heads sideways.

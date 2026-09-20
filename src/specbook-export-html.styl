@@ -392,12 +392,13 @@ div.info-popup.spec a.link-compact::before
 /*  the folding tab (screen-only): the tab riding right of the brand
     bar between the search tab and the table of contents tab (as wide
     as those, fixed independent of the content scrolling), showing a
-    fold icon (drawn like the search icon), which slides the two
+    fold icon (drawn like the search icon), which slides the
     controls out to the right (and back in), where the tab follows the
     bar when the table of contents panel shifts it aside; the controls
-    fold and unfold all diagrams and all over-long cell texts of the
-    content at once and carry, like the fold icon itself, the mark
-    colors in a rounded box while anything of their kind is folded  */
+    fold and unfold all diagrams of a type, all diagrams from a nesting
+    level on, and all over-long cell texts of the content at once and
+    carry, like the fold icon itself, the mark colors in a rounded box
+    while anything of their kind is folded  */
 div.fold-switch
     position: fixed
     top: 10.66rem
@@ -437,7 +438,7 @@ div.fold-switch div.fold-controls
     padding: 0
     transition: max-width 0.3s ease, padding 0.3s ease
 div.fold-switch.open div.fold-controls
-    max-width: 6rem
+    max-width: 15rem
     padding: 0 0.5rem 0 0.2rem
 div.fold-switch div.fold-controls > div
     padding: 0.25rem
