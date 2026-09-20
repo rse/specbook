@@ -2,32 +2,12 @@
 ChangeLog
 =========
 
-1.3.0 (2026-09-19)
+1.3.0 (2026-09-20)
 ------------------
 
 -   FEATURE [code, docs, infr]: Option `--omit`/`-O <aspect>[,...]` for the HTML/PDF Exports
     The aspects `diagram[:graph|hub|grid|1|2|3]` and `text:long` omit the content of the matching
     folding controls at generation time (the AST drops the `diagram` fields), controls included.
-
--   IMPROVEMENT [code]: No Orphaned Chunk Headers at a Page End of the PDF Export
-    In print, a chunk header row ("Diagram", property names) sticks to its value row, so an object
-    whose diagram wraps moves to the next page as a whole instead of leaving an empty row behind.
-
--   IMPROVEMENT [code]: Diagram Folding per Type and per Nesting Level in the HTML Export
-    The folding tab folds the `graph`, `hub`, and `grid` diagrams individually and all diagrams from
-    the object tree nesting level 1, 2, or 3 on, as OR-combined sticky filters marked while active.
-
--   BUGFIX [code]: Readable Parallel Edges in the `graph` Diagrams
-    The presets raise `size-edge-track-gap` to 20 and lift `graph-channel-width-max` to 1000, as the
-    capped channels squeezed many edges into a bundle and turned their arrow heads sideways.
-
--   IMPROVEMENT [code]: Larger Node Types and Edge Labels in the Diagrams
-    The presets raise `size-font-type`, `size-font-edge`, and `size-font-arity` by about 20% to 19,
-    as the half coordinate scale of the HTML export shrank them below a readable size.
-
--   IMPROVEMENT [code, infr]: Four Tiles per Row in the `grid` Diagrams
-    The preset `grid-columns-min: 4` widens the grids the square column derivation left at 72% of
-    the content width, and the standard schema caps their columns at 4, as 5 overflowed the width.
 
 -   FEATURE [infr]: Claude Code Plugin with the Skill `/specbook init|lint|export|edit`
     The new `plugin/` registers the MCP service and passes `init`, `lint`, and `export` through to
@@ -45,13 +25,29 @@ ChangeLog
     An edge object of the center targeting the center itself is no longer dropped: Gradia 1.2.4
     places the center again among its outputs, as a dashed box in a darker grey than the ghosts.
 
--   IMPROVEMENT [code, infr]: Embedded Images Optimized On-the-Fly in the HTML/PDF Export
-    PNG/JPEG images are capped to twice the content width and re-encoded with Sharp (PNG as WebP in
-    HTML and as JPEG in PDF), and SVG images are minified with SVGO, each kept only if smaller.
-
 -   FEATURE [code]: WebP Images Embeddable like PNG/JPEG Ones
     A local `.webp` file is embedded and optimized, too: downscaled if wider than the cap, else
     kept untouched for HTML (no repeated lossy re-encoding), and converted to JPEG for PDF.
+
+-   IMPROVEMENT [code]: No Orphaned Chunk Headers at a Page End of the PDF Export
+    In print, a chunk header row ("Diagram", property names) sticks to its value row, so an object
+    whose diagram wraps moves to the next page as a whole instead of leaving an empty row behind.
+
+-   IMPROVEMENT [code]: Diagram Folding per Type and per Nesting Level in the HTML Export
+    The folding tab folds the `graph`, `hub`, and `grid` diagrams individually and all diagrams from
+    the object tree nesting level 1, 2, or 3 on, as OR-combined sticky filters marked while active.
+
+-   IMPROVEMENT [code]: Larger Node Types and Edge Labels in the Diagrams
+    The presets raise `size-font-type`, `size-font-edge`, and `size-font-arity` by about 20% to 19,
+    as the half coordinate scale of the HTML export shrank them below a readable size.
+
+-   IMPROVEMENT [code, infr]: Four Tiles per Row in the `grid` Diagrams
+    The preset `grid-columns-min: 4` widens the grids the square column derivation left at 72% of
+    the content width, and the standard schema caps their columns at 4, as 5 overflowed the width.
+
+-   IMPROVEMENT [code, infr]: Embedded Images Optimized On-the-Fly in the HTML/PDF Export
+    PNG/JPEG images are capped to twice the content width and re-encoded with Sharp (PNG as WebP in
+    HTML and as JPEG in PDF), and SVG images are minified with SVGO, each kept only if smaller.
 
 -   IMPROVEMENT [code]: Standalone Markdown Export through Embedded Images
     An embedded image becomes `![alt][img-N]` with an optimized `[img-N]: data:...` definition at
@@ -92,6 +88,14 @@ ChangeLog
 -   IMPROVEMENT [code]: More Compact Rendering of the Embedded Sub-Tables in the HTML Export
     The headers of the embedded per-object tables now render at 80% font size, and their column is
     headed "Properties & Description" (instead of "Properties") once it carries description cells.
+
+-   IMPROVEMENT [code]: Slightly Dimmed the Lightest Accent Colors of the Dark Theme
+    The dark theme accent, spec-popup-path, progress, and primary-node colors drop one to two
+    spread steps (24 to 22, 25 to 24, 21 to 20), as the lightest ones stood out too brightly.
+
+-   BUGFIX [code]: Readable Parallel Edges in the `graph` Diagrams
+    The presets raise `size-edge-track-gap` to 20 and lift `graph-channel-width-max` to 1000, as the
+    capped channels squeezed many edges into a bundle and turned their arrow heads sideways.
 
 -   BUGFIX [code]: Text Fold Chevrons of the HTML Export Follow the Line Breaks
     The cell text folds were cut once at page load, so a later viewport width or font arrival left
