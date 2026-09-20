@@ -1,7 +1,7 @@
 {
     "private":                                    true,
     "name":                                       "specbook-web",
-    "version":                                    "1.2.6",
+    "version":                                    "1.2.16",
     "description":                                "Specification Book (SpecBook)",
     "author":                                     "Dr. Ralf S. Engelschall <rse@engelschall.com>",
     "license":                                    "Apache-2.0",
