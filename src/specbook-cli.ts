@@ -147,7 +147,7 @@ const omitOf = (opts: { omit: string[] }): string[] | undefined => {
 let commanderOut = ""
 let commanderErr = ""
 
-/*  parse the command line  */
+/*  set up the command line program  */
 const program = new Command()
 program.name("specbook")
     .description("Markdown-based Specification Format")
@@ -174,7 +174,7 @@ withCommonOptions(program.command("init"))
     .description("initialize the configured specification artifact files below the base directory")
     .action(async (opts: CommonOptions) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const created = await specbook.init({ config: configOf(opts), basedir: opts.basedir })
+        const created  = await specbook.init({ config: configOf(opts), basedir: opts.basedir })
         await writeStdout(created.length > 0 ?
             `initialized artifact file(s): ${created.join(", ")}\n` :
             "no artifact files were created\n")
@@ -184,8 +184,9 @@ withCommonOptions(program.command("init"))
 withGitignoreOption(withCommonOptions(program.command("lint")))
     .description("lint the specification Markdown files below the base directory")
     .action(async (opts: ProcessOptions) => {
-        const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const result = await specbook.lint({ config: configOf(opts), basedir: opts.basedir,
+        const verbose  = verboseOf(opts)
+        const specbook = new SpecBook({ verbose })
+        const result   = await specbook.lint({ config: configOf(opts), basedir: opts.basedir,
             gitignore: opts.gitignore })
         const detailed = parseVerbosity(opts.verbose) > 0
         for (const diagnostic of result.diagnostics)
@@ -195,7 +196,7 @@ withGitignoreOption(withCommonOptions(program.command("lint")))
         if (result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
             process.exitCode = 1
         else
-            verboseOf(opts)("lint", "specification valid", "notice")
+            verbose("lint", "specification valid", "notice")
     })
 
 /*  the export command parses the input once and writes every output  */
@@ -233,13 +234,13 @@ withOmitOption(withGitignoreOption(withCommonOptions(program.command("export")))
             `${spec.format}:${rebaseOf(spec) ?? ""}`
         const distinct = outputs.filter((spec, i) =>
             outputs.findIndex((other) => keyOf(other) === keyOf(spec)) === i)
-        const write = async (buffers: Buffer[]) => {
+        const write    = async (buffers: Buffer[]) => {
             for (const spec of outputs)
                 await writeOutput(spec.output, buffers[distinct.findIndex((other) =>
                     keyOf(other) === keyOf(spec))], "export", verbose)
         }
-        const formats = distinct.map(({ format }) => format)
-        const rebase  = distinct.map(rebaseOf)
+        const formats  = distinct.map(({ format }) => format)
+        const rebase   = distinct.map(rebaseOf)
         if (opts.watch)
             await specbook.watch({ config: configOf(opts), basedir: opts.basedir,
                 formats, rebase, omit: omitOf(opts), gitignore: opts.gitignore,
@@ -256,7 +257,7 @@ withOmitOption(withGitignoreOption(withCommonOptions(program.command("preview"))
     .option("-a, --addr <ip-addr>",  "IP address to listen on", envDefault("addr", previewAddr))
     .option("-p, --port <tcp-port>", "TCP port to listen on",   envDefault("port", String(previewPort)))
     .action(async (opts: ProcessOptions & { addr: string, port: string, omit: string[] }) => {
-        const port = Number(opts.port)
+        const port = (/^\d+$/).test(opts.port) ? Number(opts.port) : NaN
         if (!Number.isInteger(port) || port < 1 || port > 65535)
             throw new Error(`invalid TCP port "${opts.port}"`)
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
@@ -282,11 +283,12 @@ withBasedirOption(withConfigOption(withVerboseOption(program.command("describe")
     .option("-o, --output <markdown-file>", "output file (\"-\" for stdout)", envDefault("output", "-"))
     .action(async (opts: CommonOptions & { embed: boolean, compress: string | boolean,
         format: string, part: string, output: string }) => {
-        const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const text = await specbook.describe({ config: configOf(opts), basedir: opts.basedir,
+        const verbose  = verboseOf(opts)
+        const specbook = new SpecBook({ verbose })
+        const text     = await specbook.describe({ config: configOf(opts), basedir: opts.basedir,
             embed: opts.embed, compress: parseCompressLevel(opts.compress),
             format: parseDescribeFormat(opts.format), part: parseDescribePart(opts.part) })
-        await writeOutput(opts.output, text, "describe", verboseOf(opts))
+        await writeOutput(opts.output, text, "describe", verbose)
     })
 
 /*  run the command line program  */

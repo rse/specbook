@@ -112,6 +112,7 @@ export const watchSpecification = async (
     verbose: Verbose
 ): Promise<void> => {
     /*  perform the regular export before entering the observe loop  */
+    const started = Date.now()
     let observed  = await run()
     let times     = snapshot(observed)
     const watcher = watch(observed, { ignoreInitial: true })
@@ -155,6 +156,12 @@ export const watchSpecification = async (
     }
 
     watcher.on("all", schedule)
+
+    /*  a change during the initial export escaped both the not yet
+        established watcher and the snapshot taken after it, so its
+        modification time alone reveals it  */
+    if (Array.from(times.values()).some((time) => time > started))
+        schedule()
 
     /*  compare the modification times regularly, so a change the
         watcher never reported still reaches the export, and re-establish

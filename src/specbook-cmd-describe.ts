@@ -4,12 +4,12 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import * as fs from "node:fs"
+import * as fs                                       from "node:fs"
 
 import textframe                                     from "textframe"
 import { parseDocument, stringify, visit, isScalar } from "yaml"
 
-import { type Schema } from "./specbook-format-schema.js"
+import { type Schema }                               from "./specbook-format-schema.js"
 
 /*  the supported description output formats and document parts  */
 export const describeFormats = [ "md", "raw" ] as const
@@ -19,10 +19,11 @@ export type DescribePart     = typeof describeParts[number]
 
 /*  parse and validate an output format or document part specification  */
 const parseChoice = <T extends string>(choices: readonly T[], kind: string, value: string): T => {
-    if (!(choices as readonly string[]).includes(value))
+    const choice = choices.find((known) => known === value)
+    if (choice === undefined)
         throw new Error(`unknown describe ${kind} "${value}" ` +
             `(supported: ${choices.join(", ")})`)
-    return value as T
+    return choice
 }
 export const parseDescribeFormat = (value: string): DescribeFormat =>
     parseChoice(describeFormats, "format", value)
@@ -38,14 +39,17 @@ export const compressLevels = [ 0, 1, 2, 3 ] as const
 export type CompressLevel   = typeof compressLevels[number]
 
 /*  parse and validate a compression level specification,
-    where a bare flag selects the plain re-emitting  */
+    where a bare flag (or a boolean word) selects the plain re-emitting  */
 export const parseCompressLevel = (value: string | number | boolean): CompressLevel => {
-    const level = typeof value === "boolean" ? (value ? 1 : 0) :
-        typeof value === "string" && !(/^\d+$/).test(value) ? NaN : Number(value)
-    if (!(compressLevels as readonly number[]).includes(level))
+    const text  = String(value)
+    const level = (/^(?:true|yes|on)$/i).test(text) ? 1 :
+        (/^(?:false|no|off)$/i).test(text) ? 0 :
+            (/^\d+$/).test(text) ? Number(text) : NaN
+    const compress = compressLevels.find((n) => n === level)
+    if (compress === undefined)
         throw new Error(`unknown compress level "${value}" ` +
             `(supported: ${compressLevels.join(", ")})`)
-    return level as CompressLevel
+    return compress
 }
 
 /*  provide the build-time bundled description of the generic

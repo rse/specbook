@@ -172,10 +172,11 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         }
     }, async (args) => {
         try {
-            const text = await specbook.describe({ ...args, compress: args.compress ?? 2 })
-            if (args.output !== undefined && args.output !== "-") {
-                await fs.promises.writeFile(outputOf(args, args.output), text)
-                return { content: [ { type: "text", text: `described specification format into "${args.output}"` } ] }
+            const { output, ...options } = args
+            const text = await specbook.describe({ ...options, compress: options.compress ?? 2 })
+            if (output !== undefined && output !== "-") {
+                await fs.promises.writeFile(outputOf(args, output), text)
+                return { content: [ { type: "text", text: `described specification format into "${output}"` } ] }
             }
             return { content: [ { type: "text", text } ] }
         }

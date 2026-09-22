@@ -96,7 +96,7 @@
                 event.preventDefault()
                 reset()
                 slide(false)
-                link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }))
+                link.click()
             })
         })
     }
@@ -273,8 +273,11 @@
         to two passes, literal substrings first and, only if those match
         nothing at all, the fuzzy variants, as the edit-distance
         neighborhood of a word is wide enough to dilute a correctly
-        spelled query and has to stay a fallback for misspelled ones  */
+        spelled query and has to stay a fallback for misspelled ones;
+        a debounced run a live preview body swap left behind is dropped  */
     const search = () => {
+        if (!tab.isConnected)
+            return
         unmark()
         const parts = input.value.toLowerCase().split(",")
             .map((part) => part.split(/\s+/).filter((word) => word !== ""))
@@ -351,14 +354,17 @@
             panel entries) along: an entry stays visible only while its
             target still is, which covers the front matter entries of
             the panel, too, as their targets are suppressed by the
-            search mode anyway  */
+            search mode anyway, where the entries are hidden only after
+            all targets got measured, as each hiding would force a layout again  */
+        const hidden = []
         document.querySelectorAll("nav.toc table tr, nav.toc-panel div.toc-list li").forEach((entry) => {
             const link   = entry.querySelector(":scope > a, :scope > td > a")
             const target = link !== null ?
                 document.getElementById(decodeURIComponent(link.hash.slice(1))) : null
             if (target === null || target.getClientRects().length === 0)
-                entry.classList.add("search-hide")
+                hidden.push(entry)
         })
+        hidden.forEach((entry) => { entry.classList.add("search-hide") })
     }
 
     /*  run the search debounced on every keystroke (750ms after the

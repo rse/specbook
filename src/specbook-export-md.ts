@@ -161,7 +161,7 @@ export const renderMarkdown = async (specification: Spec,
         knows no themes), and only the remaining ones are re-based  */
     const optimized = await optimizeImages(specification, false, verbose)
     const labels    = new Map<string, string>()
-    const embedMd = (text: string, embedding: string[], from?: string, to?: string): string => {
+    const embedMd   = (text: string, embedding: string[], from?: string, to?: string): string => {
         let i = 0
         const embedded = text.replace(embeddingRegex, (match: string, alt: string, reference?: string) => {
             const count   = embeddingCount(reference)
@@ -182,12 +182,12 @@ export const renderMarkdown = async (specification: Spec,
 
     /*  embed and re-base on clones of the objects (as the AST is shared
         with the other exports), moving the diagrams along  */
-    const localized = (object: SpecObject, from?: string, to?: string): SpecObject => {
+    const embedObjectMd = (object: SpecObject, from?: string, to?: string): SpecObject => {
         const clone: SpecObject = {
             ...object,
             properties: object.properties.map((property) =>
                 ({ ...property, value: embedMd(property.value, property.embedding ?? [], from, to) })),
-            children:   object.children.map((child) => localized(child, from, to))
+            children:   object.children.map((child) => embedObjectMd(child, from, to))
         }
         if (object.description !== undefined)
             clone.description = { ...object.description,
@@ -202,7 +202,7 @@ export const renderMarkdown = async (specification: Spec,
         const origin = rebase?.origins.get(artifact)
         const from   = origin !== undefined ? path.resolve(path.dirname(origin)) : undefined
         const to     = rebase !== undefined ? path.resolve(rebase.dir)           : undefined
-        return artifact.objects.map((object) => localized(object, from, to))
+        return artifact.objects.map((object) => embedObjectMd(object, from, to))
     })
     const definitions = Array.from(labels, ([ url, label ]) => `[${label}]: ${url}\n`).join("")
 

@@ -21,7 +21,11 @@ export type ThemeColors = {
     and a signal spread derived from the second tone (if given) or
     else from the complement-transposed first tone  */
 export const themeColors = (tone: string): ThemeColors => {
-    const [ accent, signal = `${accent}^` ] = tone.trim().split(/\s+/)
+    const tones = tone.trim().split(/\s+/)
+    if (tones.length > 2 || !tones.every((t) => (/^#[0-9a-fA-F]{6}$/).test(t)))
+        throw new Error(`invalid theme color tone "${tone}" (expected "#RRGGBB", ` +
+            "optionally followed by a second one)")
+    const [ accent, signal = `${accent}^` ] = tones
     return {
         base:   generate(parse("#000000/32")),
         accent: generate(parse(`${accent}+40-5/32`)),
@@ -52,7 +56,7 @@ export type ThemeMapping = {
     aligned with the layer-2 CSS mapping of the HTML rendering  */
 export const themeMapping = (colors: ThemeColors, style: ThemeStyle): ThemeMapping => {
     const idx = style === "dark" ?
-        { muted: 22, symbol: 20, border: 16, accent: 24 } :
+        { muted: 22, symbol: 20, border: 16, accent: 22 } :
         { muted: 22, symbol: 24, border: 28, accent: 12 }
     return {
         muted:  colors.base[idx.muted    - 1],

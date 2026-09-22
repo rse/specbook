@@ -5,12 +5,12 @@
 */
 
 /*  the level of a verbose message, named after the least verbosity
-    surfacing it: "none" for the few environment-related messages and
-    the warning diagnostics, which a consumer has to surface
-    unconditionally, "notice" for the regular processing information,
-    which a consumer usually surfaces on demand only, "detail" for the
-    additional figures (the coverage ratios), and "trace" for the
-    lengthy details (the unreferenced objects)  */
+    surfacing it: "none" for the few environment-related messages, the
+    warning diagnostics, and the preview server events, which a consumer
+    has to surface unconditionally, "notice" for the regular processing
+    information, which a consumer usually surfaces on demand only,
+    "detail" for the additional figures (the coverage ratios), and
+    "trace" for the lengthy details (the unreferenced objects)  */
 export type VerboseLevel = "none" | "notice" | "detail" | "trace"
 
 /*  the sink of the verbose messages of a single command  */
@@ -30,10 +30,11 @@ export const parseVerbosity = (value: string | number | boolean): Verbosity => {
     const level = (/^(?:true|yes|on)$/i).test(text) ? 1 :
         (/^(?:false|no|off)$/i).test(text) ? 0 :
             (/^\d+$/).test(text) ? Number(text) : NaN
-    if (!(verbosities as readonly number[]).includes(level))
+    const verbosity = verbosities.find((n) => n === level)
+    if (verbosity === undefined)
         throw new Error(`unknown verbosity "${value}" ` +
             `(supported: ${verbosities.join(", ")})`)
-    return level as Verbosity
+    return verbosity
 }
 
 /*  the sentinel characters delimiting a marked literal value, taken

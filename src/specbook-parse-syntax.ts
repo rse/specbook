@@ -11,8 +11,9 @@ import { marked, type Tokens } from "marked"
 
 import { type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
-import { type ParseContext, type SourceFile, becauseRegex, embeddingRegex, embeddingDataRegex,
-    embeddingMimeType, embeddingVariants } from "./specbook-parse-common.js"
+import { type ParseContext, type SourceFile, becauseRegex, embeddingRegex,
+    embeddingDataRegex, embeddingMimeType, embeddingVariants }
+    from "./specbook-parse-common.js"
 
 /*  a grouping container context (e.g. "### STATE")  */
 interface Group {
@@ -215,8 +216,10 @@ const parseList = (ctx: ParseContext, list: Tokens.List, object: SpecObject, fil
                 const property: SpecProperty = { key: km[1].trim(), value }
                 ctx.propMeta.set(property, { line })
                 object.properties.push(property)
-                if (item.tokens.some((sub) => sub.type === "list"))
-                    ctx.diagnose(file, line, `nested list below property "${property.key}" ignored`)
+                const ignored = item.tokens.find((sub) =>
+                    sub.type !== "text" && sub.type !== "paragraph" && sub.type !== "space")
+                if (ignored !== undefined)
+                    ctx.diagnose(file, line, `nested ${ignored.type} below property "${property.key}" ignored`)
             }
             else
                 ctx.diagnose(file, line, `unrecognized list item "${first}"`)
@@ -309,13 +312,16 @@ const parseConcise = (ctx: ParseContext, item: Tokens.ListItem, parent: SpecObje
 
     /*  recurse into nested concise-format child objects, tracking the
         source line of the nested list within the item (an ordered
-        nested list is not supported, so it is reported, not lost)  */
+        nested list or any other block content is not supported, so
+        it is reported, not lost)  */
     let subLine = line
     for (const sub of item.tokens) {
         if (sub.type === "list" && !(sub as Tokens.List).ordered)
             parseList(ctx, sub as Tokens.List, object, file, subLine)
         else if (sub.type === "list")
             ctx.diagnose(file, subLine, `nested ordered list below ${kind} "${name}" ignored`)
+        else if (sub.type !== "text" && sub.type !== "paragraph" && sub.type !== "space")
+            ctx.diagnose(file, subLine, `nested ${sub.type} below ${kind} "${name}" ignored`)
         subLine += (sub.raw.match(/\n/g) ?? []).length
     }
     parent.children.push(object)
@@ -355,6 +361,11 @@ const parseHeading = (ctx: ParseContext, token: Tokens.Heading, state: WalkState
         state.stack.length = depth - 1
         return
     }
+
+    /*  a level 1 object takes its parenthesized token as the id right
+        away, as the artifact resolution of the semantic phase matches
+        it against the configured id before any property could consume
+        the token (a nested object receives it there, see "validate")  */
     const object: SpecObject = {
         kind:       heading.kind,
         id:         heading.id ?? (depth === 1 ? heading.paren : undefined) ?? slugify(heading.name),
@@ -390,7 +401,8 @@ const unsupportedTokens: Record<string, string | undefined> = {
 
 /*  parse a single source file into its artifacts  */
 export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[] => {
-    const { present, created, modified, body, offset } = parseFrontmatter(source.text)
+    /*  strip a leading byte order mark, as it would hide the frontmatter  */
+    const { present, created, modified, body, offset } = parseFrontmatter(source.text.replace(/^\uFEFF/, ""))
     if (!present)
         ctx.diagnose(source.file, 1, "missing frontmatter (\"Created:\"/\"Modified:\" block)")
     else

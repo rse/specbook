@@ -18,7 +18,7 @@ export const projectFile = ".specbook.yaml"
 /*  the schema of the YAML project configuration: the files or glob
     patterns of the YAML schema configuration and the base directory
     of the specification Markdown files  */
-const Project = v.strictObject({
+const ProjectEntries = v.strictObject({
     config:  v.optional(v.union([ v.pipe(v.string(), v.minLength(1)),
         v.pipe(v.array(v.pipe(v.string(), v.minLength(1))), v.minLength(1)) ])),
     basedir: v.optional(v.pipe(v.string(), v.minLength(1)))
@@ -33,6 +33,17 @@ export interface Project {
     basedir?: string
 }
 
+/*  whether a path names an existing regular file, where an
+    inaccessible one (not just an absent one) counts as absent  */
+const isFile = (file: string): boolean => {
+    try {
+        return fs.statSync(file, { throwIfNoEntry: false })?.isFile() === true
+    }
+    catch {
+        return false
+    }
+}
+
 /*  find the project configuration file in the closest ancestor-or-self
     of the directory (up to the filesystem root, as the file can reside
     even above a nested Git working tree)  */
@@ -40,7 +51,7 @@ const findProject = (dir: string): string | undefined => {
     let current = path.resolve(dir)
     for (;;) {
         const file = path.join(current, projectFile)
-        if (fs.statSync(file, { throwIfNoEntry: false })?.isFile() === true)
+        if (isFile(file))
             return file
         const parent = path.dirname(current)
         if (parent === current)
@@ -73,6 +84,8 @@ export const loadProject = (dir: string): Project | undefined => {
     const file = findProject(dir)
     if (file === undefined)
         return undefined
+
+    /*  parse the YAML, reporting its syntax errors as positioned diagnostics  */
     const diagnostics = new Array<Diagnostic>()
     const lines = new LineCounter()
     const yaml  = readProject(file)
@@ -87,7 +100,7 @@ export const loadProject = (dir: string): Project | undefined => {
         })
 
     /*  an empty or comment-only file carries no entries at all  */
-    const result = v.safeParse(Project, doc.errors.length === 0 ? (doc.toJS() ?? {}) : {})
+    const result = v.safeParse(ProjectEntries, doc.errors.length === 0 ? (doc.toJS() ?? {}) : {})
     if (!result.success)
         for (const issue of result.issues) {
             const keys  = (issue.path ?? []).map((item) => item.key as string | number)
@@ -95,10 +108,12 @@ export const loadProject = (dir: string): Project | undefined => {
             diagnostics.push({ file, ...lineColOfPath(doc, lines, keys), severity: "error",
                 message: `invalid project configuration: ${where}${issue.message}` })
         }
+    /*  (the second condition just narrows the result type below)  */
     if (diagnostics.length > 0 || !result.success)
         throw new Error("invalid project configuration:\n" +
             diagnostics.map(renderDiagnostic).join("\n"))
 
+    /*  resolve the relative paths against the directory of the file  */
     const base     = path.dirname(file)
     const { config, basedir } = result.output
     const patterns = typeof config === "string" ? [ config ] : config

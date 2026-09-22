@@ -93,11 +93,16 @@ const collect = (object: SpecObject, contents: Set<string>) => {
     export never depends on it  */
 export const optimizeImages = async (specification: Spec, print: boolean,
     verbose?: Verbose): Promise<Map<string, string>> => {
+    /*  collect the distinct embedded image contents of the specification  */
     const medium   = print ? "print" : "screen"
     const contents = new Set<string>()
     for (const artifact of specification.artifacts)
         for (const object of artifact.objects)
             collect(object, contents)
+
+    /*  optimize every image the cache of the medium cannot serve (an
+        optimization which fails or does not shrink keeps the original),
+        accounting the sizes for the report below  */
     const cache  = new Map<string, string>()
     let   cached = 0
     let   before = 0
@@ -111,7 +116,9 @@ export const optimizeImages = async (specification: Spec, print: boolean,
                 optimized = content.startsWith("data:") ?
                     await optimizeRaster(content, print) : await optimizeSvg(content)
             }
-            catch {
+            catch (err) {
+                verbose?.("optimizing image failed (keeping the original): " +
+                    (err instanceof Error ? err.message : String(err)))
                 optimized = content
             }
             if (optimized.length >= content.length)
@@ -121,6 +128,9 @@ export const optimizeImages = async (specification: Spec, print: boolean,
         before += content.length
         after  += optimized.length
     }
+
+    /*  sweep the cache of the medium to the images of this
+        optimization and report its figures  */
     imageCaches[medium] = cache
     if (contents.size > 0)
         verbose?.((cached === contents.size ?

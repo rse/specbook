@@ -38,7 +38,7 @@ export const renderDiagnosticVerbose = (diagnostic: Diagnostic, colors = false):
         code = fs.readFileSync(diagnostic.file, "utf8")
     }
     catch {
-        return `${renderDiagnostic(diagnostic)}\n`
+        code = ""
     }
     if (code === "")
         return `${renderDiagnostic(diagnostic)}\n`

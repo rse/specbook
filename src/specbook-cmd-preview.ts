@@ -22,9 +22,11 @@ export interface PreviewOptions {
     verbose: Verbose
 }
 
-/*  the running preview server, fed with every fresh HTML export  */
+/*  the running preview server, fed with every fresh HTML export and
+    closed again once the preview fails to start observing  */
 export interface PreviewServer {
     update: (html: Buffer) => void
+    close:  () => Promise<void>
 }
 
 /*  serve the live HTML preview: a plain GET on "/" answers with the
@@ -45,9 +47,9 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
 
     /*  answer a plain GET with the document and subscribe a WebSocket upgrade  */
     fastify.route({
-        method: "GET",
-        url:    "/",
-        handler: (_request, reply) => {
+        method:    "GET",
+        url:       "/",
+        handler:   (_request, reply) => {
             reply.type("text/html; charset=utf-8").header("cache-control", "no-store")
             return html === undefined ? reply.code(503).send(placeholder) : reply.send(html)
         },
@@ -64,7 +66,7 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
 
             /*  report a failing client, as an unhandled "error" event
                 would otherwise terminate the process  */
-            socket.on("error", (err: Error) => {
+            socket.on("error", (err) => {
                 options.verbose(`client ${literal(client)} failed: ${err.message}`, "none")
             })
         }
@@ -82,9 +84,10 @@ export const servePreview = async (options: PreviewOptions): Promise<PreviewServ
                 options.verbose(`serving ${literal(url)}`, "none")
             html = buffer
             options.verbose(`notifying ${literal(clients.size)} preview client(s)`)
-            for (const client of clients)
-                if (client.readyState === client.OPEN)
-                    client.send("RELOAD")
-        }
+            for (const socket of clients)
+                if (socket.readyState === socket.OPEN)
+                    socket.send("RELOAD")
+        },
+        close: () => fastify.close()
     }
 }

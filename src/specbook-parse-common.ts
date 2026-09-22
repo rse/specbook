@@ -100,10 +100,12 @@ export const embeddingMimeType = (reference: string): string | undefined => {
 /*  the number of embedding entries an image embedding markup occupies,
     given its inline reference: one per variant of an embeddable one, none
     for any other one, and one for a reference-style markup (no reference)  */
-export const embeddingCount = (reference: string | undefined): number =>
-    reference === undefined ? 1 :
-        (embeddingMimeType(reference.trim()) !== undefined ?
-            embeddingVariants(reference.trim()).length : 0)
+export const embeddingCount = (reference: string | undefined): number => {
+    if (reference === undefined)
+        return 1
+    const trimmed = reference.trim()
+    return embeddingMimeType(trimmed) !== undefined ? embeddingVariants(trimmed).length : 0
+}
 
 /*  the image definition ("[label]: data:...") a reference-style image
     embedding refers to: a base64 data: URL of an embeddable image type  */

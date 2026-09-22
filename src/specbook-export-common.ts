@@ -8,7 +8,7 @@ import fs from "node:fs"
 
 import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
-import type { embeddingThemes }
+import { embeddingThemes }
     from "./specbook-parse-common.js"
 import { plainText }
     from "./specbook-link.js"
@@ -44,12 +44,12 @@ export type OmitAspect = typeof omitAspects[number]
     plain "diagram" is the alias of "diagram:1", hence of all diagrams  */
 export const parseOmit = (omit: string[] = []): Set<OmitAspect> => {
     const aspects = new Set<OmitAspect>()
-    for (const item of omit.flatMap((list) => list.split(",")).map((item) => item.trim())) {
-        const aspect = item === "diagram" ? "diagram:1" : item
-        if (!(omitAspects as readonly string[]).includes(aspect))
+    for (const item of omit.flatMap((list) => list.split(",")).map((entry) => entry.trim())) {
+        const aspect = omitAspects.find((known) => known === (item === "diagram" ? "diagram:1" : item))
+        if (aspect === undefined)
             throw new Error(`unknown omit aspect "${item}" ` +
                 `(expected "diagram" or one of "${omitAspects.join("\", \"")}")`)
-        aspects.add(aspect as OmitAspect)
+        aspects.add(aspect)
     }
     return aspects
 }
@@ -79,30 +79,40 @@ export const titleObject = (specification: Spec): SpecObject | undefined => {
     return search(specification.artifacts.flatMap((artifact) => artifact.objects))
 }
 
-/*  determine a property value of the title object (a present but empty
-    value counting as an absent property, so every consumer falls back
-    onto its own default)  */
+/*  determine the (trimmed) value of a property of the title object (a
+    present but empty value counting as an absent property, so every
+    consumer falls back onto its own default)  */
 const titleProperty = (specification: Spec, name: string): string | undefined => {
     const value = titleObject(specification)
-        ?.properties.find((property) => property.key === name)?.value
-    return value !== undefined && value.trim() !== "" ? value : undefined
+        ?.properties.find((property) => property.key === name)?.value.trim()
+    return value !== undefined && value !== "" ? value : undefined
 }
 
 /*  determine the document language (LANG) from the title object  */
 export const documentLang = (specification: Spec): string | undefined =>
-    titleProperty(specification, "LANG")?.trim()
+    titleProperty(specification, "LANG")
 
 /*  determine the document character set (CHARSET) from the title object  */
 export const documentCharset = (specification: Spec): string | undefined =>
-    titleProperty(specification, "CHARSET")?.trim()
+    titleProperty(specification, "CHARSET")
 
-/*  determine the document theme style (THEME-STYLE) from the title object  */
-export const documentThemeStyle = (specification: Spec): string | undefined =>
-    titleProperty(specification, "THEME-STYLE")?.trim()
+/*  determine the document theme style (THEME-STYLE) from the title
+    object, lower-cased and rejecting an unknown style (the styles being
+    the very themes the "{theme}" image embeddings know)  */
+export const documentThemeStyle = (specification: Spec): typeof embeddingThemes[number] | undefined => {
+    const value = titleProperty(specification, "THEME-STYLE")
+    if (value === undefined)
+        return undefined
+    const style = embeddingThemes.find((name) => name === value.toLowerCase())
+    if (style === undefined)
+        throw new Error(`unknown theme style "${value}" ` +
+            `(expected ${embeddingThemes.join(", ")})`)
+    return style
+}
 
 /*  determine the document theme color tone (THEME-TONE) from the title object  */
 export const documentThemeTone = (specification: Spec): string | undefined =>
-    titleProperty(specification, "THEME-TONE")?.trim()
+    titleProperty(specification, "THEME-TONE")
 
 /*  the setup of a paper size for print: its physical height and its
     print margins, both expressed in the unit native to the paper  */
@@ -135,7 +145,7 @@ export const paperLength = (setup: PaperSetup, value: number): string =>
     matched case-insensitively, falling back onto the default if unset
     and rejecting an unknown size  */
 export const documentPaperSize = (specification: Spec): string => {
-    const value = titleProperty(specification, "PAPER-SIZE")?.trim()
+    const value = titleProperty(specification, "PAPER-SIZE")
     if (value === undefined)
         return paperSizeDefault
     const paper = paperSizes.find((name) => name.toLowerCase() === value.toLowerCase())
@@ -265,11 +275,10 @@ export const subsetStylesheet = async (charset?: string): Promise<string> => {
     the inline code markup stripped, as the plain-text targets (the HTML
     <title>, the PDF metadata and page header) render no Markdown  */
 export const documentTitle = (specification: Spec): { title: string, subtitle?: string } => {
-    const title    = titleProperty(specification, "TITLE")?.trim()
-    const subtitle = titleProperty(specification, "SUBTITLE")?.trim()
+    const title    = titleProperty(specification, "TITLE")
+    const subtitle = titleProperty(specification, "SUBTITLE")
     return {
-        title:    plainText(title !== undefined && title !== "" ? title :
-            titleObject(specification)?.name ?? "Specification"),
+        title:    plainText(title ?? "Specification"),
         subtitle: subtitle !== undefined ? plainText(subtitle) : undefined
     }
 }

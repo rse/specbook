@@ -2,6 +2,61 @@
 ChangeLog
 =========
 
+1.3.1 (2026-09-22)
+------------------
+
+-   BUGFIX [code]: Git Exclude Rules Matched Exactly like Git
+    A trailing `/**` no longer excludes the directory itself, `[!...]` classes, `core.ignoreCase`,
+    and leading/escaped trailing whitespace are honored, and `core.excludesFile` is expanded by Git.
+
+-   BUGFIX [code]: References Inside Diagrams and Automata Resolved Completely
+    The diagram derivation matched `[[...]]` on the raw instead of the plain property text, and the
+    automaton checks took only the first reference of an edge, so edges and transitions got lost.
+
+-   BUGFIX [code]: Artifact and Configuration Inputs Handled Robustly
+    A UTF-8 byte order mark no longer hides the frontmatter, `C:\...` artifact paths are rejected,
+    `-c std` embeds the standard configuration, and inaccessible directories count as absent.
+
+-   BUGFIX [code]: Title Object Properties Rendered Consistently
+    An empty `SUBTITLE`/`AUTHOR`/`VERSION`/`LOGO` counts as absent (the fallback logo included), and
+    an absent `TITLE` falls back onto "Specification" instead of the name of the title object.
+
+-   BUGFIX [code]: PDF Decoration Accent and Browser Resolution
+    The dark accent of the brand bar and headers used spread index 24 instead of the 22 of the
+    HTML, and a failed browser lookup was memoized for the process lifetime of the MCP service.
+
+-   BUGFIX [code]: Client-Side Scripts of the HTML Export
+    The popup title regex lost its `\s`, a stale search outlived a live preview body swap, the fold
+    chevron of a search-hidden diagram floated, and the theme switch clobbered `maximized`.
+
+-   BUGFIX [code]: `-O text:long` Aligned with the Client-Side Cell Folding
+    A cell is cut only when it exceeds the `maxCellHeight` excess (both sides sharing one pair of
+    threshold constants), and a cut behind a task list checkbox no longer emits `</input>`.
+
+-   BUGFIX [code]: Watch Mode and Preview Robustness
+    An edit during the initial export is no longer lost, a failing observe start releases the bound
+    port, and usage errors are reported before the browser is probed or the port is bound.
+
+-   IMPROVEMENT [code]: Clearer Diagnostics for Themes, Nested Blocks, and Image Optimizations
+    Invalid `THEME-TONE`/`THEME-STYLE` values fail up-front naming the property, block content
+    nested into list items yields `nested <type> ... ignored`, and a failed Sharp/SVGO run a notice.
+
+-   IMPROVEMENT [code]: Consistent Option Parsing across `--verbose`, `--compress`, and `--port`
+    `--compress` accepts the boolean words of `--verbose` (`SPECBOOK_COMPRESS=yes`), and `--port`
+    rejects hexadecimal, exponent, and padded forms like the other numeric options.
+
+-   IMPROVEMENT [code]: Search Filters the Table of Contents in a Single Layout Pass
+    The visibility reads and the hiding writes of the entries are batched instead of interleaved,
+    which forced a synchronous re-layout per heading on every search run.
+
+-   REFACTOR [code]: Internal Structure of the Diagram Derivation, Renderers, and API Types
+    The derivation context travels as one `DiagramContext`, over-long functions are split below
+    the 100-line mark, and `ExportRequest`/`WatchRequest` name the API option shapes.
+
+-   CLEANUP [code]: Stylus Mixins, Type-Safe Choice Parsing, and Minor Consistency Fixes
+    The brand bar tabs and circle icons share `tab()`/`icon()` mixins, the choice parsers narrow
+    via `find`, and misleading names, redundant checks, and the formatting are corrected throughout.
+
 1.3.0 (2026-09-20)
 ------------------
 

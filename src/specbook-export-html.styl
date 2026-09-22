@@ -196,6 +196,23 @@ body::before
     body
         padding: 0
 
+/*  a tab riding right of the brand bar (fixed independent of the
+    content scrolling, at its vertical offset and inset by a pixel or
+    two from the bar), which follows the bar when the table of contents
+    panel shifts it aside  */
+tab(offset, inset = 1px)
+    position: fixed
+    top: offset
+    left: "calc(0.6rem - %s)" % inset
+    z-index: 30
+    border-radius: 0 0.3rem 0.3rem 0
+    color: var(--theme-color-specbook-background)
+    background-color: var(--theme-color-specbook-accent)
+    transition: left 0.3s ease
+    body:has(nav.toc-panel.open) &
+        left: "calc(31rem - %s)" % inset
+        box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
+
 /*  the theme-switching tab (screen-only): the topmost tab riding right
     of the brand bar above the info tab (sized like the table of
     contents tab, fixed independent of the content scrolling), showing
@@ -203,22 +220,12 @@ body::before
     the U+25D0 glyph), which switches the color theme, where the tab
     follows the bar when the table of contents panel shifts it aside  */
 div.theme-switch
-    position: fixed
-    top: 0.97rem
-    left: calc(0.6rem - 1px)
-    z-index: 30
+    tab(0.97rem)
     padding: 0.9rem 0.35rem
     line-height: 0
-    border-radius: 0 0.3rem 0.3rem 0
-    color: var(--theme-color-specbook-background)
-    background-color: var(--theme-color-specbook-accent)
-    transition: left 0.3s ease
     cursor: pointer
     -webkit-user-select: none
     user-select: none
-body:has(nav.toc-panel.open) div.theme-switch
-    left: calc(31rem - 1px)
-    box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 div.theme-switch:hover
     background-color: var(--theme-color-specbook-accent-soft)
 div.theme-switch svg.theme-icon
@@ -238,22 +245,12 @@ div.theme-switch svg.theme-icon
     aside and the icon carries the mark colors in a rounded box while
     the popups are enabled, signalling the active toggle  */
 div.info-switch
-    position: fixed
-    top: 4.20rem
-    left: calc(0.6rem - 1px)
-    z-index: 30
+    tab(4.20rem)
     padding: 0.65rem 0.1rem
     line-height: 0
-    border-radius: 0 0.3rem 0.3rem 0
-    color: var(--theme-color-specbook-background)
-    background-color: var(--theme-color-specbook-accent)
-    transition: left 0.3s ease
     cursor: pointer
     -webkit-user-select: none
     user-select: none
-body:has(nav.toc-panel.open) div.info-switch
-    left: calc(31rem - 1px)
-    box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 div.info-switch:hover
     background-color: var(--theme-color-specbook-accent-soft)
 div.info-switch svg.info-icon
@@ -268,6 +265,16 @@ body.info-on div.info-switch svg.info-icon
 @media print
     div.info-switch
         display: none
+
+/*  the circle icon leading an object kind (filled) or a property
+    name (not filled), sized and aligned onto the text  */
+icon(glyph)
+    content: glyph
+    font-weight: normal
+    font-size: 120%
+    margin-right: 0.25rem
+    vertical-align: -0.075em
+    line-height: 0
 
 /*  the description popup (screen-only): a single shared, script-
     positioned element showing the schema description of the hovered
@@ -327,19 +334,9 @@ div.info-popup.spec span.info-id
 div.info-popup.spec span.info-id-name
     font-weight: 600
 div.info-popup span.info-object::before
-    content: "\25CF"
-    font-weight: normal
-    font-size: 120%
-    margin-right: 0.25rem
-    vertical-align: -0.075em
-    line-height: 0
+    icon("\25CF")
 div.info-popup span.info-property::before
-    content: "\25CB"
-    font-weight: normal
-    font-size: 120%
-    margin-right: 0.25rem
-    vertical-align: -0.075em
-    line-height: 0
+    icon("\25CB")
 div.info-popup div.info-desc p
     margin: 0.25rem 0
 div.info-popup div.info-desc p:last-child
@@ -400,19 +397,9 @@ div.info-popup.spec a.link-compact::before
     carry, like the fold icon itself, the mark colors in a rounded box
     while anything of their kind is folded  */
 div.fold-switch
-    position: fixed
-    top: 10.66rem
-    left: calc(0.6rem - 1px)
-    z-index: 30
+    tab(10.66rem)
     display: flex
     align-items: center
-    border-radius: 0 0.3rem 0.3rem 0
-    color: var(--theme-color-specbook-background)
-    background-color: var(--theme-color-specbook-accent)
-    transition: left 0.3s ease
-body:has(nav.toc-panel.open) div.fold-switch
-    left: calc(31rem - 1px)
-    box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 div.fold-switch div.fold-toggle
     padding: 0.65rem 0.1rem
     line-height: 0
@@ -611,21 +598,11 @@ html.maximized
     is active) while disconnected, plus blinking in a soft accent box
     for 2s (toggling every 250ms) after a content reload  */
 div.realtime-status
-    position: fixed
-    top: 17.12rem
-    left: calc(0.6rem - 2px)
-    z-index: 30
+    tab(17.12rem, 2px)
     padding: 0.65rem 0.1rem
     line-height: 0
-    border-radius: 0 0.3rem 0.3rem 0
-    color: var(--theme-color-specbook-background)
-    background-color: var(--theme-color-specbook-accent)
-    transition: left 0.3s ease
     -webkit-user-select: none
     user-select: none
-body:has(nav.toc-panel.open) div.realtime-status
-    left: calc(31rem - 2px)
-    box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 div.realtime-status svg.realtime-icon
     width: 1.1rem
     height: 1.1rem
@@ -836,7 +813,6 @@ h2, h3, h4
     bottom of a page while its content starts on the next one  */
 @media print
     h1, h2, h3, h4, h5, h6
-        page-break-after: avoid
         break-after: avoid
 
 /*  the hierarchical section numbering of the object headings  */
@@ -876,21 +852,11 @@ a
     color: var(--theme-color-specbook-accent)
 
 .object-kind::before
-    content: "\25CF"
+    icon("\25CF")
     color: var(--theme-color-specbook-accent)
-    font-weight: normal
-    font-size: 120%
-    margin-right: 0.25rem
-    vertical-align: -0.075em
-    line-height: 0
 .property-name::before
-    content: "\25CB"
+    icon("\25CB")
     color: var(--theme-color-specbook-accent)
-    font-weight: normal
-    font-size: 120%
-    margin-right: 0.25rem
-    vertical-align: -0.075em
-    line-height: 0
 span.link-broken
     color: var(--theme-color-specbook-error)
 
@@ -919,13 +885,8 @@ a.link-compact
     color: var(--theme-color-specbook-text)
     font-weight: 600
 a.link-compact::before
-    content: "\25CF"
+    icon("\25CF")
     color: var(--theme-color-specbook-accent)
-    font-weight: normal
-    font-size: 120%
-    margin-right: 0.25rem
-    vertical-align: -0.075em
-    line-height: 0
 span.anchor-paren
     color: var(--theme-color-specbook-muted)
     font-weight: normal
@@ -1029,14 +990,12 @@ table.objects table.chunks th:not(.property-name)
 /*  the diagram leading the chunks of an object, kept in one piece  */
 table.objects table.chunks div.diagram
     margin: 0.15rem 0
-    page-break-inside: avoid
     break-inside: avoid
 
 /*  bundle a chunk header row with its value row, so neither the
     "Diagram" header nor the property names are orphaned at a page end  */
 @media print
     table.objects table.chunks tr:has(> th)
-        page-break-after: avoid
         break-after: avoid
 
 /*  keep the cells of empty property values one text line high  */
@@ -1184,7 +1143,6 @@ code
 div.titlepage
     text-align: center
     margin: 6rem 0 4rem 0
-    page-break-after: always
     break-after: page
 div.titlepage .logo
     margin-bottom: 2rem
@@ -1236,19 +1194,9 @@ div.titlepage div.description p + p:not(.rationale)
     and the icon carries the mark colors in a rounded box while a
     search filter is active, signalling the filtered content  */
 div.search
-    position: fixed
-    top: 7.43rem
-    left: calc(0.6rem - 1px)
-    z-index: 30
+    tab(7.43rem)
     display: flex
     align-items: center
-    border-radius: 0 0.3rem 0.3rem 0
-    color: var(--theme-color-specbook-background)
-    background-color: var(--theme-color-specbook-accent)
-    transition: left 0.3s ease
-body:has(nav.toc-panel.open) div.search
-    left: calc(31rem - 1px)
-    box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 div.search div.search-toggle
     padding: 0.65rem 0.1rem
     line-height: 0
@@ -1308,7 +1256,8 @@ div.search span.search-clear:hover
 /*  the search result filtering and matched word highlighting, where
     the SVG text labels of the diagrams (having no background) mimic
     the <mark> look with a rounded <rect> placed below the glyphs  */
-.search-hide
+.search-hide,
+div.fold:has(> div.diagram.search-hide)
     display: none
 body.searching nav.doc,
 body.searching div.embedding
@@ -1329,7 +1278,6 @@ rect.search-hit
     the deeper ones unnumbered) and indented per nesting level, where
     the (potentially multi-page) table paginates between its rows only  */
 nav.toc
-    page-break-after: always
     break-after: page
     counter-reset: toc1
 nav.toc h1
@@ -1369,7 +1317,6 @@ nav.toc table
     margin: 1.0rem 0
     width: 100%
 nav.toc tr
-    page-break-inside: avoid
     break-inside: avoid
 nav.toc td
     padding: 0.3rem 0.6rem
@@ -1386,7 +1333,6 @@ nav.toc a
 
 /*  the diagram of contents (the diagram of the title object)  */
 nav.doc
-    page-break-after: always
     break-after: page
 nav.doc h1
     color: var(--theme-color-specbook-accent)

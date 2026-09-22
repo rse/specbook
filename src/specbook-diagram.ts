@@ -40,7 +40,7 @@ export interface DiagramError {
     from the "#config" directives) and, for a "hub" diagram, its number
     of occupied columns (the center plus the non-empty input and output
     columns of the three-column layout), or the reasons for omitting
-    the diagram  */
+    the diagram (none for a silently omitted empty or collapsed one)  */
 export interface DiagramResult {
     spec?:    string
     config?:  SchemaDiagram["config"]
@@ -125,6 +125,17 @@ interface DiagramEdge {
     tokens stay plain heading markers on export  */
 type ParenProps = Map<SpecObject, SpecProperty>
 
+/*  the derivation-wide context of the diagrams of a specification:
+    the link index, the anchor paths, the index positions, and the
+    parent objects of all objects, plus the synthetic properties  */
+interface DiagramContext {
+    index:      LinkIndex
+    anchors:    Map<SpecObject, string>
+    positions:  Map<SpecObject, number>
+    parents:    Map<SpecObject, SpecObject | undefined>
+    parenProps: ParenProps
+}
+
 /*  the properties of an object, the synthetic one included  */
 const propsOf = (parenProps: ParenProps, object: SpecObject): SpecProperty[] => {
     const synthetic = parenProps.get(object)
@@ -148,10 +159,9 @@ interface DiagramNesting {
     unique anchor path as the node id, the object name as the displayed
     label, the container node as the parent) and one edge statement per
     derived edge  */
-const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
-    centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[], nesting: DiagramNesting,
-    index: LinkIndex, anchors: Map<SpecObject, string>, positions: Map<SpecObject, number>,
-    parenProps: ParenProps): string => {
+const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
+    centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[], nesting: DiagramNesting): string => {
+    const { index, anchors, positions, parenProps } = ctx
     const lines  = [ `#type ${type}` ]
     const config = { ...diagramPresets, ...diagram.config }
     for (const [ key, value ] of Object.entries(config))
@@ -226,9 +236,9 @@ const renderSpec = (diagram: SchemaDiagram, type: DiagramType, center: SpecObjec
     property key when "labeled", and for a "deep" diagram also of their
     descendants, with the reference count as the arity), with every
     target lifted to its nearest node  */
-const deriveReferenceEdges = (diagram: SchemaDiagram, nodes: SpecObject[], nodeSet: Set<SpecObject>,
-    index: LinkIndex, anchors: Map<SpecObject, string>,
-    parents: Map<SpecObject, SpecObject | undefined>, parenProps: ParenProps): DiagramEdge[] => {
+const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes: SpecObject[],
+    nodeSet: Set<SpecObject>): DiagramEdge[] => {
+    const { index, anchors, parents, parenProps } = ctx
     const edges = new Array<DiagramEdge>()
 
     /*  lift an object to its nearest ancestor-or-self within the
@@ -264,9 +274,9 @@ const deriveReferenceEdges = (diagram: SchemaDiagram, nodes: SpecObject[], nodeS
                     texts.push({ text: object.description.rationale })
             }
             for (const { text, name } of texts)
-                for (const m of text.matchAll(referenceRegex)) {
+                for (const m of plainText(text).matchAll(referenceRegex)) {
                     const target = lift(resolveUnique(index, m[1].trim(), object).target)
-                    if (target !== undefined && target !== node && nodeSet.has(target)) {
+                    if (target !== undefined && target !== node) {
                         const key   = `${anchors.get(target) ?? target.id}\u0000${name ?? ""}`
                         const entry = counts.get(key) ?? { target, name, count: 0 }
                         entry.count++
@@ -285,9 +295,9 @@ const deriveReferenceEdges = (diagram: SchemaDiagram, nodes: SpecObject[], nodeS
     convention (source: parent object, target: first reference in the
     property values, name: object name, arity: "ARITY" property),
     overridable via "edgeSource"/"edgeTarget"/"edgeArity"  */
-const deriveObjectEdges = (diagram: SchemaDiagram, nodeSet: Set<SpecObject>, edgeObjects: SpecObject[],
-    index: LinkIndex, parents: Map<SpecObject, SpecObject | undefined>,
-    parenProps: ParenProps, errors: DiagramError[]): DiagramEdge[] => {
+const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodeSet: Set<SpecObject>,
+    edgeObjects: SpecObject[], errors: DiagramError[]): DiagramEdge[] => {
+    const { index, parents, parenProps } = ctx
     const edges = new Array<DiagramEdge>()
 
     /*  resolve the node an edge object references through a named
@@ -298,7 +308,7 @@ const deriveObjectEdges = (diagram: SchemaDiagram, nodeSet: Set<SpecObject>, edg
             propValue(parenProps, edgeObject, key) :
             propsOf(parenProps, edgeObject).filter((property) => property.key !== diagram.edgeSource)
                 .map((property) => property.value).find((v) => referenceOnce.test(v))
-        const reference = value?.match(referenceOnce)?.[1].trim()
+        const reference = value !== undefined ? plainText(value).match(referenceOnce)?.[1].trim() : undefined
         return reference !== undefined ? resolveUnique(index, reference, edgeObject).target : undefined
     }
     for (const edgeObject of edgeObjects) {
@@ -328,21 +338,19 @@ const deriveObjectEdges = (diagram: SchemaDiagram, nodeSet: Set<SpecObject>, edg
     objects, the object edges of the edge objects, and the containment
     edges of the object hierarchy (a "grid" diagram is edge-less by
     definition, so no edges are derived at all)  */
-const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
+const deriveEdges = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramType,
     nodes: SpecObject[], nodeSet: Set<SpecObject>, edgeObjects: SpecObject[],
-    index: LinkIndex, anchors: Map<SpecObject, string>,
-    parents: Map<SpecObject, SpecObject | undefined>, parenProps: ParenProps,
     errors: DiagramError[]): DiagramEdge[] => {
     const edges = new Array<DiagramEdge>()
     if (type !== "grid") {
-        edges.push(...deriveReferenceEdges(diagram, nodes, nodeSet, index, anchors, parents, parenProps))
-        edges.push(...deriveObjectEdges(diagram, nodeSet, edgeObjects, index, parents, parenProps, errors))
+        edges.push(...deriveReferenceEdges(ctx, diagram, nodes, nodeSet))
+        edges.push(...deriveObjectEdges(ctx, diagram, nodeSet, edgeObjects, errors))
 
         /*  derive the containment edges from the object hierarchy, as
             the nesting of the objects carries no "[[...]]" reference  */
         if (diagram.hierarchy === true)
             for (const node of nodes) {
-                const parent = parents.get(node)
+                const parent = ctx.parents.get(node)
                 if (parent !== undefined && nodeSet.has(parent))
                     edges.push({ source: parent, target: node })
             }
@@ -353,7 +361,6 @@ const deriveEdges = (diagram: SchemaDiagram, type: DiagramType,
                 errors.push({ reason: "\"grid\" diagram cannot carry " +
                     `${(/^[aeiou]/).test(field) ? "an" : "a"} "${field}" configuration` })
     }
-
     return edges
 }
 
@@ -415,10 +422,9 @@ interface DiagramCenter {
     itself, e.g., is no specification object, yet a context
     diagram places it in the middle) and injected into the node
     set (the center is absent whenever the configuration is invalid)  */
-const deriveCenter = (object: SpecObject, diagram: SchemaDiagram,
-    nodes: SpecObject[], nodeSet: Set<SpecObject>, index: LinkIndex,
-    anchors: Map<SpecObject, string>, parenProps: ParenProps,
-    errors: DiagramError[]): DiagramCenter | undefined => {
+const deriveCenter = (ctx: DiagramContext, object: SpecObject, diagram: SchemaDiagram,
+    nodes: SpecObject[], nodeSet: Set<SpecObject>, errors: DiagramError[]): DiagramCenter | undefined => {
+    const { index, anchors, parenProps } = ctx
     if (typeof diagram.center === "string" && diagram.center !== "self") {
         const reference = diagram.center.match(referenceOnce)?.[1].trim()
         const resolved  = reference !== undefined ? resolveUnique(index, reference, object) : undefined
@@ -483,9 +489,9 @@ const deriveCenter = (object: SpecObject, diagram: SchemaDiagram,
     Gradia renders as an input node plus an output "ghost" node),
     named by the "labeled" property and/or by the mediating object
     the "via" property references (as "via <name>")  */
-const deriveCenterEdges = (cfg: SchemaDiagramCenterEdges, nodes: SpecObject[],
-    center: SpecObject, index: LinkIndex, parenProps: ParenProps,
-    errors: DiagramError[]): DiagramEdge[] => {
+const deriveCenterEdges = (ctx: DiagramContext, cfg: SchemaDiagramCenterEdges, nodes: SpecObject[],
+    center: SpecObject, errors: DiagramError[]): DiagramEdge[] => {
+    const { index, parenProps } = ctx
     const edges = new Array<DiagramEdge>()
     for (const node of nodes) {
         if (node === center)
@@ -526,9 +532,9 @@ const deriveCenterEdges = (cfg: SchemaDiagramCenterEdges, nodes: SpecObject[],
     on its own in turn), else its parent object when part of the node
     set, else a synthetic container per object kind; a node nested into
     itself or into a cycle stays un-nested and is reported  */
-const deriveNesting = (nest: SchemaDiagramNest, nodes: SpecObject[], nodeSet: Set<SpecObject>,
-    index: LinkIndex, parents: Map<SpecObject, SpecObject | undefined>,
-    parenProps: ParenProps, errors: DiagramError[]): DiagramNesting => {
+const deriveNesting = (ctx: DiagramContext, nest: SchemaDiagramNest, nodes: SpecObject[],
+    nodeSet: Set<SpecObject>, errors: DiagramError[]): DiagramNesting => {
+    const { index, parents, parenProps } = ctx
     const parentOf = new Map<SpecObject, SpecObject>()
     const byKind   = new Map<string, SpecObject>()
 
@@ -537,7 +543,7 @@ const deriveNesting = (nest: SchemaDiagramNest, nodes: SpecObject[], nodeSet: Se
         let container: SpecObject | undefined
         for (const key of nest.properties ?? []) {
             const value = propValue(parenProps, node, key)
-            const refs  = value !== undefined ? Array.from(value.matchAll(referenceRegex)) : []
+            const refs  = value !== undefined ? Array.from(plainText(value).matchAll(referenceRegex)) : []
             if (refs.length !== 1)
                 continue
             container = resolveUnique(index, refs[0][1].trim(), node).target
@@ -565,7 +571,7 @@ const deriveNesting = (nest: SchemaDiagramNest, nodes: SpecObject[], nodeSet: Se
         while (ancestor !== undefined && ancestor !== node)
             ancestor = parentOf.get(ancestor)
         if (ancestor === node) {
-            errors.push({ reason: `node "${plainText(node.name)}" is nested into itself` })
+            errors.push({ reason: `node "${node.name}" is nested into itself` })
             continue
         }
         parentOf.set(node, container)
@@ -621,37 +627,62 @@ const liftEdges = (edges: DiagramEdge[], parentOf: Map<SpecObject, SpecObject>,
     return Array.from(merged.values())
 }
 
+/*  determine the node objects of a diagram: the objects matching its
+    "nodes" patterns, or by default the current object plus all
+    objects below it  */
+const deriveNodes = (index: LinkIndex, object: SpecObject, diagram: SchemaDiagram,
+    errors: DiagramError[]): SpecObject[] => {
+    if (diagram.nodes !== undefined)
+        return resolvePatterns(index, errors, diagram.nodes, "nodes")
+    const nodes = new Array<SpecObject>()
+    const walk = (o: SpecObject) => {
+        nodes.push(o)
+        o.children.forEach(walk)
+    }
+    walk(object)
+    return nodes
+}
+
+/*  project a "hub" diagram onto its center object: only the edges
+    incident to the center and only the nodes connected through them
+    remain, as Gradia requires exactly this constrained topology, and
+    the occupied columns are the center plus the input column, when an
+    edge of another node targets the center, plus the output column,
+    when an edge originates from the center, where Gradia places the
+    target of its self-loop, too  */
+const projectHub = (nodes: SpecObject[], edges: DiagramEdge[],
+    center: SpecObject): { nodes: SpecObject[], edges: DiagramEdge[], columns: number } => {
+    const incident  = edges.filter((edge) => edge.source === center || edge.target === center)
+    const connected = new Set<SpecObject>([ center ])
+    for (const edge of incident) {
+        connected.add(edge.source)
+        connected.add(edge.target)
+    }
+    const columns = 1 +
+        (incident.some((edge) => edge.target === center && edge.source !== center) ? 1 : 0) +
+        (incident.some((edge) => edge.source === center) ? 1 : 0)
+    return { nodes: nodes.filter((node) => connected.has(node)), edges: incident, columns }
+}
+
 /*  derive the Gradia spec of a single object from its "diagram:"
     schema configuration (the returned spec is absent whenever the
-    configured diagram situation is invalid)  */
-const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
-    index: LinkIndex, anchors: Map<SpecObject, string>, positions: Map<SpecObject, number>,
-    parents: Map<SpecObject, SpecObject | undefined>, parenProps: ParenProps): DiagramResult => {
+    configured diagram situation is invalid, the node set is empty,
+    or the diagram collapses onto a single node)  */
+const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaDiagram): DiagramResult => {
+    const { index, anchors } = ctx
     const type   = diagram.type ?? "graph"
     const errors = new Array<DiagramError>()
 
-    /*  determine the node objects (default: the current object plus
-        all objects below it) and the edge objects (default: none),
+    /*  determine the node objects and the edge objects (default: none),
         with the edge objects never acting as nodes themselves  */
-    let nodes: SpecObject[]
-    if (diagram.nodes !== undefined)
-        nodes = resolvePatterns(index, errors, diagram.nodes, "nodes")
-    else {
-        nodes = new Array<SpecObject>()
-        const walk = (o: SpecObject) => {
-            nodes.push(o)
-            o.children.forEach(walk)
-        }
-        walk(object)
-    }
+    let nodes = deriveNodes(index, object, diagram, errors)
     const edgeObjects = diagram.edges !== undefined ? resolvePatterns(index, errors, diagram.edges, "edges") : []
     const edgeSet     = new Set<SpecObject>(edgeObjects)
     nodes = nodes.filter((node) => !edgeSet.has(node))
     const nodeSet = new Set<SpecObject>(nodes)
 
     /*  derive the edges of the diagram  */
-    let edges = deriveEdges(diagram, type, nodes, nodeSet, edgeObjects, index, anchors, parents,
-        parenProps, errors)
+    let edges = deriveEdges(ctx, diagram, type, nodes, nodeSet, edgeObjects, errors)
 
     /*  determine the center of a "hub" diagram (the only shape
         carrying a center at all)  */
@@ -662,7 +693,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
             errors.push({ reason: `"${type}" diagram cannot carry a "centerEdges" configuration` })
     }
     const derived: DiagramCenter | undefined = type === "hub" ?
-        deriveCenter(object, diagram, nodes, nodeSet, index, anchors, parenProps, errors) : { center: object }
+        deriveCenter(ctx, object, diagram, nodes, nodeSet, errors) : { center: object }
     if (derived === undefined)
         return { errors }
     const { center, centerUrl } = derived
@@ -672,32 +703,17 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         then deduplicate all edges, as a center edge of a real center
         can coincide with a reference edge of a node onto it  */
     if (type === "hub" && diagram.centerEdges !== undefined)
-        edges.push(...deriveCenterEdges(diagram.centerEdges, nodes, center, index, parenProps, errors))
+        edges.push(...deriveCenterEdges(ctx, diagram.centerEdges, nodes, center, errors))
     edges = dedupEdges(edges, anchors)
 
-    /*  a "hub" diagram is the hub-projection onto its center object:
-        only the edges incident to the center and only the nodes
-        connected through them remain, as Gradia requires exactly this
-        constrained topology (and the occupied columns are the center
-        plus the input column, when an edge of another node targets the
-        center, plus the output column, when an edge originates from the
-        center, where Gradia places the target of its self-loop, too)  */
+    /*  project a "hub" diagram onto its center object, which has
+        to be part of the node set  */
     let columns: number | undefined
     if (type === "hub") {
         if (!nodeSet.has(center))
             errors.push({ reason: `"hub" diagram center "${center.name}" is not part of the node set` })
-        else {
-            edges = edges.filter((edge) => edge.source === center || edge.target === center)
-            const connected = new Set<SpecObject>([ center ])
-            for (const edge of edges) {
-                connected.add(edge.source)
-                connected.add(edge.target)
-            }
-            nodes = nodes.filter((node) => connected.has(node))
-            columns = 1 +
-                (edges.some((edge) => edge.target === center && edge.source !== center) ? 1 : 0) +
-                (edges.some((edge) => edge.source === center) ? 1 : 0)
-        }
+        else
+            ({ nodes, edges, columns } = projectHub(nodes, edges, center))
     }
 
     /*  nest the nodes into container nodes (except in a "hub" diagram,
@@ -709,7 +725,7 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         if (type === "hub")
             errors.push({ reason: "\"hub\" diagram cannot carry a \"nest\" configuration" })
         else {
-            nesting = deriveNesting(diagram.nest, nodes, nodeSet, index, parents, parenProps, errors)
+            nesting = deriveNesting(ctx, diagram.nest, nodes, nodeSet, errors)
             if (diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
                 edges = liftEdges(edges, nesting.parentOf, diagram.nest.crossing, anchors)
             edges = edges.filter((edge) => nesting.parentOf.get(edge.source) !== edge.target
@@ -740,8 +756,8 @@ const deriveDiagram = (object: SpecObject, diagram: SchemaDiagram,
         || (diagram.collapse !== false && nodes.length === 1 && edges.length === 0))
         return { errors }
 
-    return { spec: renderSpec(diagram, type, center, centerUrl, nodes, edges, nesting, index, anchors,
-        positions, parenProps), config: { ...diagramPresets, ...diagram.config }, columns, errors }
+    return { spec: renderSpec(ctx, diagram, type, center, centerUrl, nodes, edges, nesting),
+        config: { ...diagramPresets, ...diagram.config }, columns, errors }
 }
 
 /*  the memoized diagram derivations, keyed by specification, as the
@@ -769,12 +785,11 @@ export const specDiagrams = (specification: Spec,
     /*  re-derive the synthetic properties of the consumed parenthesized
         name tokens, as the derivation sees the AST alone, while the
         parsing context holding them is long gone by export time  */
-    const parenProps = collectParenProps(schemas)
-    const results    = new Map<SpecObject, DiagramResult>()
+    const ctx     = { index, anchors, positions, parents, parenProps: collectParenProps(schemas) }
+    const results = new Map<SpecObject, DiagramResult>()
     for (const [ object, schema ] of schemas)
         if (schema.diagram !== undefined)
-            results.set(object, deriveDiagram(object, schema.diagram, index, anchors, positions, parents,
-                parenProps))
+            results.set(object, deriveDiagram(ctx, object, schema.diagram))
     derivations.set(specification, { config, results })
     return results
 }
@@ -835,8 +850,8 @@ export const renderDiagrams = async (specification: Spec, config: Schema,
                     { format: "svg:embedded", config: result.config })
             }
             catch (err) {
-                verbose?.(`rendering diagram of ${object.kind} "${object.name}" failed: ` +
-                    (err instanceof Error ? err.message : String(err)), "notice")
+                verbose?.(`rendering diagram of ${object.kind} "${literal(plainText(object.name))}" failed: ` +
+                    (err instanceof Error ? err.message : String(err)))
                 continue
             }
         }

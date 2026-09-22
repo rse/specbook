@@ -4,7 +4,7 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import fs
+import * as fs
     from "node:fs"
 
 import type { PDFDocument, PDFArray, PDFRef }
@@ -169,9 +169,10 @@ const drawBrandBar = async (doc: PDFDocument, accent: string) => {
 }
 
 /*  the launch options of the Chromium-class browser printing the PDF,
-    resolved just once per process, as probing a system-installed Google
-    Chrome has to actually launch it and as the export preflight and the
-    renderer both ask for the very same browser  */
+    resolved just once per process (a failed resolution excepted, so a
+    long-running process retries after the remedy), as probing a
+    system-installed Google Chrome has to actually launch it and as the
+    export preflight and the renderer both ask for the very same browser  */
 let browserOptions: Promise<LaunchOptions | undefined> | undefined
 
 /*  the remedy of an unavailable Playwright Chromium, shared by the
@@ -199,7 +200,7 @@ const resolveBrowser = async (verbose: Verbose): Promise<LaunchOptions | undefin
             const browser = await chromium.launch(options)
             await browser.close()
         }
-        catch (err: unknown) {
+        catch (err) {
             throw new Error(`the browser "${literal(configured)}" configured by ` +
                 `"${literal("SPECBOOK_BROWSER")}" failed to launch`, { cause: err })
         }
@@ -236,10 +237,15 @@ const resolveBrowser = async (verbose: Verbose): Promise<LaunchOptions | undefin
     inside the rendering and with a Playwright-internal message  */
 export const requireBrowser = async (verbose: Verbose): Promise<LaunchOptions> => {
     browserOptions ??= resolveBrowser(verbose)
-    const options = await browserOptions
-    if (options === undefined)
+    const options = await browserOptions.catch((err: unknown) => {
+        browserOptions = undefined
+        throw err
+    })
+    if (options === undefined) {
+        browserOptions = undefined
         throw new Error("the PDF export requires a Chromium-class browser, but neither the " +
             `Playwright Chromium nor a system-installed Google Chrome was found -- ${chromiumRemedy}`)
+    }
     return options
 }
 

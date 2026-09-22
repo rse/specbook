@@ -59,8 +59,8 @@ const mergeConfig = (target: unknown, source: unknown, list?: string): unknown =
     else if (Array.isArray(target) && Array.isArray(source)) {
         const items = target as unknown[]
         for (const item of source as unknown[]) {
-            const i = items.findIndex((existing) =>
-                identityOf(existing, list) === identityOf(item, list))
+            const ident = identityOf(item, list)
+            const i     = items.findIndex((existing) => identityOf(existing, list) === ident)
             if (i < 0)
                 items.push(item)
             else
@@ -107,8 +107,11 @@ const posOfMergedPath = (docs: ConfigDoc[], merged: unknown, path: YamlPath) => 
         let own  = raw
         let list: string | undefined
         for (const segment of path) {
-            const key = typeof segment === "number" && Array.isArray(own) ?
-                own.findIndex((item: unknown) => identityOf(item, list) === identityOf(at(node, segment), list)) : segment
+            let key: string | number = segment
+            if (typeof segment === "number" && Array.isArray(own)) {
+                const ident = identityOf(at(node, segment), list)
+                key = own.findIndex((item: unknown) => identityOf(item, list) === ident)
+            }
             const reaches = typeof key === "number" ?
                 Array.isArray(own) && key >= 0 :
                 isPlainObject(own) && key in own
@@ -224,7 +227,8 @@ const checkAutomaton = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) 
 /*  check the constraints of a structurally valid configuration which
     are beyond its schema: sibling objects have to stay distinctly
     resolvable, "file" fields are allowed on the first (artifact) level
-    only, property value and marker expressions have to be syntactically
+    only and have to be relative paths below the base directory,
+    property value and marker expressions have to be syntactically
     valid, "referenced" and "coverage" entries have to be reference
     expressions, an "automaton" has to name existing child kinds and
     properties, and the names of non-artifact objects have to be valid
@@ -257,8 +261,8 @@ const checkConstraints = (
 
             /*  an artifact file is placed below the base directory, so
                 it must neither be absolute nor escape that directory  */
-            if (object.file !== undefined
-                && ((/^[/\\]/).test(object.file) || (/(?:^|[/\\])\.\.(?:[/\\]|$)/).test(object.file)))
+            if (depth === 1 && object.file !== undefined
+                && ((/^(?:[/\\]|[A-Za-z]:)/).test(object.file) || (/(?:^|[/\\])\.\.(?:[/\\]|$)/).test(object.file)))
                 diagnose([ ...at, "file" ],
                     `"file" field "${object.file}" is not a relative path below the base directory`)
             checkProperties(object.props ?? [], at, diagnose)

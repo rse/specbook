@@ -146,7 +146,7 @@ const checkPropValue = (ctx: ParseContext, object: SpecObject, prop: SchemaPrope
                 checkLocal(ctx, object, prop, singleTarget(ctx, object, item), meta)
         }
     }
-    else if (!directMatches(expr, plainText(property.value)))
+    else if (!directMatches(expr, plainText(property.value).trim()))
         ctx.diagnose(meta.file, meta.line, expr.kind === "enum" ?
             `property "${prop.name}" value "${property.value}" is not a member of "${prop.value}"` :
             `property "${prop.name}" value "${property.value}" does not match pattern "${prop.value}"`)
@@ -400,14 +400,13 @@ const checkAutomata = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject>
             the node set is skipped, as the property checks report it)  */
         const succs = new Map<SpecObject, Set<SpecObject>>(nodes.map((node) => [ node, new Set<SpecObject>() ]))
         const preds = new Map<SpecObject, Set<SpecObject>>(nodes.map((node) => [ node, new Set<SpecObject>() ]))
-        for (const edge of object.children.filter((child) => child.kind === automaton.edges)) {
-            const source = referencedObjects(ctx, edge, automaton.source)[0]
-            const target = referencedObjects(ctx, edge, automaton.target)[0]
-            if (source !== undefined && target !== undefined && nodeSet.has(source) && nodeSet.has(target)) {
-                succs.get(source)?.add(target)
-                preds.get(target)?.add(source)
-            }
-        }
+        for (const edge of object.children.filter((child) => child.kind === automaton.edges))
+            for (const source of referencedObjects(ctx, edge, automaton.source))
+                for (const target of referencedObjects(ctx, edge, automaton.target))
+                    if (nodeSet.has(source) && nodeSet.has(target)) {
+                        succs.get(source)?.add(target)
+                        preds.get(target)?.add(source)
+                    }
 
         /*  the transitive closure of a node set along a neighbor map  */
         const closure = (starts: SpecObject[], next: Map<SpecObject, Set<SpecObject>>) => {

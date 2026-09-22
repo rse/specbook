@@ -71,6 +71,24 @@ export interface ProjectOptions {
     cwd?:     string
 }
 
+/*  the options of "export": the project ones plus the requested formats,
+    the live preview script, the omitted aspects, the Git exclude
+    handling, and the per-format re-basing directories  */
+export interface ExportRequest extends ProjectOptions {
+    formats?:   ExportFormat[]
+    realtime?:  boolean
+    omit?:      string[]
+    gitignore?: boolean
+    rebase?:    (string | undefined)[]
+}
+
+/*  the options of "watch": the ones of "export" plus the written output
+    files and the sink receiving the buffers of every export  */
+export interface WatchRequest extends ExportRequest {
+    outputs?: string[]
+    onExport: (buffers: Buffer[]) => void | Promise<void>
+}
+
 /*  the SpecBook API  */
 export class SpecBook {
     private verbose: VerboseSink
@@ -197,6 +215,14 @@ export class SpecBook {
         return buffers
     }
 
+    /*  anchor the given relative re-basing directories
+        at a given working directory  */
+    private rebaseOf (options: { cwd?: string, rebase?: (string | undefined)[] }) {
+        const cwd = options.cwd
+        return cwd === undefined ? options.rebase : options.rebase?.map((dir) =>
+            dir !== undefined ? path.resolve(cwd, dir) : dir)
+    }
+
     /*  export the specification Markdown files below the base directory
         as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown,
         parsing the input just once and returning one buffer per
@@ -205,8 +231,7 @@ export class SpecBook {
         the normalized Markdown are re-based (an absent one keeps them),
         and "omit" names the (comma-separated) aspects the HTML, the PDF,
         and (the diagrams) the AST leave out (see "omitAspects")  */
-    async export (options: ProjectOptions & { formats?: ExportFormat[], realtime?: boolean,
-        omit?: string[], gitignore?: boolean, rebase?: (string | undefined)[] }): Promise<Buffer[]> {
+    async export (options: ExportRequest): Promise<Buffer[]> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
         const omit      = parseOmit(options.omit)
@@ -223,14 +248,6 @@ export class SpecBook {
             { realtime: options.realtime === true, omit }, this.rebaseOf(options))
     }
 
-    /*  anchor the given relative re-basing directories
-        at a given working directory  */
-    private rebaseOf (options: { cwd?: string, rebase?: (string | undefined)[] }) {
-        const cwd = options.cwd
-        return cwd === undefined ? options.rebase : options.rebase?.map((dir) =>
-            dir !== undefined ? path.resolve(cwd, dir) : dir)
-    }
-
     /*  keep an export in sync with its sources (the shared core of
         "watch" and "preview"): every change of a configuration file, of an
         artifact file, or of one of its embedded assets re-exports the
@@ -240,13 +257,17 @@ export class SpecBook {
         configuration) does not end the watch. The returned promise settles
         once the initial export is done, while the active watcher keeps the
         process alive afterwards  */
-    private async observe (options: ProjectOptions & { formats: ExportFormat[], realtime: boolean,
-        omit?: string[], gitignore?: boolean, outputs?: string[], rebase?: (string | undefined)[],
-        onExport: (buffers: Buffer[]) => void | Promise<void> },
-    verbose: Verbose): Promise<void> {
+    private async observe (options: WatchRequest & { formats: ExportFormat[], realtime: boolean },
+        verbose: Verbose): Promise<void> {
         const omit    = parseOmit(options.omit)
         const project = this.project(options, verbose)
         const config  = await this.configFiles(project.config)
+
+        /*  a missing browser is an environment problem, so let the PDF
+            export fail before the specification is even parsed, but
+            after the usage problems (exactly like "export")  */
+        if (options.formats.includes("pdf"))
+            await requireBrowser(verbose)
         return watchSpecification(async () => {
             /*  the lint result carries the files to observe even for an
                 invalid specification, and the configuration files are
@@ -281,15 +302,9 @@ export class SpecBook {
         in sync with its sources (see "observe"), where "outputs" names the
         files "onExport" writes, so an output which is itself an observed
         source can be refused, and "rebase" and "omit" are the ones of "export"  */
-    async watch (options: ProjectOptions & { formats?: ExportFormat[], realtime?: boolean,
-        omit?: string[], gitignore?: boolean, outputs?: string[], rebase?: (string | undefined)[],
-        onExport: (buffers: Buffer[]) => void | Promise<void> }): Promise<void> {
-        const verbose   = this.verboseOf("export")
-        const requested = options.formats ?? [ "json" ]
-        if (requested.includes("pdf"))
-            await requireBrowser(verbose)
-        return this.observe({ ...options, formats: requested,
-            realtime: options.realtime === true }, verbose)
+    async watch (options: WatchRequest): Promise<void> {
+        return this.observe({ ...options, formats: options.formats ?? [ "json" ],
+            realtime: options.realtime === true }, this.verboseOf("export"))
     }
 
     /*  serve the HTML export of the specification as a live preview on
@@ -301,11 +316,26 @@ export class SpecBook {
     async preview (options: ProjectOptions & { addr?: string,
         port?: number, omit?: string[], gitignore?: boolean }): Promise<void> {
         const verbose = this.verboseOf("preview")
+
+        /*  an invalid omit aspect is a usage problem, so let the preview
+            fail before the server is even bound to its port  */
+        parseOmit(options.omit)
         const server  = await servePreview({ addr: options.addr ?? previewAddr,
             port: options.port ?? previewPort, verbose })
-        return this.observe({ config: options.config, basedir: options.basedir, cwd: options.cwd,
-            formats: [ "html" ], realtime: true, omit: options.omit, gitignore: options.gitignore,
-            onExport: ([ html ]) => server.update(html) }, verbose)
+
+        /*  a preview which fails to start observing (an invalid project
+            configuration, an unmatched configuration pattern) releases
+            the already bound server again  */
+        try {
+            return await this.observe({ config: options.config, basedir: options.basedir, cwd: options.cwd,
+                formats: [ "html" ], realtime: true, omit: options.omit, gitignore: options.gitignore,
+                onExport: ([ html ]) => server.update(html) }, verbose)
+        }
+        catch (err) {
+            /*  a failing release must not mask the primary error  */
+            await server.close().catch(() => { /*  no operation  */ })
+            throw err
+        }
     }
 
     /*  describe the generic SpecBook models and formats as Markdown (or
@@ -322,10 +352,12 @@ export class SpecBook {
 
         /*  the schema-bearing parts require a schema configuration, so
             they fall back onto the bundled standard one, which is always
-            embedded, as its bundled file is no meaningful reference  */
+            embedded (also when named explicitly through "std"), as its
+            bundled file is no meaningful reference  */
         const given    = project.config !== undefined
-        const standard = !given && (part === "all" || part === "schema")
-        const config   = given || standard ? await this.configFiles(project.config) : undefined
+        const config   = given || part === "all" || part === "schema" ?
+            await this.configFiles(project.config) : undefined
+        const standard = config !== undefined && config.every((file) => file === standardConfig)
         const embed    = options.embed === true || standard
         const basedir  = project.basedir ?? (part === "spec" ? "." : undefined)
         const schema   = config !== undefined ? this.requireConfig(config, verbose) : undefined

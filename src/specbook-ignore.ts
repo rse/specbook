@@ -18,9 +18,12 @@ type Rule = { matcher: (p: string) => boolean, negated: boolean, dirOnly: boolea
     honoring the anchored-vs-floating, directory-only, and negation
     semantics of the pattern; an anchored pattern resolves relative to
     the "base" directory its rule file governs, given as a POSIX path
-    relative to the working tree root  */
-const compileRule = (line: string, base: string): Rule | null => {
-    let pattern = line.trim()
+    relative to the working tree root, and "nocase" folds the case of
+    the pattern like Git does under "core.ignoreCase"  */
+const compileRule = (line: string, base: string, nocase: boolean): Rule | null => {
+    /*  Git drops the trailing whitespace only (unless a backslash
+        escapes it), while a leading one is part of the pattern  */
+    let pattern = line.replace(/(?<!\\)\s+$/, "")
     if (pattern === "" || pattern.startsWith("#"))
         return null
     let negated = false
@@ -34,21 +37,31 @@ const compileRule = (line: string, base: string): Rule | null => {
         pattern = pattern.slice(0, -1)
     }
 
+    /*  a trailing "/**" matches everything inside the directory but not
+        the directory itself (so a later negation can still re-include a
+        file below it), whereas picomatch would match the directory, too  */
+    if (pattern.endsWith("/**"))
+        pattern += "/*"
+
     /*  a pattern carrying a slash anywhere but at its end is anchored at
         the directory of its rule file, while every other one floats and
         hence matches at any depth below it  */
     const anchored = pattern.includes("/")
     if (pattern.startsWith("/"))
         pattern = pattern.slice(1)
+
+    /*  a negated character class is "[!...]" in the wildmatch of Git,
+        while picomatch knows the "[^...]" spelling only  */
+    pattern = pattern.replace(/\[!/g, "[^")
     const glob    = anchored ? (base === "" ? pattern : `${base}/${pattern}`) : `**/${pattern}`
-    const isMatch = picomatch(glob, { dot: true, nobrace: true, noextglob: true, nonegate: true })
+    const isMatch = picomatch(glob, { dot: true, nobrace: true, noextglob: true, nonegate: true, nocase })
     return { matcher: isMatch, negated, dirOnly }
 }
 
 /*  load the rules of a single exclude file, given as an absolute "file"
     and the working-tree-relative "base" its anchored patterns resolve
     against; an absent or unreadable file contributes no rules  */
-const loadRules = (file: string, base: string): Rule[] => {
+const loadRules = (file: string, base: string, nocase: boolean): Rule[] => {
     let text: string
     try {
         text = fs.readFileSync(file, "utf8")
@@ -58,7 +71,7 @@ const loadRules = (file: string, base: string): Rule[] => {
     }
     const rules = new Array<Rule>()
     for (const line of text.split(/\r?\n/)) {
-        const rule = compileRule(line, base)
+        const rule = compileRule(line, base, nocase)
         if (rule !== null)
             rules.push(rule)
     }
@@ -80,26 +93,30 @@ const workingTree = (dir: string): string | null => {
     }
 }
 
+/*  query a single Git configuration value of a working tree (its "~"
+    expanded and its booleans normalized by Git itself through the
+    "--type"), where an unset value or no Git at all yields ""  */
+const gitConfig = (root: string, type: string, key: string): string => {
+    try {
+        return execFileSync("git", [ "config", "--get", `--type=${type}`, key ],
+            { cwd: root, encoding: "utf8", stdio: [ "ignore", "pipe", "ignore" ] }).trim()
+    }
+    catch {
+        return ""
+    }
+}
+
 /*  resolve the global Git excludes file: the configured
     "core.excludesFile", or else the XDG location Git falls back onto
     when that configuration value is unset  */
 const globalFile = (root: string): string => {
-    let file = ""
-    try {
-        file = execFileSync("git", [ "config", "--get", "core.excludesFile" ],
-            { cwd: root, encoding: "utf8", stdio: [ "ignore", "pipe", "ignore" ] }).trim()
-    }
-    catch {
-        /*  no such configuration value, or no Git at all  */
-    }
+    const file = gitConfig(root, "path", "core.excludesFile")
     if (file === "") {
         const xdg = process.env.XDG_CONFIG_HOME
         return xdg !== undefined && xdg !== "" ?
             path.join(xdg, "git", "ignore") :
             path.join(os.homedir(), ".config", "git", "ignore")
     }
-    if (file.startsWith("~/"))
-        return path.join(os.homedir(), file.slice(2))
     return file
 }
 
@@ -138,9 +155,13 @@ export const excluder = (dir: string): Excluder => {
     if (root === null)
         return () => false
 
+    /*  Git folds the case of its exclude patterns on a case-insensitive
+        file system ("core.ignoreCase", set by Git itself on init/clone)  */
+    const nocase = gitConfig(root, "bool", "core.ignoreCase") === "true"
+
     /*  the rules which no directory of the working tree owns and which
         hence govern it as a whole, in ascending Git precedence  */
-    const base = [ ...loadRules(globalFile(root), ""), ...loadRules(infoFile(root), "") ]
+    const baseRules = [ ...loadRules(globalFile(root), "", nocase), ...loadRules(infoFile(root), "", nocase) ]
 
     /*  the per-directory ".gitignore" rules, loaded on first use, as one
         run queries many files sharing the very same directories  */
@@ -148,7 +169,7 @@ export const excluder = (dir: string): Excluder => {
     const rulesOf = (relDir: string): Rule[] => {
         let rules = cache.get(relDir)
         if (rules === undefined) {
-            rules = loadRules(path.join(root, relDir, ".gitignore"), relDir)
+            rules = loadRules(path.join(root, relDir, ".gitignore"), relDir, nocase)
             cache.set(relDir, rules)
         }
         return rules
@@ -167,7 +188,7 @@ export const excluder = (dir: string): Excluder => {
             directory excludes the file itself, as Git never descends
             into it -- and, for the same reason, a rule below such an
             ancestor can never re-include the file  */
-        let rules  = base
+        let rules  = baseRules
         let relDir = ""
         for (let i = 0; i < segments.length; i++) {
             rules = rules.concat(rulesOf(relDir))

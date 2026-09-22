@@ -292,17 +292,19 @@ const themeScript = textframe`
         let style = null
         try { style = localStorage.getItem("specbook-theme") }
         catch { /*  an inaccessible storage just means no stored choice  */ }
-        if (style === null) {
-            const m = document.documentElement.className.match(/theme-(light|dark)/)
-            style = m !== null ? m[1] : null
-        }
+        const html = document.documentElement.classList
+        if (style === null)
+            style = html.contains("theme-dark") ? "dark" : (html.contains("theme-light") ? "light" : null)
         if (style === null)
             style = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-        document.documentElement.className = "theme-" + style
+        html.remove("theme-light", "theme-dark")
+        html.add("theme-" + style)
     })()
     function themeSwitch () {
-        const style = document.documentElement.className === "theme-dark" ? "light" : "dark"
-        document.documentElement.className = "theme-" + style
+        const html  = document.documentElement.classList
+        const style = html.contains("theme-dark") ? "light" : "dark"
+        html.remove("theme-light", "theme-dark")
+        html.add("theme-" + style)
         try { localStorage.setItem("specbook-theme", style) }
         catch { /*  an inaccessible storage just loses the choice  */ }
     }
@@ -453,6 +455,14 @@ const scrollProgressScript = textframe`
     })()
 `
 
+/*  the default percentage by which the text of a table cell may exceed
+    the height of every other cell of its row before it folds (or is
+    omitted), overridden per object kind by "maxCellHeight", and the
+    minimum percentage of its own height a cell has to gain by that,
+    shared by the client-side folding and the server-side omitting  */
+const cellHeightDefault = 40
+const cellGainMin       = 25
+
 /*  the client-side script of the folding: it wraps every diagram of the
     content into a fold container carrying a chevron mark at its top
     left corner, folds the text of every table cell towering over the
@@ -499,7 +509,7 @@ const foldScript = (standins: boolean, textless: boolean) => textframe`
             exceed the height of every other cell of its row before it
             folds, overridden per object kind by the "data-fold-height"
             attribute the schema configuration puts onto its table  */
-        const cellHeight = 40
+        const cellHeight = ${cellHeightDefault}
 
         /*  the chevron mark of a foldable element, rotated by the
             stylesheet while the element is folded  */
@@ -622,7 +632,7 @@ const foldScript = (standins: boolean, textless: boolean) => textframe`
             by folding, as hiding less than that is no visible relief
             and only costs the reader a chevron to click (measured after
             the cut, as the chevron itself can claim a line of its own)  */
-        const cellGain = 25
+        const cellGain = ${cellGainMin}
 
         /*  lay out the text folds, which holds for the current line
             breaks only and hence is redone on every change of them: the
@@ -747,7 +757,7 @@ const foldScript = (standins: boolean, textless: boolean) => textframe`
         if (stored.text !== null)
             folds.text.forEach((fold) => { fold.classList.toggle("folded", stored.text === "folded") })
         if (stored.diagrams !== null) {
-            stored.diagrams.split(",").filter((kind) => kind !== "text" && folds[kind] !== undefined)
+            stored.diagrams.split(",").filter((kind) => kind !== "text" && Object.hasOwn(folds, kind))
                 .forEach((kind) => { active.add(kind) })
             apply()
         }
@@ -1067,21 +1077,12 @@ const infoPopupScript = textframe`
             catch { /*  an inaccessible storage just loses the choice  */ }
             apply()
         })
-        const show = (el) => {
-            /*  a diagram node box carries no popup attributes itself, but
-                hyperlinks its object, whose heading name or table row name
-                carries the instance popup attributes  */
-            let source = el
-            if (!el.hasAttribute("data-info") && !el.hasAttribute("data-info-spec")) {
-                const target = document.getElementById(
-                    decodeURIComponent((el.getAttribute("href") ?? "").replace(/^#/, "")))
-                source = target === null ? null :
-                    (target.hasAttribute("data-info-spec") ? target : target.querySelector("[data-info-spec]"))
-                if (source === null)
-                    return
-            }
-            current = el
 
+        /*  compose the title of a popup: the title path segments of the
+            object (the last one kind-only for a kind popup), the anchor
+            id trailing an instance popup, and the property name trailing
+            a property popup  */
+        const titleOf = (source, spec, prop) => {
             /*  compose the title path segments of an object  */
             const pathOf = (n, named) => {
                 const [ , up, kind, title ] = SPEC[n]
@@ -1089,10 +1090,6 @@ const infoPopupScript = textframe`
                 return [ ...(up >= 0 ? pathOf(up, true) : []),
                     name !== "" && kind !== "" ? kind + ": " + name : (name !== "" ? name : kind) ]
             }
-            const key   = source.getAttribute("data-info")
-            const spec  = source.getAttribute("data-info-spec")
-            const prop  = source.getAttribute("data-info-prop")
-            popup.classList.toggle("spec", spec !== null)
             const title = document.createElement("div")
             title.className = "info-title"
 
@@ -1117,7 +1114,7 @@ const infoPopupScript = textframe`
                     description color), where a segment without a kind
                     prefix is the kind-only ending of a kind popup or the
                     name of a kind-less object  */
-                const m    = /^([^\s:]+): (.*)$/.exec(segment)
+                const m    = /^([^\\s:]+): (.*)$/.exec(segment)
                 const bare = i === segments.length - 1 && spec === null && prop === null
                 const name = document.createElement("span")
                 name.className = "info-name"
@@ -1157,7 +1154,27 @@ const infoPopupScript = textframe`
                 name.textContent = prop
                 title.appendChild(name)
             }
-            popup.replaceChildren(title)
+            return title
+        }
+        const show = (el) => {
+            /*  a diagram node box carries no popup attributes itself, but
+                hyperlinks its object, whose heading name or table row name
+                carries the instance popup attributes  */
+            let source = el
+            if (!el.hasAttribute("data-info") && !el.hasAttribute("data-info-spec")) {
+                const target = document.getElementById(
+                    decodeURIComponent((el.getAttribute("href") ?? "").replace(/^#/, "")))
+                source = target === null ? null :
+                    (target.hasAttribute("data-info-spec") ? target : target.querySelector("[data-info-spec]"))
+                if (source === null)
+                    return
+            }
+            current = el
+            const key   = source.getAttribute("data-info")
+            const spec  = source.getAttribute("data-info-spec")
+            const prop  = source.getAttribute("data-info-prop")
+            popup.classList.toggle("spec", spec !== null)
+            popup.replaceChildren(titleOf(source, spec, prop))
             const entry = key !== null ? INFO[key] : undefined
             const desc  = prop !== null ? entry?.p?.[prop] :
                 (spec !== null ? SPEC[spec]?.[4] : entry?.d)
@@ -1727,19 +1744,20 @@ const omitLong = (cells: nunjucks.runtime.SafeString[], shares: number[], percen
         html.split(/<\/(?:p|li|div|pre)>|<br\s*\/?>/)
             .reduce((sum, block) => sum + Math.ceil(plain(block) / chars[i]), 0))
     return htmls.map((html, i) => {
-        const limit = Math.floor(Math.max(...lines.filter((_, j) => j !== i)) *
-            (1 + (percent > 0 ? percent : 40) / 100)) * chars[i] - " [...]".length
-        if (lines[i] === 0 || limit > lengths[i] * 0.75)
+        const other = Math.max(...lines.filter((_, j) => j !== i)) *
+            (1 + (percent > 0 ? percent : cellHeightDefault) / 100)
+        const limit = Math.floor(other) * chars[i] - " [...]".length
+        if (lines[i] === 0 || lines[i] <= other || limit > lengths[i] * (1 - cellGainMin / 100))
             return cells[i]
-        const open = new Array<string>()
-        let out   = ""
-        let count = 0
+        const open  = new Array<string>()
+        let   out   = ""
+        let   count = 0
         for (const [ token ] of html.matchAll(/<[^>]*>|[^<]+/g)) {
             if (token.startsWith("<")) {
                 const tag = (/^<(\/?)([a-zA-Z][^\s/>]*)[^>]*?(\/?)>$/).exec(token)
                 if (tag?.[1] === "/")
                     open.pop()
-                else if (tag !== null && tag[3] !== "/" && !(/^(?:br|hr|img|wbr)$/).test(tag[2]))
+                else if (tag !== null && tag[3] !== "/" && !(/^(?:br|hr|img|input|wbr)$/).test(tag[2]))
                     open.push(tag[2])
             }
             else if (count + token.length > limit)
@@ -1777,11 +1795,12 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
                 twice the share of a regular column, compressing the others  */
             width:    Math.round(200 / (keys.length + 3)),
             rows:     children.map((child, i) => scoped(child, () => {
-                const cells = omitLong([ ...keys.map((key) =>
-                    inlineValue(child.kind, child.properties.find((property) => property.key === key))),
-                safe(renderCell(child)) ].slice(0, keys.length + (desc ? 1 : 0)),
-                [ ...keys.map(() => 1), 2 ].map((share) => share / (keys.length + (desc ? 3 : 1))),
-                formatOf(children[0])?.maxCellHeight)
+                const values = keys.map((key) =>
+                    inlineValue(child.kind, child.properties.find((property) => property.key === key)))
+                const shares = desc ? [ ...keys.map(() => 1), 2 ] : keys.map(() => 1)
+                const cells  = omitLong(desc ? [ ...values, safe(renderCell(child)) ] : values,
+                    shares.map((share) => share / (keys.length + (desc ? 3 : 1))),
+                    formatOf(children[0])?.maxCellHeight)
                 return {
                     id:          anchorOf(child),
                     anchor:      child.anchor,
@@ -1882,7 +1901,7 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
         object.properties.find((property) => property.key === name)?.value
     const inlineProp = (name: string) => {
         const value = prop(name)
-        return value !== undefined ? inline(value) : ""
+        return value !== undefined && value.trim() !== "" ? inline(value) : ""
     }
     const rest = object.properties.filter((property) =>
         ![ "LOGO", "TITLE", "SUBTITLE", "AUTHOR", "VERSION",
@@ -1890,9 +1909,10 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
 
     /*  the logo is rendered above the title, from the embedded image content
         of the LOGO property or, for a non-embeddable reference, as its inline
-        Markdown; without a LOGO property the built-in SpecBook logo is used,
-        in both its theme variants  */
-    const logo  = object.properties.find((property) => property.key === "LOGO")
+        Markdown; without a (non-empty) LOGO property the built-in SpecBook
+        logo is used, in both its theme variants  */
+    const logo  = object.properties.find((property) =>
+        property.key === "LOGO" && property.value.trim() !== "")
     const image = logo !== undefined ? renderEmbeddings(logo.value, logo.embedding ?? []) : []
     return scoped(object, () => render("TitlePage", { TitlePage: {
         logo:        logo === undefined ?
@@ -2087,6 +2107,50 @@ export const renderPlaceholder = (message: string): string =>
         message
     } })
 
+/*  the fold controls the omitted aspects drop, along with the implied
+    ones (no type control without diagrams of that type, no level
+    control without diagrams from that level on, no fold tab without
+    any control, which lets the tabs below it move up), plus the extra
+    style rules the omission brings (the "[...]" mark of the omitted
+    long texts and the moved-up tabs of a dropped fold tab)  */
+const omittedControls = (omit: Set<OmitAspect>) => {
+    const none    = omit.has("diagram:1")
+        || (omit.has("diagram:graph") && omit.has("diagram:hub") && omit.has("diagram:grid"))
+    const omitted = {
+        graph:  none || omit.has("diagram:graph"),
+        hub:    none || omit.has("diagram:hub"),
+        grid:   none || omit.has("diagram:grid"),
+        level1: none,
+        level2: none || omit.has("diagram:2"),
+        level3: none || omit.has("diagram:2") || omit.has("diagram:3"),
+        text:   omit.has("text:long"),
+        all:    none && omit.has("text:long")
+    }
+    const css =
+        (omitted.text ? "\nspan.omit { color: var(--theme-color-specbook-muted) }" : "") +
+        (omitted.all  ? "\nnav.toc-panel div.toc-tab { top: 10.66rem }" +
+            "\ndiv.realtime-status { top: 13.89rem }" : "")
+    return { omitted, css }
+}
+
+/*  wrap the pre-rendered diagrams into their blocks, carrying the
+    diagram type and the object tree nesting level the folding
+    distinguishes (the top-level objects of an artifact being level 1)  */
+const wrapDiagrams = (index: LinkIndex, svgs: Map<SpecObject, string>): Map<SpecObject, string> => {
+    const blocks = new Map<SpecObject, string>()
+    for (const node of index) {
+        const svg = svgs.get(node.object)
+        if (svg === undefined)
+            continue
+        let level = 1
+        for (let parent = node.parent; parent !== undefined; parent = parent.parent)
+            level++
+        const type = schemas?.get(node.object)?.diagram?.type ?? "graph"
+        blocks.set(node.object, `<div class="diagram" data-type="${type}" data-level="${level}">${svg}</div>`)
+    }
+    return blocks
+}
+
 /*  render the entire specification into a self-contained HTML document,
     with the build-time pre-assembled stylesheet embedded inline, the
     artifact timestamps aggregated into min(Created)/max(Modified),
@@ -2103,27 +2167,8 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     const rendered = config !== undefined ?
         await scaledDiagrams(specification, config, verbose, omit) : null
 
-    /*  the fold controls of the omitted aspects leave along with the
-        implied ones (no type control without diagrams of that type, no
-        level control without diagrams from that level on, no fold tab
-        without any control, which lets the tabs below it move up), and
-        the omitted long texts bring the style of their "[...]" mark  */
-    const none    = omit.has("diagram:1")
-        || (omit.has("diagram:graph") && omit.has("diagram:hub") && omit.has("diagram:grid"))
-    const omitted = {
-        graph:  none || omit.has("diagram:graph"),
-        hub:    none || omit.has("diagram:hub"),
-        grid:   none || omit.has("diagram:grid"),
-        level1: none,
-        level2: none || omit.has("diagram:2"),
-        level3: none || omit.has("diagram:2") || omit.has("diagram:3"),
-        text:   omit.has("text:long"),
-        all:    none && omit.has("text:long")
-    }
-    const omitCss =
-        (omitted.text ? "\nspan.omit { color: var(--theme-color-specbook-muted) }" : "") +
-        (omitted.all  ? "\nnav.toc-panel div.toc-tab { top: 10.66rem }" +
-            "\ndiv.realtime-status { top: 13.89rem }" : "")
+    /*  the fold controls and the extra style rules of the omitted aspects  */
+    const { omitted, css: omitCss } = omittedControls(omit)
 
     /*  pre-optimize the embedded images (downscaled and re-encoded)  */
     const optimized = await optimizeImages(specification, print, verbose)
@@ -2145,17 +2190,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
 
         /*  wrap the diagrams into their blocks, carrying the diagram type
             and the object tree nesting level the folding distinguishes  */
-        diagrams = rendered !== null ? new Map<SpecObject, string>() : null
-        for (const node of index) {
-            const svg = rendered?.svgs.get(node.object)
-            if (svg === undefined)
-                continue
-            let level = 1
-            for (let parent = node.parent; parent !== undefined; parent = parent.parent)
-                level++
-            const type = schemas?.get(node.object)?.diagram?.type ?? "graph"
-            diagrams?.set(node.object, `<div class="diagram" data-type="${type}" data-level="${level}">${svg}</div>`)
-        }
+        diagrams = rendered !== null ? wrapDiagrams(index, rendered.svgs) : null
 
         /*  collect the schema descriptions for the description popups,
             plus the object table composing their title paths  */
@@ -2201,7 +2236,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         return render("Document", { Document: {
             title:       documentTitle(specification).title,
             lang,
-            theme:       documentThemeStyle(specification)?.toLowerCase(),
+            theme:       documentThemeStyle(specification),
             css:         safe((css ?? stylesheet()) + (rendered !== null ? `\n${rendered.css}` : "") + omitCss),
             themescript: safe(themeScript),
             titlepage:   title !== undefined ?
