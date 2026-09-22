@@ -13,15 +13,15 @@
         "typescript":                             "6.0.3",
         "eslint":                                 "10.11.0",
         "@eslint/js":                             "10.0.1",
-        "@typescript-eslint/parser":              "8.70.0",
-        "typescript-eslint":                      "8.70.0",
+        "@typescript-eslint/parser":              "8.70.1",
+        "typescript-eslint":                      "8.70.1",
         "@stylistic/eslint-plugin":               "5.10.0",
         "eslint-plugin-astro":                    "3.2.1",
         "astro-eslint-parser":                    "3.1.0",
         "globals":                                "17.12.0"
     },
     "dependencies": {
-        "astro":                                  "7.3.3",
+        "astro":                                  "7.3.4",
         "@astrojs/sitemap":                       "3.7.4",
         "astro-robots-txt":                       "1.0.0",
         "astro-swiper":                           "2.10.0",
