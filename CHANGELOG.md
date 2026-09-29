@@ -2,6 +2,12 @@
 ChangeLog
 =========
 
+1.3.2 (2026-09-29)
+------------------
+
+-   UPDATE [infr]: Upgrade NPM Dependencies
+    The NPM dependencies were updated.
+
 1.3.1 (2026-09-22)
 ------------------
 
