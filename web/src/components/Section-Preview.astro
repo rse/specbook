@@ -1,0 +1,84 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  "Sneak Preview" section: the HTML and PDF exports of the specification of
+    a real application, side-by-side, the HTML one live in an <iframe> and
+    the PDF one in the prebuilt PDF.js viewer (placed into "public/pdfjs/" at build time).  */
+
+import SectionGlow             from "./Section-Glow.astro"
+import Annotation              from "./Widget-Annotation.astro"
+import { site }                from "../data/site.ts"
+
+import Globe                   from "@lucide/astro/icons/globe"
+import FileText                from "@lucide/astro/icons/file-text"
+import ExternalLink            from "@lucide/astro/icons/external-link"
+
+/*  the exported sample specification and its sources  */
+const htmlUrl    = "/assets/broadcast.html"
+const pdfUrl     = "/assets/broadcast.pdf"
+const sourcesUrl = `${site.repo}/tree/master/smp/broadcast`
+
+/*  the prebuilt PDF.js viewer, opening the PDF export fit to its width  */
+const viewerUrl  = `/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}#zoom=page-width&pagemode=none`
+---
+<section id="preview" class="relative isolate mx-auto max-w-4xl px-6 py-8">
+    <SectionGlow variant="section" side="left"/>
+
+    {/*  the top margin keeps the heading's Annotation clear of the fixed
+         header when the section is reached through its "#preview" anchor  */}
+    <header class="mx-auto mt-12 max-w-4xl sb-section-head" data-reveal>
+        <h2 class="sb-h2 relative inline-block">
+            <Annotation flat class="right-0 translate-x-2/4">
+                Real application,<br/>
+                real specification!
+            </Annotation>
+            Take a <span class="text-accent">Sneak Preview</span>
+        </h2>
+        <p class="sb-lead sb-justify">
+            This is a <b>Sneak Preview</b> of the export of the specification
+            of a real application: <b>Broadcast</b>, a live video event
+            streaming Web application, specified in <b>SpecBook</b> format
+            against the bundled standard schema configuration. Look at
+            its <a href={sourcesUrl}>Markdown sources</a>, and then browse its two
+            exports below: the interactive HTML export and the paginated PDF
+            export.
+        </p>
+    </header>
+
+    <div class="mt-12 grid gap-2 xl:grid-cols-2">
+        {/*  HTML export: the self-contained document, live in an <iframe>  */}
+        <div class="bg-background-elevated flex min-w-0 flex-col overflow-hidden rounded-xl border border-border-strong shadow-xl" data-reveal="right">
+            <h3 class="flex items-center gap-2 border-b border-border-strong bg-accent/10 px-4 py-2 text-sm font-semibold text-accent">
+                <Globe class="h-4 w-4 shrink-0" stroke-width={0.75}/>
+                <span class="grow">HTML Export</span>
+                <a href={htmlUrl} target="_blank" rel="noopener" class="link-plain flex items-center gap-1 rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-white! shadow-sm transition-colors hover:bg-accent-hover" title="Open HTML export in new tab">
+                    Open <ExternalLink class="h-3.5 w-3.5" stroke-width={2}/>
+                </a>
+            </h3>
+            {/*  zoomed out to 50% (iframe enlarged by 1/0.5 and scaled down),
+                 so its text size roughly matches the one of the PDF export  */}
+            <div class="relative h-[36rem] w-full overflow-hidden bg-white">
+                <iframe src={htmlUrl} title="SpecBook HTML Export Sample" loading="lazy"
+                    class="absolute top-0 left-0 h-[200%] w-[200%] origin-top-left scale-[0.5] border-0 bg-white"></iframe>
+            </div>
+        </div>
+
+        {/*  PDF export: the paginated document, in the prebuilt PDF.js viewer  */}
+        <div class="bg-background-elevated flex min-w-0 flex-col overflow-hidden rounded-xl border border-border-strong shadow-xl" data-reveal="left">
+            <h3 class="flex items-center gap-2 border-b border-border-strong bg-accent/10 px-4 py-2 text-sm font-semibold text-accent">
+                <FileText class="h-4 w-4 shrink-0" stroke-width={0.75}/>
+                <span class="grow">PDF Export</span>
+                <a href={pdfUrl} target="_blank" rel="noopener" class="link-plain flex items-center gap-1 rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-white! shadow-sm transition-colors hover:bg-accent-hover" title="Open PDF export in new tab">
+                    Open <ExternalLink class="h-3.5 w-3.5" stroke-width={2}/>
+                </a>
+            </h3>
+            <iframe src={viewerUrl} title="SpecBook PDF Export Sample" loading="lazy"
+                class="h-[36rem] w-full border-0 bg-white"></iframe>
+        </div>
+    </div>
+</section>
+

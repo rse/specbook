@@ -47,7 +47,7 @@ function deHashAssets () {
                 const renames = {}
                 const taken   = new Set(fs.readdirSync(assetsDir))
                 for (const file of fs.readdirSync(assetsDir)) {
-                    if (!/\.(css|js|map|woff2?|ttf|otf|eot|svg|png|jpe?g|webp|avif|gif)$/i.test(file)) continue
+                    if (!/\.(css|m?js|map|woff2?|ttf|otf|eot|svg|png|jpe?g|webp|avif|gif)$/i.test(file)) continue
                     const next = deHash(file)
                     if (next === file || taken.has(next)) continue
                     renames[file] = next
@@ -61,7 +61,7 @@ function deHashAssets () {
                     for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
                         const p = path.join(d, entry.name)
                         if (entry.isDirectory()) { rewrite(p); continue }
-                        if (!/\.(html|css|js|map|xml)$/.test(entry.name)) continue
+                        if (!/\.(html|css|m?js|map|xml)$/.test(entry.name)) continue
                         let text = fs.readFileSync(p, "utf8")
                         let changed = false
                         for (const [ from, to ] of Object.entries(renames))
