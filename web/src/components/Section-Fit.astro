@@ -37,8 +37,8 @@ import { fitFor, fitAgainst }  from "../data/fit.ts"
     <div class="mt-12 grid gap-2 lg:grid-cols-2">
         {/*  "for you" column — reveals from the left edge
             ("right" starts off-screen left, per Scroll-Reveal's inverted naming)  */}
-        <div class="bg-background-elevated overflow-hidden rounded-xl border border-border-strong shadow-xl" data-reveal="right">
-            <h3 class="border-b border-border-strong bg-accent/20 px-4 py-2 text-lg font-semibold text-accent sm:px-6">
+        <div class="bg-background-elevated overflow-hidden rounded-xl border border-brand-800 shadow-xl" data-reveal="right">
+            <h3 class="border-b border-brand-800 bg-gradient-to-b from-brand-600 to-brand-800 px-4 py-2 text-lg font-semibold text-white sm:px-6">
                 <b>SpecBook</b> is for YOU, if &hellip;
             </h3>
             <ul class="flex flex-col gap-3 p-4 text-sm sm:p-6">
@@ -52,8 +52,8 @@ import { fitFor, fitAgainst }  from "../data/fit.ts"
                                  line box of the first title line, so a title
                                  wrapping to two lines keeps the icon on top  */}
                             <div class="flex items-start gap-2">
-                                {Icon && <Icon class="mt-0.5 h-4 w-4 shrink-0 text-accent" stroke-width={0.75}/>}
-                                <b class="text-accent uppercase">{entry.title}</b>
+                                {Icon && <Icon class="mt-0.5 h-4 w-4 shrink-0 text-brand-800" stroke-width={0.75}/>}
+                                <b class="text-brand-800 uppercase">{entry.title}</b>
                             </div>
                             {/*  hanging indent of icon width plus gap, so the
                                  body aligns with the title instead of the icon  */}

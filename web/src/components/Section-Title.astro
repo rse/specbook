@@ -122,29 +122,27 @@ const badges = [
                 </span>
             </div>
 
-            {/* sub-title */}
-            <p class="mt-6 max-w-2xl text-base sm:text-lg leading-snug text-foreground-secondary sb-justify">
-                <b>Specification Book (SpecBook)</b> is the opinionated{" "}
-                <a href="https://github.com/rse/specbook/blob/master/LICENSE.txt">Open Source</a>{" "}
-                tooling of renowned and prolific author <a href="#author">Dr. Ralf S. Engelschall</a> for a generic,{" "}
-                fully typed, <b>Markdown-based specification format</b>, which can be configured for the specifications of
-                arbitrary contexts through a <b>YAML-based schema configuration</b>.
-                It ships with a <b>CLI</b>, a TypeScript <b>API</b>, and a{" "}
-                <a href="https://modelcontextprotocol.io">Model-Context-Protocol (MCP)</a>{" "}
-                interface &mdash; so humans, programs, and AI agents all reach the same functionality.
-            </p>
+            {/* sub-title, flowing through two columns on wider viewports */}
+            <div class="mt-10 w-full text-sm sm:text-base leading-snug text-foreground-secondary md:columns-2 md:gap-10">
+                <p class="sb-justify">
+                    <b>Specification Book (SpecBook)</b> is the opinionated{" "}
+                    <a href="https://github.com/rse/specbook/blob/master/LICENSE.txt">Open Source</a>{" "}
+                    tooling of renowned and prolific author <a href="#author">Dr. Ralf S. Engelschall</a> for a generic,{" "}
+                    fully typed, <b>Markdown-based specification format</b>, which can be configured for the specifications of
+                    arbitrary contexts through a <b>YAML-based schema configuration</b>.
+                    It ships with a <b>CLI</b>, a TypeScript <b>API</b>, and a{" "}
+                    <a href="https://modelcontextprotocol.io">Model-Context-Protocol (MCP)</a>{" "}
+                    interface &mdash; so humans, programs, and AI agents all reach the same functionality.
+                </p>
 
-            <div class="w-full max-w-2xl">
-                <p class="sb-indent-p text-base sm:text-lg leading-snug text-foreground-secondary sb-justify">
+                <p class="sb-indent-p sb-justify">
                     A specification is a <b>hierarchical object model</b> of typed objects, authored as
                     plain <b>Markdown</b> through a <b>versatile object to Markdown mapping</b> (as
                     sections or as tables), interconnected through <b>Wiki-style object linking</b>, and
                     subject to a <b>strict validation</b> against its <b>schema</b>.{" "}
                 </p>
-            </div>
 
-            <div class="w-full max-w-2xl">
-                <p class="sb-indent-p text-base sm:text-lg leading-snug text-foreground-secondary sb-justify">
+                <p class="sb-indent-p sb-justify">
                     <b>SpecBook</b> lets a specification be{" "}
                     <i>initialized</i>, <i>linted</i>, <i>exported</i> (JSON, JSON5, YAML, TOON, HTML,
                     PDF, and normalized Markdown), <i>previewed</i> (HTML, live in the browser), and{" "}
@@ -155,10 +153,8 @@ const badges = [
                     nodes and edges are directly derived from the specification objects and their references &mdash; so no diagram
                     is ever drawn by hand or drifts away from the specification.
                 </p>
-            </div>
 
-            <div class="w-full max-w-2xl">
-                <p class="sb-indent-p text-base sm:text-lg leading-snug text-foreground-secondary sb-justify">
+                <p class="sb-indent-p sb-justify">
                     In an alternative view, as <b>SpecBook</b> allows arbitrary specifications
                     comprised of objects and relationships, it can be considered as some sort of a graph "database"
                     in the corset of <b>Markdown</b> files and with a document-style rendering as its data view.
