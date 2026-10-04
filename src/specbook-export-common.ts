@@ -34,10 +34,11 @@ export const fallbackLogo = (theme: typeof embeddingThemes[number]): string =>
     fs.readFileSync(new URL(`specbook-export-logo-${theme}.svg`, import.meta.url)).toString("base64")
 
 /*  the content aspects an export can omit, each matching the set of a
-    folding control of the HTML export: the diagrams of a type, the
-    diagrams from an object tree nesting level on, and the long texts  */
+    folding control of the HTML export: the diagrams of a type (the
+    derived Gradia ones and the embedded images), the diagrams from an
+    object tree nesting level on, and the long texts  */
 export const omitAspects = [ "diagram:graph", "diagram:hub", "diagram:grid",
-    "diagram:1", "diagram:2", "diagram:3", "text:long" ] as const
+    "diagram:image", "diagram:1", "diagram:2", "diagram:3", "text:long" ] as const
 export type OmitAspect = typeof omitAspects[number]
 
 /*  parse the (comma-separated) aspects to omit, where the

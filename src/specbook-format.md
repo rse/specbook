@@ -1066,7 +1066,10 @@ SVG files are inlined as-is; PNG/JPEG/WebP files are embedded as base64
 `data:` URLs. URLs and other file types are left untouched. The
 HTML/PDF export optimizes the embedded images on its own (downscaled
 and re-encoded PNG/JPEG/WebP, minified SVG), so the files can stay in their
-original resolution.
+original resolution. Like a diagram, an embedded image (except the logo
+of the title page) folds, maximizes, and is omitted (`-O diagram:image`,
+or by nesting level) in the HTML/PDF export, while the AST exports keep
+it.
 
 A reference carrying the `{theme}` placeholder -- e.g.
 `![Logo](logo-{theme}.svg)` -- is a *theme-aware* embedding: it expands

@@ -425,7 +425,7 @@ div.fold-switch div.fold-controls
     padding: 0
     transition: max-width 0.3s ease, padding 0.3s ease
 div.fold-switch.open div.fold-controls
-    max-width: 15rem
+    max-width: 16rem
     padding: 0 0.5rem 0 0.2rem
 div.fold-switch div.fold-controls > div
     padding: 0.25rem
@@ -576,11 +576,14 @@ div.maximize span.maximize-close
 div.maximize div.maximize-content
     width: 100%
     height: 100%
-div.maximize div.maximize-content svg
+div.maximize div.maximize-content svg,
+div.maximize div.maximize-content img
     display: block
     width: 100%
     height: 100%
     max-width: none
+div.maximize div.maximize-content img
+    object-fit: contain
 html.maximized
     overflow: hidden
 @media print
@@ -1125,7 +1128,8 @@ span.theme-dark-only
 div.diagram
     position: relative
     margin: 1.0rem 0
-div.diagram svg
+div.diagram svg,
+div.diagram img
     display: block
     max-width: 100%
     height: auto

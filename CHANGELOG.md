@@ -5,6 +5,10 @@ ChangeLog
 1.4.0 (2026-10-04)
 ------------------
 
+-   IMPROVEMENT [code]: Embedded Images Fold and Maximize
+    Embedded SVG/PNG/JPEG/WebP images (except the title page logo) fold, maximize, and omit
+    (`-O diagram:image`) in the HTML/PDF export exactly like the embedded diagrams.
+
 -   BUGFIX [code]: Rationale Ends with Its Paragraph
     The blocks following a `, BECAUSE ` paragraph ended up inside the rationale and lost their
     embeddings and diagrams, and now form the new description `elaboration` instead.
@@ -12,6 +16,10 @@ ChangeLog
 -   BUGFIX [code]: Self-Adapting SVG Images Follow the Document Theme
     An SVG image with `light-dark()` colors followed the system color scheme instead of the
     document theme, as the HTML export now sets `color-scheme` on every image on screen.
+
+-   IMPROVEMENT [code]: Embedded Images Fold and Maximize
+    Embedded SVG/PNG/JPEG/WebP images (except the title page logo) fold, maximize, and omit
+    (`-O diagram:image`) in the HTML/PDF export exactly like the embedded diagrams.
 
 1.3.2 (2026-09-29)
 ------------------

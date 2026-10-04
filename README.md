@@ -242,7 +242,7 @@ Options:
     Omit content aspects (comma-separated, repeatable) from the HTML and
     PDF outputs at generation time, instead of just leaving them foldable
     in the browser. The aspects match the folding controls of the HTML
-    export: `diagram:graph`, `diagram:hub`, and `diagram:grid` omit all
+    export: `diagram:graph`, `diagram:hub`, `diagram:grid`, and `diagram:image` omit all
     diagrams of a type, `diagram:1` (alias: `diagram`), `diagram:2`, and
     `diagram:3` omit all diagrams from an object tree nesting level on
     (level 1 hence all, including the "Diagram of Contents" page), and

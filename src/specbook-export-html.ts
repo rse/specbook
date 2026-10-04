@@ -72,6 +72,7 @@ const templates = {
                         {% if not Document.omitted.graph %}<div class="fold-graphs" title="fold/unfold all graph diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5.5" r="3"/><circle cx="18.5" cy="5.5" r="3"/><circle cx="12" cy="18.5" r="3"/><path d="M7.3 8.1 10.6 15.9"/><path d="M16.7 8.1 13.4 15.9"/></svg></div>{% endif %}
                         {% if not Document.omitted.hub %}<div class="fold-hubs" title="fold/unfold all hub diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.5"/><circle cx="3.5" cy="4.5" r="2"/><circle cx="3.5" cy="19.5" r="2"/><circle cx="20.5" cy="4.5" r="2"/><circle cx="20.5" cy="19.5" r="2"/><path d="M5.5 4.5H10V9.1"/><path d="M18.5 4.5H14V9.1"/><path d="M5.5 19.5H10V14.9"/><path d="M18.5 19.5H14V14.9"/></svg></div>{% endif %}
                         {% if not Document.omitted.grid %}<div class="fold-grids" title="fold/unfold all grid diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg></div>{% endif %}
+                        {% if not Document.omitted.image %}<div class="fold-images" title="fold/unfold all images"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="17" rx="2"/><circle cx="8.5" cy="9" r="2"/><path d="M21.5 15.5l-5-5-11 10"/></svg></div>{% endif %}
                         {% for level in [ 1, 2, 3 ] %}{% if not Document.omitted["level" ~ level] %}<div class="fold-level{{ level }}" title="fold/unfold all diagrams from nesting level {{ level }} on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><rect x="6.5" y="6.5" width="3" height="3" rx="0.5"/><text x="19.5" y="23" text-anchor="middle" font-size="14.5" font-weight="bold" fill="currentColor" stroke="none">{{ level }}</text></svg></div>{% endif %}{% endfor %}
                         {% if not Document.omitted.text %}<div class="fold-texts" title="fold/unfold all cell texts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7V4.5h15V7"/><path d="M12 4.5v15"/><path d="M8.5 19.5h7"/></svg></div>{% endif %}
                     </div>
@@ -471,7 +472,8 @@ const cellGainMin       = 25
     left corner, folds the text of every table cell towering over the
     other cells of its row behind a chevron mark of its own, and lets
     the controls of the fold tab fold and unfold all diagrams of a type
-    ("graph", "hub", "grid"), all diagrams from an object tree nesting
+    ("graph", "hub", "grid", plus the embedded images as "image"), all
+    diagrams from an object tree nesting
     level on (1, 2, 3), and all cell texts at once, with their state
     persisted across page loads and their icons marked while they are
     active (the diagram ones, OR-combined) or any cell text is folded
@@ -490,6 +492,7 @@ const foldScript = (standins: boolean, textless: boolean) => textframe`
             graph:  tab.querySelector("div.fold-graphs"),
             hub:    tab.querySelector("div.fold-hubs"),
             grid:   tab.querySelector("div.fold-grids"),
+            image:  tab.querySelector("div.fold-images"),
             level1: tab.querySelector("div.fold-level1"),
             level2: tab.querySelector("div.fold-level2"),
             level3: tab.querySelector("div.fold-level3"),
@@ -541,7 +544,7 @@ const foldScript = (standins: boolean, textless: boolean) => textframe`
             control; a diagram joins the set of its type plus the sets
             of all nesting levels up to its own one (3 standing for all
             deeper ones), so the sets of the controls overlap  */
-        const folds = { graph: [], hub: [], grid: [], level1: [], level2: [], level3: [], text: [] }
+        const folds = { graph: [], hub: [], grid: [], image: [], level1: [], level2: [], level3: [], text: [] }
         document.querySelectorAll("article div.diagram, nav.doc div.diagram").forEach((el) => {
             const type  = el.getAttribute("data-type") ?? "graph"
             const level = Math.min(Number(el.getAttribute("data-level")) || 1, 3)
@@ -871,11 +874,16 @@ const maximizeScript = textframe`
         overlay.append(close, content)
         document.body.appendChild(overlay)
 
-        /*  open the overlay onto a diagram, optionally in the browser
+        /*  open the overlay onto a diagram (its inline SVG, or the image
+            of the theme variant currently shown), optionally in the browser
             fullscreen, and close it again (leaving the fullscreen, too),
             with the document scrolling locked while it is open  */
         const open = (diagram, fullscreen) => {
-            const svg = diagram.querySelector("svg").cloneNode(true)
+            const shown = Array.from(diagram.querySelectorAll(":scope > svg, img"))
+                .find((el) => el.getClientRects().length > 0)
+            if (shown === undefined)
+                return
+            const svg = shown.cloneNode(true)
             svg.removeAttribute("style")
             content.replaceChildren(svg)
             overlay.classList.add("open")
@@ -1332,6 +1340,7 @@ let coverages:   Map<SpecObject, Coverage[]> | null   = null
 let infoKeys:    Map<SchemaObject, string> | null     = null
 let infoObjects: Map<SpecObject, string> | null       = null
 let omits:       Set<OmitAspect> | null               = null
+let levels:      Map<SpecObject, number> | null       = null
 
 /*  the object whose texts are currently rendered, scoping the
     resolution of the references inside them (nearest object wins),
@@ -1465,10 +1474,18 @@ const renderThemed = (variants: string[]): string =>
 
 /*  render the embedded image files of a text into HTML, taking the image
     alternate texts from the corresponding "![alt](file)" markups and
-    pairing up the consecutive theme variants of a "{theme}" markup
-    (the empty entries of unreadable files are skipped)  */
-const renderEmbeddings = (text: string, embedding: string[]): string[] => {
-    const result = new Array<string>()
+    pairing up the consecutive theme variants of a "{theme}" markup, where
+    an image (unless unframed, like the title page logo) sits in a diagram
+    block of type "image", so it folds, maximizes, and is omitted like a
+    diagram (the empty entries of unreadable files and the omitted images
+    are skipped)  */
+const renderEmbeddings = (text: string, embedding: string[], framed = true): string[] => {
+    const result  = new Array<string>()
+    const level   = (scope !== null ? levels?.get(scope) : undefined) ?? 1
+    const omitted = framed && omits !== null && (omits.has("diagram:image")
+        || ([ 1, 2, 3 ] as const).some((n) => n <= level && omits?.has(`diagram:${n}`)))
+    const frame   = (html: string) => framed ?
+        `<div class="diagram" data-type="image" data-level="${level}">${html}</div>` : html
     let i = 0
     for (const m of text.matchAll(embeddingRegex)) {
         const count = embeddingCount(m[2])
@@ -1478,10 +1495,8 @@ const renderEmbeddings = (text: string, embedding: string[]): string[] => {
         const variants = contents.filter((content) => content !== "")
             .map((content) => renderImage(content, m[1].trim()))
         i += count
-        if (count > 1 && variants.length === count)
-            result.push(renderThemed(variants))
-        else
-            result.push(...variants)
+        if (!omitted)
+            result.push(...(count > 1 && variants.length === count ? [ renderThemed(variants) ] : variants).map(frame))
     }
     return result
 }
@@ -1919,7 +1934,7 @@ const renderTitlePage = (object: SpecObject, created: string, modified: string):
         logo is used, in both its theme variants  */
     const logo  = object.properties.find((property) =>
         property.key === "LOGO" && property.value.trim() !== "")
-    const image = logo !== undefined ? renderEmbeddings(logo.value, logo.embedding ?? []) : []
+    const image = logo !== undefined ? renderEmbeddings(logo.value, logo.embedding ?? [], false) : []
     return scoped(object, () => render("TitlePage", { TitlePage: {
         logo:        logo === undefined ?
             safe(renderThemed(embeddingThemes.map((theme) =>
@@ -2121,11 +2136,13 @@ export const renderPlaceholder = (message: string): string =>
     long texts and the moved-up tabs of a dropped fold tab)  */
 const omittedControls = (omit: Set<OmitAspect>) => {
     const none    = omit.has("diagram:1")
-        || (omit.has("diagram:graph") && omit.has("diagram:hub") && omit.has("diagram:grid"))
+        || (omit.has("diagram:graph") && omit.has("diagram:hub") && omit.has("diagram:grid")
+            && omit.has("diagram:image"))
     const omitted = {
         graph:  none || omit.has("diagram:graph"),
         hub:    none || omit.has("diagram:hub"),
         grid:   none || omit.has("diagram:grid"),
+        image:  none || omit.has("diagram:image"),
         level1: none,
         level2: none || omit.has("diagram:2"),
         level3: none || omit.has("diagram:2") || omit.has("diagram:3"),
@@ -2193,6 +2210,16 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         images    = optimized
         coverages = schemas !== null ? specCoverage(index, schemas) : null
         omits     = omit
+
+        /*  the object tree nesting levels of the objects (the top-level
+            objects of an artifact being level 1) the image blocks carry  */
+        levels = new Map()
+        for (const node of index) {
+            let level = 1
+            for (let parent = node.parent; parent !== undefined; parent = parent.parent)
+                level++
+            levels.set(node.object, level)
+        }
 
         /*  wrap the diagrams into their blocks, carrying the diagram type
             and the object tree nesting level the folding distinguishes  */
@@ -2278,5 +2305,6 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         infoKeys    = null
         infoObjects = null
         omits       = null
+        levels      = null
     }
 }
