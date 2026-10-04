@@ -1137,8 +1137,8 @@ description or property value, where its source is inlined at parse time.
 The HTML/PDF export renders every such diagram (Mermaid through
 `beautiful-mermaid`, D2 through `@terrastruct/d2`) in the theme colors of
 the document, once per color theme, like a theme-aware image. It folds,
-maximizes, and is omitted (`-O diagram:mermaid`, `-O diagram:d2`, or by
-nesting level) like a derived Gradia diagram. A diagram failing to render
+maximizes, and is omitted (`-O diagram:code`, for diagrams as code, or
+by nesting level) like a derived Gradia diagram. A diagram failing to render
 is omitted with a notice. The normalized Markdown and the AST exports
 carry the source of a fenced diagram as part of the description, and an
 embedded diagram file as its rendered SVG (the `light` variant).

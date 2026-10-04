@@ -75,8 +75,7 @@ const templates = {
                         {% if not Document.omitted.graph %}<div class="fold-graphs" title="fold/unfold all graph diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5.5" r="3"/><circle cx="18.5" cy="5.5" r="3"/><circle cx="12" cy="18.5" r="3"/><path d="M7.3 8.1 10.6 15.9"/><path d="M16.7 8.1 13.4 15.9"/></svg></div>{% endif %}
                         {% if not Document.omitted.hub %}<div class="fold-hubs" title="fold/unfold all hub diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.5"/><circle cx="3.5" cy="4.5" r="2"/><circle cx="3.5" cy="19.5" r="2"/><circle cx="20.5" cy="4.5" r="2"/><circle cx="20.5" cy="19.5" r="2"/><path d="M5.5 4.5H10V9.1"/><path d="M18.5 4.5H14V9.1"/><path d="M5.5 19.5H10V14.9"/><path d="M18.5 19.5H14V14.9"/></svg></div>{% endif %}
                         {% if not Document.omitted.grid %}<div class="fold-grids" title="fold/unfold all grid diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg></div>{% endif %}
-                        {% if not Document.omitted.mermaid %}<div class="fold-mermaids" title="fold/unfold all Mermaid diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="3"/><path d="M7 16.5v-9l5 5 5-5v9"/></svg></div>{% endif %}
-                        {% if not Document.omitted.d2 %}<div class="fold-d2s" title="fold/unfold all D2 diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="3"/><text x="12" y="16.2" text-anchor="middle" font-size="10.5" font-weight="bold" fill="currentColor" stroke="none">D2</text></svg></div>{% endif %}
+                        {% if not Document.omitted.code %}<div class="fold-codes" title="fold/unfold all Mermaid/D2 diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5"/><path d="M16 7l5 5-5 5"/><path d="M13.5 4l-3 16"/></svg></div>{% endif %}
                         {% if not Document.omitted.image %}<div class="fold-images" title="fold/unfold all images"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="17" rx="2"/><circle cx="8.5" cy="9" r="2"/><path d="M21.5 15.5l-5-5-11 10"/></svg></div>{% endif %}
                         {% for level in [ 1, 2, 3 ] %}{% if not Document.omitted["level" ~ level] %}<div class="fold-level{{ level }}" title="fold/unfold all diagrams from nesting level {{ level }} on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><rect x="6.5" y="6.5" width="3" height="3" rx="0.5"/><text x="19.5" y="23" text-anchor="middle" font-size="14.5" font-weight="bold" fill="currentColor" stroke="none">{{ level }}</text></svg></div>{% endif %}{% endfor %}
                         {% if not Document.omitted.text %}<div class="fold-texts" title="fold/unfold all cell texts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7V4.5h15V7"/><path d="M12 4.5v15"/><path d="M8.5 19.5h7"/></svg></div>{% endif %}
@@ -477,8 +476,8 @@ const cellGainMin       = 25
     left corner, folds the text of every table cell towering over the
     other cells of its row behind a chevron mark of its own, and lets
     the controls of the fold tab fold and unfold all diagrams of a type
-    ("graph", "hub", "grid", plus the embedded "mermaid" and "d2" ones and
-    the embedded images and PDF pages as "image"),
+    ("graph", "hub", "grid", plus the embedded Mermaid/D2 ones as "code"
+    and the embedded images and PDF pages as "image"),
     all diagrams from an object tree nesting
     level on (1, 2, 3), and all cell texts at once, with their state
     persisted across page loads and their icons marked while they are
@@ -498,8 +497,7 @@ const foldScript = (standins: boolean, textless: boolean) => textframe`
             graph:   tab.querySelector("div.fold-graphs"),
             hub:     tab.querySelector("div.fold-hubs"),
             grid:    tab.querySelector("div.fold-grids"),
-            mermaid: tab.querySelector("div.fold-mermaids"),
-            d2:      tab.querySelector("div.fold-d2s"),
+            code:    tab.querySelector("div.fold-codes"),
             image:   tab.querySelector("div.fold-images"),
             level1:  tab.querySelector("div.fold-level1"),
             level2:  tab.querySelector("div.fold-level2"),
@@ -552,7 +550,7 @@ const foldScript = (standins: boolean, textless: boolean) => textframe`
             control; a diagram joins the set of its type plus the sets
             of all nesting levels up to its own one (3 standing for all
             deeper ones), so the sets of the controls overlap  */
-        const folds = { graph: [], hub: [], grid: [], mermaid: [], d2: [], image: [],
+        const folds = { graph: [], hub: [], grid: [], code: [], image: [],
             level1: [], level2: [], level3: [], text: [] }
         document.querySelectorAll("article div.diagram, nav.doc div.diagram").forEach((el) => {
             const type  = el.getAttribute("data-type") ?? "graph"
@@ -1489,19 +1487,17 @@ const renderThemed = (variants: string[]): string =>
 
 /*  render an embedded diagram (a fenced code block of a diagram language
     or an embedded diagram source file) into a diagram block like the one
-    of a Gradia diagram (carrying its language as the type and the nesting
-    level of the object rendered), so it folds and maximizes alike, with
-    its pre-rendered theme variants as images (as an SVG inlined as-is would
-    leak its document-global <style> rules), or with just its light variant
-    as one image, unless it brings dark colors of its own (inverted on the
-    dark theme or not, as its "dark" parameter says); an omitted or failed
-    diagram leaves nothing behind  */
+    of a Gradia diagram (of the type "code" and carrying the nesting level
+    of the object rendered), so it folds and maximizes alike, with its
+    pre-rendered theme variants as images (as an SVG inlined as-is would
+    leak its document-global <style> rules); an omitted or failed diagram
+    leaves nothing behind  */
 const renderEmbedded = (language: DiagramLanguage, source: string, alt: string): string => {
     const variants = embedded?.get(diagramKey(language, source))
     const level    = (scope !== null ? levels?.get(scope) : undefined) ?? 1
     if (variants === undefined || (omits !== null && omittedDiagram(language, level, omits)))
         return ""
-    return `<div class="diagram" data-type="${language}" data-level="${level}">` +
+    return `<div class="diagram" data-type="code" data-level="${level}">` +
         renderThemed(embeddingThemes.map((theme) => renderImage(variants[theme], alt, "none"))) + "</div>"
 }
 
@@ -2189,13 +2185,12 @@ export const renderPlaceholder = (message: string): string =>
 const omittedControls = (omit: Set<OmitAspect>) => {
     const none    = omit.has("diagram:1")
         || (omit.has("diagram:graph") && omit.has("diagram:hub") && omit.has("diagram:grid")
-            && omit.has("diagram:mermaid") && omit.has("diagram:d2") && omit.has("diagram:image"))
+            && omit.has("diagram:code") && omit.has("diagram:image"))
     const omitted = {
         graph:   none || omit.has("diagram:graph"),
         hub:     none || omit.has("diagram:hub"),
         grid:    none || omit.has("diagram:grid"),
-        mermaid: none || omit.has("diagram:mermaid"),
-        d2:      none || omit.has("diagram:d2"),
+        code:    none || omit.has("diagram:code"),
         image:   none || omit.has("diagram:image"),
         level1:  none,
         level2:  none || omit.has("diagram:2"),

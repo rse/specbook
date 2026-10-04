@@ -52,11 +52,12 @@ export const embeddedSource = (content: string): { language: DiagramLanguage, so
 export const diagramKey = (language: DiagramLanguage, source: string): string =>
     `${language}\u0000${source}`
 
-/*  whether an embedded diagram of a language, carried by an object of a
-    nesting level, is omitted (exactly like a Gradia diagram: by its
-    type, or from an object tree nesting level on)  */
+/*  whether an embedded diagram of a language (a Mermaid/D2 one being of
+    the type "code") or an image, carried by an object of a nesting level,
+    is omitted (exactly like a Gradia diagram: by its type, or from an
+    object tree nesting level on)  */
 export const omittedDiagram = (language: DiagramLanguage | "image", level: number, omit: Set<OmitAspect>): boolean =>
-    omit.has(`diagram:${language}`)
+    omit.has(language === "image" ? "diagram:image" : "diagram:code")
     || ([ 1, 2, 3 ] as const).some((n) => n <= level && omit.has(`diagram:${n}`))
 
 /*  the object tree nesting levels of the objects of a specification

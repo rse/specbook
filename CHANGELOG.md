@@ -7,7 +7,7 @@ ChangeLog
 
 -   FEATURE [code]: Embedded Mermaid and D2 Diagrams
     Fenced `mermaid`/`mmd`/`d2` blocks and embedded `.mmd`/`.mermaid`/`.d2` files are rendered
-    as themed diagrams, which fold, maximize, and omit (`-O diagram:mermaid|d2`) like Gradia ones.
+    as themed diagrams, which fold, maximize, and omit (`-O diagram:code`) like Gradia ones.
 
 -   FEATURE [code]: Embedded PDF Pages
     Embedded `.pdf` files (`#page=<n>` selecting the page) are converted to vector SVG with lazily
