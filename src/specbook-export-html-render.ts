@@ -585,7 +585,7 @@ const renderChildren = (object: SpecObject, level: number, concise: boolean): st
     groupChildren(flowChildren(object)).map((group) => !conciseGroup(group, schemas, concise) ?
         group.map((child) => renderObject(child, level, concise)).join("") :
         formatOf(group[0])?.type === "compact" ?
-            renderCompact(group, maxColumnsOf(group[0])) :
+            renderCompact(group) :
             renderTable(group, maxColumnsOf(group[0]))).join("")
 
 /*  render the description cell of a table row: the description of the
@@ -652,15 +652,16 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
             desc,
             fold,
 
-            /*  under the fixed table layout the description column claims
-                twice the share of a regular column, compressing the others  */
-            width:    Math.round(200 / (keys.length + 3)),
+            /*  under the fixed table layout the name column takes a fixed
+                20% (via CSS) and the description column claims twice the
+                share of a property column of the remaining 80%  */
+            width:    Math.round(1600 / (keys.length + 2)) / 10,
             rows:     children.map((child, i) => scoped(child, () => {
                 const values = keys.map((key) =>
                     inlineValue(child.kind, child.properties.find((property) => property.key === key)))
                 const shares = desc ? [ ...keys.map(() => 1), 2 ] : keys.map(() => 1)
                 const cells  = omitLong(omits, desc ? [ ...values, safe(renderCell(child)) ] : values,
-                    shares.map((share) => share / (keys.length + (desc ? 3 : 1))), fold)
+                    shares.map((share) => 0.8 * share / (keys.length + (desc ? 2 : 0))), fold)
                 return {
                     id:          anchorOf(child),
                     anchor:      child.anchor,
@@ -677,7 +678,8 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
 
     /*  the embedded rows hold at most maxColumns - 1 cells (of the
         group-wide union of property keys, plus the trailing description),
-        with the last cell spanning the leftover columns of the final row  */
+        with the last cell spanning the leftover columns of the final row,
+        all of them sharing the 80% beside the fixed 20% name column  */
     const size = Math.max(1, maxColumns - 1)
     return render("TableChunked", { Table: {
         head:     children[0].kind !== "" ? children[0].kind : "Name",
@@ -685,7 +687,6 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
         infopath: infoRefOf(children[0], false),
         desc,
         fold,
-        width:    Math.round(100 / maxColumns),
         rows:     children.map((child, i) => scoped(child, () => {
             const cells = keys.map((key) => ({ key, desc: false, span: 1,
                 value: inlineValue(child.kind, child.properties.find((property) => property.key === key)) }))
@@ -700,7 +701,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
                 last[last.length - 1].span = size - last.length + 1
             }
             for (const chunk of chunks)
-                omitLong(omits, chunk.map((cell) => cell.value), chunk.map((cell) => cell.span / maxColumns), fold)
+                omitLong(omits, chunk.map((cell) => cell.value), chunk.map((cell) => 0.8 * cell.span / size), fold)
                     .forEach((value, k) => { chunk[k].value = value })
 
             /*  the diagram leads the chunks as a full-width chunk of its
@@ -728,7 +729,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
     key/value properties, description, coverage, and children), for the
     objects whose many properties a table row could not hold, the first
     three led by sub-headers like the chunk headers of "TableChunked"  */
-const renderCompact = (children: SpecObject[], maxColumns: number): string => {
+const renderCompact = (children: SpecObject[]): string => {
     const { keys, desc } = tableShape(children)
     const head = (label: string, html: string) =>
         html.trim() !== "" ? `<div class="compact-head">${label}</div>${html}` : ""
@@ -739,7 +740,6 @@ const renderCompact = (children: SpecObject[], maxColumns: number): string => {
         label:    keys.length > 0 && desc ? "Properties & Description" :
             (desc ? "Description" : "Properties"),
         fold:     formatOf(children[0])?.maxCellHeight,
-        width:    Math.round(100 / maxColumns),
         rows:     children.map((child, i) => scoped(child, () => {
             const properties = effectiveProperties(child)
             let html = head("Diagram", diagramOf(child).toString())

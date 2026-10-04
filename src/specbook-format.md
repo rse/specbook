@@ -663,7 +663,7 @@ an explicitly configured `type` is always honored, even a `complex`
 rendering pressed into a cell. `maxTableColumns` (default: `4`) bounds
 the columns of the compact table of the kind (a wider group chunks
 its properties into embedded per-object tables, while a `compact`
-one bounds just the width of its name column), `maxCellHeight`
+one ignores it), `maxCellHeight`
 (default: `40`) is the percentage a table cell of the kind may exceed
 the height of every other non-empty cell of its row before the HTML
 export folds its remaining text away, and `withUnusedProps`

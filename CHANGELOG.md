@@ -9,6 +9,10 @@ ChangeLog
     The property tables drop their row stripes for a tinted key column, a transparent value column,
     and thin grey row lines, and attach seamlessly to the cell borders inside `compact` tables.
 
+-   IMPROVEMENT [code]: Fixed-Width Name Column of the Object Tables
+    The name column of the concise/compact tables and the key column of the property tables take
+    a fixed 20%, so all tables align, while the property columns share the remaining 80%.
+
 -   IMPROVEMENT [code]: Sub-Headers in the Compact Object Format
     The content cell of a `compact` table leads its diagram, properties, and description with the
     sub-headers "Diagram", "Properties", and "Description", styled like the chunk headers.

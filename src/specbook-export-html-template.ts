@@ -237,7 +237,7 @@ const templates = {
         <table class="objects"{% if Table.fold %} data-fold-height="{{ Table.fold }}"{% endif %}>
             <thead>
                 <tr>
-                    <th class="object-kind" style="width: {{ Table.width }}%"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}"{% endif %}>{{ Table.head }}</span></th>
+                    <th class="object-kind"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}"{% endif %}>{{ Table.head }}</span></th>
                     <th class="description">Properties{% if Table.desc %} &amp; Description{% endif %}</th>
                 </tr>
             </thead>
@@ -264,7 +264,7 @@ const templates = {
         <table class="objects"{% if Table.fold %} data-fold-height="{{ Table.fold }}"{% endif %}>
             <thead>
                 <tr>
-                    <th class="object-kind" style="width: {{ Table.width }}%"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}"{% endif %}>{{ Table.head }}</span></th>
+                    <th class="object-kind"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}"{% endif %}>{{ Table.head }}</span></th>
                     <th class="description">{{ Table.label }}</th>
                 </tr>
             </thead>

@@ -956,9 +956,11 @@ span.value-absent::before
     -webkit-user-select: none
     user-select: none
 
-/*  the key/value property tables: a tinted key column beside a
-    transparent value column, the rows separated by thin lines (and
-    the columns by none, even inside the compact table cells)  */
+/*  the key/value property tables: a tinted key column (at the fixed
+    20% of the name column of the compact tables, also inside their
+    cells, and only widened by an over-long key) beside a transparent
+    value column, the rows separated by thin lines (and the columns by
+    none, even inside the compact table cells)  */
 table.props
     border-collapse: collapse
     margin: 0.5rem 0 1.25rem 0
@@ -974,7 +976,8 @@ table.props > tbody > tr + tr > td
     border-top: 1px solid var(--theme-color-specbook-border)
 table.props td.key
     font-weight: bold
-    width: 1px
+    width: 20%
+    box-sizing: border-box
     white-space: nowrap
     background-color: var(--theme-color-specbook-tint)
 
@@ -999,6 +1002,12 @@ table.objects td:first-child
     font-weight: 600
 table.objects th
     background-color: var(--theme-color-specbook-tint)
+    box-sizing: border-box
+
+/*  the name column of every compact table at a fixed width, so that the
+    columns of the consecutive tables align  */
+table.objects th.object-kind
+    width: 20%
 table.objects tbody tr.even td
     background-color: var(--theme-color-specbook-stripe)
 
