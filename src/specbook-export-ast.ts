@@ -20,10 +20,14 @@ import { buildLinkIndex }
     from "./specbook-link.js"
 import { collectSchemas }
     from "./specbook-parse-semantic.js"
-import { isTitleObject, type OmitAspect }
+import { isTitleObject, imageDark, type OmitAspect }
     from "./specbook-export-common.js"
-import { optimizeImages }
+import { optimizeImages, analyzeRasters }
     from "./specbook-export-image.js"
+import { renderEmbeddedDiagrams, embeddedSource, diagramKey, diagramDark }
+    from "./specbook-export-diagram.js"
+import { darkMark, markDark }
+    from "./specbook-parse-common.js"
 import type { Verbose }
     from "./specbook-verbose.js"
 
@@ -42,11 +46,28 @@ export const renderAst = async (specification: Spec, format: AstFormat,
     config?: Schema, verbose?: Verbose, omit = new Set<OmitAspect>()): Promise<Buffer> => {
     /*  reduce the specification to plain JSON values (ISO date strings),
         with the embedded images (by far the bulk of the export)
-        optimized like the ones of the HTML export  */
+        optimized like the ones of the HTML export and the embedded
+        diagram source files replaced by their rendered SVGs (the light
+        variant, marked as inverted on the dark theme where the diagram
+        is, like an SVG image the "auto" detection inverts, an omitted or
+        failed diagram leaving an empty entry, like an unreadable file)  */
     const optimized = await optimizeImages(specification, false, verbose)
+    const rasters   = await analyzeRasters(specification)
+    const sources   = await renderEmbeddedDiagrams(specification, verbose, omit)
     const plain     = JSON.parse(JSON.stringify(specification, (key: string, value: unknown) =>
         key !== "embedding" ? value :
-            (value as string[]).map((content) => optimized.get(content) ?? content)
+            (value as string[]).map((content) => {
+                const diagram = embeddedSource(content)
+                if (diagram === undefined) {
+                    const image = optimized.get(content) ?? content
+                    return darkMark(image).dark === undefined && imageDark(content, rasters) === "invert" ?
+                        markDark(image, "invert") : image
+                }
+                const variants = sources.get(diagramKey(diagram.language, diagram.source))
+                const light    = variants?.light ?? ""
+                return light !== "" && diagramDark(diagram.language, diagram.source, variants) === "invert" ?
+                    markDark(light, "invert") : light
+            })
     )) as PlainSpecification
 
     /*  attach the Gradia specs of the diagram-configured objects as

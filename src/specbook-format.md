@@ -790,13 +790,14 @@ type SpecProperty = {
     BECAUSE a statement without its WHY cannot be judged or revised
 
 -   `SpecDescription.elaboration?: string`:
-    blocks following the paragraph of the rationale (e.g. images),
+    blocks following the paragraph of the rationale (e.g. images or diagrams),
     BECAUSE further content must not end up inside the WHY
 
 -   `SpecDescription.embedding?: string[]`:
-    image files embedded via `![xxx](yyy)`, inlined at parse time,
-    one entry per file in markup order (those of the statement first,
-    those of the elaboration second, and empty for an unreadable file),
+    image and diagram source files embedded via `![xxx](yyy)`,
+    inlined at parse time, one entry per file in markup order (those of
+    the statement first, those of the elaboration second, and empty for
+    an unreadable file),
     BECAUSE the exports have to stand alone, without the image files
 
 -   `SpecProperty`:
@@ -812,7 +813,7 @@ type SpecProperty = {
     BECAUSE constraints and references are checked against this text
 
 -   `SpecProperty.embedding?: string[]`:
-    image files embedded in the value, inlined at parse time,
+    image and diagram source files embedded in the value, inlined at parse time,
     one entry per file in markup order (empty for an unreadable file),
     BECAUSE the exports have to stand alone, without the image files
 
@@ -999,10 +1000,13 @@ paragraphs, blockquotes, ordered lists (e.g. scenario steps or test
 case procedures), and fenced code blocks. A fenced code block of
 language `gradia` is skipped, as it is the derived diagram which
 **SpecBook** itself emits into exported Markdown and which must not
-become authored content on a re-parse. In the Concise Format, the
-description is formed by the non-property segments of the item, so a
-description carrying a `;` cannot be a segment either and forces its
-object into the Complex Format.
+become authored content on a re-parse. A fenced code block of language
+`mermaid` (alias `mmd`) or `d2` is a [Mermaid](https://mermaid.js.org/)
+or [D2](https://d2lang.com/) diagram, which the HTML/PDF export renders
+as a diagram instead of as code (see "Diagram Embeddings" below). In
+the Concise Format, the description is formed by the non-property
+segments of the item, so a description carrying a `;` cannot be a
+segment either and forces its object into the Complex Format.
 
 A description is split into its *statement* and *rationale* at the first
 `, BECAUSE ` (or `, **BECAUSE** `) occurrence:
@@ -1013,16 +1017,16 @@ BECAUSE an event needs a private setup phase.
 ```
 
 The rationale ends with its paragraph: all blocks following it (further
-paragraphs, embedded images, and code blocks) form the *elaboration*,
-which is rendered below the statement and its rationale, so the
-description of a Complex Format object can state its WHAT and WHY first
-and illustrate them afterwards:
+paragraphs, embedded images, and diagrams) form the *elaboration*, which
+is rendered below the statement and its rationale, so the description
+of a Complex Format object can state its WHAT and WHY first and
+illustrate them afterwards:
 
 ````
 The event is created and configured but not visible to attendees,
 BECAUSE an event needs a private setup phase.
 
-![Event Lifecycle](event-lifecycle.svg)
+![Event Lifecycle](event-lifecycle.mmd)
 ````
 
 ### Wiki-Style References
@@ -1079,10 +1083,80 @@ HTML export shows just the variant matching the color theme currently
 active in the document, while the PDF export (like print in general)
 always uses the `light` variant.
 
+An image without a dark variant is treated on the dark theme of the HTML
+export as its `dark` fragment parameter says (see "Fragment Parameters"
+below), while print always keeps it as it is. An image defaults to
+`dark=auto`, which inverts it (with its hues rotated back) if it most
+likely draws dark lines onto a transparent or light canvas: an SVG if it
+neither adapts itself (via `light-dark()` colors, `prefers-color-scheme`
+rules, or a `color-scheme` declaration, which follows the color theme of
+the document anyway), nor embeds a raster image, nor paints a background
+which is not light, and a raster image (PNG/JPEG/WebP) if at least 60%
+of its pixels are transparent or near-white and the others are dark on
+average and of a few colors only (unlike a photo or a colorful
+screenshot). As the detection cannot tell a logo or illustration with
+brand colors from a line drawing, `#dark=none` keeps such an image as it
+is, while `#dark=invert` forces the inversion (e.g.
+`![Overview](overview.svg#dark=invert)`). A
+[draw.io](https://www.drawio.com/) diagram is best embedded as its
+editable SVG (`.drawio.svg`, which draw.io keeps current on every save)
+with its "Adaptive Colors" page setting on "Automatic", as it then
+adapts all its colors itself. A theme-aware embedding ignores the
+fragment, as its `dark` variant already serves the dark theme.
+
 The reference-style image `![<alt/>][<label/>]` embeds the image of its
 definition `[<label/>]: data:image/<type/>;base64,<data/>` (SVG, PNG,
-JPEG, or WebP) in the same file, the only supported link definition.
+JPEG, or WebP, where a `;dark=invert` or `;dark=none` parameter behind
+the type carries the treatment on the dark theme, which the export
+always resolves for an SVG) in the same file, the only supported link
+definition.
 This is the form the normalized Markdown export emits for every embedded
 image (a theme-aware one by its `light` variant), with the definitions
 at the end of the document, so it stands alone without the image files.
 Author the inline form; the reference-style one is for re-parsing only.
+
+### Diagram Embeddings
+
+A [Mermaid](https://mermaid.js.org/) or [D2](https://d2lang.com/)
+diagram is either written inline into a description as a fenced code
+block of language `mermaid` (alias `mmd`) or `d2`, or kept in a file of
+its own and embedded like an image -- `![<alt/>](<file/>.mmd)`,
+`![<alt/>](<file/>.mermaid)`, or `![<alt/>](<file/>.d2)` -- inside a
+description or property value, where its source is inlined at parse time.
+The HTML/PDF export renders every such diagram (Mermaid through
+`beautiful-mermaid`, D2 through `@terrastruct/d2`) in the theme colors of
+the document, once per color theme, like a theme-aware image. It folds,
+maximizes, and is omitted (`-O diagram:mermaid`, `-O diagram:d2`, or by
+nesting level) like a derived Gradia diagram. A diagram failing to render
+is omitted with a notice. The normalized Markdown and the AST exports
+carry the source of a fenced diagram as part of the description, and an
+embedded diagram file as its rendered SVG (the `light` variant).
+
+A page of a PDF document is embedded like a diagram file --
+`![<alt/>](<file/>.pdf)` for the first page, or
+`![<alt/>](<file/>.pdf#page=<n/>)` for the 1-based page number `<n/>` --
+where the document is inlined at parse time. The exports render the page
+through `pdfjs-dist` into a vector SVG with its texts as glyph outlines,
+in its own colors, which folds, maximizes, and is omitted
+(`-O diagram:pdf`) like an embedded diagram, while a page failing to
+render (e.g. an absent page number) is omitted with a notice. A presentation
+(e.g. PowerPoint), a spreadsheet (e.g. Excel), or any other office
+document is embedded through its PDF export, which carries its exact
+rendering and fonts.
+
+#### Fragment Parameters
+
+The fragment of an embedding reference is a list of `<key/>=<value/>`
+parameters joined by `&`, in any order and each at most once, with the
+values optionally URI-encoded (e.g. `%20` for a space): `page`
+(documents) and `dark` (documents and images). A fragment carrying any
+other key or an invalid value is reported as an error. The `dark`
+parameter selects the treatment on the dark theme of the HTML export,
+while print always shows the original: `dark=invert` inverts the
+embedding with its hues rotated back, `dark=none` shows it as it is, and
+`dark=auto` (the default) decides by the content of the image or the
+rendered document page (inverting a light canvas with dark ink, but
+neither a dark one nor one carrying a photo), as an image and a document
+page can be anything (line drawings, photos, logos); e.g.
+`![<alt/>](<file/>.pdf#page=3&dark=none)` keeps a page which the
+detection would invert, but whose colors have to stay.

@@ -83,6 +83,8 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
     The HTML export is a self-contained single document with a title page,
     a table-of-contents (also as a slide-in side panel for quick navigation),
     a diagram-of-contents, a fuzzy full-text search, embedded images,
+    embedded Mermaid and D2 diagrams (inline or as files, in the theme colors),
+    embedded PDF pages,
     reference coverage tables (e.g. the share of the use cases, scenarios,
     requirements, and rules the test cases verify), a
     scroll progress meter (which also scrolls back to the top on click),
@@ -242,7 +244,8 @@ Options:
     Omit content aspects (comma-separated, repeatable) from the HTML and
     PDF outputs at generation time, instead of just leaving them foldable
     in the browser. The aspects match the folding controls of the HTML
-    export: `diagram:graph`, `diagram:hub`, `diagram:grid`, and `diagram:image` omit all
+    export: `diagram:graph`, `diagram:hub`, `diagram:grid`,
+    `diagram:mermaid`, `diagram:d2`, `diagram:pdf`, and `diagram:image` omit all
     diagrams of a type, `diagram:1` (alias: `diagram`), `diagram:2`, and
     `diagram:3` omit all diagrams from an object tree nesting level on
     (level 1 hence all, including the "Diagram of Contents" page), and

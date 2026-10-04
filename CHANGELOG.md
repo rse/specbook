@@ -5,9 +5,21 @@ ChangeLog
 1.4.0 (2026-10-04)
 ------------------
 
+-   FEATURE [code]: Embedded Mermaid and D2 Diagrams
+    Fenced `mermaid`/`mmd`/`d2` blocks and embedded `.mmd`/`.mermaid`/`.d2` files are rendered
+    as themed diagrams, which fold, maximize, and omit (`-O diagram:mermaid|d2`) like Gradia ones.
+
+-   FEATURE [code]: Embedded PDF Pages
+    Embedded `.pdf` files (`#page=<n>` selecting the page) are rendered to vector SVG with lazily
+    loaded `pdfjs-dist`/`@napi-rs/canvas`, inverted on the dark theme if light, and fold and omit.
+
 -   IMPROVEMENT [code]: Embedded Images Fold and Maximize
     Embedded SVG/PNG/JPEG/WebP images (except the title page logo) fold, maximize, and omit
     (`-O diagram:image`) in the HTML/PDF export exactly like the embedded diagrams.
+
+-   FEATURE [code]: Dark Theme Treatment of Embeddings
+    The `dark` fragment parameter of images and PDF pages selects `invert`, `none`, or `auto`
+    (the default, detecting light pages with dark ink) as their treatment on the dark theme.
 
 -   BUGFIX [code]: Rationale Ends with Its Paragraph
     The blocks following a `, BECAUSE ` paragraph ended up inside the rationale and lost their
@@ -16,10 +28,6 @@ ChangeLog
 -   BUGFIX [code]: Self-Adapting SVG Images Follow the Document Theme
     An SVG image with `light-dark()` colors followed the system color scheme instead of the
     document theme, as the HTML export now sets `color-scheme` on every image on screen.
-
--   IMPROVEMENT [code]: Embedded Images Fold and Maximize
-    Embedded SVG/PNG/JPEG/WebP images (except the title page logo) fold, maximize, and omit
-    (`-O diagram:image`) in the HTML/PDF export exactly like the embedded diagrams.
 
 1.3.2 (2026-09-29)
 ------------------

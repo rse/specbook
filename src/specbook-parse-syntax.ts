@@ -12,7 +12,8 @@ import { marked, type Tokens } from "marked"
 import { type SpecArtifact, type SpecObject, type SpecProperty, type SpecDescription }
     from "./specbook-format-spec.js"
 import { type ParseContext, type SourceFile, becauseRegex, embeddingRegex,
-    embeddingDataRegex, embeddingMimeType, embeddingVariants }
+    embeddingDataRegex, embeddingMimeType, embeddingFileType, embeddingVariants, embeddingFragment,
+    markDark }
     from "./specbook-parse-common.js"
 
 /*  a grouping container context (e.g. "### STATE")  */
@@ -155,8 +156,10 @@ const parseFrontmatter = (text: string) => {
 }
 
 /*  recursively load the image files embedded via "![alt](file)" into the
-    description and the property values of an object (SVG as-is, PNG/JPEG/WebP
-    as base64 data: URLs), resolving the references relative to the source
+    description and the property values of an object (SVG as-is, PNG/JPEG/WebP,
+    the Mermaid/D2 diagram sources and the
+    PDF documents as base64 data: URLs), resolving
+    the references relative to the source
     file and expanding a "{theme}" reference into its theme variants,
     which are loaded into consecutive embedding entries (an unreadable
     file leaves an empty entry, keeping the positions aligned), while a
@@ -175,16 +178,33 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string, defs: Map<st
             }
             const reference = m[2].trim()
             const type      = embeddingMimeType(reference)
-            if (type === undefined)
+            if (type === undefined) {
+                if (embeddingFileType(reference) !== undefined)
+                    ctx.diagnose(file, line, `invalid fragment of embedding "${reference}"`)
                 continue
+            }
             for (const variant of embeddingVariants(reference)) {
+                /*  the fragment parameters of a document (selecting its
+                    page and its treatment on the dark theme) travel as the
+                    parameters of its data: URL, while a plain image gets marked with an explicit
+                    treatment on the dark theme deviating from its default
+                    ("auto"), unless its "{theme}" variants already serve
+                    the dark theme  */
                 target.embedding ??= []
-                const asset = path.resolve(path.dirname(file), variant)
+                const split  = embeddingFragment(variant, type) ?? { file: variant, params: {} }
+                const image  = type.startsWith("image/")
+                const asset  = path.resolve(path.dirname(file), split.file)
+                const params = image ? "" : Object.entries(split.params)
+                    .map(([ key, value ]) => `;${key}=${encodeURIComponent(value)}`).join("")
                 ctx.assets.add(asset)
                 try {
-                    const data = fs.readFileSync(asset)
-                    target.embedding.push(type === "image/svg+xml" ?
-                        data.toString("utf8") : `data:${type};base64,${data.toString("base64")}`)
+                    const data    = fs.readFileSync(asset)
+                    const content = type === "image/svg+xml" ?
+                        data.toString("utf8") : `data:${type}${params};base64,${data.toString("base64")}`
+                    const dark    = split.params.dark
+                    const mark    = image && !reference.includes("{theme}")
+                        && (dark === "invert" || dark === "none") ? dark : undefined
+                    target.embedding.push(mark !== undefined ? markDark(content, mark) : content)
                 }
                 catch (err) {
                     target.embedding.push("")
@@ -486,13 +506,14 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
         }
         else {
             /*  an image definition of the Markdown renderer is the one
-                supported link definition (its SVG kept as-is again)  */
+                supported link definition (its SVG kept as-is again,
+                unless marked as inverted on the dark theme)  */
             const def         = token.type === "def" ? token as Tokens.Def : undefined
             const m           = def?.href.match(embeddingDataRegex) ?? null
             const unsupported = unsupportedTokens[token.type]
             if (def !== undefined && m !== null)
-                defs.set(def.tag, m[1] === "image/svg+xml" ?
-                    Buffer.from(m[2], "base64").toString("utf8") : def.href)
+                defs.set(def.tag, m[1] === "image/svg+xml" && m[2] === undefined ?
+                    Buffer.from(m[3], "base64").toString("utf8") : def.href)
             else if (unsupported !== undefined)
                 ctx.diagnose(source.file, line, `unsupported ${unsupported} content ignored`)
         }

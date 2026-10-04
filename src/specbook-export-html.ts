@@ -4,12 +4,12 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import { Marked }            from "marked"
-import { markedSmartypants } from "marked-smartypants"
-import nunjucks              from "nunjucks"
-import nunjucksAddons        from "@rse/nunjucks-addons"
-import textframe             from "textframe"
-import { Gradia }            from "@rse/gradia"
+import { Marked, type Tokens } from "marked"
+import { markedSmartypants }    from "marked-smartypants"
+import nunjucks                 from "nunjucks"
+import nunjucksAddons           from "@rse/nunjucks-addons"
+import textframe                from "textframe"
+import { Gradia }               from "@rse/gradia"
 
 import type { Spec, SpecArtifact, SpecObject, SpecProperty, SpecDescription }
     from "./specbook-format-spec.js"
@@ -19,9 +19,9 @@ import { buildLinkIndex, resolveUnique, expandReferences, anchorPaths, plainText
     from "./specbook-link.js"
 import { compileValueExpr, splitItems, type ValueExpr }
     from "./specbook-parse-value.js"
-import { embeddingRegex, embeddingCount, embeddingThemes }
+import { embeddingRegex, embeddingCount, embeddingThemes, darkMark, type DarkMark }
     from "./specbook-parse-common.js"
-import { escapeHtml, stylesheet, searchScript, fallbackLogo,
+import { escapeHtml, stylesheet, searchScript, fallbackLogo, imageDark,
     isTitleObject, titleObject, documentTitle, documentLang, documentThemeStyle,
     type ExportOptions, type OmitAspect }
     from "./specbook-export-common.js"
@@ -29,8 +29,11 @@ import { collectSchemas }
     from "./specbook-parse-semantic.js"
 import { renderDiagrams }
     from "./specbook-diagram.js"
-import { optimizeImages }
+import { optimizeImages, analyzeRasters }
     from "./specbook-export-image.js"
+import { renderEmbeddedDiagrams, embeddedSource, fenceLanguage, diagramKey, diagramDark, omittedDiagram, objectLevels,
+    type DiagramLanguage, type DiagramVariants }
+    from "./specbook-export-diagram.js"
 import { specCoverage, coverageRatio, type Coverage }
     from "./specbook-coverage.js"
 import type { Verbose }
@@ -72,6 +75,9 @@ const templates = {
                         {% if not Document.omitted.graph %}<div class="fold-graphs" title="fold/unfold all graph diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5.5" r="3"/><circle cx="18.5" cy="5.5" r="3"/><circle cx="12" cy="18.5" r="3"/><path d="M7.3 8.1 10.6 15.9"/><path d="M16.7 8.1 13.4 15.9"/></svg></div>{% endif %}
                         {% if not Document.omitted.hub %}<div class="fold-hubs" title="fold/unfold all hub diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.5"/><circle cx="3.5" cy="4.5" r="2"/><circle cx="3.5" cy="19.5" r="2"/><circle cx="20.5" cy="4.5" r="2"/><circle cx="20.5" cy="19.5" r="2"/><path d="M5.5 4.5H10V9.1"/><path d="M18.5 4.5H14V9.1"/><path d="M5.5 19.5H10V14.9"/><path d="M18.5 19.5H14V14.9"/></svg></div>{% endif %}
                         {% if not Document.omitted.grid %}<div class="fold-grids" title="fold/unfold all grid diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg></div>{% endif %}
+                        {% if not Document.omitted.mermaid %}<div class="fold-mermaids" title="fold/unfold all Mermaid diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="3"/><path d="M7 16.5v-9l5 5 5-5v9"/></svg></div>{% endif %}
+                        {% if not Document.omitted.d2 %}<div class="fold-d2s" title="fold/unfold all D2 diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="3"/><text x="12" y="16.2" text-anchor="middle" font-size="10.5" font-weight="bold" fill="currentColor" stroke="none">D2</text></svg></div>{% endif %}
+                        {% if not Document.omitted.pdf %}<div class="fold-pdfs" title="fold/unfold all PDF pages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2.5h9.5l4.5 4.5v14.5H5z"/><path d="M14.5 2.5V7H19"/><path d="M8.5 12.5h7"/><path d="M8.5 16.5h7"/></svg></div>{% endif %}
                         {% if not Document.omitted.image %}<div class="fold-images" title="fold/unfold all images"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="17" rx="2"/><circle cx="8.5" cy="9" r="2"/><path d="M21.5 15.5l-5-5-11 10"/></svg></div>{% endif %}
                         {% for level in [ 1, 2, 3 ] %}{% if not Document.omitted["level" ~ level] %}<div class="fold-level{{ level }}" title="fold/unfold all diagrams from nesting level {{ level }} on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><rect x="6.5" y="6.5" width="3" height="3" rx="0.5"/><text x="19.5" y="23" text-anchor="middle" font-size="14.5" font-weight="bold" fill="currentColor" stroke="none">{{ level }}</text></svg></div>{% endif %}{% endfor %}
                         {% if not Document.omitted.text %}<div class="fold-texts" title="fold/unfold all cell texts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7V4.5h15V7"/><path d="M12 4.5v15"/><path d="M8.5 19.5h7"/></svg></div>{% endif %}
@@ -472,8 +478,9 @@ const cellGainMin       = 25
     left corner, folds the text of every table cell towering over the
     other cells of its row behind a chevron mark of its own, and lets
     the controls of the fold tab fold and unfold all diagrams of a type
-    ("graph", "hub", "grid", plus the embedded images as "image"), all
-    diagrams from an object tree nesting
+    ("graph", "hub", "grid", plus the embedded "mermaid", "d2", "pdf",
+    and "image" ones),
+    all diagrams from an object tree nesting
     level on (1, 2, 3), and all cell texts at once, with their state
     persisted across page loads and their icons marked while they are
     active (the diagram ones, OR-combined) or any cell text is folded
@@ -489,14 +496,17 @@ const foldScript = (standins: boolean, textless: boolean) => textframe`
         if (tab === null)
             return
         const controls = {
-            graph:  tab.querySelector("div.fold-graphs"),
-            hub:    tab.querySelector("div.fold-hubs"),
-            grid:   tab.querySelector("div.fold-grids"),
-            image:  tab.querySelector("div.fold-images"),
-            level1: tab.querySelector("div.fold-level1"),
-            level2: tab.querySelector("div.fold-level2"),
-            level3: tab.querySelector("div.fold-level3"),
-            text:   tab.querySelector("div.fold-texts")
+            graph:   tab.querySelector("div.fold-graphs"),
+            hub:     tab.querySelector("div.fold-hubs"),
+            grid:    tab.querySelector("div.fold-grids"),
+            mermaid: tab.querySelector("div.fold-mermaids"),
+            d2:      tab.querySelector("div.fold-d2s"),
+            pdf:     tab.querySelector("div.fold-pdfs"),
+            image:   tab.querySelector("div.fold-images"),
+            level1:  tab.querySelector("div.fold-level1"),
+            level2:  tab.querySelector("div.fold-level2"),
+            level3:  tab.querySelector("div.fold-level3"),
+            text:    tab.querySelector("div.fold-texts")
         }${standins ? `
         for (const kind of Object.keys(controls))
             controls[kind] ??= document.createElement("div")` : ""}
@@ -544,7 +554,8 @@ const foldScript = (standins: boolean, textless: boolean) => textframe`
             control; a diagram joins the set of its type plus the sets
             of all nesting levels up to its own one (3 standing for all
             deeper ones), so the sets of the controls overlap  */
-        const folds = { graph: [], hub: [], grid: [], image: [], level1: [], level2: [], level3: [], text: [] }
+        const folds = { graph: [], hub: [], grid: [], mermaid: [], d2: [], pdf: [], image: [],
+            level1: [], level2: [], level3: [], text: [] }
         document.querySelectorAll("article div.diagram, nav.doc div.diagram").forEach((el) => {
             const type  = el.getAttribute("data-type") ?? "graph"
             const level = Math.min(Number(el.getAttribute("data-level")) || 1, 3)
@@ -903,7 +914,7 @@ const maximizeScript = textframe`
             /*  a node hyperlink navigates on its own, the overlay just
                 gets out of its way, while a click beside the diagram
                 closes the overlay alone  */
-            if (event.target.closest("a") !== null || event.target.closest("svg") === null)
+            if (event.target.closest("a") !== null || event.target.closest("svg, img") === null)
                 shut()
         })
         document.body.addEventListener("keydown", (event) => {
@@ -1327,20 +1338,23 @@ const render = (name: keyof typeof templates, context: object): string => {
 /*  the active per-document reference expander, fully-qualified
     anchor paths, member-carrying property value constraints, object
     schema nodes, pre-rendered diagram blocks, optimized embedded images,
-    reference coverages, description popup keys of the schema nodes,
-    description popup keys of the objects, and omitted aspects (all set
-    during HTML rendering)  */
+    pre-rendered embedded diagrams, object nesting levels, reference
+    coverages, description popup keys of the schema nodes, description
+    popup keys of the objects, and omitted aspects (all set during HTML
+    rendering)  */
 let linker:      ((text: string, compact: boolean) => string) | null = null
 let anchors:     Map<SpecObject, string> | null       = null
 let members:     Map<string, ValueExpr> | null        = null
 let schemas:     Map<SpecObject, SchemaObject> | null = null
 let diagrams:    Map<SpecObject, string> | null       = null
 let images:      Map<string, string> | null           = null
+let rasters:     Map<string, boolean> | null          = null
+let embedded:    Map<string, DiagramVariants> | null  = null
+let levels:      Map<SpecObject, number> | null       = null
 let coverages:   Map<SpecObject, Coverage[]> | null   = null
 let infoKeys:    Map<SchemaObject, string> | null     = null
 let infoObjects: Map<SpecObject, string> | null       = null
 let omits:       Set<OmitAspect> | null               = null
-let levels:      Map<SpecObject, number> | null       = null
 
 /*  the object whose texts are currently rendered, scoping the
     resolution of the references inside them (nearest object wins),
@@ -1457,12 +1471,15 @@ const isBlock = (text: string): boolean => {
 /*  render a single embedded image file (in its optimized form) onto an
     <img> tag with a self-contained data: URL (converting the SVG text
     into one, as an SVG inlined as-is would leak its document-global
-    <style> rules into all other inlined SVGs sharing the same class names)  */
-const renderImage = (original: string, alt: string): string => {
-    const content = images?.get(original) ?? original
+    <style> rules into all other inlined SVGs sharing the same class names),
+    where an image inverted on the dark theme (as given for a diagram or a
+    theme variant, else as the image itself says) is marked by a class  */
+const renderImage = (original: string, alt: string,
+    dark: DarkMark = imageDark(original, rasters ?? undefined)): string => {
+    const content = darkMark(images?.get(original) ?? original).content
     const url = content.startsWith("data:") ? content :
         `data:image/svg+xml;base64,${Buffer.from(content, "utf8").toString("base64")}`
-    return `<img src="${url}" alt="${escapeHtml(alt)}"/>`
+    return `<img src="${url}"${dark === "invert" ? " class=\"dark-invert\"" : ""} alt="${escapeHtml(alt)}"/>`
 }
 
 /*  wrap the theme variants of an image into their layout-neutral theme
@@ -1472,18 +1489,52 @@ const renderThemed = (variants: string[]): string =>
     variants.map((variant, i) =>
         `<span class="theme-${embeddingThemes[i]}-only">${variant}</span>`).join("")
 
+/*  render an embedded diagram (a fenced code block of a diagram language
+    or an embedded diagram source file) into a diagram block like the one
+    of a Gradia diagram (carrying its language as the type and the nesting
+    level of the object rendered), so it folds and maximizes alike, with
+    its pre-rendered theme variants as images (as an SVG inlined as-is would
+    leak its document-global <style> rules), or with just its light variant
+    as one image, unless it brings dark colors of its own (inverted on the
+    dark theme or not, as its "dark" parameter says); an omitted or failed
+    diagram leaves nothing behind  */
+const renderEmbedded = (language: DiagramLanguage, source: string, alt: string): string => {
+    const variants = embedded?.get(diagramKey(language, source))
+    const level    = (scope !== null ? levels?.get(scope) : undefined) ?? 1
+    if (variants === undefined || (omits !== null && omittedDiagram(language, level, omits)))
+        return ""
+    const dark = diagramDark(language, source, variants)
+    return `<div class="diagram" data-type="${language}" data-level="${level}">` +
+        (dark !== "adapt" || variants.light === variants.dark ?
+            renderImage(variants.light, alt, dark === "invert" ? "invert" : "none") :
+            renderThemed(embeddingThemes.map((theme) => renderImage(variants[theme], alt, "none")))) + "</div>"
+}
+
+/*  render a fenced code block of a diagram language as its embedded
+    diagram instead of as code  */
+marked.use({ renderer: { code (token) {
+    const language = fenceLanguage(token.lang)
+    return language !== undefined ? renderEmbedded(language, token.text, `${language} diagram`) : false
+} } })
+
+/*  strip the fenced code blocks of a diagram language off a text  */
+const stripDiagrams = (text: string): string =>
+    marked.lexer(text)
+        .filter((token) => !(token.type === "code" && fenceLanguage((token as Tokens.Code).lang) !== undefined))
+        .map((token) => token.raw).join("")
+
 /*  render the embedded image files of a text into HTML, taking the image
     alternate texts from the corresponding "![alt](file)" markups and
     pairing up the consecutive theme variants of a "{theme}" markup, where
-    an image (unless unframed, like the title page logo) sits in a diagram
-    block of type "image", so it folds, maximizes, and is omitted like a
-    diagram (the empty entries of unreadable files and the omitted images
-    are skipped)  */
+    an embedded diagram source file renders as its diagram block and a
+    plain image (unless unframed, like the title page logo) sits in a
+    diagram block of type "image", so it folds, maximizes, and is omitted
+    like a diagram (the empty entries of unreadable files and the omitted
+    diagrams and images are skipped)  */
 const renderEmbeddings = (text: string, embedding: string[], framed = true): string[] => {
     const result  = new Array<string>()
     const level   = (scope !== null ? levels?.get(scope) : undefined) ?? 1
-    const omitted = framed && omits !== null && (omits.has("diagram:image")
-        || ([ 1, 2, 3 ] as const).some((n) => n <= level && omits?.has(`diagram:${n}`)))
+    const omitted = framed && omits !== null && omittedDiagram("image", level, omits)
     const frame   = (html: string) => framed ?
         `<div class="diagram" data-type="image" data-level="${level}">${html}</div>` : html
     let i = 0
@@ -1491,12 +1542,18 @@ const renderEmbeddings = (text: string, embedding: string[], framed = true): str
         const count = embeddingCount(m[2])
         if (count === 0)
             continue
-        const contents = embedding.slice(i, i + count)
-        const variants = contents.filter((content) => content !== "")
-            .map((content) => renderImage(content, m[1].trim()))
+        const contents = embedding.slice(i, i + count).filter((content) => content !== "")
         i += count
-        if (!omitted)
+        const images = contents.filter((content) => embeddedSource(content) === undefined)
+        if (images.length < contents.length)
+            result.push(...contents.map((content) => {
+                const diagram = embeddedSource(content)
+                return diagram !== undefined ? renderEmbedded(diagram.language, diagram.source, m[1].trim()) : ""
+            }).filter((html) => html !== ""))
+        else if (!omitted) {
+            const variants = images.map((content) => renderImage(content, m[1].trim(), count > 1 ? "none" : undefined))
             result.push(...(count > 1 && variants.length === count ? [ renderThemed(variants) ] : variants).map(frame))
+        }
     }
     return result
 }
@@ -1531,12 +1588,12 @@ const renderDescription = (description: SpecDescription): string => {
 
 /*  collect the description popups of the object instances: the corpus
     description Markdown of every object, pre-rendered to HTML into
-    its SPEC table entry (the embedded images and the rationale are
-    left out, as the popup shows the prose alone)  */
+    its SPEC table entry (the embedded images and diagrams and the
+    rationale are left out, as the popup shows the prose alone)  */
 const collectSpec = (objects: SpecObject[], spec: SpecEntry[]) => {
     for (const object of objects) {
-        const text = stripEmbeddings(
-            [ object.description?.description ?? "", object.description?.elaboration ?? "" ].join("\n\n"))
+        const text = stripEmbeddings(stripDiagrams(
+            [ object.description?.description ?? "", object.description?.elaboration ?? "" ].join("\n\n")))
         const key = infoObjects?.get(object)
         if (key !== undefined && text !== "")
             spec[Number(key)][4] = scoped(object, () =>
@@ -2137,17 +2194,21 @@ export const renderPlaceholder = (message: string): string =>
 const omittedControls = (omit: Set<OmitAspect>) => {
     const none    = omit.has("diagram:1")
         || (omit.has("diagram:graph") && omit.has("diagram:hub") && omit.has("diagram:grid")
+            && omit.has("diagram:mermaid") && omit.has("diagram:d2") && omit.has("diagram:pdf")
             && omit.has("diagram:image"))
     const omitted = {
-        graph:  none || omit.has("diagram:graph"),
-        hub:    none || omit.has("diagram:hub"),
-        grid:   none || omit.has("diagram:grid"),
-        image:  none || omit.has("diagram:image"),
-        level1: none,
-        level2: none || omit.has("diagram:2"),
-        level3: none || omit.has("diagram:2") || omit.has("diagram:3"),
-        text:   omit.has("text:long"),
-        all:    none && omit.has("text:long")
+        graph:   none || omit.has("diagram:graph"),
+        hub:     none || omit.has("diagram:hub"),
+        grid:    none || omit.has("diagram:grid"),
+        mermaid: none || omit.has("diagram:mermaid"),
+        d2:      none || omit.has("diagram:d2"),
+        pdf:     none || omit.has("diagram:pdf"),
+        image:   none || omit.has("diagram:image"),
+        level1:  none,
+        level2:  none || omit.has("diagram:2"),
+        level3:  none || omit.has("diagram:2") || omit.has("diagram:3"),
+        text:    omit.has("text:long"),
+        all:     none && omit.has("text:long")
     }
     const css =
         (omitted.text ? "\nspan.omit { color: var(--theme-color-specbook-muted) }" : "") +
@@ -2179,8 +2240,10 @@ const wrapDiagrams = (index: LinkIndex, svgs: Map<SpecObject, string>): Map<Spec
     artifact timestamps aggregated into min(Created)/max(Modified),
     optional per-anchor page numbers attached to the ToC entries,
     optionally the client-side script of the live preview injected and
-    aspects omitted (see "ExportOptions"), and the embedded images
-    optimized for the screen or for print (the PDF)  */
+    aspects omitted (see "ExportOptions"), the embedded images
+    optimized for the screen or for print (the PDF), and the embedded
+    Mermaid/D2 diagrams rendered in the theme colors (and the PDF pages
+    in their own ones)  */
 export const renderHtml = async (specification: Spec, config?: Schema,
     tocPages?: Map<string, number>, css?: string, options: ExportOptions = {},
     verbose?: Verbose, print = false): Promise<string> => {
@@ -2193,8 +2256,13 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     /*  the fold controls and the extra style rules of the omitted aspects  */
     const { omitted, css: omitCss } = omittedControls(omit)
 
-    /*  pre-optimize the embedded images (downscaled and re-encoded)  */
+    /*  pre-optimize the embedded images (downscaled and re-encoded)
+        and judge the raster ones for their treatment on the dark theme  */
     const optimized = await optimizeImages(specification, print, verbose)
+    const analyzed  = await analyzeRasters(specification)
+
+    /*  pre-render the embedded Mermaid/D2/PDF diagrams (except the omitted ones)  */
+    const sources = await renderEmbeddedDiagrams(specification, verbose, omit)
 
     /*  the document language selects the smart typography quote style  */
     const lang = documentLang(specification)
@@ -2208,18 +2276,11 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         members   = config !== undefined ? collectMembers(config, new Map()) : null
         schemas   = config !== undefined ? collectSchemas(specification, config) : null
         images    = optimized
+        rasters   = analyzed
+        embedded  = sources
+        levels    = objectLevels(specification)
         coverages = schemas !== null ? specCoverage(index, schemas) : null
         omits     = omit
-
-        /*  the object tree nesting levels of the objects (the top-level
-            objects of an artifact being level 1) the image blocks carry  */
-        levels = new Map()
-        for (const node of index) {
-            let level = 1
-            for (let parent = node.parent; parent !== undefined; parent = parent.parent)
-                level++
-            levels.set(node.object, level)
-        }
 
         /*  wrap the diagrams into their blocks, carrying the diagram type
             and the object tree nesting level the folding distinguishes  */
@@ -2301,10 +2362,12 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         schemas     = null
         diagrams    = null
         images      = null
+        rasters     = null
+        embedded    = null
+        levels      = null
         coverages   = null
         infoKeys    = null
         infoObjects = null
         omits       = null
-        levels      = null
     }
 }

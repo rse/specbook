@@ -17,7 +17,7 @@ import type { Schema }               from "./specbook-format-schema.js"
 import { documentTitle, documentLogo, documentCharset, documentThemeTone, subsetStylesheet,
     documentPaperSize, paperStylesheet, charsetCodepoints, parseOmit, omitAspects, type ExportOptions }
     from "./specbook-export-common.js"
-import { themeColors, themeStylesheet, themeMapping }
+import { themeColors, themeToneDefault, themeStylesheet, themeMapping }
     from "./specbook-theme.js"
 import { renderAst, type AstFormat } from "./specbook-export-ast.js"
 import { renderMarkdown, type MarkdownRebase }
@@ -208,7 +208,7 @@ const renderFormat = async (
 
     /*  the theme tone (THEME-TONE) drives the layer-1 color spread
         variables and the PDF decoration colors  */
-    const tone = documentThemeTone(specification) ?? "#336699"
+    const tone = documentThemeTone(specification) ?? themeToneDefault
     verbose(`generating theme color spreads (tone "${literal(tone)}")`)
     const colors = themeColors(tone)
 

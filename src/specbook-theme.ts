@@ -16,6 +16,9 @@ export type ThemeColors = {
     signal: string[]
 }
 
+/*  the theme color tone of a document carrying no THEME-TONE  */
+export const themeToneDefault = "#336699"
+
 /*  generate the theme color spreads from the theme color tone(s):
     a grey base spread, an accent spread derived from the first tone,
     and a signal spread derived from the second tone (if given) or

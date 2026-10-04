@@ -12,12 +12,14 @@ import type { Schema }
     from "./specbook-format-schema.js"
 import { specDiagrams }
     from "./specbook-diagram.js"
-import { becauseRegex, embeddingRegex, embeddingCount }
+import { becauseRegex, embeddingRegex, embeddingCount, darkMark, markDark }
     from "./specbook-parse-common.js"
-import { isTitleObject }
+import { isTitleObject, imageDark }
     from "./specbook-export-common.js"
-import { optimizeImages }
+import { optimizeImages, analyzeRasters }
     from "./specbook-export-image.js"
+import { renderEmbeddedDiagrams, embeddedSource, diagramKey, diagramDark }
+    from "./specbook-export-diagram.js"
 import type { Verbose }
     from "./specbook-verbose.js"
 
@@ -160,21 +162,38 @@ export const renderMarkdown = async (specification: Spec,
         export: an embeddable "![alt](file)" becomes the reference-style
         "![alt][img-N]", whose "[img-N]: data:..." definition ends the
         document (a "{theme}" one takes its light variant, as Markdown
-        knows no themes), and only the remaining ones are re-based  */
+        knows no themes), an embedded diagram source file becomes its
+        rendered SVG (the light variant, too, marked as inverted on the
+        dark theme where the diagram is), where every emitted SVG is marked
+        with its resolved treatment on the dark theme (an adapting diagram
+        flattened onto its light variant as the "auto" detection judges
+        it), so a re-parse keeps it, even where the "auto" detection would
+        judge a re-optimized SVG differently, and only the remaining
+        ones (including a failed diagram) are re-based  */
     const optimized = await optimizeImages(specification, false, verbose)
+    const rasters   = await analyzeRasters(specification)
+    const sources   = await renderEmbeddedDiagrams(specification, verbose)
     const labels    = new Map<string, string>()
     const embedMd   = (text: string, embedding: string[], from?: string, to?: string): string => {
         let i = 0
         const embedded = text.replace(embeddingRegex, (match: string, alt: string, reference?: string) => {
-            const count   = embeddingCount(reference)
-            const content = count > 0 ? embedding[i] : undefined
+            const count    = embeddingCount(reference)
+            const content  = count > 0 ? embedding[i] : undefined
             i += count
             if (content === undefined || content === "")
                 return match
-            const image = optimized.get(content) ?? content
-            const url   = image.startsWith("data:") ? image :
+            const diagram  = embeddedSource(content)
+            const variants = diagram !== undefined ? sources.get(diagramKey(diagram.language, diagram.source)) : undefined
+            const light    = diagram !== undefined ? variants?.light : optimized.get(content) ?? content
+            if (light === undefined)
+                return match
+            const dark     = diagram !== undefined ? diagramDark(diagram.language, diagram.source, variants) : undefined
+            const image    = dark === "invert" || dark === "none" ? markDark(light, dark) :
+                dark === "adapt" ? markDark(light, imageDark(light)) :
+                    markDark(darkMark(light).content, imageDark(content, rasters))
+            const url      = image.startsWith("data:") ? image :
                 `data:image/svg+xml;base64,${Buffer.from(image, "utf8").toString("base64")}`
-            const label = labels.get(url) ?? `img-${labels.size + 1}`
+            const label    = labels.get(url) ?? `img-${labels.size + 1}`
             labels.set(url, label)
             return `![${alt}][${label}]`
         })

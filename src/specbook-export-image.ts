@@ -5,6 +5,8 @@
 */
 
 import type { Spec, SpecObject }  from "./specbook-format-spec.js"
+import { embeddedSource }         from "./specbook-export-diagram.js"
+import { darkMark, markDark }     from "./specbook-parse-common.js"
 import { literal, type Verbose }  from "./specbook-verbose.js"
 
 /*  the pixel width the raster images are capped to: the 60rem content
@@ -71,14 +73,15 @@ const optimizeRaster = async (content: string, print: boolean): Promise<string> 
 }
 
 /*  collect the embedded image contents of an object and its descendants
-    (the empty entries of the unreadable files left out)  */
+    (the empty entries of the unreadable files and the embedded diagram
+    sources, which are rendered instead, left out)  */
 const collect = (object: SpecObject, contents: Set<string>) => {
     for (const content of object.description?.embedding ?? [])
-        if (content !== "")
+        if (content !== "" && embeddedSource(content) === undefined)
             contents.add(content)
     for (const property of object.properties)
         for (const content of property.embedding ?? [])
-            if (content !== "")
+            if (content !== "" && embeddedSource(content) === undefined)
                 contents.add(content)
     for (const child of object.children)
         collect(child, contents)
@@ -113,8 +116,13 @@ export const optimizeImages = async (specification: Spec, print: boolean,
             cached++
         else {
             try {
-                optimized = content.startsWith("data:") ?
-                    await optimizeRaster(content, print) : await optimizeSvg(content)
+                /*  an image marked with its treatment on the dark
+                    theme is optimized plain and marked again  */
+                const plain = darkMark(content)
+                optimized = plain.content.startsWith("data:") ?
+                    await optimizeRaster(plain.content, print) : await optimizeSvg(plain.content)
+                if (plain.dark !== undefined)
+                    optimized = markDark(optimized, plain.dark)
             }
             catch (err) {
                 verbose?.("optimizing image failed (keeping the original): " +
@@ -137,5 +145,62 @@ export const optimizeImages = async (specification: Spec, print: boolean,
             `reusing ${literal(cached)} cached image(s) for ${medium}: ` :
             `optimizing ${literal(contents.size)} image(s) for ${medium} (${literal(cached)} cached): `) +
             `${literal(Math.round(before / 1024))} KB -> ${literal(Math.round(after / 1024))} KB`)
+    return cache
+}
+
+/*  the in-memory cache of the "auto" judgements of the raster images,
+    keyed by the embedded image content and swept to the images of the
+    latest analysis, exactly like the optimized images  */
+let rasterCache = new Map<string, boolean>()
+
+/*  whether a raster image (given as a base64 data: URL) is most likely
+    dark ink on a transparent or light canvas and hence safe to invert on
+    the dark theme ("dark=auto"), judged on a downscaled copy of its
+    pixels: at least 60% of them are transparent or near-white (the
+    canvas), the others (the ink) exist, are dark on average, and consist
+    of a few colors only (the quantized colors holding at least 2% of the
+    ink cover at least 85% of it), unlike a photo or a colorful screenshot  */
+const rasterInvertible = async (content: string): Promise<boolean> => {
+    const m = content.match(/^data:image\/(?:png|jpeg|webp);base64,(.*)$/s)
+    if (m === null)
+        return false
+    const { default: sharp } = await import("sharp")
+    const { data, info } = await sharp(Buffer.from(m[1], "base64"))
+        .resize({ width: 128, height: 128, fit: "inside", withoutEnlargement: true })
+        .ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+    let canvas = 0
+    let ink    = 0
+    let luma   = 0
+    const bins = new Map<number, number>()
+    for (let p = 0; p < data.length; p += info.channels) {
+        const [ r, g, b, a ] = [ data[p], data[p + 1], data[p + 2], data[p + 3] ]
+        if (a < 32 || Math.min(r, g, b) >= 235)
+            canvas++
+        else {
+            ink++
+            luma += (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+            const bin = ((r >> 5) << 6) | ((g >> 5) << 3) | (b >> 5)
+            bins.set(bin, (bins.get(bin) ?? 0) + 1)
+        }
+    }
+    const few = Array.from(bins.values()).filter((n) => n >= ink * 0.02).reduce((sum, n) => sum + n, 0)
+    return ink > 0 && canvas / (canvas + ink) >= 0.6 && luma / ink < 0.6 && few >= ink * 0.85
+}
+
+/*  judge the raster images of a specification without an explicit
+    treatment on the dark theme for the "auto" one, yielding the map from
+    their embedded contents onto whether they are invertible, served from
+    the cache where possible (an image Sharp cannot process counts as not
+    invertible)  */
+export const analyzeRasters = async (specification: Spec): Promise<Map<string, boolean>> => {
+    const contents = new Set<string>()
+    for (const artifact of specification.artifacts)
+        for (const object of artifact.objects)
+            collect(object, contents)
+    const cache = new Map<string, boolean>()
+    for (const content of contents)
+        if (content.startsWith("data:") && darkMark(content).dark === undefined)
+            cache.set(content, rasterCache.get(content) ?? await rasterInvertible(content).catch(() => false))
+    rasterCache = cache
     return cache
 }

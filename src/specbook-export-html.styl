@@ -425,7 +425,7 @@ div.fold-switch div.fold-controls
     padding: 0
     transition: max-width 0.3s ease, padding 0.3s ease
 div.fold-switch.open div.fold-controls
-    max-width: 16rem
+    max-width: 24rem
     padding: 0 0.5rem 0 0.2rem
 div.fold-switch div.fold-controls > div
     padding: 0.25rem
@@ -1134,6 +1134,14 @@ div.diagram img
     max-width: 100%
     height: auto
     margin: 0 auto
+
+/*  an image or document page marked for inversion on the dark theme (by
+    its "dark" fragment parameter or its "auto" detection) is inverted with
+    its hues rotated back, so its white paper turns dark -- in the maximize
+    overlay, too, as its clone keeps the class  */
+@media screen
+    html.theme-dark img.dark-invert
+        filter: invert(1) hue-rotate(180deg)
 
 /*  the halo of the diagram edge labels is dropped for print, as Chromium
     prints a stroked text as the curve outlines of its glyphs instead of

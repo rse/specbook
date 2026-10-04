@@ -8,7 +8,7 @@ import fs from "node:fs"
 
 import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
-import { embeddingThemes }
+import { embeddingThemes, darkMark, type DarkMark }
     from "./specbook-parse-common.js"
 import { plainText }
     from "./specbook-link.js"
@@ -35,10 +35,13 @@ export const fallbackLogo = (theme: typeof embeddingThemes[number]): string =>
 
 /*  the content aspects an export can omit, each matching the set of a
     folding control of the HTML export: the diagrams of a type (the
-    derived Gradia ones and the embedded images), the diagrams from an
-    object tree nesting level on, and the long texts  */
+    derived Gradia ones, the embedded Mermaid/D2/PDF ones, and
+    the embedded images), the diagrams from an object tree nesting level
+    on, and the long texts  */
 export const omitAspects = [ "diagram:graph", "diagram:hub", "diagram:grid",
-    "diagram:image", "diagram:1", "diagram:2", "diagram:3", "text:long" ] as const
+    "diagram:mermaid", "diagram:d2", "diagram:pdf",
+    "diagram:image",
+    "diagram:1", "diagram:2", "diagram:3", "text:long" ] as const
 export type OmitAspect = typeof omitAspects[number]
 
 /*  parse the (comma-separated) aspects to omit, where the
@@ -180,7 +183,7 @@ export const paperStylesheet = (paper: string): string => {
     const avail = setup.height - setup.margin.top - setup.margin.bottom
     return "@media print {\n" +
         "div.diagram { break-inside: avoid; }\n" +
-        `div.diagram svg { max-height: calc(${paperLength(setup, avail)} - ${headingReserve}rem);` +
+        `div.diagram svg, div.diagram img { max-height: calc(${paperLength(setup, avail)} - ${headingReserve}rem);` +
         " width: auto; height: auto; }\n" +
         `nav.doc div.diagram svg { max-height: calc(${paperLength(setup, avail)} - ${docHeadingReserve}rem); }\n` +
         "}\n"
@@ -284,6 +287,111 @@ export const documentTitle = (specification: Spec): { title: string, subtitle?: 
     }
 }
 
+/*  the relative luminance (0-1) of a CSS color given as "#rgb", "#rrggbb",
+    "rgb(r, g, b)", "white", or "black" (undefined for any other one)  */
+const luminance = (color: string): number | undefined => {
+    const value = color.trim().toLowerCase()
+    const named = value === "white" ? "#ffffff" : value === "black" ? "#000000" : value
+    const hex   = named.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/)
+    const rgb   = named.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/)
+    const parts = hex !== null ?
+        (hex[1].length === 3 ? hex[1].split("").map((c) => c + c) : hex[1].match(/../g) ?? [])
+            .map((c) => parseInt(c, 16)) :
+        rgb !== null ? rgb.slice(1, 4).map(Number) : undefined
+    return parts !== undefined ? (0.2126 * parts[0] + 0.7152 * parts[1] + 0.0722 * parts[2]) / 255 : undefined
+}
+
+/*  whether an SVG image is most likely dark ink on a transparent or light
+    canvas and hence safe to invert on the dark theme ("dark=auto"): it
+    neither adapts itself (via "light-dark()" colors, "prefers-color-scheme"
+    rules, or a "color-scheme" declaration), nor embeds a raster image
+    (which would turn into a negative), nor paints a background of its own
+    which is not light (by the style of its root element or by the topmost
+    of the leading shapes covering the whole canvas -- rectangles or
+    rectangular paths, as a rendered PDF page paints its background over
+    the white paper of PDF.js --, an unknown color counting as not light)  */
+export const svgInvertible = (svg: string): boolean => {
+    if (/light-dark\(|prefers-color-scheme|color-scheme|<image\b/.test(svg))
+        return false
+    const root  = svg.match(/<svg\b[^>]*>/)?.[0] ?? ""
+    const light = (color: string | undefined) => (luminance(color ?? "#000000") ?? 0) >= 0.5
+    const back  = root.match(/background(?:-color)?\s*:\s*([^;"]+)/)?.[1]
+    if (back !== undefined && !/^\s*(?:none|transparent)\s*$/.test(back) && !light(back))
+        return false
+
+    /*  the canvas size (in the user units of the viewBox, if any)  */
+    const attr  = (element: string, name: string) =>
+        element.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1] ??
+        element.match(new RegExp(`[\\s;"]${name}\\s*:\\s*([^;"]+)`))?.[1]
+    const box   = attr(root, "viewBox")?.trim().split(/[\s,]+/).map(Number) ?? []
+    const width = box[2] || parseFloat(attr(root, "width") ?? "")
+    const high  = box[3] || parseFloat(attr(root, "height") ?? "")
+
+    /*  whether a shape covers the whole canvas: the corner points of a
+        rectangle or of a path of straight absolute segments only, mapped
+        through its "scale()" or "matrix()" transform (if any)  */
+    const covers = (kind: string, element: string): boolean => {
+        const num = (name: string) => parseFloat(attr(element, name) ?? "0") || 0
+        let points: number[][]
+        if (kind === "rect") {
+            if (attr(element, "width") === "100%" && attr(element, "height") === "100%")
+                return true
+            const [ x, y ] = [ num("x"), num("y") ]
+            points = [ [ x, y ], [ x + num("width"), y + num("height") ] ]
+        }
+        else {
+            const d = attr(element, "d") ?? ""
+            if (kind !== "path" || !/^[\sMLHVZ\d.,-]*$/.test(d))
+                return false
+            points = []
+            for (const [ , cmd, args ] of d.matchAll(/([MLHVZ])([^MLHVZ]*)/g)) {
+                const n    = args.trim().split(/[\s,]+/).filter((a) => a !== "").map(Number)
+                const last = points.at(-1) ?? [ 0, 0 ]
+                if (cmd === "H")
+                    points.push(...n.map((x) => [ x, last[1] ]))
+                else if (cmd === "V")
+                    points.push(...n.map((y) => [ last[0], y ]))
+                else
+                    for (let k = 0; k + 1 < n.length; k += 2)
+                        points.push([ n[k], n[k + 1] ])
+            }
+        }
+        const t = attr(element, "transform")?.trim() ?? ""
+        const f = t.match(/^(matrix|scale)\(([^)]*)\)$/)
+        const v = f?.[2].trim().split(/[\s,]+/).map(Number) ?? []
+        const m = t === "" ? [ 1, 0, 0, 1, 0, 0 ] :
+            f?.[1] === "matrix" && v.length === 6 ? v :
+                f?.[1] === "scale" ? [ v[0], 0, 0, v[1] ?? v[0], 0, 0 ] : undefined
+        if (m === undefined || points.length === 0)
+            return false
+        const xs = points.map(([ x, y ]) => m[0] * x + m[2] * y + m[4])
+        const ys = points.map(([ x, y ]) => m[1] * x + m[3] * y + m[5])
+        return Math.min(...xs) <= 1 && Math.min(...ys) <= 1
+            && Math.max(...xs) >= width - 1 && Math.max(...ys) >= high - 1
+    }
+
+    /*  the topmost leading canvas-covering shape (outside of any
+        definition) forms the background  */
+    let fill: string | undefined
+    const body = svg.slice(svg.indexOf(root) + root.length)
+        .replace(/<(clipPath|defs|mask|pattern|symbol)\b[\s\S]*?<\/\1>/g, "")
+    for (const shape of body.matchAll(/<(rect|path|circle|ellipse|line|polyline|polygon|text|use)\b[^>]*>/g)) {
+        if (!covers(shape[1], shape[0]))
+            break
+        fill = attr(shape[0], "fill") ?? "#000000"
+    }
+    return fill === undefined || fill === "none" || fill === "transparent" || light(fill)
+}
+
+/*  the treatment of an embedded image on the dark theme: its explicit
+    mark, else the "auto" detection (for a raster image the judgement of
+    "analyzeRasters", none where absent)  */
+export const imageDark = (content: string, rasters?: Map<string, boolean>): DarkMark => {
+    const { content: plain, dark } = darkMark(content)
+    return dark ?? ((plain.startsWith("data:") ? rasters?.get(plain) === true : svgInvertible(plain)) ?
+        "invert" : "none")
+}
+
 /*  determine the document logo as a self-contained data: URL, taken from the
     first embedded image of the LOGO property of the title object -- the light
     variant of a "{theme}" reference -- and falling back onto the built-in
@@ -294,6 +402,7 @@ export const documentLogo = (specification: Spec): string => {
         ?.properties.find((property) => property.key === "LOGO")?.embedding?.[0]
     if (content === undefined || content === "")
         return fallbackLogo("light")
-    return content.startsWith("data:") ? content :
-        `data:image/svg+xml;base64,${Buffer.from(content, "utf8").toString("base64")}`
+    const plain = darkMark(content).content
+    return plain.startsWith("data:") ? plain :
+        `data:image/svg+xml;base64,${Buffer.from(plain, "utf8").toString("base64")}`
 }
