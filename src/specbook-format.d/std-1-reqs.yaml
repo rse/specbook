@@ -113,6 +113,7 @@
                 states a fact or event, not a decision (a deliberate exclusion is the `SCOPE` of
                 the Solution Vision or a `WONT` requirement instead).
             format:
+                type: complex
                 maxTableColumns: 5
             props:
                 -   name: TYPE
@@ -507,6 +508,17 @@
                 maxTableColumns: 6
             referenced:
                 -   "[[USE-CASE:*]]"
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[FR.REQUIREMENT:*]], [[NR.REQUIREMENT:*]], [[PREMISE:*]], [[RULE:*]],
+                    [[USE-CASE:*]], [[DM.ENTITY:*]], [[FV.COMPONENT:*]], [[TEST-CASE:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
+                    hub-node-count-max: 3
             props:
                 -   name: PRIORITY
                     desc: >
@@ -580,6 +592,7 @@
                 config:
                     size-node-width-max: 440
                     size-node-height-scale: 1.75
+                    hub-node-count-max: 3
             props:
                 -   name: PRIORITY
                     desc: >
@@ -673,6 +686,18 @@
                 maxTableColumns: 5
             referenced:
                 -   "[[TEST-CASE:*]]"
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[RULE:*]], [[TERM:*]], [[FR.REQUIREMENT:*]], [[NR.REQUIREMENT:*]],
+                    [[PREMISE:*]], [[WORKFLOW:*]], [[HANDOFF:*]], [[USE-CASE:*]], [[TRANSITION:*]],
+                    [[PERMISSION:*]], [[TEST-CASE:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
+                    hub-node-count-max: 3
             props:
                 -   name: CATEGORY
                     desc: >

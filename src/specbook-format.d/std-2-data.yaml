@@ -380,6 +380,17 @@
                 permission of the role (or of a role it `INHERITS`) is forbidden.
             format:
                 maxTableColumns: 8
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[PERMISSION:*]], [[ROLE:*]], [[DM.ENTITY:*]], [[STATE:*]], [[TRANSITION:*]],
+                    [[RULE:*]], [[USE-CASE:*]], [[SCENARIO:*]], [[ENDPOINT:*]], [[TEST-CASE:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
+                    hub-node-count-max: 3
             props:
                 -   name: ROLE
                     desc: >

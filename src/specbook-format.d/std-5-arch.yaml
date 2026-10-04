@@ -326,6 +326,7 @@
                         config:
                             size-node-width-max:    440
                             size-node-height-scale: 1.75
+                            hub-node-count-max:     3
                     props:
                         -   name: PRODUCT
                             desc: >
@@ -718,6 +719,7 @@
                 config:
                     size-node-width-max:    440
                     size-node-height-scale: 1.75
+                    hub-node-count-max:     3
             props:
                 -   name: KIND
                     desc: |
@@ -820,6 +822,7 @@
                 config:
                     size-node-width-max:    440
                     size-node-height-scale: 1.75
+                    hub-node-count-max:     3
             props:
                 -   name: PART-OF
                     desc: >
@@ -899,6 +902,7 @@
                 config:
                     size-node-width-max:    440
                     size-node-height-scale: 1.75
+                    hub-node-count-max:     3
             props:
                 -   name: KIND
                     desc: |
@@ -994,6 +998,7 @@
                 config:
                     size-node-width-max:    440
                     size-node-height-scale: 1.75
+                    hub-node-count-max:     3
             props:
                 -   name: SCOPE
                     desc: |
@@ -1065,6 +1070,7 @@
                 config:
                     size-node-width-max:    440
                     size-node-height-scale: 1.75
+                    hub-node-count-max:     3
             props:
                 -   name: CATEGORY
                     desc: |
@@ -1331,6 +1337,8 @@
                 decision is under-justified. The rationale should make the decision feel earned,
                 not asserted - if you delete the rationale and the decision suddenly looks
                 arbitrary, the rationale was doing its job.
+            format:
+                type: complex
             diagram:
                 type: hub
                 center: self
@@ -1536,6 +1544,8 @@
                 `TOOLS`, and the rule about the source layout, build, or process it lives in is a
                 Development Aspects aspect -- only the recurring code shape, the elements written
                 that way, and the deviation ruled out belong here.
+            format:
+                type: complex
             diagram:
                 type: hub
                 center: self

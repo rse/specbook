@@ -140,6 +140,16 @@
                 solution phrases what it says, not what it does (a behavior is an Interaction
                 Concept principle instead) and not what a term means (a definition is a Domain
                 Glossary term instead).
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[CONVENTION:*]], [[PERSONA:*]], [[PRINCIPLE:*]], [[TERM:*]], [[DECISION:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
+                    hub-node-count-max: 3
             props:
                 -   name: CATEGORY
                     desc: >
@@ -424,6 +434,7 @@
                 qualified: true
                 config:
                     size-node-width-max: 440
+                    hub-node-count-max: 3
             props:
                 -   name: CATEGORY
                     desc: >
@@ -473,6 +484,15 @@
                 applied rather than stating them (a rule is an `ELEMENT` instead).
             format:
                 type: complex
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[MOCKUP:*]], [[PERSONA:*]], [[STORYBOARD:*]], [[ELEMENT:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    hub-node-count-max: 3
             props:
                 -   name: ACTORS
                     desc: >

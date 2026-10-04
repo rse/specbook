@@ -84,6 +84,7 @@
                 config:
                     size-node-width-max: 440
                     size-node-height-scale: 1.75
+                    hub-node-count-max: 3
             props:
                 -   name: VERIFIES
                     desc: >
