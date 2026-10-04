@@ -794,7 +794,7 @@ type SpecProperty = {
     BECAUSE further content must not end up inside the WHY
 
 -   `SpecDescription.embedding?: string[]`:
-    image and diagram source files embedded via `![xxx](yyy)`,
+    image, diagram source, and source code files embedded via `![xxx](yyy)`,
     inlined at parse time, one entry per file in markup order (those of
     the statement first, those of the elaboration second, and empty for
     an unreadable file),
@@ -813,7 +813,8 @@ type SpecProperty = {
     BECAUSE constraints and references are checked against this text
 
 -   `SpecProperty.embedding?: string[]`:
-    image and diagram source files embedded in the value, inlined at parse time,
+    image, diagram source, and source code files embedded in the value,
+    inlined at parse time,
     one entry per file in markup order (empty for an unreadable file),
     BECAUSE the exports have to stand alone, without the image files
 
@@ -1003,7 +1004,9 @@ language `gradia` is skipped, as it is the derived diagram which
 become authored content on a re-parse. A fenced code block of language
 `mermaid` (alias `mmd`) or `d2` is a [Mermaid](https://mermaid.js.org/)
 or [D2](https://d2lang.com/) diagram, which the HTML/PDF export renders
-as a diagram instead of as code (see "Diagram Embeddings" below). In
+as a diagram instead of as code (see "Diagram Embeddings" below). A
+fenced code block of any other known language is a syntax-highlighted
+code listing (see "Code Listings" below). In
 the Concise Format, the description is formed by the non-property
 segments of the item, so a description carrying a `;` cannot be a
 segment either and forces its object into the Complex Format.
@@ -1032,7 +1035,9 @@ BECAUSE an event needs a private setup phase.
 ### Wiki-Style References
 
 A `[[<reference/>]]` anywhere in a name, property value, description, or
-rationale is a Wiki-style reference to another object, which is checked
+rationale (except inside a fenced code block, whose code stays verbatim,
+so e.g. a shell test `[[ -f x ]]` is no reference) is a Wiki-style
+reference to another object, which is checked
 for unique resolvability and rendered as a hyperlink in the HTML/PDF
 exports. A reference is a `.`-separated path of segments, where each
 segment matches a single object as:
@@ -1143,12 +1148,57 @@ is omitted with a notice. The normalized Markdown and the AST exports
 carry the source of a fenced diagram as part of the description, and an
 embedded diagram file as its rendered SVG (the `light` variant).
 
+### Code Listings
+
+A code snippet is either written inline into a description as a fenced
+code block of a known language (any language id or alias of
+[Shiki](https://shiki.style/), like `ts`, `java`, `css`, or `html`), or
+kept in a source code file of its own and embedded like an image --
+`![<alt/>](<file/>.<ext/>)`, where `<ext/>` is such a language id or
+alias (e.g. `.ts`, `.java`, `.css`, `.html`) -- inside a description or
+property value, where its source is inlined at parse time. A fenced code
+block of no or an unknown language stays plain preformatted text.
+
+The HTML/PDF export renders every such snippet as a *code listing* in
+DejaVu Sans Mono, with line numbers and with its keywords, operators,
+and punctuation in the accent color and bold, its literals in the signal
+color, and its comments in the dim color and italic. A code listing
+folds, maximizes, and is omitted (`-O diagram:listing`, or by nesting
+level) like a diagram.
+
+A fenced code listing takes whitespace-separated parameters behind its
+language, and an embedded one takes them as its fragment (see "Fragment
+Parameters" below):
+
+-   `start=<n/>` (fenced only): the number of the first line (default `1`).
+-   `lines=<a/>-<b/>` or `lines=<a/>` (embedded only): the excerpt of the
+    1-based lines `<a/>` to `<b/>` (or line `<a/>` alone), numbered from
+    `<a/>`, where an empty range is reported as an error.
+-   `mark=<a/>[-<b/>][,...]`: the lines or line ranges to mark (in the
+    shown line numbers) on a very light signal background.
+
+````
+```ts start=10 mark=12-13
+const greeter = new Greeter("World")
+```
+
+![Greeter Class](greeter.ts#lines=5-20&mark=8,12-14)
+````
+
+The AST exports carry an embedded source code file as its
+`data:text/x-code;lang=<lang/>;start=<n/>[;mark=<hunks/>];base64,<data/>`
+URL, while the normalized Markdown export turns one of a description into
+a fenced code block (with its `start` and `mark` parameters) at the end
+of the elaboration, and keeps one of a property value as a
+reference-style image definition of that URL.
+
 #### Fragment Parameters
 
 The fragment of an embedding reference is a list of `<key/>=<value/>`
 parameters joined by `&`, in any order and each at most once, with the
 values optionally URI-encoded (e.g. `%20` for a space): `page`
-(documents) and `dark` (documents and images). A fragment carrying any
+(documents), `dark` (documents and images), and `lines` and `mark`
+(source code files, see "Code Listings" above). A fragment carrying any
 other key or an invalid value is reported as an error. The `dark`
 parameter selects the treatment on the dark theme of the HTML export,
 while print always shows the original: `dark=invert` inverts the

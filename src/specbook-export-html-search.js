@@ -53,9 +53,10 @@
         is an outermost paragraph-level element within an article or
         the title page abstract (a lone paragraph being the unit itself),
         i.e. one not nested inside another unit (like a paragraph in a
-        table cell, covered by its table row), where a diagram is
-        searched by its space-joined SVG text labels (its raw text
-        content runs them together), and where the explicit anchor id
+        table cell, covered by its table row, or a code listing in its
+        diagram block), where a diagram is searched by its space-joined
+        SVG text labels (its raw text content runs them together), a code
+        listing by its text content, and where the explicit anchor id
         of an object heading or table row joins the searched text  */
     const index = () => {
         if (indexed)
@@ -69,12 +70,12 @@
             els.forEach((el) => {
                 let parent = el.parentElement
                 while (parent !== null && parent !== root) {
-                    if (/^(TR|TD|TH|LI|P|BLOCKQUOTE)$/.test(parent.tagName))
+                    if (/^(TR|TD|TH|LI|P|BLOCKQUOTE)$/.test(parent.tagName) || parent.classList.contains("diagram"))
                         return
                     parent = parent.parentElement
                 }
                 const id    = (el.dataset.id ?? "").toLowerCase()
-                const text  = ((el.classList.contains("diagram") ?
+                const text  = ((el.classList.contains("diagram") && el.dataset.type !== "listing" ?
                     Array.from(el.querySelectorAll("text")).map((t) => t.textContent ?? "").join(" ") :
                     (el.textContent ?? "")) + " " + id).toLowerCase()
                 const words = new Set(text.split(/[^\p{L}\p{N}]+/u).filter((w) => w !== ""))

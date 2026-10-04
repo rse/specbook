@@ -47,14 +47,26 @@ vendors = official
     src: url("../node_modules/@fontsource/noto-sans-symbols/files/" + \
         "noto-sans-symbols-symbols-400-normal.woff2") format("woff2")
 
-/*  Adobe Source Code Pro font face (regular only, as the italic
-    and bold faces are intentionally not embedded)  */
+/*  DejaVu Sans Mono font faces (regular, bold, and italic only, as the
+    code listings never combine the bold keywords with the italic comments)  */
 @font-face
-    font-family: "Source Code Pro"
+    font-family: "DejaVu Sans Mono"
     font-style: normal
     font-weight: normal
-    src: url("../node_modules/source-code-pro/WOFF2/TTF/SourceCodePro-Regular.ttf.woff2") \
-        format("woff2")
+    src: url("../node_modules/@fontsource/dejavu-mono/files/" + \
+        "dejavu-mono-latin-400-normal.woff2") format("woff2")
+@font-face
+    font-family: "DejaVu Sans Mono"
+    font-style: normal
+    font-weight: bold
+    src: url("../node_modules/@fontsource/dejavu-mono/files/" + \
+        "dejavu-mono-latin-700-normal.woff2") format("woff2")
+@font-face
+    font-family: "DejaVu Sans Mono"
+    font-style: italic
+    font-weight: normal
+    src: url("../node_modules/@fontsource/dejavu-mono/files/" + \
+        "dejavu-mono-latin-400-italic.woff2") format("woff2")
 
 /*  the theme-specific (layer 2) mapping of the export-time generated
     (layer 1) color spreads --theme-color-{base,accent,search}-{1..32} onto
@@ -83,6 +95,15 @@ html.theme-light
     --theme-color-specbook-popup-spec-desc:   var(--theme-color-base-5)
     --theme-color-specbook-progress-done:     var(--theme-color-accent-12)
     --theme-color-specbook-progress-todo:     var(--theme-color-accent-31)
+    --theme-color-specbook-code-keyword:      var(--theme-color-specbook-accent)
+    --theme-color-specbook-code-literal:      var(--theme-color-signal-12)
+    --theme-color-specbook-code-comment:      var(--theme-color-specbook-muted)
+    --theme-color-specbook-code-regular:      var(--theme-color-specbook-text)
+    --theme-color-specbook-code-marked:       var(--theme-color-accent-32)
+    --theme-color-specbook-code-background:   transparent
+    --theme-color-specbook-code-gutter:       var(--theme-color-specbook-stripe)
+    --theme-color-specbook-code-number:       var(--theme-color-specbook-symbol)
+    --theme-color-specbook-code-gutter-mark:  var(--theme-color-accent-30)
     --gradia-font-family:                     "Source Sans 3"
 
     /*  the font sizes the diagram layout was sized for (kept in sync
@@ -142,6 +163,15 @@ html.theme-light
         --theme-color-specbook-popup-spec-desc:   var(--theme-color-base-29)
         --theme-color-specbook-progress-done:     var(--theme-color-accent-22)
         --theme-color-specbook-progress-todo:     var(--theme-color-accent-4)
+        --theme-color-specbook-code-keyword:      var(--theme-color-specbook-accent)
+        --theme-color-specbook-code-literal:      var(--theme-color-signal-22)
+        --theme-color-specbook-code-comment:      var(--theme-color-specbook-muted)
+        --theme-color-specbook-code-regular:      var(--theme-color-specbook-text)
+        --theme-color-specbook-code-marked:       unquote("color-mix(in srgb, var(--theme-color-accent-1) 50%, transparent)")
+        --theme-color-specbook-code-background:   transparent
+        --theme-color-specbook-code-gutter:       var(--theme-color-specbook-stripe)
+        --theme-color-specbook-code-number:       var(--theme-color-specbook-symbol)
+        --theme-color-specbook-code-gutter-mark:  unquote("color-mix(in srgb, var(--theme-color-accent-1) 80%, transparent)")
         --gradia-color-node-regular-name:         var(--theme-color-accent-21)
         --gradia-color-node-regular-box:          var(--theme-color-accent-3)
         --gradia-color-node-regular-border:       var(--theme-color-accent-7)
@@ -584,6 +614,14 @@ div.maximize div.maximize-content img
     max-width: none
 div.maximize div.maximize-content img
     object-fit: contain
+div.maximize div.maximize-content pre.listing
+    box-sizing: border-box
+    font-size: 1.0rem
+    max-width: 100%
+    max-height: 100%
+    margin: 0 auto
+    width: max-content
+    overflow: auto
 html.maximized
     overflow: hidden
 @media print
@@ -1156,10 +1194,84 @@ p.rationale
     margin: 0.5rem 0 0 0
 span.keyword
     font-weight: bold
+/*  the code spans, scaled so the x-height of DejaVu Sans Mono (547/1000)
+    aligns with the one of Source Sans 3 (486/1000) of the prose  */
 code
-    font-family: "Source Code Pro", monospace
-    font-size: 1.0em
+    font-family: "DejaVu Sans Mono", monospace
+    font-size: 0.89em
     letter-spacing: -0.030rem
+
+/*  the code listings: block-level lines on a transparent background with a
+    grey gutter for the line numbers, drawn from a counter (in the
+    symbol color and excluded from a selection, an empty line kept open by
+    a zero-width space), the marked lines with an accent gutter and number,
+    and the tokens colored and weighted by their class, where an overly
+    long line wraps (at any character, if needed), hanging behind its
+    gutter, which spans the whole height of the line with its number on top
+    (so a wrapped line shows as the empty gutter space below its number)  */
+pre.listing
+    margin: 0
+    padding: 0
+    font-family: "DejaVu Sans Mono", monospace
+    font-size: 0.89rem
+    line-height: 1.10
+    background-color: var(--theme-color-specbook-code-background)
+    border: 1px solid var(--theme-color-specbook-border)
+    border-radius: 0.3rem
+    counter-reset: line calc(var(--listing-start) - 1)
+pre.listing code
+    --listing-gutter: calc(var(--listing-digits) * 1ch + 2ch)
+    display: block
+    padding: 0.4rem 0
+    font-size: 1em
+    letter-spacing: 0
+    color: var(--theme-color-specbook-code-regular)
+    border-left: var(--listing-gutter) solid var(--theme-color-specbook-code-gutter)
+pre.listing span.line
+    display: block
+    position: relative
+    margin-left: calc(-1 * var(--listing-gutter))
+    padding: 0 0.75rem 0 calc(var(--listing-gutter) + 1ch)
+    white-space: pre-wrap
+    overflow-wrap: anywhere
+    counter-increment: line
+pre.listing span.line::before
+    content: counter(line)
+    position: absolute
+    top: 0
+    bottom: 0
+    left: 0
+    box-sizing: border-box
+    width: var(--listing-gutter)
+    padding: 0 1ch
+    text-align: right
+    background-color: var(--theme-color-specbook-code-gutter)
+    color: var(--theme-color-specbook-code-number)
+    -webkit-user-select: none
+    user-select: none
+pre.listing span.line:empty::after
+    content: "\200b"
+pre.listing span.line.marked
+    background-color: var(--theme-color-specbook-code-marked)
+pre.listing span.line.marked::before
+    background-color: var(--theme-color-specbook-code-gutter-mark)
+    color: var(--theme-color-specbook-accent-soft)
+pre.listing span.code-keyword
+    color: var(--theme-color-specbook-code-keyword)
+    font-weight: bold
+pre.listing span.code-literal
+    color: var(--theme-color-specbook-code-literal)
+pre.listing span.code-comment
+    color: var(--theme-color-specbook-code-comment)
+    font-style: italic
+@media print
+    pre.listing span.line
+        break-inside: avoid
+    pre.listing,
+    pre.listing code,
+    pre.listing span.line,
+    pre.listing span.line::before
+        print-color-adjust: exact
 
 /*  the title page  */
 div.titlepage

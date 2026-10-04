@@ -9,6 +9,7 @@ import { createRequire }          from "node:module"
 
 import type { Spec, SpecObject }  from "./specbook-format-spec.js"
 import { embeddedSource }         from "./specbook-export-diagram.js"
+import { embeddedListing }        from "./specbook-export-code.js"
 import { svgInvertible }          from "./specbook-export-common.js"
 import { darkMark, markDark, pdfType } from "./specbook-parse-common.js"
 import { plainText }              from "./specbook-link.js"
@@ -150,15 +151,18 @@ const optimizeRaster = async (content: string, print: boolean): Promise<string> 
 }
 
 /*  collect the embedded image contents of an object and its descendants
-    (the empty entries of the unreadable files and the embedded diagram
-    sources, which are rendered instead, left out)  */
+    (the empty entries of the unreadable files, the embedded diagram
+    sources, which are rendered instead, and the embedded source code
+    files, which are listed instead, left out)  */
+const isImage = (content: string): boolean =>
+    content !== "" && embeddedSource(content) === undefined && embeddedListing(content) === undefined
 const collect = (object: SpecObject, contents: Set<string>) => {
     for (const content of object.description?.embedding ?? [])
-        if (content !== "" && embeddedSource(content) === undefined)
+        if (isImage(content))
             contents.add(content)
     for (const property of object.properties)
         for (const content of property.embedding ?? [])
-            if (content !== "" && embeddedSource(content) === undefined)
+            if (isImage(content))
                 contents.add(content)
     for (const child of object.children)
         collect(child, contents)

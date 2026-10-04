@@ -13,7 +13,7 @@ import { type SpecArtifact, type SpecObject, type SpecProperty, type SpecDescrip
     from "./specbook-format-spec.js"
 import { type ParseContext, type SourceFile, becauseRegex, embeddingRegex,
     embeddingDataRegex, embeddingMimeType, embeddingFileType, embeddingVariants, embeddingFragment,
-    markDark, pdfType }
+    markDark, pdfType, codeType, codeLanguage, fenceInfo }
     from "./specbook-parse-common.js"
 
 /*  a grouping container context (e.g. "### STATE")  */
@@ -196,6 +196,32 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string, defs: Map<st
                 const params = Object.entries(split.params).filter(([ key ]) => key !== "dark")
                     .map(([ key, value ]) => `;${key}=${encodeURIComponent(value)}`).join("")
                 ctx.assets.add(asset)
+                if (type.startsWith(`${codeType};`)) {
+                    /*  a source code file is embedded as the excerpt of its
+                        lines, numbered from its first line, with the hunks
+                        of its marked lines  */
+                    try {
+                        const lines = fs.readFileSync(asset, "utf8").replace(/\r?\n$/, "").split(/\r?\n/)
+                        const range = split.params.lines ?? `1-${lines.length}`
+                        const [ first, last = first ] = range.split("-").map(Number)
+                        if (first > lines.length || last < first) {
+                            target.embedding.push("")
+                            ctx.diagnose(file, line, `empty line range "${range}" of embedding "${variant}"`)
+                            continue
+                        }
+                        const mark = split.params.mark !== undefined ?
+                            `;mark=${encodeURIComponent(split.params.mark)}` : ""
+                        const code = lines.slice(first - 1, last).join("\n")
+                        target.embedding.push(`data:${type};start=${first}${mark};base64,` +
+                            Buffer.from(code, "utf8").toString("base64"))
+                    }
+                    catch (err) {
+                        target.embedding.push("")
+                        ctx.diagnose(file, line, `unreadable embedding file "${variant}": ` +
+                            (err instanceof Error ? err.message : String(err)))
+                    }
+                    continue
+                }
                 try {
                     const data    = fs.readFileSync(asset)
                     const content = type === "image/svg+xml" ?
@@ -217,6 +243,14 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string, defs: Map<st
     if (object.description !== undefined) {
         load(object.description, object.description.description, line)
         load(object.description, object.description.elaboration ?? "", line)
+
+        /*  validate the listing parameters of the fenced code blocks  */
+        for (const text of [ object.description.description, object.description.elaboration ?? "" ])
+            marked.walkTokens(marked.lexer(text), (token) => {
+                const info = token.type === "code" ? fenceInfo((token as Tokens.Code).lang) : undefined
+                if (info?.error !== undefined && codeLanguage(info.lang) !== undefined)
+                    ctx.diagnose(file, line, info.error)
+            })
     }
     for (const property of object.properties)
         load(property, property.value, ctx.propMeta.get(property)?.line ?? line)

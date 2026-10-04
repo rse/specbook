@@ -20,6 +20,8 @@ import { optimizeImages, analyzeImages, isDocument }
     from "./specbook-export-image.js"
 import { renderEmbeddedDiagrams, embeddedSource, diagramKey }
     from "./specbook-export-diagram.js"
+import { embeddedListing, listingFence }
+    from "./specbook-export-code.js"
 import type { Verbose }
     from "./specbook-verbose.js"
 
@@ -168,13 +170,16 @@ export const renderMarkdown = async (specification: Spec,
         with its resolved treatment on the dark theme (an adapting diagram
         flattened onto its light variant as the "auto" detection judges
         it), so a re-parse keeps it, even where the "auto" detection would
-        judge a re-optimized SVG differently, and only the remaining
-        ones (including a failed diagram) are re-based  */
+        judge a re-optimized SVG differently, an embedded source code file
+        of a description leaves its markup for a fenced code block collected
+        into "fences" (and one of a property value becomes a "data:"
+        definition, too), and only the remaining ones (including a failed
+        diagram) are re-based  */
     const optimized = await optimizeImages(specification, false, verbose)
     const rasters   = await analyzeImages(specification, verbose)
     const sources   = await renderEmbeddedDiagrams(specification, verbose)
     const labels    = new Map<string, string>()
-    const embedMd   = (text: string, embedding: string[], from?: string, to?: string): string => {
+    const embedMd   = (text: string, embedding: string[], from?: string, to?: string, fences?: string[]): string => {
         let i = 0
         const embedded = text.replace(embeddingRegex, (match: string, alt: string, reference?: string) => {
             const count    = embeddingCount(reference)
@@ -182,6 +187,16 @@ export const renderMarkdown = async (specification: Spec,
             i += count
             if (content === undefined || content === "")
                 return match
+            const listing  = embeddedListing(content)
+            if (listing !== undefined && fences !== undefined) {
+                fences.push(listingFence(listing))
+                return ""
+            }
+            else if (listing !== undefined) {
+                const label = labels.get(content) ?? `img-${labels.size + 1}`
+                labels.set(content, label)
+                return `![${alt}][${label}]`
+            }
             const diagram  = embeddedSource(content)
             const variants = diagram !== undefined ? sources.get(diagramKey(diagram.language, diagram.source)) : undefined
             const light    = diagram !== undefined ? variants?.light :
@@ -210,15 +225,25 @@ export const renderMarkdown = async (specification: Spec,
             children:   object.children.map((child) => embedObjectMd(child, from, to))
         }
         if (object.description !== undefined) {
-            /*  the embeddings of the elaboration follow those of the statement  */
+            /*  the embeddings of the elaboration follow those of the statement,
+                and the fenced code blocks of the embedded source code files
+                end the elaboration  */
             const embedding = object.description.embedding ?? []
             const skip      = Array.from(object.description.description.matchAll(embeddingRegex))
                 .reduce((sum, m) => sum + embeddingCount(m[2]), 0)
+            const fences    = new Array<string>()
             clone.description = { ...object.description,
-                description: embedMd(object.description.description, embedding, from, to) }
+                description: embedMd(object.description.description, embedding, from, to, fences) }
             if (object.description.elaboration !== undefined)
                 clone.description.elaboration = embedMd(object.description.elaboration,
-                    embedding.slice(skip), from, to)
+                    embedding.slice(skip), from, to, fences)
+            if (fences.length > 0) {
+                /*  the removed markups leave no empty paragraphs behind  */
+                const collapse = (text: string) => text.replace(/\n[ \t]*(?:\n[ \t]*)+\n/g, "\n\n").trim()
+                clone.description.description = collapse(clone.description.description)
+                clone.description.elaboration = [ collapse(clone.description.elaboration ?? ""), ...fences ]
+                    .filter((block) => block !== "").join("\n\n")
+            }
         }
         const spec = diagrams.get(object)
         if (spec !== undefined)

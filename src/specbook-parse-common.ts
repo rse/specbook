@@ -4,6 +4,9 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
+import { bundledLanguagesInfo }
+    from "shiki/langs"
+
 import { type Spec, type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
 import { type Diagnostic, type DiagnosticSeverity }
@@ -82,10 +85,14 @@ export const embeddingVariants = (reference: string): string[] =>
 /*  the MIME type of a PDF document  */
 export const pdfType = "application/pdf"
 
+/*  the MIME type of a source code file, carrying its language as the
+    "lang" parameter  */
+export const codeType = "text/x-code"
+
 /*  the embeddable file types and their MIME types: the images plus the
     diagram sources (Mermaid and D2) and the documents (PDF), which the
     exports render  */
-const embeddingTypes: Record<string, string | undefined> = {
+const fileTypes: Record<string, string> = {
     svg:     "image/svg+xml",
     png:     "image/png",
     jpg:     "image/jpeg",
@@ -97,9 +104,63 @@ const embeddingTypes: Record<string, string | undefined> = {
     pdf:     pdfType
 }
 
+/*  the code languages of the code listings, keyed by every id and alias
+    of the Shiki languages (except those the file types above take) and
+    mapped onto the language id  */
+const codeLanguages = new Map(bundledLanguagesInfo
+    .flatMap((info) => [ info.id, ...info.aliases ?? [] ].map((name) => [ name, info.id ] as const))
+    .filter(([ name ]) => fileTypes[name] === undefined))
+
+/*  map a language name (of a fenced code block) onto the language id
+    of a code listing (undefined for no or an unknown language)  */
+export const codeLanguage = (name: string): string | undefined =>
+    codeLanguages.get(name.toLowerCase())
+
+/*  the embeddable file types plus the source code files, whose file
+    extensions are the language ids and aliases  */
+const embeddingTypes: Record<string, string | undefined> = {
+    ...Object.fromEntries(Array.from(codeLanguages, ([ name, id ]) => [ name, `${codeType};lang=${id}` ])),
+    ...fileTypes
+}
+
+/*  the patterns of the listing parameters: the 1-based start line
+    number, a range of lines, and the hunks of lines to mark  */
+const lineStart = /^[1-9]\d*$/
+const lineRange = /^[1-9]\d*(?:-[1-9]\d*)?$/
+const lineHunks = /^[1-9]\d*(?:-[1-9]\d*)?(?:,[1-9]\d*(?:-[1-9]\d*)?)*$/
+
+/*  expand the hunks of a "mark" parameter into the set of line numbers  */
+export const markedLines = (mark: string): Set<number> => {
+    const lines = new Set<number>()
+    for (const hunk of mark.split(",").filter((hunk) => hunk !== "")) {
+        const [ first, last = first ] = hunk.split("-").map(Number)
+        for (let line = first; line <= last; line++)
+            lines.add(line)
+    }
+    return lines
+}
+
+/*  split the info string of a fenced code block into its language and its
+    whitespace-separated listing parameters ("start" and "mark"), plus an
+    error message for an unknown or repeated key or an invalid value  */
+const fenceParams: Record<string, RegExp | undefined> = { start: lineStart, mark: lineHunks }
+type FenceInfo = { lang: string, params: Record<string, string>, error?: string }
+export const fenceInfo = (info: string | undefined): FenceInfo => {
+    const [ lang = "", ...pairs ] = (info ?? "").trim().split(/\s+/)
+    const params: Record<string, string> = {}
+    for (const pair of pairs) {
+        const m = pair.match(/^([a-z]+)=(.*)$/s)
+        if (m === null || params[m[1]] !== undefined || !(fenceParams[m[1]]?.test(m[2]) ?? false))
+            return { lang, params, error: `invalid parameter "${pair}" of fenced code block` }
+        params[m[1]] = m[2]
+    }
+    return { lang, params }
+}
+
 /*  the fragment parameters ("#<key>=<value>&...") each file type accepts,
     with the patterns of their values: the treatment on the dark theme
-    of an image and a document, and the 1-based page of a document  */
+    of an image and a document, the 1-based page of a document, and the
+    excerpt and the marked lines of a source code file  */
 const darkAuto   = /^(?:auto|invert|none)$/
 const pageNumber = /^[1-9]\d*$/
 const fragmentParams: Record<string, Record<string, RegExp> | undefined> = {
@@ -107,7 +168,8 @@ const fragmentParams: Record<string, Record<string, RegExp> | undefined> = {
     "image/png":     { dark: darkAuto },
     "image/jpeg":    { dark: darkAuto },
     "image/webp":    { dark: darkAuto },
-    [pdfType]:       { page: pageNumber, dark: darkAuto }
+    [pdfType]:       { page: pageNumber, dark: darkAuto },
+    [codeType]:      { lines: lineRange, mark: lineHunks }
 }
 
 /*  split an embedding reference into its file and its fragment parameters
@@ -119,7 +181,7 @@ export const embeddingFragment = (reference: string, type: string):
     const hash = reference.indexOf("#", reference.lastIndexOf("/") + 1)
     if (hash < 0)
         return { file: reference, params: {} }
-    const accepted = fragmentParams[type] ?? {}
+    const accepted = fragmentParams[type.replace(/;.*$/, "")] ?? {}
     const given    = new Map<string, string>()
     for (const pair of reference.slice(hash + 1).split("&")) {
         const m = pair.match(/^([a-z]+)=(.*)$/s)
@@ -174,9 +236,10 @@ export const embeddingCount = (reference: string | undefined): number => {
 
 /*  the image definition ("[label]: data:...") a reference-style image
     embedding refers to: a base64 data: URL of an embeddable image type,
-    optionally marked with its treatment on the dark theme  */
+    optionally marked with its treatment on the dark theme, or of a source
+    code file, carrying its language, start line, and marked lines  */
 export const embeddingDataRegex =
-    /^data:(image\/(?:svg\+xml|png|jpeg|webp))(;dark=(?:invert|none))?;base64,([A-Za-z0-9+/=]+)$/
+    /^data:(image\/(?:svg\+xml|png|jpeg|webp)|text\/x-code;lang=[^;,]+;start=\d+(?:;mark=[^;,]+)?)(;dark=(?:invert|none))?;base64,([A-Za-z0-9+/=]+)$/
 
 /*  the explicit treatments of an embedded image on the dark theme  */
 export type DarkMark = "invert" | "none"

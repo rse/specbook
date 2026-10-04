@@ -9,10 +9,27 @@ import type { Spec, SpecObject } from "./specbook-format-spec.js"
 /*  the Wiki-style reference syntax ("[[xxx]]")  */
 export const referenceRegex = /\[\[([^[\]]+)\]\]/g
 
-/*  strip the inline code markup of a name or property value
-    (preserved in the AST for rendering) for matching and labeling  */
+/*  the fenced code blocks of a Markdown text (from the opening fence line
+    up to the closing fence line, or to the end of an unclosed one)  */
+const fenceRegex = /^[ \t]*(`{3,}|~{3,})[^\n]*(?:\n[\s\S]*?(?:\n[ \t]*\1[`~]*[ \t]*(?=\n|$)|(?![\s\S]))|(?![\s\S]))/gm
+
+/*  apply a transformation to the parts of a text outside of its fenced
+    code blocks, which stay verbatim, as code carries no references  */
+const outsideFences = (text: string, apply: (part: string) => string): string => {
+    let result = ""
+    let last   = 0
+    for (const m of text.matchAll(fenceRegex)) {
+        result += apply(text.slice(last, m.index)) + m[0]
+        last = m.index + m[0].length
+    }
+    return result + apply(text.slice(last))
+}
+
+/*  strip the fenced code blocks of a description and the inline code
+    markup of a name, property value, or description (preserved in the
+    AST for rendering) for matching and labeling  */
 export const plainText = (text: string): string =>
-    text.replace(/`/g, "")
+    text.replace(fenceRegex, "").replace(/`/g, "")
 
 /*  a single indexed object with its direct parent (undefined for
     the top-level objects of an artifact), its index position, and
@@ -251,6 +268,8 @@ export const anchorPaths = (index: LinkIndex): Map<SpecObject, string> => {
     return paths
 }
 
-/*  expand all references of a text via a per-reference replacer  */
+/*  expand all references of a text via a per-reference replacer
+    (except inside its fenced code blocks)  */
 export const expandReferences = (text: string, replace: (reference: string) => string): string =>
-    text.replace(referenceRegex, (_, reference: string) => replace(reference.trim()))
+    outsideFences(text, (part) =>
+        part.replace(referenceRegex, (_, reference: string) => replace(reference.trim())))

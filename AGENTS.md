@@ -62,6 +62,14 @@ API.
         `@terrastruct/d2`, both loaded lazily, the D2 worker fed one
         request at a time and unreferenced in between, so it never keeps
         the process alive), and the in-memory cache of the rendered SVGs
+    -   `src/specbook-export-code.ts`: the code listings (fenced code
+        blocks of a known language and embedded source code files): their
+        decoding, their syntax highlighting (`shiki/core` with the
+        JavaScript regex engine and the grammars, all loaded lazily,
+        through a marker theme mapping the TextMate scopes onto the token
+        classes `code-keyword`, `code-literal`, and `code-comment`), their
+        HTML rendering (numbered and marked lines), and their fenced
+        Markdown form
     -   `src/specbook-export-pdf.ts`: the PDF renderer (HTML printed
         via Playwright/Chromium, post-processed with `pdf-lib`)
     -   `src/specbook-theme.ts`: the theme color spreads generated from
@@ -380,6 +388,37 @@ elements (isolating their styles), drawn in colors picked out of the
 embedded file by its rendered `light` SVG. A rendering failure is a
 verbose notice only and omits the diagram.
 
+The code listings -- a fenced code block whose info word is a Shiki
+language id or alias (except the diagram languages, as the embeddable
+file types win), or an `![alt](file)` embedding of a file whose
+extension is such an id or alias, which the parser loads as a
+`data:text/x-code;lang=<id>;start=<n>[;mark=<hunks>];base64,...` URL --
+are rendered by the HTML/PDF export as a `div.diagram` block of type
+`listing` holding a `pre.listing`: one block-level `span.line` per
+source line (class `marked` for a marked one), the line numbers drawn
+from a CSS counter (`--listing-start`, `--listing-digits`), and the
+tokens as `span.code-keyword` (keywords, operators, punctuation; accent
+color, bold), `span.code-literal` (strings, numbers, constants; signal
+color), and `span.code-comment` (dim color, italic), colored through the
+layer-2 variables `--theme-color-specbook-code-*`. As marked renders
+synchronously, `prepareListings` loads the highlighter and the grammars
+of the used languages upfront. A fence takes the parameters `start=<n>`
+and `mark=<a>[-<b>][,...]` behind its language, an embedded file the
+fragment parameters `lines=<a>[-<b>]` (the excerpt, applied at parse
+time) and `mark`, all validated by the parser (`fenceInfo` and
+`fragmentParams` of `src/specbook-parse-common.ts`). A fence of no or an
+unknown language stays a plain `pre` block. The `[[...]]` inside a
+fenced code block is plain code: `plainText` and `expandReferences` of
+`src/specbook-link.ts` skip the fenced code blocks, so it is neither
+expanded, nor validated, nor counted by the coverage. The Markdown
+export turns an embedded file of a description into a fenced block with
+its `start`/`mark` parameters at the end of the elaboration (one of a
+property value stays a `data:` definition), so it round-trips, while
+the AST exports carry the `data:` URL unchanged. All code -- listings,
+plain `pre` blocks, and inline code spans (scaled to `0.89em`, so the
+x-height matches Source Sans 3) -- uses the embedded DejaVu Sans Mono
+faces (regular, bold, italic) of `@fontsource/dejavu-mono`.
+
 An embedded PDF page -- `![alt](file.pdf)` or `![alt](file.pdf#page=<n>)`
 for the 1-based page `<n>` -- is loaded by the parser as a
 `data:application/pdf;page=<n>;base64,...` URL and treated as an image:
@@ -549,10 +588,11 @@ color,
 and a running search unfolds
 everything, so no match hides inside. Everything starts out
 unfolded, while the folding tab slides
-out nine controls (exactly as the search tab slides out its input
+out ten controls (exactly as the search tab slides out its input
 field), which fold and unfold at once all diagrams of a type (`graph`,
-`hub`, `grid`, the Mermaid/D2 ones as `code`, and the images and PDF
-pages as `image`, each with an icon of its own), all diagrams from an
+`hub`, `grid`, the Mermaid/D2 ones as `code`, the images and PDF
+pages as `image`, and the code listings as `listing`, each with an icon
+of its own), all diagrams from an
 object tree nesting level on (`1`, hence all, `2`, and `3`, a nesting
 glyph carrying the small digit at its bottom right), and all cell
 texts. The HTML renderer therefore emits the type and the nesting level
@@ -574,7 +614,7 @@ validated up-front by `parseOmit` of `src/specbook-export-common.ts`)
 omits content aspects at generation time instead of leaving them
 foldable. The aspects match the sets of the folding controls:
 `diagram:graph`, `diagram:hub`, `diagram:grid`, `diagram:code`,
-`diagram:image`, `diagram:1` (alias
+`diagram:image`, `diagram:listing`, `diagram:1` (alias
 `diagram`, hence all diagrams, the "Diagram of Contents" page included),
 `diagram:2`, `diagram:3`, and `text:long`. An omitted diagram
 (`omittedDiagrams` of `src/specbook-diagram.ts`) is never rendered and
@@ -591,7 +631,7 @@ whole lines of that limit at a word boundary and ends in a grey `[...]`
 cell text folding is off. The
 fold controls of the omitted aspects leave the folding tab along with
 the implied ones (`diagram:2` also drops `level3`, no diagrams at all
-drop all eight diagram controls, and everything omitted drops the tab,
+drop all nine diagram controls, and everything omitted drops the tab,
 the tabs below moving up). The few extra style rules and the two script
 variations are emitted under the option only, so an export without it
 stays byte-identical. The rendering options `realtime` and `omit` travel

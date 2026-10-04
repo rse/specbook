@@ -5,6 +5,10 @@ ChangeLog
 1.4.0 (2026-10-04)
 ------------------
 
+-   FEATURE [code]: Syntax-Highlighted Code Listings
+    Fenced code blocks and embedded source files (`#lines=`, `#mark=`) render via Shiki with line
+    numbers and themed keywords/literals/comments in DejaVu Sans Mono, and fold, maximize, omit.
+
 -   FEATURE [code]: Embedded Mermaid and D2 Diagrams
     Fenced `mermaid`/`mmd`/`d2` blocks and embedded `.mmd`/`.mermaid`/`.d2` files are rendered
     as themed diagrams, which fold, maximize, and omit (`-O diagram:code`) like Gradia ones.
