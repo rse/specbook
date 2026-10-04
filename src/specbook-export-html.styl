@@ -1087,6 +1087,19 @@ table.objects td.compact > div.compact-head:first-child
     margin-top: -0.3rem
 table.objects td.compact > div.compact-head + *
     margin-top: 0.3rem
+
+/*  the diagram of a compact cell (bare or inside its client-side fold
+    container), spaced like the diagram chunk of the chunked tables  */
+table.objects td.compact div.diagram
+    margin: 0
+table.objects td.compact > div.compact-head + :is(div.diagram, :has(> div.diagram))
+    margin-top: 0.45rem
+    margin-bottom: 0.45rem
+table.objects td.compact > div.compact-head + :is(div.diagram, :has(> div.diagram)):last-child
+    margin-bottom: 0.15rem
+table.objects td.compact > :is(div.diagram, :has(> div.diagram)) + div.compact-head
+    margin-top: 0
+
 table.objects td.compact > table.props
     margin-left: -0.6rem
     margin-right: -0.6rem
