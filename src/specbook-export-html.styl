@@ -69,7 +69,7 @@ vendors = official
         "dejavu-mono-latin-400-italic.woff2") format("woff2")
 
 /*  the theme-specific (layer 2) mapping of the export-time generated
-    (layer 1) color spreads --theme-color-{base,accent,search}-{1..32} onto
+    (layer 1) color spreads --theme-color-{base,accent,signal}-{1..32} onto
     the semantic colors --theme-color-specbook-XXX used by the rules below
     (layer 3), with the dark theme using roughly mirrored indices  */
 html,
@@ -306,28 +306,12 @@ icon(glyph)
     vertical-align: -0.075em
     line-height: 0
 
-/*  the description popup (screen-only): a single shared, script-
-    positioned element showing the schema description of the hovered
-    object kind or property name, or the corpus description of the
-    hovered object name, capped at 40% viewport width with auto
-    height, attached above or below the hovered element (the side
-    offering more viewport space), colored like the tabs (accent
-    background) and clearly popping up the content by a drop-shadow,
-    with the title carrying the object path segments (a filled circle
-    icon leading each, the kinds bold in the path color and the names
-    semi-bold in the description color, as in the document content,
-    and a pointer separating the segments), extended for properties
-    with the not-filled circle icon and the bold property name, trailed
-    for instances by the anchor id of the object in the description
-    color (its "(#...)" wrapping normal, the id itself semi-bold), and
-    the description led by a "Schema" or "Specification" origin label
-    (its word in normal weight in a rounded box filled with the path
-    color), where
-    the corpus-fed instance popups distinguish themselves from the
-    accent-colored schema-fed popups (kind and property) by the page
-    background colors (with a border setting them off the page), both
-    colored through the dedicated title path and description tokens
-    --theme-color-specbook-popup-{schema,spec}-{path,desc}  */
+/*  the description popup (screen-only): a single shared, script-positioned
+    element showing the schema description of a hovered object kind or
+    property name (accent background) or the corpus description of a
+    hovered object name (page background, bordered), with the title
+    carrying the object path and an origin label leading the description,
+    colored through --theme-color-specbook-popup-{schema,spec}-{path,desc}  */
 div.info-popup
     display: none
     position: fixed
@@ -539,7 +523,6 @@ span.fold-label svg
     body:not(.searching) div.fold.folded > span.fold-label
         display: block
     body:not(.searching) td div.fold.folded > span.fold-label
-        display: block
         margin: 0.15rem 0 0 0
     body:not(.searching) div.fold.folded > div.diagram,
     body:not(.searching) td.folded .fold-rest
@@ -1167,7 +1150,7 @@ span.theme-dark-only
     html.theme-dark span.theme-dark-only
         display: contents
 
-/*  the diagrams, rationales, keywords, and code spans  */
+/*  the diagrams  */
 div.diagram
     position: relative
     margin: 1.0rem 0
@@ -1192,6 +1175,8 @@ div.diagram img
 @media print
     div.diagram svg text
         stroke: none
+
+/*  the rationales and keywords  */
 span.rationale
     color: var(--theme-color-specbook-muted)
 p.rationale
@@ -1199,6 +1184,7 @@ p.rationale
     margin: 0.5rem 0 0 0
 span.keyword
     font-weight: bold
+
 /*  the code spans, scaled so the x-height of DejaVu Sans Mono (547/1000)
     aligns with the one of Source Sans 3 (486/1000) of the prose  */
 code
@@ -1467,7 +1453,6 @@ nav.toc td.page a
 nav.toc tr:nth-child(even) td
     background-color: var(--theme-color-specbook-stripe)
 nav.toc a
-    text-decoration: none
     color: var(--theme-color-specbook-text)
 
 /*  the diagram of contents (the diagram of the title object)  */
@@ -1478,8 +1463,8 @@ nav.doc h1
     font-weight: normal
 
 /*  in print, both front matter headings and the first artifact one
-    open a fresh page, where their top margin is kept after the forced
-    page break  */
+    open a fresh page, so their top margin (which Chromium keeps after a
+    forced page break) is dropped  */
 @media print
     nav.toc h1,
     nav.doc h1,

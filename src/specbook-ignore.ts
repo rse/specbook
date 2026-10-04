@@ -49,6 +49,8 @@ const compileRule = (line: string, base: string, nocase: boolean): Rule | null =
     const anchored = pattern.includes("/")
     if (pattern.startsWith("/"))
         pattern = pattern.slice(1)
+    if (pattern === "")
+        return null
 
     /*  a negated character class is "[!...]" in the wildmatch of Git,
         while picomatch knows the "[^...]" spelling only  */

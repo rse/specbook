@@ -118,32 +118,31 @@ export const codeLanguage = (name: string): string | undefined =>
 
 /*  the embeddable file types plus the source code files, whose file
     extensions are the language ids and aliases  */
-const embeddingTypes: Record<string, string | undefined> = {
-    ...Object.fromEntries(Array.from(codeLanguages, ([ name, id ]) => [ name, `${codeType};lang=${id}` ])),
-    ...fileTypes
-}
+const embeddingTypes = new Map<string, string>([
+    ...Array.from(codeLanguages, ([ name, id ]) => [ name, `${codeType};lang=${id}` ] as const),
+    ...Object.entries(fileTypes)
+])
 
-/*  the patterns of the listing parameters: the 1-based start line
-    number, a range of lines, and the hunks of lines to mark  */
-const lineStart = /^[1-9]\d*$/
+/*  the patterns of the parameters: a 1-based line or page number, a
+    range of lines, and the hunks of lines to mark  */
+const ordinal   = /^[1-9]\d*$/
 const lineRange = /^[1-9]\d*(?:-[1-9]\d*)?$/
 const lineHunks = /^[1-9]\d*(?:-[1-9]\d*)?(?:,[1-9]\d*(?:-[1-9]\d*)?)*$/
 
-/*  expand the hunks of a "mark" parameter into the set of line numbers  */
-export const markedLines = (mark: string): Set<number> => {
-    const lines = new Set<number>()
-    for (const hunk of mark.split(",").filter((hunk) => hunk !== "")) {
+/*  turn the hunks of a "mark" parameter into a line number membership test
+    (checking the ranges instead of expanding them, as a range is unbounded)  */
+export const markedLines = (mark: string): { has: (line: number) => boolean } => {
+    const hunks = mark.split(",").filter((hunk) => hunk !== "").map((hunk) => {
         const [ first, last = first ] = hunk.split("-").map(Number)
-        for (let line = first; line <= last; line++)
-            lines.add(line)
-    }
-    return lines
+        return { first, last }
+    })
+    return { has: (line) => hunks.some((hunk) => line >= hunk.first && line <= hunk.last) }
 }
 
 /*  split the info string of a fenced code block into its language and its
     whitespace-separated listing parameters ("start" and "mark"), plus an
     error message for an unknown or repeated key or an invalid value  */
-const fenceParams: Record<string, RegExp | undefined> = { start: lineStart, mark: lineHunks }
+const fenceParams: Record<string, RegExp | undefined> = { start: ordinal, mark: lineHunks }
 type FenceInfo = { lang: string, params: Record<string, string>, error?: string }
 export const fenceInfo = (info: string | undefined): FenceInfo => {
     const [ lang = "", ...pairs ] = (info ?? "").trim().split(/\s+/)
@@ -161,14 +160,13 @@ export const fenceInfo = (info: string | undefined): FenceInfo => {
     with the patterns of their values: the treatment on the dark theme
     of an image and a document, the 1-based page of a document, and the
     excerpt and the marked lines of a source code file  */
-const darkAuto   = /^(?:auto|invert|none)$/
-const pageNumber = /^[1-9]\d*$/
+const darkAuto = /^(?:auto|invert|none)$/
 const fragmentParams: Record<string, Record<string, RegExp> | undefined> = {
     "image/svg+xml": { dark: darkAuto },
     "image/png":     { dark: darkAuto },
     "image/jpeg":    { dark: darkAuto },
     "image/webp":    { dark: darkAuto },
-    [pdfType]:       { page: pageNumber, dark: darkAuto },
+    [pdfType]:       { page: ordinal, dark: darkAuto },
     [codeType]:      { lines: lineRange, mark: lineHunks }
 }
 
@@ -194,7 +192,7 @@ export const embeddingFragment = (reference: string, type: string):
         catch {
             /*  an invalid escape sequence is taken literally  */
         }
-        if (!(accepted[m[1]]?.test(value) ?? false))
+        if (!Object.hasOwn(accepted, m[1]) || !accepted[m[1]].test(value))
             return undefined
         given.set(m[1], value)
     }
@@ -214,7 +212,7 @@ export const embeddingFileType = (reference: string): string | undefined => {
     if (/^[a-z][a-z0-9+.-]+:/i.test(reference))
         return undefined
     const m = reference.match(/^.*?\.([a-z0-9]+)(?:#.*)?$/is)
-    return m !== null ? embeddingTypes[m[1].toLowerCase()] : undefined
+    return m !== null ? embeddingTypes.get(m[1].toLowerCase()) : undefined
 }
 
 /*  map a local image embedding reference onto its MIME type, provided its

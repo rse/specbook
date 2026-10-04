@@ -138,7 +138,7 @@ const parseFrontmatter = (text: string) => {
 
     /*  grab a single timestamp key with its raw value and source line  */
     const grab = (key: string): FrontmatterKey => {
-        const km = m[1].match(new RegExp(`^${key}:\\s*(.+)$`, "m"))
+        const km = m[1].match(new RegExp(`^${key}:[ \\t]*(.+)$`, "m"))
         if (km === null || km.index === undefined)
             return missing
         const line  = 2 + (m[1].slice(0, km.index).match(/\n/g) ?? []).length
@@ -155,15 +155,15 @@ const parseFrontmatter = (text: string) => {
     }
 }
 
-/*  recursively load the image files embedded via "![alt](file)" into the
-    description and the property values of an object (SVG as-is, PNG/JPEG/WebP,
-    the Mermaid/D2 diagram sources and the
-    PDF documents as base64 data: URLs), resolving
-    the references relative to the source
-    file and expanding a "{theme}" reference into its theme variants,
-    which are loaded into consecutive embedding entries (an unreadable
-    file leaves an empty entry, keeping the positions aligned), while a
-    reference-style "![alt][label]" takes the image of its definition  */
+/*  recursively load the files embedded via "![alt](file)" into the
+    description and the property values of an object (SVG as-is, the
+    PNG/JPEG/WebP images, PDF documents, Mermaid/D2 diagram sources, and
+    source code excerpts as base64 data: URLs), resolving the references
+    relative to the source file and expanding a "{theme}" reference into
+    its theme variants, which are loaded into consecutive embedding
+    entries (an unreadable file leaves an empty entry, keeping the
+    positions aligned), while a reference-style "![alt][label]" takes
+    the image of its definition  */
 const embed = (ctx: ParseContext, object: SpecObject, file: string, defs: Map<string, string>) => {
     const load = (target: { embedding?: string[] }, text: string, line: number) => {
         for (const m of text.matchAll(embeddingRegex)) {
@@ -554,7 +554,7 @@ export const parseFile = (ctx: ParseContext, source: SourceFile): SpecArtifact[]
     }
     flush()
 
-    /*  load the embedded image files of all fully parsed objects  */
+    /*  load the embedded files of all fully parsed objects  */
     for (const artifact of state.artifacts)
         for (const object of artifact.objects)
             embed(ctx, object, source.file, defs)

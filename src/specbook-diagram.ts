@@ -639,7 +639,8 @@ const deriveNodes = (index: LinkIndex, object: SpecObject, diagram: SchemaDiagra
     const nodes = new Array<SpecObject>()
     const walk = (o: SpecObject) => {
         nodes.push(o)
-        o.children.forEach(walk)
+        for (const child of o.children)
+            walk(child)
     }
     walk(object)
     return nodes
@@ -737,14 +738,17 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
 
     /*  the "onlyConnected" filtering keeps only the nodes with at
         least one incident edge (sensible for "graph" diagrams only),
-        and the container nodes, whose members connect them  */
+        and the containers enclosing such a node  */
     if (diagram.onlyConnected === true && type === "graph") {
         const connected = new Set<SpecObject>()
         for (const edge of edges) {
             connected.add(edge.source)
             connected.add(edge.target)
         }
-        nodes = nodes.filter((node) => connected.has(node) || nesting.containers.has(node))
+        for (const node of Array.from(connected))
+            for (let p = nesting.parentOf.get(node); p !== undefined; p = nesting.parentOf.get(p))
+                connected.add(p)
+        nodes = nodes.filter((node) => connected.has(node))
     }
     if (errors.length > 0)
         return { errors }

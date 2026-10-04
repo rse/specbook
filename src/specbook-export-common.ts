@@ -287,8 +287,9 @@ export const documentTitle = (specification: Spec): { title: string, subtitle?: 
     }
 }
 
-/*  the relative luminance (0-1) of a CSS color given as "#rgb", "#rrggbb",
-    "rgb(r, g, b)", "white", or "black" (undefined for any other one)  */
+/*  the luma (0-1, of the gamma-encoded channels) of a CSS color given as
+    "#rgb", "#rrggbb", "rgb(r, g, b)", "white", or "black" (undefined for
+    any other one)  */
 const luminance = (color: string): number | undefined => {
     const value = color.trim().toLowerCase()
     const named = value === "white" ? "#ffffff" : value === "black" ? "#000000" : value
@@ -320,12 +321,12 @@ export const svgInvertible = (svg: string): boolean => {
         return false
 
     /*  the canvas size (in the user units of the viewBox, if any)  */
-    const attr  = (element: string, name: string) =>
+    const attr   = (element: string, name: string) =>
         element.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1] ??
         element.match(new RegExp(`[\\s;"]${name}\\s*:\\s*([^;"]+)`))?.[1]
-    const box   = attr(root, "viewBox")?.trim().split(/[\s,]+/).map(Number) ?? []
-    const width = box[2] || parseFloat(attr(root, "width") ?? "")
-    const high  = box[3] || parseFloat(attr(root, "height") ?? "")
+    const box    = attr(root, "viewBox")?.trim().split(/[\s,]+/).map(Number) ?? []
+    const width  = box[2] || parseFloat(attr(root, "width") ?? "")
+    const height = box[3] || parseFloat(attr(root, "height") ?? "")
 
     /*  whether a shape covers the whole canvas: the corner points of a
         rectangle or of a path of straight absolute segments only, mapped
@@ -367,7 +368,7 @@ export const svgInvertible = (svg: string): boolean => {
         const xs = points.map(([ x, y ]) => m[0] * x + m[2] * y + m[4])
         const ys = points.map(([ x, y ]) => m[1] * x + m[3] * y + m[5])
         return Math.min(...xs) <= 1 && Math.min(...ys) <= 1
-            && Math.max(...xs) >= width - 1 && Math.max(...ys) >= high - 1
+            && Math.max(...xs) >= width - 1 && Math.max(...ys) >= height - 1
     }
 
     /*  the topmost leading canvas-covering shape (outside of any
@@ -384,8 +385,8 @@ export const svgInvertible = (svg: string): boolean => {
 }
 
 /*  the treatment of an embedded image on the dark theme: its explicit
-    mark, else the "auto" detection (for a raster image the judgement of
-    "analyzeRasters", none where absent)  */
+    mark, else the "auto" detection (for a raster image or a PDF page the
+    judgement of "analyzeImages", none where absent)  */
 export const imageDark = (content: string, rasters?: Map<string, boolean>): DarkMark => {
     const { content: plain, dark } = darkMark(content)
     return dark ?? ((plain.startsWith("data:") ? rasters?.get(plain) === true : svgInvertible(plain)) ?

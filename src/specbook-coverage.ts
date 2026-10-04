@@ -63,7 +63,7 @@ const matchingObjects = (index: LinkIndex, patterns: string[]): SpecObject[] => 
 
 /*  the coverage the objects of a "referenced"-flagged kind receive:
     the objects (in document order) referenced from an object matching
-    one of the flag's patterns, and the ones not  */
+    one of the flag's patterns (or from below one), and the ones not  */
 export interface ReferencedCoverage {
     schema:    SchemaObject
     covered:   SpecObject[]

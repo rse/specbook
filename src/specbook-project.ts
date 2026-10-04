@@ -87,9 +87,9 @@ export const loadProject = (dir: string): Project | undefined => {
 
     /*  parse the YAML, reporting its syntax errors as positioned diagnostics  */
     const diagnostics = new Array<Diagnostic>()
-    const lines = new LineCounter()
-    const yaml  = readProject(file)
-    const doc   = parseDocument(yaml, { lineCounter: lines })
+    const lines       = new LineCounter()
+    const yaml        = readProject(file)
+    const doc         = parseDocument(yaml, { lineCounter: lines })
     for (const err of doc.errors)
         diagnostics.push({
             file,

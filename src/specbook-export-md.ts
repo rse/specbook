@@ -203,10 +203,8 @@ export const renderMarkdown = async (specification: Spec,
                 optimized.get(content) ?? (isDocument(content) ? undefined : content)
             if (light === undefined)
                 return match
-            const image    = diagram !== undefined ? markDark(light, imageDark(light)) :
+            const url      = diagram !== undefined ? markDark(light, imageDark(light)) :
                 markDark(darkMark(light).content, imageDark(content, rasters))
-            const url      = image.startsWith("data:") ? image :
-                `data:image/svg+xml;base64,${Buffer.from(image, "utf8").toString("base64")}`
             const label    = labels.get(url) ?? `img-${labels.size + 1}`
             labels.set(url, label)
             return `![${alt}][${label}]`

@@ -4,16 +4,16 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import * as path                  from "node:path"
-import { createRequire }          from "node:module"
+import * as path                        from "node:path"
+import { createRequire }                from "node:module"
 
-import type { Spec, SpecObject }  from "./specbook-format-spec.js"
-import { embeddedSource }         from "./specbook-export-diagram.js"
-import { embeddedListing }        from "./specbook-export-code.js"
-import { svgInvertible }          from "./specbook-export-common.js"
-import { darkMark, markDark, pdfType } from "./specbook-parse-common.js"
-import { plainText }              from "./specbook-link.js"
-import { literal, type Verbose }  from "./specbook-verbose.js"
+import type { Spec, SpecObject }        from "./specbook-format-spec.js"
+import { embeddedSource }               from "./specbook-export-diagram.js"
+import { embeddedListing }              from "./specbook-export-code.js"
+import { svgInvertible }                from "./specbook-export-common.js"
+import { darkMark, markDark, pdfType }  from "./specbook-parse-common.js"
+import { plainText }                    from "./specbook-link.js"
+import { literal, type Verbose }        from "./specbook-verbose.js"
 
 /*  the pixel width the raster images are capped to: the 60rem content
     width of the document (at 16px per rem) at a 2x device pixel ratio  */
@@ -79,7 +79,7 @@ let documentCache = new Map<string, string | null>()
 /*  convert the embedded PDF pages of a specification into SVG images,
     served from the cache where possible, where a rendering failure (e.g.
     an absent page) is surfaced as a notice only and omits the page  */
-const convertDocuments = async (specification: Spec, verbose?: Verbose) => {
+const convertDocuments = async (specification: Spec, verbose?: Verbose): Promise<Map<string, string | null>> => {
     const cache = new Map<string, string | null>()
     const walk  = async (object: SpecObject) => {
         const contents = [ ...object.description?.embedding ?? [],
@@ -103,6 +103,7 @@ const convertDocuments = async (specification: Spec, verbose?: Verbose) => {
         for (const object of artifact.objects)
             await walk(object)
     documentCache = cache
+    return cache
 }
 
 /*  optimize a single SVG image with SVGO (the identifiers and classes
@@ -180,9 +181,9 @@ export const optimizeImages = async (specification: Spec, print: boolean,
     verbose?: Verbose): Promise<Map<string, string>> => {
     /*  collect the distinct embedded image contents of the specification
         and convert its PDF pages  */
-    await convertDocuments(specification, verbose)
-    const medium   = print ? "print" : "screen"
-    const contents = new Set<string>()
+    const documents = await convertDocuments(specification, verbose)
+    const medium    = print ? "print" : "screen"
+    const contents  = new Set<string>()
     for (const artifact of specification.artifacts)
         for (const object of artifact.objects)
             collect(object, contents)
@@ -196,7 +197,7 @@ export const optimizeImages = async (specification: Spec, print: boolean,
     let   after  = 0
     for (const content of contents) {
         const plain    = darkMark(content)
-        const document = isDocument(content) ? documentCache.get(plain.content) ?? null : undefined
+        const document = isDocument(content) ? documents.get(plain.content) ?? null : undefined
         if (document === null)
             continue
         let optimized = imageCaches[medium].get(content)
@@ -282,8 +283,8 @@ const rasterInvertible = async (content: string): Promise<boolean> => {
     and a failed PDF page count as not invertible), where a PDF page is
     judged on its converted SVG like an SVG image  */
 export const analyzeImages = async (specification: Spec, verbose?: Verbose): Promise<Map<string, boolean>> => {
-    await convertDocuments(specification, verbose)
-    const contents = new Set<string>()
+    const documents = await convertDocuments(specification, verbose)
+    const contents  = new Set<string>()
     for (const artifact of specification.artifacts)
         for (const object of artifact.objects)
             collect(object, contents)
@@ -292,7 +293,7 @@ export const analyzeImages = async (specification: Spec, verbose?: Verbose): Pro
         if (!content.startsWith("data:") || darkMark(content).dark !== undefined)
             continue
         if (isDocument(content)) {
-            const document = documentCache.get(content)
+            const document = documents.get(content)
             cache.set(content, typeof document === "string" && svgInvertible(document))
         }
         else

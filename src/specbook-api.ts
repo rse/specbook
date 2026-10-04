@@ -192,10 +192,11 @@ export class SpecBook {
     /*  render an already parsed specification into the requested formats
         (strict: any error diagnostic prevents the export, as a partial or
         invalid specification must never be emitted, while the warnings
-        are just surfaced as notices), where "rendering" carries the
-        rendering options (the live preview script, the omitted aspects)
-        and "rebase" names, per requested format, the directory the image
-        references of the normalized Markdown are re-based onto  */
+        are just surfaced as unconditional verbose messages), where
+        "rendering" carries the rendering options (the live preview
+        script, the omitted aspects) and "rebase" names, per requested
+        format, the directory the image references of the normalized
+        Markdown are re-based onto  */
     private async renderFormats (result: LintResult, requested: ExportFormat[],
         verbose: Verbose, rendering: ExportOptions, rebase?: (string | undefined)[]): Promise<Buffer[]> {
         if (result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
@@ -236,13 +237,14 @@ export class SpecBook {
         const requested = options.formats ?? [ "json" ]
         const omit      = parseOmit(options.omit)
         const project   = this.project(options, verbose)
+        const config    = await this.configFiles(project.config)
 
         /*  a missing browser is an environment problem, so let the PDF
             export fail before the specification is even parsed  */
         if (requested.includes("pdf"))
             await requireBrowser(verbose)
 
-        const result = lint({ config: await this.configFiles(project.config),
+        const result = lint({ config,
             basedir: project.basedir ?? ".", gitignore: options.gitignore === true, verbose })
         return this.renderFormats(result, requested, verbose,
             { realtime: options.realtime === true, omit }, this.rebaseOf(options))

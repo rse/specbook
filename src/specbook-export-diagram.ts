@@ -173,6 +173,10 @@ const renderD2 = (source: string, colors: Record<string, string>, style: ThemeSt
     const overrides = Object.entries(colors).map(([ key, color ]) => `${key}: "${color}"`).join("; ")
     const request = d2Chain.then(async () => {
         d2 ??= import("@terrastruct/d2").then((module) => new module.D2())
+            .catch((err: unknown) => {
+                d2 = null
+                throw err
+            })
         const compiler = await d2
         const worker   = () => (compiler as unknown as { worker?: Worker }).worker
         worker()?.ref()

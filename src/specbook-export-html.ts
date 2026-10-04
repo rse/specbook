@@ -357,6 +357,7 @@ const realtimeScript = textframe`
         }
         let blink = 0
         let seq   = 0
+        let lost  = false
         const update = async () => {
             /*  a superseded update (an overlapping newer one started
                 meanwhile) is dropped, as its stale page could arrive last  */
@@ -392,11 +393,12 @@ const realtimeScript = textframe`
                 script.replaceWith(clone)
             }
             window.scrollTo(x, y)
+            if (lost)
+                return
             status("reloaded")
             clearTimeout(blink)
             blink = setTimeout(() => { status("connected") }, 2000)
         }
-        let lost = false
         const connect = () => {
             const ws = new WebSocket(url)
             ws.onopen = () => {
@@ -481,9 +483,8 @@ const cellGainMin       = 25
     the controls of the fold tab fold and unfold all diagrams of a type
     ("graph", "hub", "grid", plus the embedded Mermaid/D2 ones as "code",
     the embedded images and PDF pages as "image", and the code listings
-    as "listing"),
-    all diagrams from an object tree nesting
-    level on (1, 2, 3), and all cell texts at once, with their state
+    as "listing"), all diagrams from an object tree nesting level on
+    (1, 2, 3), and all cell texts at once, with their state
     persisted across page loads and their icons marked while they are
     active (the diagram ones, OR-combined) or any cell text is folded
     (the tab icon while anything at all is). The script runs at
@@ -1065,10 +1066,10 @@ const tocPanelScript = textframe`
     repeated on every element -- the path of an instance popup is the
     one of its own object, while "data-info-path" names the object of a
     schema popup, a trailing "^" keeping its last segment kind-only;
-    the popup is capped at 40% viewport width and
-    attached above or below, whichever side offers more space; the
-    script runs at the end of the body, so a live preview body swap
-    replaces the popup and the body-bound listeners along with it  */
+    the popup is capped at 40% viewport width and attached above or
+    below, whichever side offers more space; the script runs at the
+    end of the body, so a live preview body swap replaces the popup
+    and the body-bound listeners along with it  */
 const infoPopupScript = textframe`
     (function (INFO, SPEC) {
         const popup = document.createElement("div")
@@ -1341,10 +1342,10 @@ const render = (name: keyof typeof templates, context: object): string => {
 /*  the active per-document reference expander, fully-qualified
     anchor paths, member-carrying property value constraints, object
     schema nodes, pre-rendered diagram blocks, optimized embedded images,
-    pre-rendered embedded diagrams, code listing renderer, object nesting
-    levels, reference coverages, description popup keys of the schema
-    nodes, description popup keys of the objects, and omitted aspects (all
-    set during HTML rendering)  */
+    dark theme judgements of the images, pre-rendered embedded diagrams,
+    code listing renderer, object nesting levels, reference coverages,
+    description popup keys of the schema nodes, description popup keys
+    of the objects, and omitted aspects (all set during HTML rendering)  */
 let linker:      ((text: string, compact: boolean) => string) | null = null
 let anchors:     Map<SpecObject, string> | null       = null
 let members:     Map<string, ValueExpr> | null        = null
@@ -1662,10 +1663,7 @@ const inlineValue = (kind: string, property: SpecProperty | undefined) => {
         return safe("<span class=\"value-absent\"></span>")
     const { key, value, embedding } = property
     const expr = members?.get(`${kind} ${key}`)
-    const text = value
-        .replace(embeddingMarkup, (markup: string, _alt: string, reference?: string) =>
-            embeddingCount(reference) > 0 ? "" : markup)
-        .trim()
+    const text = stripEmbeddings(value)
     const embeddings = renderEmbeddings(value, embedding ?? [])
         .map((content) => `<div class="embedding">${content}</div>`).join("")
     if (expr === undefined || text === "")
@@ -1825,9 +1823,9 @@ const lineChars = 140
     exceeding every other one by more than the "maxCellHeight"
     percentage is cut back onto the whole lines of that limit (less the
     room of the mark) at a word boundary, its open elements closed
-    again, and ends in a grey "[...]" mark,
-    unless that hides less than 25% of it, where the empty cells and the
-    ones carrying further cells or a diagram take no part at all  */
+    again, and ends in a grey "[...]" mark, unless that hides less than
+    25% of it, where the empty cells and the ones carrying further cells
+    or a diagram take no part at all  */
 const omitLong = (cells: nunjucks.runtime.SafeString[], shares: number[], percent = 0) => {
     if (omits?.has("text:long") !== true)
         return cells
@@ -1879,6 +1877,7 @@ const omitLong = (cells: nunjucks.runtime.SafeString[], shares: number[], percen
 const renderTable = (children: SpecObject[], maxColumns: number): string => {
     const { keys, desc } = tableShape(children)
     const diagrammed = children.some((child) => diagrams?.has(child) === true)
+    const fold       = formatOf(children[0])?.maxCellHeight
     if (!diagrammed && 1 + keys.length + (desc ? 1 : 0) <= maxColumns)
         return render("Table", { Table: {
             head:     children[0].kind !== "" ? children[0].kind : "Name",
@@ -1886,7 +1885,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
             infopath: infoRefOf(children[0], false),
             keys,
             desc,
-            fold:     formatOf(children[0])?.maxCellHeight,
+            fold,
 
             /*  under the fixed table layout the description column claims
                 twice the share of a regular column, compressing the others  */
@@ -1896,8 +1895,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
                     inlineValue(child.kind, child.properties.find((property) => property.key === key)))
                 const shares = desc ? [ ...keys.map(() => 1), 2 ] : keys.map(() => 1)
                 const cells  = omitLong(desc ? [ ...values, safe(renderCell(child)) ] : values,
-                    shares.map((share) => share / (keys.length + (desc ? 3 : 1))),
-                    formatOf(children[0])?.maxCellHeight)
+                    shares.map((share) => share / (keys.length + (desc ? 3 : 1))), fold)
                 return {
                     id:          anchorOf(child),
                     anchor:      child.anchor,
@@ -1921,7 +1919,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
         info:     infoKeyOf(children[0]),
         infopath: infoRefOf(children[0], false),
         desc,
-        fold:     formatOf(children[0])?.maxCellHeight,
+        fold,
         width:    Math.round(100 / maxColumns),
         rows:     children.map((child, i) => scoped(child, () => {
             const cells = keys.map((key) => ({ key, desc: false, span: 1,
@@ -1937,8 +1935,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
                 last[last.length - 1].span = size - last.length + 1
             }
             for (const chunk of chunks)
-                omitLong(chunk.map((cell) => cell.value), chunk.map((cell) => cell.span / maxColumns),
-                    formatOf(children[0])?.maxCellHeight)
+                omitLong(chunk.map((cell) => cell.value), chunk.map((cell) => cell.span / maxColumns), fold)
                     .forEach((value, k) => { chunk[k].value = value })
 
             /*  the diagram leads the chunks as a full-width chunk of its
@@ -2237,17 +2234,12 @@ const omittedControls = (omit: Set<OmitAspect>) => {
 /*  wrap the pre-rendered diagrams into their blocks, carrying the
     diagram type and the object tree nesting level the folding
     distinguishes (the top-level objects of an artifact being level 1)  */
-const wrapDiagrams = (index: LinkIndex, svgs: Map<SpecObject, string>): Map<SpecObject, string> => {
+const wrapDiagrams = (svgs: Map<SpecObject, string>): Map<SpecObject, string> => {
     const blocks = new Map<SpecObject, string>()
-    for (const node of index) {
-        const svg = svgs.get(node.object)
-        if (svg === undefined)
-            continue
-        let level = 1
-        for (let parent = node.parent; parent !== undefined; parent = parent.parent)
-            level++
-        const type = schemas?.get(node.object)?.diagram?.type ?? "graph"
-        blocks.set(node.object, `<div class="diagram" data-type="${type}" data-level="${level}">${svg}</div>`)
+    for (const [ object, svg ] of svgs) {
+        const level = levels?.get(object) ?? 1
+        const type  = schemas?.get(object)?.diagram?.type ?? "graph"
+        blocks.set(object, `<div class="diagram" data-type="${type}" data-level="${level}">${svg}</div>`)
     }
     return blocks
 }
@@ -2303,7 +2295,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
 
         /*  wrap the diagrams into their blocks, carrying the diagram type
             and the object tree nesting level the folding distinguishes  */
-        diagrams = rendered !== null ? wrapDiagrams(index, rendered.svgs) : null
+        diagrams = rendered !== null ? wrapDiagrams(rendered.svgs) : null
 
         /*  collect the schema descriptions for the description popups,
             plus the object table composing their title paths  */
@@ -2313,13 +2305,12 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             infoKeys = new Map<SchemaObject, string>()
             info     = []
             collectInfo(config, infoKeys, info)
-            const objects = new Map<SpecObject, string>()
-            for (const node of index)
-                objects.set(node.object, String(objects.size))
-            for (const node of index)
-                spec.push([ node.object.id, node.parent !== undefined ? Number(objects.get(node.parent.object)) : -1,
+            infoObjects = new Map<SpecObject, string>()
+            for (const node of index) {
+                infoObjects.set(node.object, String(node.pos))
+                spec.push([ node.object.id, node.parent?.pos ?? -1,
                     node.object.kind, plainText(node.object.name).trim(), "" ])
-            infoObjects = objects
+            }
         }
         linker    = makeLinker(index)
 
