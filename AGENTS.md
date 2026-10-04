@@ -40,14 +40,29 @@ API.
     -   `src/specbook-export-md.ts`: the normalized Markdown renderer,
         embedding the images as reference-style `data:` URL definitions and
         re-basing the remaining image references onto the output directory
-    -   `src/specbook-export-html.ts`: the HTML renderer
-        (with `src/specbook-export-html.styl` as its inlined stylesheet,
+    -   `src/specbook-export-html.ts`: the HTML renderer facade
+        (the asynchronous preparation of the diagrams, images, and
+        listings, the document outline, the live preview placeholder,
+        and the assembly of the document), with
+        `src/specbook-export-html.styl` as its inlined stylesheet,
         compiled from Stylus to CSS at build time, and
         `src/specbook-export-html-search.js` as its bundled client-side
-        fuzzy search; the other client-side scripts -- color theme,
-        scroll progress meter, folding, diagram maximization, table of
-        contents side panel, description popups, and live preview -- are
-        inlined in the module itself)
+        fuzzy search
+    -   `src/specbook-export-html-template.ts`: the built-in Nunjucks
+        templates of the HTML renderer and their compiled rendering
+    -   `src/specbook-export-html-script.ts`: the other client-side
+        scripts of the HTML export, inlined as strings -- color theme,
+        live preview, scroll progress meter, diagram maximization, table
+        of contents side panel, and description popups (plus the format
+        of their injected INFO/SPEC tables)
+    -   `src/specbook-export-html-fold.ts`: the client-side folding
+        script and its server-side counterparts of the `--omit` option
+        (the long cell text cutting and the dropped fold controls)
+    -   `src/specbook-export-html-render.ts`: the synchronous rendering
+        of the objects into HTML (Markdown and typography, references,
+        embeddings, descriptions, property values, tables, title page,
+        and table of contents) under the per-document state
+        `withDocument` establishes
     -   `src/specbook-export-image.ts`: the conversion of the embedded
         PDF pages into SVG images (`pdfjs-dist` and `@napi-rs/canvas`
         loaded lazily, glyphs as outlines), the on-the-fly optimization of
@@ -621,14 +636,14 @@ foldable. The aspects match the sets of the folding controls:
 leaves nothing behind, and the AST exports drop its `diagram` field, too,
 while the Markdown export ignores the option. As no browser measures the
 cells at generation time, `text:long` is a server-side heuristic
-(`omitLong` of the HTML renderer): the height of a table cell is
-estimated as its number of text lines (its plain text per block, wrapped
-at the characters its column width share holds of the 140 ones of a full
-content width line), and a cell exceeding every other comparable cell of
-its row by more than the `maxCellHeight` percentage is cut back onto the
-whole lines of that limit at a word boundary and ends in a grey `[...]`
-(`span.omit`), unless that hides less than 25% of it, and the client-side
-cell text folding is off. The
+(`omitLong` of `src/specbook-export-html-fold.ts`): the height of a
+table cell is estimated as its number of text lines (its plain text per
+block, wrapped at the characters its column width share holds of the
+140 ones of a full content width line), and a cell exceeding every other
+comparable cell of its row by more than the `maxCellHeight` percentage
+is cut back onto the whole lines of that limit at a word boundary and
+ends in a grey `[...]` (`span.omit`), unless that hides less than 25% of
+it, and the client-side cell text folding is off. The
 fold controls of the omitted aspects leave the folding tab along with
 the implied ones (`diagram:2` also drops `level3`, no diagrams at all
 drop all nine diagram controls, and everything omitted drops the tab,
