@@ -137,7 +137,7 @@ API.
         standard YAML schema configuration (`std-0-meta` through
         `std-6-test`), assembled into one file at build time and used
         whenever no particular one is given
--   `etc/`: the tool configurations (`eslint.mjs`, `markdownlint.yaml`,
+-   `etc/`: the tool configurations (`eslint.mjs`, `eslint-yaml.mjs`, `markdownlint.yaml`,
     `markdownlint-skill.yaml`, `tsconfig.json`, `postcss.config.mjs`, `stx.conf`), the assembler of
     the standard schema configuration (`specbook-format-assemble.mjs`),
     the version bumper of the `publish` target (`version.mjs`, keeping
@@ -177,7 +177,7 @@ script is `npm start`, which invokes stx with `etc/stx.conf`:
 ```
 npm start build            # lint + build-cmd
 npm start build-cmd        # tsc, stylus+postcss, and the asset copies (all into dst/)
-npm start lint             # eslint on src/*.ts, markdownlint-cli2 on src/specbook-format.md, src/specbook-format-schema.d/*.md, and plugin/skills/*/*.md
+npm start lint             # eslint on src/*.ts and src/specbook-format-schema.d/*.yaml, markdownlint-cli2 on src/specbook-format.md and plugin/skills/*/*.md
 npm start build-watch      # nodemon rebuild on src/**/*.{ts,md}
 npm start lint-watch       # nodemon relint on src/**/*.{ts,md}
 npm start sample           # sample-broadcast + sample-sample
