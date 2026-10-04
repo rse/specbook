@@ -53,6 +53,7 @@
                 Deployment View node instead -- only a party or system the solution merely consumes
                 or serves belongs to the system context.
             format:
+                type: compact
                 maxTableColumns: 5
             props:
                 -   name: KIND
@@ -170,6 +171,7 @@
                 with the components it depends on, plus a 1-sentence rationale ("why") for the
                 component's existence and boundary.
             format:
+                type: compact
                 maxTableColumns: 5
             diagram:
                 type: hub
@@ -184,6 +186,7 @@
                 config:
                     size-node-width-max:    440
                     size-node-height-scale: 1.75
+                    hub-node-count-max:     3
             props:
                 -   name: KIND
                     desc: |
@@ -1180,6 +1183,8 @@
                 (e.g. a hosting or budget mandate) protects no quality and is a Design Decisions
                 decision alone -- only the mechanism, the quality it achieves, and the elements it
                 shapes belong here.
+            format:
+                type: compact
             diagram:
                 type: hub
                 center: self

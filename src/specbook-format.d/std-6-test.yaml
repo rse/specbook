@@ -71,6 +71,8 @@
                 concurrency unit when its collaboration or contention is exercised, an aspect of
                 the Development Aspects or a Design Decisions decision when its rule is checked by
                 an architectural fitness function (e.g. no dependency edge against the layering).
+            format:
+                type: compact
             diagram:
                 type: hub
                 center: self
