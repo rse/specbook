@@ -98,7 +98,8 @@ export const highlights: Highlight[] = [
                  "object model and its references &mdash; so a diagram can never drift away from the " +
                  "specification it depicts. The rendering is done by the sibling project " +
                  "<a href=\"https://github.com/rse/gradia\">Gradia</a>, which is specialized in " +
-                 "rendering object models.",
+                 "rendering object models. Hand-written Mermaid and D2 diagrams can be embedded in " +
+                 "addition and are rendered in the very same theme colors.",
         figure:  "/assets/screenshot-gradia.png",
         label:   "SpecBook diagram rendering"
     },
@@ -108,7 +109,8 @@ export const highlights: Highlight[] = [
         title:   "One self-contained document for daily reading",
         body:    "A single HTML document with a title page, a table of contents (also as a slide-in " +
                  "side panel), a diagram of contents, a fuzzy full-text search, embedded images, " +
-                 "reference coverage tables, a scroll progress meter, description popups, and a " +
+                 "PDF pages, Mermaid/D2 diagrams, and syntax-highlighted code listings, the folding " +
+                 "and maximizing of all of them, reference coverage tables,a scroll progress meter, description popups, and a " +
                  "light/dark theme toggle. It can even be previewed live in the browser, updating " +
                  "in place on every change while the scroll position survives.",
         figure:  "/assets/screenshot-broadcast.png",
