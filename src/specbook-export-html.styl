@@ -80,6 +80,7 @@ html.theme-light
     --theme-color-specbook-symbol:            var(--theme-color-base-24)
     --theme-color-specbook-border:            var(--theme-color-base-28)
     --theme-color-specbook-stripe:            var(--theme-color-base-31)
+    --theme-color-specbook-stripe-deep:       var(--theme-color-base-30)
     --theme-color-specbook-tint:              var(--theme-color-accent-32)
     --theme-color-specbook-tint-stripe:       var(--theme-color-accent-30)
     --theme-color-specbook-tint-deep:         var(--theme-color-accent-28)
@@ -148,6 +149,7 @@ html.theme-light
         --theme-color-specbook-symbol:            var(--theme-color-base-20)
         --theme-color-specbook-border:            var(--theme-color-base-16)
         --theme-color-specbook-stripe:            var(--theme-color-base-9)
+        --theme-color-specbook-stripe-deep:       var(--theme-color-base-10)
         --theme-color-specbook-tint:              var(--theme-color-accent-1)
         --theme-color-specbook-tint-stripe:       var(--theme-color-accent-3)
         --theme-color-specbook-tint-deep:         var(--theme-color-accent-5)
@@ -1073,6 +1075,11 @@ table.objects td.compact > table.props tr:nth-child(even) td
     background-color: var(--theme-color-specbook-stripe)
 table.objects td.compact > table.props tr:nth-child(even) td.key
     background-color: var(--theme-color-specbook-tint-stripe)
+
+/*  the property value stripes inside a striped row of the "compact"
+    tables, deepened to stand out from the row stripe  */
+table.objects tbody tr.even td.compact > table.props tr:nth-child(even) td:not(.key)
+    background-color: var(--theme-color-specbook-stripe-deep)
 
 /*  the nested renderings inside the description cells of the compact
     tables ("concise" sub-tables and pressed-in "complex" objects),
