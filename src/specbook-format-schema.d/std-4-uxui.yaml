@@ -142,6 +142,8 @@
                 solution phrases what it says, not what it does (a behavior is an Interaction
                 Concept principle instead) and not what a term means (a definition is a Domain
                 Glossary term instead).
+            format:
+                type: compact
             diagram:
                 type: hub
                 center: self
