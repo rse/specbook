@@ -35,12 +35,11 @@ export const fallbackLogo = (theme: typeof embeddingThemes[number]): string =>
 
 /*  the content aspects an export can omit, each matching the set of a
     folding control of the HTML export: the diagrams of a type (the
-    derived Gradia ones, the embedded Mermaid/D2/PDF ones, and
-    the embedded images), the diagrams from an object tree nesting level
+    derived Gradia ones, the embedded Mermaid/D2 ones, and the embedded
+    images and PDF pages), the diagrams from an object tree nesting level
     on, and the long texts  */
 export const omitAspects = [ "diagram:graph", "diagram:hub", "diagram:grid",
-    "diagram:mermaid", "diagram:d2", "diagram:pdf",
-    "diagram:image",
+    "diagram:mermaid", "diagram:d2", "diagram:image",
     "diagram:1", "diagram:2", "diagram:3", "text:long" ] as const
 export type OmitAspect = typeof omitAspects[number]
 

@@ -29,9 +29,9 @@ import { collectSchemas }
     from "./specbook-parse-semantic.js"
 import { renderDiagrams }
     from "./specbook-diagram.js"
-import { optimizeImages, analyzeRasters }
+import { optimizeImages, analyzeImages, isDocument }
     from "./specbook-export-image.js"
-import { renderEmbeddedDiagrams, embeddedSource, fenceLanguage, diagramKey, diagramDark, omittedDiagram, objectLevels,
+import { renderEmbeddedDiagrams, embeddedSource, fenceLanguage, diagramKey, omittedDiagram, objectLevels,
     type DiagramLanguage, type DiagramVariants }
     from "./specbook-export-diagram.js"
 import { specCoverage, coverageRatio, type Coverage }
@@ -77,7 +77,6 @@ const templates = {
                         {% if not Document.omitted.grid %}<div class="fold-grids" title="fold/unfold all grid diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg></div>{% endif %}
                         {% if not Document.omitted.mermaid %}<div class="fold-mermaids" title="fold/unfold all Mermaid diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="3"/><path d="M7 16.5v-9l5 5 5-5v9"/></svg></div>{% endif %}
                         {% if not Document.omitted.d2 %}<div class="fold-d2s" title="fold/unfold all D2 diagrams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="3"/><text x="12" y="16.2" text-anchor="middle" font-size="10.5" font-weight="bold" fill="currentColor" stroke="none">D2</text></svg></div>{% endif %}
-                        {% if not Document.omitted.pdf %}<div class="fold-pdfs" title="fold/unfold all PDF pages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2.5h9.5l4.5 4.5v14.5H5z"/><path d="M14.5 2.5V7H19"/><path d="M8.5 12.5h7"/><path d="M8.5 16.5h7"/></svg></div>{% endif %}
                         {% if not Document.omitted.image %}<div class="fold-images" title="fold/unfold all images"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="17" rx="2"/><circle cx="8.5" cy="9" r="2"/><path d="M21.5 15.5l-5-5-11 10"/></svg></div>{% endif %}
                         {% for level in [ 1, 2, 3 ] %}{% if not Document.omitted["level" ~ level] %}<div class="fold-level{{ level }}" title="fold/unfold all diagrams from nesting level {{ level }} on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><rect x="6.5" y="6.5" width="3" height="3" rx="0.5"/><text x="19.5" y="23" text-anchor="middle" font-size="14.5" font-weight="bold" fill="currentColor" stroke="none">{{ level }}</text></svg></div>{% endif %}{% endfor %}
                         {% if not Document.omitted.text %}<div class="fold-texts" title="fold/unfold all cell texts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7V4.5h15V7"/><path d="M12 4.5v15"/><path d="M8.5 19.5h7"/></svg></div>{% endif %}
@@ -478,8 +477,8 @@ const cellGainMin       = 25
     left corner, folds the text of every table cell towering over the
     other cells of its row behind a chevron mark of its own, and lets
     the controls of the fold tab fold and unfold all diagrams of a type
-    ("graph", "hub", "grid", plus the embedded "mermaid", "d2", "pdf",
-    and "image" ones),
+    ("graph", "hub", "grid", plus the embedded "mermaid" and "d2" ones and
+    the embedded images and PDF pages as "image"),
     all diagrams from an object tree nesting
     level on (1, 2, 3), and all cell texts at once, with their state
     persisted across page loads and their icons marked while they are
@@ -501,7 +500,6 @@ const foldScript = (standins: boolean, textless: boolean) => textframe`
             grid:    tab.querySelector("div.fold-grids"),
             mermaid: tab.querySelector("div.fold-mermaids"),
             d2:      tab.querySelector("div.fold-d2s"),
-            pdf:     tab.querySelector("div.fold-pdfs"),
             image:   tab.querySelector("div.fold-images"),
             level1:  tab.querySelector("div.fold-level1"),
             level2:  tab.querySelector("div.fold-level2"),
@@ -554,7 +552,7 @@ const foldScript = (standins: boolean, textless: boolean) => textframe`
             control; a diagram joins the set of its type plus the sets
             of all nesting levels up to its own one (3 standing for all
             deeper ones), so the sets of the controls overlap  */
-        const folds = { graph: [], hub: [], grid: [], mermaid: [], d2: [], pdf: [], image: [],
+        const folds = { graph: [], hub: [], grid: [], mermaid: [], d2: [], image: [],
             level1: [], level2: [], level3: [], text: [] }
         document.querySelectorAll("article div.diagram, nav.doc div.diagram").forEach((el) => {
             const type  = el.getAttribute("data-type") ?? "graph"
@@ -1503,11 +1501,8 @@ const renderEmbedded = (language: DiagramLanguage, source: string, alt: string):
     const level    = (scope !== null ? levels?.get(scope) : undefined) ?? 1
     if (variants === undefined || (omits !== null && omittedDiagram(language, level, omits)))
         return ""
-    const dark = diagramDark(language, source, variants)
     return `<div class="diagram" data-type="${language}" data-level="${level}">` +
-        (dark !== "adapt" || variants.light === variants.dark ?
-            renderImage(variants.light, alt, dark === "invert" ? "invert" : "none") :
-            renderThemed(embeddingThemes.map((theme) => renderImage(variants[theme], alt, "none")))) + "</div>"
+        renderThemed(embeddingThemes.map((theme) => renderImage(variants[theme], alt, "none"))) + "</div>"
 }
 
 /*  render a fenced code block of a diagram language as its embedded
@@ -1526,11 +1521,11 @@ const stripDiagrams = (text: string): string =>
 /*  render the embedded image files of a text into HTML, taking the image
     alternate texts from the corresponding "![alt](file)" markups and
     pairing up the consecutive theme variants of a "{theme}" markup, where
-    an embedded diagram source file renders as its diagram block and a
-    plain image (unless unframed, like the title page logo) sits in a
+    an embedded diagram source file renders as its diagram block and an
+    image or PDF page (unless unframed, like the title page logo) sits in a
     diagram block of type "image", so it folds, maximizes, and is omitted
-    like a diagram (the empty entries of unreadable files and the omitted
-    diagrams and images are skipped)  */
+    like a diagram (the empty entries of unreadable files, the failed PDF
+    pages, and the omitted diagrams and images are skipped)  */
 const renderEmbeddings = (text: string, embedding: string[], framed = true): string[] => {
     const result  = new Array<string>()
     const level   = (scope !== null ? levels?.get(scope) : undefined) ?? 1
@@ -1544,14 +1539,14 @@ const renderEmbeddings = (text: string, embedding: string[], framed = true): str
             continue
         const contents = embedding.slice(i, i + count).filter((content) => content !== "")
         i += count
-        const images = contents.filter((content) => embeddedSource(content) === undefined)
-        if (images.length < contents.length)
+        if (contents.some((content) => embeddedSource(content) !== undefined))
             result.push(...contents.map((content) => {
                 const diagram = embeddedSource(content)
                 return diagram !== undefined ? renderEmbedded(diagram.language, diagram.source, m[1].trim()) : ""
             }).filter((html) => html !== ""))
         else if (!omitted) {
-            const variants = images.map((content) => renderImage(content, m[1].trim(), count > 1 ? "none" : undefined))
+            const variants = contents.filter((content) => !isDocument(content) || images?.has(content) === true)
+                .map((content) => renderImage(content, m[1].trim(), count > 1 ? "none" : undefined))
             result.push(...(count > 1 && variants.length === count ? [ renderThemed(variants) ] : variants).map(frame))
         }
     }
@@ -2194,15 +2189,13 @@ export const renderPlaceholder = (message: string): string =>
 const omittedControls = (omit: Set<OmitAspect>) => {
     const none    = omit.has("diagram:1")
         || (omit.has("diagram:graph") && omit.has("diagram:hub") && omit.has("diagram:grid")
-            && omit.has("diagram:mermaid") && omit.has("diagram:d2") && omit.has("diagram:pdf")
-            && omit.has("diagram:image"))
+            && omit.has("diagram:mermaid") && omit.has("diagram:d2") && omit.has("diagram:image"))
     const omitted = {
         graph:   none || omit.has("diagram:graph"),
         hub:     none || omit.has("diagram:hub"),
         grid:    none || omit.has("diagram:grid"),
         mermaid: none || omit.has("diagram:mermaid"),
         d2:      none || omit.has("diagram:d2"),
-        pdf:     none || omit.has("diagram:pdf"),
         image:   none || omit.has("diagram:image"),
         level1:  none,
         level2:  none || omit.has("diagram:2"),
@@ -2242,8 +2235,7 @@ const wrapDiagrams = (index: LinkIndex, svgs: Map<SpecObject, string>): Map<Spec
     optionally the client-side script of the live preview injected and
     aspects omitted (see "ExportOptions"), the embedded images
     optimized for the screen or for print (the PDF), and the embedded
-    Mermaid/D2 diagrams rendered in the theme colors (and the PDF pages
-    in their own ones)  */
+    Mermaid/D2 diagrams rendered in the theme colors  */
 export const renderHtml = async (specification: Spec, config?: Schema,
     tocPages?: Map<string, number>, css?: string, options: ExportOptions = {},
     verbose?: Verbose, print = false): Promise<string> => {
@@ -2259,9 +2251,9 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     /*  pre-optimize the embedded images (downscaled and re-encoded)
         and judge the raster ones for their treatment on the dark theme  */
     const optimized = await optimizeImages(specification, print, verbose)
-    const analyzed  = await analyzeRasters(specification)
+    const analyzed  = await analyzeImages(specification, verbose)
 
-    /*  pre-render the embedded Mermaid/D2/PDF diagrams (except the omitted ones)  */
+    /*  pre-render the embedded Mermaid/D2 diagrams (except the omitted ones)  */
     const sources = await renderEmbeddedDiagrams(specification, verbose, omit)
 
     /*  the document language selects the smart typography quote style  */

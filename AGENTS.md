@@ -48,20 +48,20 @@ API.
         scroll progress meter, folding, diagram maximization, table of
         contents side panel, description popups, and live preview -- are
         inlined in the module itself)
-    -   `src/specbook-export-image.ts`: the on-the-fly optimization of
+    -   `src/specbook-export-image.ts`: the conversion of the embedded
+        PDF pages into SVG images (`pdfjs-dist` and `@napi-rs/canvas`
+        loaded lazily, glyphs as outlines), the on-the-fly optimization of
         the embedded images for the HTML/PDF and AST exports (Sharp for the
         PNG/JPEG/WebP rescaling and re-encoding, SVGO for the SVG
-        minification) and the in-memory cache of the optimized images
+        minification), the "auto" judgement of the images on the dark
+        theme, and the in-memory caches of all of them
     -   `src/specbook-export-diagram.ts`: the rendering of the embedded
         Mermaid/D2 diagrams (fenced `mermaid`/`mmd`/`d2` code blocks and
         embedded `.mmd`/`.mermaid`/`.d2` files) into a light and a dark SVG
         variant in the theme colors (`beautiful-mermaid` and
         `@terrastruct/d2`, both loaded lazily, the D2 worker fed one
         request at a time and unreferenced in between, so it never keeps
-        the process alive), the rendering of the embedded PDF pages
-        (`.pdf` files, `pdfjs-dist` and `@napi-rs/canvas` loaded lazily,
-        glyphs as outlines) into one SVGO-minified SVG in their own colors, and the in-memory cache of
-        the rendered SVGs
+        the process alive), and the in-memory cache of the rendered SVGs
     -   `src/specbook-export-pdf.ts`: the PDF renderer (HTML printed
         via Playwright/Chromium, post-processed with `pdf-lib`)
     -   `src/specbook-theme.ts`: the theme color spreads generated from
@@ -382,34 +382,30 @@ verbose notice only and omits the diagram.
 
 An embedded PDF page -- `![alt](file.pdf)` or `![alt](file.pdf#page=<n>)`
 for the 1-based page `<n>` -- is loaded by the parser as a
-`data:application/pdf;page=<n>;base64,...` URL (the fragment parameters
-becoming its parameters, see below) and treated as an
-embedded diagram of type `pdf`: `pdfjs-dist` (its legacy build) and
-`@napi-rs/canvas` (both imported only once a `.pdf` file is referenced
-at all) render it onto an SVG canvas (`SvgExportFlag.NoPrettyXML`) as
-vector graphics with the glyphs as outlines, where PDF.js takes the
-standard fonts, CMaps, ICC profiles, and WebAssembly decoders from its
-own package directory, SVGO minifies the result, and both theme
-variants are that one SVG in the colors of the page. An absent page is
-a rendering failure.
+`data:application/pdf;page=<n>;base64,...` URL and treated as an image:
+the image optimization first converts it (`convertDocuments` of
+`src/specbook-export-image.ts`, cached like the optimized images) with
+`pdfjs-dist` (its legacy build) and `@napi-rs/canvas` (both imported only
+once a `.pdf` file is referenced at all) onto an SVG canvas
+(`SvgExportFlag.NoPrettyXML`) as vector graphics with the glyphs as
+outlines, where PDF.js takes the standard fonts, CMaps, ICC profiles,
+and WebAssembly decoders from its own package directory, and then
+handles the SVG exactly like an embedded SVG image (SVGO, the `dark`
+treatment, the `image` block). A page failing to render (e.g. an absent
+page) is a verbose notice only and is omitted by every export.
 
 The fragment of an embedding reference is a `&`-joined list of
 `<key>=<value>` parameters, which `embeddingFragment` of
 `src/specbook-parse-common.ts` validates per file type (`page` for the
 documents and `dark` for them plus the plain images), the parser
-reporting an invalid fragment as an error. Except for a plain image, the
-parameters travel URI-encoded as the parameters of the `data:` URL (in a
-canonical order), which `embeddingParams` of
-`src/specbook-export-diagram.ts` splits again. The `dark` parameter
-selects the treatment on the dark theme, which `diagramDark` resolves: a
-document page defaults to `auto` (the `invertible` flag of its rendered
-variants, judged by `svgInvertible` on its SVG before the minification),
-and a Mermaid/D2 diagram always brings its own dark colors (`adapt`).
-The HTML export marks an inverted embedding with the class `dark-invert`
-(the filter `invert(1) hue-rotate(180deg)` on the dark theme, on screen
-only, kept by the clone of the maximize overlay), while the Markdown and
-AST exports mark its rendered light SVG with the `;dark=invert`
-parameter of a plain image, so a re-parse keeps it.
+reporting an invalid fragment as an error. The `page` parameter of a
+document travels URI-encoded as a parameter of its `data:` URL, while
+the `dark` parameter selects the treatment on the dark theme of an image
+or document page, exactly as described for the images below (a
+Mermaid/D2 diagram always brings its own dark colors instead). The HTML
+export marks an inverted image with the class `dark-invert` (the filter
+`invert(1) hue-rotate(180deg)` on the dark theme, on screen only, kept by
+the clone of the maximize overlay).
 
 A self-adapting SVG image (one drawing with `light-dark()` colors or
 `prefers-color-scheme` rules, like a draw.io SVG export) takes the color
@@ -420,7 +416,7 @@ screen only, so print stays light) to the color theme of the document.
 A plain image without a dark variant (and without a `{theme}` reference)
 is treated on the dark theme as `imageDark` of
 `src/specbook-export-common.ts` resolves it: an explicit mark wins, and
-otherwise `auto` inverts a raster image as `analyzeRasters` of
+otherwise `auto` inverts a raster image as `analyzeImages` of
 `src/specbook-export-image.ts` judged it (Sharp analyzing a copy
 downscaled to 128px: at least 60% transparent or near-white pixels, the
 others dark on average, and the quantized colors holding at least 2% of
@@ -553,9 +549,9 @@ color,
 and a running search unfolds
 everything, so no match hides inside. Everything starts out
 unfolded, while the folding tab slides
-out eleven controls (exactly as the search tab slides out its input
+out ten controls (exactly as the search tab slides out its input
 field), which fold and unfold at once all diagrams of a type (`graph`,
-`hub`, `grid`, `mermaid`, `d2`, `pdf`, and the plain images as `image`, each with an icon of its own), all diagrams from an
+`hub`, `grid`, `mermaid`, `d2`, and the images and PDF pages as `image`, each with an icon of its own), all diagrams from an
 object tree nesting level on (`1`, hence all, `2`, and `3`, a nesting
 glyph carrying the small digit at its bottom right), and all cell
 texts. The HTML renderer therefore emits the type and the nesting level
@@ -577,7 +573,7 @@ validated up-front by `parseOmit` of `src/specbook-export-common.ts`)
 omits content aspects at generation time instead of leaving them
 foldable. The aspects match the sets of the folding controls:
 `diagram:graph`, `diagram:hub`, `diagram:grid`, `diagram:mermaid`,
-`diagram:d2`, `diagram:pdf`, `diagram:image`, `diagram:1` (alias
+`diagram:d2`, `diagram:image`, `diagram:1` (alias
 `diagram`, hence all diagrams, the "Diagram of Contents" page included),
 `diagram:2`, `diagram:3`, and `text:long`. An omitted diagram
 (`omittedDiagrams` of `src/specbook-diagram.ts`) is never rendered and
@@ -594,7 +590,7 @@ whole lines of that limit at a word boundary and ends in a grey `[...]`
 cell text folding is off. The
 fold controls of the omitted aspects leave the folding tab along with
 the implied ones (`diagram:2` also drops `level3`, no diagrams at all
-drop all ten diagram controls, and everything omitted drops the tab,
+drop all nine diagram controls, and everything omitted drops the tab,
 the tabs below moving up). The few extra style rules and the two script
 variations are emitted under the option only, so an export without it
 stays byte-identical. The rendering options `realtime` and `omit` travel

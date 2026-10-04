@@ -4,8 +4,6 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import * as path                               from "node:path"
-import { createRequire }                       from "node:module"
 import type { Worker }                         from "node:worker_threads"
 
 import { marked, type Tokens }                 from "marked"
@@ -14,24 +12,20 @@ import type { RenderOptions as MermaidOptions } from "beautiful-mermaid"
 
 import type { Spec, SpecObject }
     from "./specbook-format-spec.js"
-import { documentThemeTone, svgInvertible, type OmitAspect }
+import { documentThemeTone, type OmitAspect }
     from "./specbook-export-common.js"
 import { themeColors, themeToneDefault, type ThemeColors, type ThemeStyle }
     from "./specbook-theme.js"
 import { plainText }
     from "./specbook-link.js"
-import { pdfType }
-    from "./specbook-parse-common.js"
 import { literal, type Verbose }
     from "./specbook-verbose.js"
 
-/*  the languages of the embedded diagrams (a PDF page counts as one)  */
-export type DiagramLanguage = "mermaid" | "d2" | "pdf"
+/*  the languages of the embedded diagrams  */
+export type DiagramLanguage = "mermaid" | "d2"
 
-/*  the rendered SVGs of an embedded diagram, one per theme style, plus
-    (for a document page) whether its "auto" treatment on the
-    dark theme inverts it, as judged on its SVG before the minification  */
-export type DiagramVariants = Record<ThemeStyle, string> & { invertible?: boolean }
+/*  the rendered SVGs of an embedded diagram, one per theme style  */
+export type DiagramVariants = Record<ThemeStyle, string>
 
 /*  the fenced code block languages of the embedded diagrams  */
 const fenceLanguages: Record<string, DiagramLanguage | undefined> = {
@@ -46,43 +40,12 @@ export const fenceLanguage = (lang: string | undefined): DiagramLanguage | undef
     fenceLanguages[(lang ?? "").trim().toLowerCase()]
 
 /*  decode an embedded diagram source file, which the parser loads as a
-    base64 data: URL of its diagram MIME type (undefined for an image),
-    where a binary document stays its data: URL (carrying its page
-    selector)  */
+    base64 data: URL of its diagram MIME type (undefined for an image)  */
 export const embeddedSource = (content: string): { language: DiagramLanguage, source: string } | undefined => {
-    if (content.startsWith(`data:${pdfType};`))
-        return { language: "pdf", source: content }
     const m = content.match(/^data:text\/vnd\.(mermaid|d2);base64,(.*)$/s)
     return m !== null ?
         { language: m[1] as DiagramLanguage, source: Buffer.from(m[2], "base64").toString("utf8") } :
         undefined
-}
-
-/*  split an embedding data: URL into its (URI-decoded) parameters, which
-    carry the fragment parameters of its reference, and its base64 data  */
-export const embeddingParams = (content: string): { params: Record<string, string>, data: string } => {
-    const m = content.match(/^data:[^;,]+((?:;[a-z]+=[^;,]*)*);base64,(.*)$/s)
-    if (m === null)
-        throw new Error("invalid embedding")
-    const params: Record<string, string> = {}
-    for (const param of m[1].split(";").slice(1)) {
-        const eq = param.indexOf("=")
-        params[param.slice(0, eq)] = decodeURIComponent(param.slice(eq + 1))
-    }
-    return { params, data: m[2] }
-}
-
-/*  the treatment of an embedded diagram (given its rendered variants) on
-    the dark theme: a Mermaid/D2 diagram brings dark colors of its own,
-    while a document is (by default, or by "dark=auto") inverted if its
-    rendering is invertible, unless its "dark" parameter says otherwise  */
-export const diagramDark = (language: DiagramLanguage, source: string,
-    variants: DiagramVariants | undefined): "adapt" | "invert" | "none" => {
-    if (language === "mermaid" || language === "d2")
-        return "adapt"
-    const dark = embeddingParams(source).params.dark
-    return dark === "invert" || dark === "none" ? dark :
-        variants?.invertible === true ? "invert" : "none"
 }
 
 /*  the key of an embedded diagram in the map of the rendered ones  */
@@ -229,50 +192,6 @@ const renderD2 = (source: string, colors: Record<string, string>, style: ThemeSt
     return request
 }
 
-/*  render the selected page of a PDF document (given as its embedding
-    data: URL) with PDF.js onto an SVG canvas of @napi-rs/canvas, i.e. as
-    vector graphics with the glyphs drawn as outlines, where PDF.js takes
-    the standard fonts, CMaps, ICC profiles, and WebAssembly decoders of
-    non-self-contained documents from its own package  */
-const renderPdf = async (content: string): Promise<string> => {
-    const { params, data } = embeddingParams(content)
-    const page = Number(params.page ?? "1")
-    const { getDocument }                 = await import("pdfjs-dist/legacy/build/pdf.mjs")
-    const { createCanvas, SvgExportFlag } = await import("@napi-rs/canvas")
-    const dir  = path.dirname(createRequire(import.meta.url).resolve("pdfjs-dist/package.json"))
-    const task = getDocument({ data: new Uint8Array(Buffer.from(data, "base64")), verbosity: 0,
-        standardFontDataUrl: `${dir}/standard_fonts/`, cMapUrl: `${dir}/cmaps/`,
-        iccUrl: `${dir}/iccs/`, wasmUrl: `${dir}/wasm/` })
-    try {
-        const doc = await task.promise
-        if (page < 1 || page > doc.numPages)
-            throw new Error(`document has no page ${page}`)
-        const sheet    = await doc.getPage(page)
-        const viewport = sheet.getViewport({ scale: 1 })
-        const canvas   = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height),
-            SvgExportFlag.NoPrettyXML)
-        await sheet.render({ viewport,
-            canvas:        canvas as unknown as HTMLCanvasElement,
-            canvasContext: canvas.getContext("2d") as unknown as CanvasRenderingContext2D }).promise
-        return canvas.getContent().toString("utf8")
-    }
-    finally {
-        await task.destroy()
-    }
-}
-
-/*  minify a rendered PDF document SVG with SVGO
-    (an SVG which SVGO rejects stays as rendered)  */
-const minifySvg = async (svg: string): Promise<string> => {
-    try {
-        const { optimize } = await import("svgo")
-        return optimize(svg, { multipass: true }).data
-    }
-    catch {
-        return svg
-    }
-}
-
 /*  the in-memory cache of the rendered embedded diagrams, keyed by theme
     tone and diagram, and swept to the diagrams of the latest rendering,
     exactly like the one of the Gradia diagrams  */
@@ -305,21 +224,13 @@ export const renderEmbeddedDiagrams = async (specification: Spec,
             cached++
         else {
             try {
-                /*  a page keeps its own colors,
-                    so both variants are one rendering  */
-                if (language === "pdf") {
-                    const raw = await renderPdf(source)
-                    const svg = await minifySvg(raw)
-                    variants = { light: svg, dark: svg, invertible: svgInvertible(raw) }
+                variants = language === "mermaid" ? {
+                    light: await renderMermaid(source, mermaidColors(colors, "light")),
+                    dark:  await renderMermaid(source, mermaidColors(colors, "dark"))
+                } : {
+                    light: await renderD2(source, d2Colors(colors, "light"), "light"),
+                    dark:  await renderD2(source, d2Colors(colors, "dark"),  "dark")
                 }
-                else
-                    variants = language === "mermaid" ? {
-                        light: await renderMermaid(source, mermaidColors(colors, "light")),
-                        dark:  await renderMermaid(source, mermaidColors(colors, "dark"))
-                    } : {
-                        light: await renderD2(source, d2Colors(colors, "light"), "light"),
-                        dark:  await renderD2(source, d2Colors(colors, "dark"),  "dark")
-                    }
             }
             catch (err) {
                 verbose?.(`rendering ${language} diagram of ${object.kind} ` +

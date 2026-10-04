@@ -16,9 +16,9 @@ import { becauseRegex, embeddingRegex, embeddingCount, darkMark, markDark }
     from "./specbook-parse-common.js"
 import { isTitleObject, imageDark }
     from "./specbook-export-common.js"
-import { optimizeImages, analyzeRasters }
+import { optimizeImages, analyzeImages, isDocument }
     from "./specbook-export-image.js"
-import { renderEmbeddedDiagrams, embeddedSource, diagramKey, diagramDark }
+import { renderEmbeddedDiagrams, embeddedSource, diagramKey }
     from "./specbook-export-diagram.js"
 import type { Verbose }
     from "./specbook-verbose.js"
@@ -171,7 +171,7 @@ export const renderMarkdown = async (specification: Spec,
         judge a re-optimized SVG differently, and only the remaining
         ones (including a failed diagram) are re-based  */
     const optimized = await optimizeImages(specification, false, verbose)
-    const rasters   = await analyzeRasters(specification)
+    const rasters   = await analyzeImages(specification, verbose)
     const sources   = await renderEmbeddedDiagrams(specification, verbose)
     const labels    = new Map<string, string>()
     const embedMd   = (text: string, embedding: string[], from?: string, to?: string): string => {
@@ -184,13 +184,12 @@ export const renderMarkdown = async (specification: Spec,
                 return match
             const diagram  = embeddedSource(content)
             const variants = diagram !== undefined ? sources.get(diagramKey(diagram.language, diagram.source)) : undefined
-            const light    = diagram !== undefined ? variants?.light : optimized.get(content) ?? content
+            const light    = diagram !== undefined ? variants?.light :
+                optimized.get(content) ?? (isDocument(content) ? undefined : content)
             if (light === undefined)
                 return match
-            const dark     = diagram !== undefined ? diagramDark(diagram.language, diagram.source, variants) : undefined
-            const image    = dark === "invert" || dark === "none" ? markDark(light, dark) :
-                dark === "adapt" ? markDark(light, imageDark(light)) :
-                    markDark(darkMark(light).content, imageDark(content, rasters))
+            const image    = diagram !== undefined ? markDark(light, imageDark(light)) :
+                markDark(darkMark(light).content, imageDark(content, rasters))
             const url      = image.startsWith("data:") ? image :
                 `data:image/svg+xml;base64,${Buffer.from(image, "utf8").toString("base64")}`
             const label    = labels.get(url) ?? `img-${labels.size + 1}`

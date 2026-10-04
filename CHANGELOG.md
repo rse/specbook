@@ -10,8 +10,8 @@ ChangeLog
     as themed diagrams, which fold, maximize, and omit (`-O diagram:mermaid|d2`) like Gradia ones.
 
 -   FEATURE [code]: Embedded PDF Pages
-    Embedded `.pdf` files (`#page=<n>` selecting the page) are rendered to vector SVG with lazily
-    loaded `pdfjs-dist`/`@napi-rs/canvas`, inverted on the dark theme if light, and fold and omit.
+    Embedded `.pdf` files (`#page=<n>` selecting the page) are converted to vector SVG with lazily
+    loaded `pdfjs-dist`/`@napi-rs/canvas` and then treated exactly like embedded SVG images.
 
 -   IMPROVEMENT [code]: Embedded Images Fold and Maximize
     Embedded SVG/PNG/JPEG/WebP images (except the title page logo) fold, maximize, and omit

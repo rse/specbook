@@ -1075,6 +1075,17 @@ of the title page) folds, maximizes, and is omitted (`-O diagram:image`,
 or by nesting level) in the HTML/PDF export, while the AST exports keep
 it.
 
+A page of a PDF document is embedded like an image --
+`![<alt/>](<file/>.pdf)` for the first page, or
+`![<alt/>](<file/>.pdf#page=<n/>)` for the 1-based page number `<n/>` --
+where the document is inlined at parse time. The exports convert the
+page through `pdfjs-dist` into a vector SVG with its texts as glyph
+outlines and then treat it exactly like an embedded SVG image, while a
+page failing to render (e.g. an absent page number) is omitted with a
+notice. A presentation (e.g. PowerPoint), a spreadsheet (e.g. Excel), or
+any other office document is embedded through its PDF export, which
+carries its exact rendering and fonts.
+
 A reference carrying the `{theme}` placeholder -- e.g.
 `![Logo](logo-{theme}.svg)` -- is a *theme-aware* embedding: it expands
 into the two variants `light` and `dark`, both of which have to exist and
@@ -1131,18 +1142,6 @@ nesting level) like a derived Gradia diagram. A diagram failing to render
 is omitted with a notice. The normalized Markdown and the AST exports
 carry the source of a fenced diagram as part of the description, and an
 embedded diagram file as its rendered SVG (the `light` variant).
-
-A page of a PDF document is embedded like a diagram file --
-`![<alt/>](<file/>.pdf)` for the first page, or
-`![<alt/>](<file/>.pdf#page=<n/>)` for the 1-based page number `<n/>` --
-where the document is inlined at parse time. The exports render the page
-through `pdfjs-dist` into a vector SVG with its texts as glyph outlines,
-in its own colors, which folds, maximizes, and is omitted
-(`-O diagram:pdf`) like an embedded diagram, while a page failing to
-render (e.g. an absent page number) is omitted with a notice. A presentation
-(e.g. PowerPoint), a spreadsheet (e.g. Excel), or any other office
-document is embedded through its PDF export, which carries its exact
-rendering and fonts.
 
 #### Fragment Parameters
 

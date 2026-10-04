@@ -181,21 +181,21 @@ export const embeddingDataRegex =
 /*  the explicit treatments of an embedded image on the dark theme  */
 export type DarkMark = "invert" | "none"
 
-/*  split an embedded image content (an SVG text or a data: URL) into its
-    plain content and its explicit treatment on the dark theme, which a
-    "#dark=invert" or "#dark=none" fragment (deviating from the default
-    "auto") turns into the "dark" data: URL parameter (an SVG hence
-    becoming a data: URL, too)  */
+/*  split an embedded image or document content (an SVG text or a data:
+    URL) into its plain content and its explicit treatment on the dark
+    theme, which a "#dark=invert" or "#dark=none" fragment (deviating from
+    the default "auto") turns into the "dark" data: URL parameter directly
+    behind the MIME type (an SVG hence becoming a data: URL, too)  */
 export const darkMark = (content: string): { content: string, dark?: DarkMark } => {
-    const m = content.match(/^data:([^;,]+);dark=(invert|none);base64,(.*)$/s)
+    const m = content.match(/^data:([^;,]+);dark=(invert|none)((?:;[a-z]+=[^;,]*)*);base64,(.*)$/s)
     if (m === null)
         return { content }
-    return { dark: m[2] as DarkMark, content: m[1] === "image/svg+xml" ?
-        Buffer.from(m[3], "base64").toString("utf8") : `data:${m[1]};base64,${m[3]}` }
+    return { dark: m[2] as DarkMark, content: m[1] === "image/svg+xml" && m[3] === "" ?
+        Buffer.from(m[4], "base64").toString("utf8") : `data:${m[1]}${m[3]};base64,${m[4]}` }
 }
 
-/*  mark a plain embedded image content with its explicit treatment
-    on the dark theme  */
+/*  mark a plain embedded image or document content with its explicit
+    treatment on the dark theme  */
 export const markDark = (content: string, dark: DarkMark): string =>
     content.startsWith("data:") ? content.replace(/^(data:[^;,]+)/, `$1;dark=${dark}`) :
         `data:image/svg+xml;dark=${dark};base64,${Buffer.from(content, "utf8").toString("base64")}`

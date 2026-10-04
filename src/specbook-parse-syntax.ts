@@ -13,7 +13,7 @@ import { type SpecArtifact, type SpecObject, type SpecProperty, type SpecDescrip
     from "./specbook-format-spec.js"
 import { type ParseContext, type SourceFile, becauseRegex, embeddingRegex,
     embeddingDataRegex, embeddingMimeType, embeddingFileType, embeddingVariants, embeddingFragment,
-    markDark }
+    markDark, pdfType }
     from "./specbook-parse-common.js"
 
 /*  a grouping container context (e.g. "### STATE")  */
@@ -184,17 +184,16 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string, defs: Map<st
                 continue
             }
             for (const variant of embeddingVariants(reference)) {
-                /*  the fragment parameters of a document (selecting its
-                    page and its treatment on the dark theme) travel as the
-                    parameters of its data: URL, while a plain image gets marked with an explicit
-                    treatment on the dark theme deviating from its default
-                    ("auto"), unless its "{theme}" variants already serve
-                    the dark theme  */
+                /*  the page a fragment of a document selects travels as a
+                    parameter of its data: URL, while an image or document
+                    gets marked with an explicit treatment on the dark theme
+                    deviating from its default ("auto"), unless its "{theme}"
+                    variants already serve the dark theme  */
                 target.embedding ??= []
                 const split  = embeddingFragment(variant, type) ?? { file: variant, params: {} }
-                const image  = type.startsWith("image/")
+                const image  = type.startsWith("image/") || type === pdfType
                 const asset  = path.resolve(path.dirname(file), split.file)
-                const params = image ? "" : Object.entries(split.params)
+                const params = Object.entries(split.params).filter(([ key ]) => key !== "dark")
                     .map(([ key, value ]) => `;${key}=${encodeURIComponent(value)}`).join("")
                 ctx.assets.add(asset)
                 try {
