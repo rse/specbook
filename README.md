@@ -422,7 +422,7 @@ application, based on **SpecBook**'s built-in "standard" schema:
 ### Sources
 
 -   [Specification](smp/broadcast/)
--   [Schema](src/specbook-format.d/)
+-   [Schema](src/specbook-format-schema.d/)
 
 ### Generation
 

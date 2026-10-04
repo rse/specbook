@@ -133,9 +133,10 @@ API.
         structure (the AST of the specification)
     -   `src/specbook-format-schema.ts`: types/schema of the YAML schema
         configuration (which domain-specific objects are allowed)
-    -   `src/specbook-format.d/std-N-XXX.yaml`: the bundled standard YAML schema
-        configuration (`std-0-meta` through `std-6-test`), assembled into
-        one file at build time and used whenever no particular one is given
+    -   `src/specbook-format-schema.d/std-N-XXX.yaml`: the bundled
+        standard YAML schema configuration (`std-0-meta` through
+        `std-6-test`), assembled into one file at build time and used
+        whenever no particular one is given
 -   `etc/`: the tool configurations (`eslint.mjs`, `markdownlint.yaml`,
     `markdownlint-skill.yaml`, `tsconfig.json`, `postcss.config.mjs`, `stx.conf`), the assembler of
     the standard schema configuration (`specbook-format-assemble.mjs`),
@@ -176,7 +177,7 @@ script is `npm start`, which invokes stx with `etc/stx.conf`:
 ```
 npm start build            # lint + build-cmd
 npm start build-cmd        # tsc, stylus+postcss, and the asset copies (all into dst/)
-npm start lint             # eslint on src/*.ts, markdownlint-cli2 on src/specbook-format{.md,.d/*.md} and plugin/skills/*/*.md
+npm start lint             # eslint on src/*.ts, markdownlint-cli2 on src/specbook-format.md, src/specbook-format-schema.d/*.md, and plugin/skills/*/*.md
 npm start build-watch      # nodemon rebuild on src/**/*.{ts,md}
 npm start lint-watch       # nodemon relint on src/**/*.{ts,md}
 npm start sample           # sample-broadcast + sample-sample
@@ -192,8 +193,9 @@ npm start distclean        # also remove node_modules and package-lock.json
 Beyond `tsc`, the `build-cmd` target compiles `src/specbook-export-html.styl`
 to `dst/specbook-export-html.css` (Stylus, then PostCSS inlining the font
 faces as base64 `data:` URIs), copies the client-side search script and
-`src/specbook-format.md`, assembles `src/specbook-format.d/*.yaml` into
-`dst/specbook-format.yaml`, and copies the two theme variants of the logo.
+`src/specbook-format.md`, assembles `src/specbook-format-schema.d/*.yaml`
+into `dst/specbook-format.yaml`, and copies the two theme variants of the
+logo.
 
 No test target is defined.
 
@@ -254,8 +256,8 @@ specbook mcp      [-v [<level>]]
 ```
 
 The YAML schema configuration of `init`, `lint`, `export`, and `preview` falls back
-onto the bundled standard one (assembled from `src/specbook-format.d/` into
-`dst/` at build time), while `describe` references the given one only
+onto the bundled standard one (assembled from `src/specbook-format-schema.d/`
+into `dst/` at build time), while `describe` references the given one only
 and falls back onto the standard one by embedding it.
 
 The option `-c`/`--config` accepts glob patterns (expanded via `glob`)
