@@ -34,7 +34,7 @@ import { safe, render }
     from "./specbook-export-html-template.js"
 import { themeScript, placeholderStylesheet, realtimeScript, scrollProgressScript,
     maximizeScript, tocPanelScript, infoScript, type InfoEntry, type SpecEntry }
-    from "./specbook-export-html-script.js"
+    from "./specbook-export-html-widget.js"
 import { foldScript, omittedControls }
     from "./specbook-export-html-fold.js"
 import { withDocument, makeLinker, collectInfo, collectSpec, collectMembers,

@@ -6,7 +6,7 @@
 
 import textframe from "textframe"
 
-/*  ==== Scripts ====  */
+/*  ==== Widgets ====  */
 
 /*  the client-side script of the color theme: it applies the stored
     choice (or, without one, the document default and finally the system

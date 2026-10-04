@@ -50,11 +50,12 @@ API.
         fuzzy search
     -   `src/specbook-export-html-template.ts`: the built-in Nunjucks
         templates of the HTML renderer and their compiled rendering
-    -   `src/specbook-export-html-script.ts`: the other client-side
-        scripts of the HTML export, inlined as strings -- color theme,
-        live preview, scroll progress meter, diagram maximization, table
-        of contents side panel, and description popups (plus the format
-        of their injected INFO/SPEC tables)
+    -   `src/specbook-export-html-widget.ts`: the client-side scripts
+        of the small, self-contained page widgets of the HTML export,
+        inlined as strings -- color theme, live preview, scroll progress
+        meter, diagram maximization, table of contents side panel, and
+        description popups (plus the format of their injected INFO/SPEC
+        tables)
     -   `src/specbook-export-html-fold.ts`: the client-side folding
         script and its server-side counterparts of the `--omit` option
         (the long cell text cutting and the dropped fold controls)

@@ -32,7 +32,7 @@ import { coverageRatio, type Coverage }
 import { safe, render }
     from "./specbook-export-html-template.js"
 import type { InfoEntry, SpecEntry }
-    from "./specbook-export-html-script.js"
+    from "./specbook-export-html-widget.js"
 import { omitLong }
     from "./specbook-export-html-fold.js"
 
