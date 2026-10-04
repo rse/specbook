@@ -6,8 +6,8 @@ ChangeLog
 ------------------
 
 -   FEATURE [code]: Compact Object Format
-    The new `format` type `compact` renders a concise table whose single content cell holds the
-    hub diagram, the key/value properties, and the description; used for `TIER > COMPONENT`.
+    The new `format` type `compact` renders a table whose single content cell holds the hub diagram,
+    properties, and description; used for `COMPONENT`, `PREMISE`, `TERM`, and `PERMISSION`.
 
 -   FEATURE [spec]: Code Patterns Artifact in the Standard Schema
     The new `ARCH: Code Patterns` artifact (after Design Decisions) records `CODE-PATTERN` objects

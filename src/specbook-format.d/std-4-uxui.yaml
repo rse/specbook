@@ -45,6 +45,8 @@
                 quality bound is a Non-Functional Requirement instead).
             referenced:
                 -   "[[DIALOG-PATTERN:*]]"
+            format:
+                type: compact
             diagram:
                 type: hub
                 center: self
@@ -425,6 +427,7 @@
                 list of token values (the values are in the design system) or a measurable bound
                 (a bound is a Non-Functional Requirement instead).
             format:
+                type: compact
                 maxTableColumns: 5
             diagram:
                 type: hub

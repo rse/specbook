@@ -379,6 +379,7 @@
                 roles against entities. Any operation, state, or condition not covered by a
                 permission of the role (or of a role it `INHERITS`) is forbidden.
             format:
+                type: compact
                 maxTableColumns: 8
             diagram:
                 type: hub

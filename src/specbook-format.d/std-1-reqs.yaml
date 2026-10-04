@@ -113,7 +113,7 @@
                 states a fact or event, not a decision (a deliberate exclusion is the `SCOPE` of
                 the Solution Vision or a `WONT` requirement instead).
             format:
-                type: complex
+                type: compact
                 maxTableColumns: 5
             props:
                 -   name: TYPE
@@ -188,6 +188,7 @@
                 term from its siblings (e.g. `A Message submitted by an Attendee as ...`), so that
                 the hierarchy and the definitions cross-check each other.
             format:
+                type: compact
                 maxTableColumns: 5
             referenced:
                 -   "[[*]]"
@@ -199,8 +200,9 @@
                 labeled: true
                 qualified: true
                 config:
-                    size-node-width-max: 440
+                    size-node-width-max:    440
                     size-node-height-scale: 1.75
+                    hub-node-count-max:     3
             props:
                 -   name: TYPE
                     desc: >
