@@ -1054,6 +1054,26 @@ table.objects table.chunks tr td
 table.objects table.chunks td:first-child
     font-weight: normal
 
+/*  the single content cell of the "compact" tables, rendering the
+    object like a section (diagram, key/value properties, description),
+    with the property tables keeping their own tints and stripes  */
+table.objects td.compact > *
+    margin-top: 0.5rem
+    margin-bottom: 0.5rem
+table.objects td.compact > :first-child
+    margin-top: 0
+table.objects td.compact > :last-child
+    margin-bottom: 0
+table.objects td.compact > table.props td
+    background-color: transparent
+table.objects td.compact > table.props td.key
+    font-weight: bold
+    background-color: var(--theme-color-specbook-tint)
+table.objects td.compact > table.props tr:nth-child(even) td
+    background-color: var(--theme-color-specbook-stripe)
+table.objects td.compact > table.props tr:nth-child(even) td.key
+    background-color: var(--theme-color-specbook-tint-stripe)
+
 /*  the nested renderings inside the description cells of the compact
     tables ("concise" sub-tables and pressed-in "complex" objects),
     reduced in size to fit into the cell  */

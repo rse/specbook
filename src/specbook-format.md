@@ -123,7 +123,7 @@ type SchemaDiagram = {
     config?:           Partial<GradiaConfig>
 }
 type SchemaFormat = {
-    type?:             "auto" | "complex" | "concise"
+    type?:             "auto" | "complex" | "compact" | "concise"
     maxTableColumns?:  number
     maxCellHeight?:    number
     withUnusedProps?:  boolean
@@ -429,8 +429,9 @@ type SchemaGradiaConfig = Partial<{
     HTML/PDF rendering of the objects of an object kind among their siblings,
     BECAUSE one uniform rendering fits neither rich nor numerous objects
 
--   `SchemaFormat.type?: "auto" | "complex" | "concise"`:
-    rendering: `complex` (sections), `concise` (tables), or `auto`,
+-   `SchemaFormat.type?: "auto" | "complex" | "compact" | "concise"`:
+    rendering: `complex` (sections), `concise` (tables), `compact`
+    (tables of section-like cells), or `auto`,
     BECAUSE sections bury small objects, tables truncate rich ones
 
 -   `SchemaFormat.maxTableColumns?: number`:
@@ -649,15 +650,20 @@ how the HTML/PDF export renders the objects of that kind among their
 siblings, so that the sibling kinds below one parent can render
 differently (e.g. one kind as a table, another as sections). Its `type`
 selects the rendering: `complex` (nested sections), `concise` (one
-compact table of all sibling objects of the kind), or the default
-`auto`, which collapses only the deepest level into tables.
+compact table of all sibling objects of the kind), `compact` (one
+table of the name and a single cell per object, which renders the
+object like `complex`, but without its heading: diagram, properties as
+key/value lines, and description, for a kind whose many properties a
+table row cannot hold), or the default `auto`, which collapses only the
+deepest level into tables.
 
 Inside a `concise` table, unconfigured child kinds implicitly stay
 `concise` and render as sub-tables inside the description cells, while
 an explicitly configured `type` is always honored, even a `complex`
 rendering pressed into a cell. `maxTableColumns` (default: `4`) bounds
 the columns of the compact table of the kind (a wider group chunks
-its properties into embedded per-object tables), `maxCellHeight`
+its properties into embedded per-object tables, while a `compact`
+one bounds just the width of its name column), `maxCellHeight`
 (default: `40`) is the percentage a table cell of the kind may exceed
 the height of every other non-empty cell of its row before the HTML
 export folds its remaining text away, and `withUnusedProps`

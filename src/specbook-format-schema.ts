@@ -109,9 +109,10 @@ export type SchemaDiagram = {
 }
 
 /*  the HTML/PDF rendering of the objects of an object kind among their
-    siblings: "complex" (sections), "concise" (tables), or "auto"  */
+    siblings: "complex" (sections), "concise" (tables), "compact" (tables
+    with complex-like cells), or "auto"  */
 export type SchemaFormat = {
-    type?:             "auto" | "complex" | "concise"
+    type?:             "auto" | "complex" | "compact" | "concise"
     maxTableColumns?:  number
     maxCellHeight?:    number
     withUnusedProps?:  boolean
@@ -216,7 +217,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     config:            v.optional(SchemaDiagramConfig)
 })
 const SchemaFormat: v.GenericSchema<SchemaFormat> = v.strictObject({
-    type:              v.optional(v.picklist([ "auto", "complex", "concise" ])),
+    type:              v.optional(v.picklist([ "auto", "complex", "compact", "concise" ])),
     maxTableColumns:   v.optional(v.pipe(v.number(), v.integer(), v.minValue(2))),
     maxCellHeight:     v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))),
     withUnusedProps:   v.optional(v.boolean())

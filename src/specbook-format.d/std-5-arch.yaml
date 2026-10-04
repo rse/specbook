@@ -313,6 +313,8 @@
                         carrying trade-off behind the choice is a Design Decisions decision
                         referencing the component through `DECIDES`, and the functional components
                         depending on the product reference it through `USED-BY`.
+                    format:
+                        type: compact
                     diagram:
                         type: hub
                         center: self

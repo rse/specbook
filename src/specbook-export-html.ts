@@ -290,6 +290,26 @@ const templates = {
                 {% endfor %}
             </tbody>
         </table>
+    `,
+
+    /*  <TableCompact/>  */
+    "TableCompact": textframe`
+        <table class="objects"{% if Table.fold %} data-fold-height="{{ Table.fold }}"{% endif %}>
+            <thead>
+                <tr>
+                    <th class="object-kind" style="width: {{ Table.width }}%"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}"{% endif %}>{{ Table.head }}</span></th>
+                    <th class="description">{{ Table.label }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in Table.rows %}
+                <tr id="{{ row.id }}"{% if row.anchor %} data-id="{{ row.anchor }}"{% endif %}{% if row.even %} class="even"{% endif %}>
+                    <td><span{% if row.spec %} data-info-spec="{{ row.spec }}"{% endif %}>{{ row.name }}</span>{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
+                    <td class="compact">{{ row.content }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     `
 }
 
@@ -1735,14 +1755,14 @@ const flowChildren = (object: SpecObject): SpecObject[] =>
     object.children.filter((child) => !isTitleObject(child))
 
 /*  decide whether a single-kind group of children collapses into the
-    concise (tabular) rendering: an explicit "format" type of the kind
-    wins, "auto" collapses the deepest level only, and inside an already
-    concise rendering context "auto" groups implicitly stay concise, too  */
+    concise or compact (tabular) rendering: an explicit "format" type of
+    the kind wins, "auto" collapses the deepest level only, and inside an
+    already concise rendering context "auto" groups implicitly stay concise, too  */
 const conciseGroup = (group: SpecObject[], schemaMap: Map<SpecObject, SchemaObject> | null,
     concise: boolean): boolean => {
     const type = schemaMap?.get(group[0])?.format?.type ?? "auto"
     if (type !== "auto")
-        return type === "concise"
+        return type !== "complex"
     return concise || group.every((child) => child.children.length === 0)
 }
 
@@ -1760,12 +1780,14 @@ const groupChildren = (children: SpecObject[]): SpecObject[][] => {
 }
 
 /*  render the children of an object group-wise by kind: a concise group
-    as one compact table, a complex group as regular nested object
-    renderings  */
+    as one compact table (a "compact" one with a single content column),
+    a complex group as regular nested object renderings  */
 const renderChildren = (object: SpecObject, level: number, concise: boolean): string =>
-    groupChildren(flowChildren(object)).map((group) => conciseGroup(group, schemas, concise) ?
-        renderTable(group, maxColumnsOf(group[0])) :
-        group.map((child) => renderObject(child, level, concise)).join("")).join("")
+    groupChildren(flowChildren(object)).map((group) => !conciseGroup(group, schemas, concise) ?
+        group.map((child) => renderObject(child, level, concise)).join("") :
+        formatOf(group[0])?.type === "compact" ?
+            renderCompact(group, maxColumnsOf(group[0])) :
+            renderTable(group, maxColumnsOf(group[0]))).join("")
 
 /*  render the description cell of a table row: the description of the
     object followed by its recursively rendered children (implicitly or
@@ -1952,6 +1974,45 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
                 name:     inline(child.name),
                 even:     i % 2 === 1,
                 chunks
+            }
+        }))
+    } })
+}
+
+/*  render a single-kind group of children into one compact table of the
+    "compact" format: the name first, then a single cell rendering the
+    object like a complex one, but without its heading (diagram,
+    key/value properties, description, coverage, and children), for the
+    objects whose many properties a table row could not hold  */
+const renderCompact = (children: SpecObject[], maxColumns: number): string => {
+    const { keys, desc } = tableShape(children)
+    return render("TableCompact", { Table: {
+        head:     children[0].kind !== "" ? children[0].kind : "Name",
+        info:     infoKeyOf(children[0]),
+        infopath: infoRefOf(children[0], false),
+        label:    keys.length > 0 && desc ? "Properties & Description" :
+            (desc ? "Description" : "Properties"),
+        fold:     formatOf(children[0])?.maxCellHeight,
+        width:    Math.round(100 / maxColumns),
+        rows:     children.map((child, i) => scoped(child, () => {
+            const properties = effectiveProperties(child)
+            let html = diagramOf(child).toString()
+            if (properties.length > 0)
+                html += render("Properties", { Properties: inlineProperties(child, properties),
+                    Fold: formatOf(child)?.maxCellHeight })
+            if (child.description !== undefined)
+                html += renderDescription(child.description)
+            html += coverageOf(child).toString()
+            html += renderChildren(child, 6, true)
+            return {
+                id:      anchorOf(child),
+                anchor:  child.anchor,
+                paren:   child.paren,
+                primary: child.primary,
+                spec:    infoRefOf(child),
+                name:    inline(child.name),
+                even:    i % 2 === 1,
+                content: safe(html.trim() !== "" ? html : "<span class=\"value-absent\"></span>")
             }
         }))
     } })
