@@ -607,6 +607,8 @@ export const validateReferences = (ctx: ParseContext, specification: Spec) => {
             check(object, object.description.description, meta.file, meta.line)
             if (object.description.rationale !== undefined)
                 check(object, object.description.rationale, meta.file, meta.line)
+            if (object.description.elaboration !== undefined)
+                check(object, object.description.elaboration, meta.file, meta.line)
         }
         object.children.forEach(walk)
     }

@@ -289,6 +289,13 @@ resolvability of every Wiki-style reference. Both `lint` and `export`
 report all diagnostics and fail on any error among them, so a partial or
 invalid specification is never exported.
 
+The syntactic phase splits a description at its first `, BECAUSE ` into
+the statement (`description`) and the `rationale`, which ends with its
+paragraph: the blocks following it form the `elaboration`, whose
+embeddings follow those of the statement in the shared `embedding` list,
+and which every consumer of the description (reference checks, coverage,
+diagram links, and all exports) treats like the statement.
+
 The `coverage` field of an object kind lists `[[...]]` patterns whose
 matching objects (a target also counting through its descendants) every
 object of the kind reports as covered/total counts of the references

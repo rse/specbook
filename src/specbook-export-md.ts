@@ -44,10 +44,12 @@ const renderKeyValuesMd = (properties: SpecProperty[], indent = ""): string => {
 const segmentableMd = (property: SpecProperty): boolean =>
     !property.value.includes(";") && !becauseRegex.test(property.value)
 
-/*  render a description statement with its optional rationale  */
+/*  render a description statement with its optional rationale and
+    its optional elaboration blocks  */
 const renderDescriptionMd = (description: SpecDescription): string =>
     description.description + (description.rationale !== undefined ?
-        `, BECAUSE ${description.rationale}` : "")
+        `, BECAUSE ${description.rationale}` : "") + (description.elaboration !== undefined ?
+        `\n\n${description.elaboration}` : "")
 
 /*  render the "(*)" primary marker plus the implicit "(xxx)"
     and/or explicit "{{xxx}}" anchor suffix  */
@@ -189,10 +191,17 @@ export const renderMarkdown = async (specification: Spec,
                 ({ ...property, value: embedMd(property.value, property.embedding ?? [], from, to) })),
             children:   object.children.map((child) => embedObjectMd(child, from, to))
         }
-        if (object.description !== undefined)
+        if (object.description !== undefined) {
+            /*  the embeddings of the elaboration follow those of the statement  */
+            const embedding = object.description.embedding ?? []
+            const skip      = Array.from(object.description.description.matchAll(embeddingRegex))
+                .reduce((sum, m) => sum + embeddingCount(m[2]), 0)
             clone.description = { ...object.description,
-                description: embedMd(object.description.description,
-                    object.description.embedding ?? [], from, to) }
+                description: embedMd(object.description.description, embedding, from, to) }
+            if (object.description.elaboration !== undefined)
+                clone.description.elaboration = embedMd(object.description.elaboration,
+                    embedding.slice(skip), from, to)
+        }
         const spec = diagrams.get(object)
         if (spec !== undefined)
             diagrams.set(clone, spec)

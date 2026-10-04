@@ -35,11 +35,14 @@ export type SpecObject = {
     children:          SpecObject[]
 }
 
-/*  the description of an object: statement, rationale, and the
-    contents of its embedded image files (one entry per file)  */
+/*  the description of an object: statement, rationale (up to the end of
+    its paragraph), elaboration (the blocks following the rationale), and
+    the contents of its embedded image files (one entry per file, those
+    of the statement first and those of the elaboration second)  */
 export type SpecDescription = {
     description:       string
     rationale?:        string
+    elaboration?:      string
     embedding?:        string[]
 }
 
@@ -63,6 +66,7 @@ const SpecProperty: v.GenericSchema<SpecProperty> = v.object({
 const SpecDescription: v.GenericSchema<SpecDescription> = v.object({
     description:       v.string(),
     rationale:         v.optional(v.string()),
+    elaboration:       v.optional(v.string()),
     embedding:         v.optional(v.array(v.string()))
 })
 const SpecObject: v.GenericSchema<SpecObject> = v.object({

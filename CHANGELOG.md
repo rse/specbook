@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.4.0 (2026-10-04)
+------------------
+
+-   BUGFIX [code]: Rationale Ends with Its Paragraph
+    The blocks following a `, BECAUSE ` paragraph ended up inside the rationale and lost their
+    embeddings and diagrams, and now form the new description `elaboration` instead.
+
 1.3.2 (2026-09-29)
 ------------------
 

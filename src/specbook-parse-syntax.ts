@@ -9,7 +9,7 @@ import * as path from "node:path"
 
 import { marked, type Tokens } from "marked"
 
-import { type SpecArtifact, type SpecObject, type SpecProperty }
+import { type SpecArtifact, type SpecObject, type SpecProperty, type SpecDescription }
     from "./specbook-format-spec.js"
 import { type ParseContext, type SourceFile, becauseRegex, embeddingRegex,
     embeddingDataRegex, embeddingMimeType, embeddingVariants }
@@ -21,14 +21,21 @@ interface Group {
     kind:   string
 }
 
-/*  split a description text into statement and optional rationale  */
-const splitDescription = (text: string) => {
+/*  split a description text into statement and optional rationale, where
+    the rationale ends with its paragraph and any blocks following it
+    (further paragraphs, images, diagrams) form the elaboration  */
+const splitDescription = (text: string): SpecDescription => {
     const m = text.match(becauseRegex)
     if (m === null || m.index === undefined)
         return { description: text }
+    const rest = text.slice(m.index + m[0].length)
+    const end  = rest.search(/\n[ \t]*\n/)
+    if (end < 0)
+        return { description: text.slice(0, m.index), rationale: rest }
     return {
         description: text.slice(0, m.index),
-        rationale:   text.slice(m.index + m[0].length)
+        rationale:   rest.slice(0, end),
+        elaboration: rest.slice(end).trim()
     }
 }
 
@@ -188,8 +195,10 @@ const embed = (ctx: ParseContext, object: SpecObject, file: string, defs: Map<st
         }
     }
     const line = ctx.metaOf(object).line
-    if (object.description !== undefined)
+    if (object.description !== undefined) {
         load(object.description, object.description.description, line)
+        load(object.description, object.description.elaboration ?? "", line)
+    }
     for (const property of object.properties)
         load(property, property.value, ctx.propMeta.get(property)?.line ?? line)
     for (const child of object.children)

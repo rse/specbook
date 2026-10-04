@@ -272,6 +272,8 @@ const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes
                 texts.push({ text: object.description.description })
                 if (object.description.rationale !== undefined)
                     texts.push({ text: object.description.rationale })
+                if (object.description.elaboration !== undefined)
+                    texts.push({ text: object.description.elaboration })
             }
             for (const { text, name } of texts)
                 for (const m of plainText(text).matchAll(referenceRegex)) {

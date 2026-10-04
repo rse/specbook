@@ -71,7 +71,8 @@ export const specStatistics = (specification: Spec): { objects: number, links: n
         objects++
         const texts = [ object.name, ...object.properties.map((p) => p.value) ]
         if (object.description !== undefined)
-            texts.push(object.description.description, object.description.rationale ?? "")
+            texts.push(object.description.description, object.description.rationale ?? "",
+                object.description.elaboration ?? "")
         for (const text of texts)
             links += (plainText(text).match(referenceRegex) ?? []).length
         object.children.forEach(walk)

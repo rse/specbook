@@ -227,6 +227,9 @@ const templates = {
         <p class="description">{{ Description.description }}{% if Description.rationale %}
             <span class="rationale">&mdash; <span class="keyword">BECAUSE</span> {{ Description.rationale }}</span>{% endif %}</p>
         {%- endif %}
+        {%- if Description.elaboration %}
+        <div class="description">{{ Description.elaboration }}</div>
+        {%- endif %}
         {%- for embedding in Description.embeddings %}
         <div class="embedding">{{ embedding }}</div>
         {%- endfor %}
@@ -1487,21 +1490,26 @@ const renderEmbeddings = (text: string, embedding: string[]): string[] => {
     before it, so that its removal leaves no double space behind  */
 const embeddingMarkup = new RegExp(`[ \\t]*${embeddingRegex.source}`, "g")
 
-/*  render a description into HTML, expanding its inline Markdown and
-    moving the file embeddings to the end of the description  */
+/*  strip the markup of the file embeddings off a description text  */
+const stripEmbeddings = (text: string): string =>
+    text.replace(embeddingMarkup, (markup: string, _alt: string, reference?: string) =>
+        embeddingCount(reference) > 0 ? "" : markup).trim()
+
+/*  render a description into HTML, expanding its inline Markdown,
+    rendering its elaboration as blocks below the statement and the
+    rationale, and moving the file embeddings to the end of it all  */
 const renderDescription = (description: SpecDescription): string => {
-    const text = description.description
-        .replace(embeddingMarkup, (markup: string, _alt: string, reference?: string) =>
-            embeddingCount(reference) > 0 ? "" : markup)
-        .trim()
-    const embeddings = renderEmbeddings(description.description,
+    const text        = stripEmbeddings(description.description)
+    const elaboration = stripEmbeddings(description.elaboration ?? "")
+    const embeddings  = renderEmbeddings(`${description.description}\n\n${description.elaboration ?? ""}`,
         description.embedding ?? []).map((content) => safe(content))
-    const blocked = isBlock(text)
+    const blocked     = isBlock(text)
     return render("Description", { Description: {
         block:       blocked,
         description: text !== "" ? (blocked ? block(text, true) : inline(text, true)) : "",
         rationale:   description.rationale !== undefined ?
             inline(description.rationale, true) : undefined,
+        elaboration: elaboration !== "" ? block(elaboration, true) : undefined,
         embeddings
     } })
 }
@@ -1512,10 +1520,8 @@ const renderDescription = (description: SpecDescription): string => {
     left out, as the popup shows the prose alone)  */
 const collectSpec = (objects: SpecObject[], spec: SpecEntry[]) => {
     for (const object of objects) {
-        const text = (object.description?.description ?? "")
-            .replace(embeddingMarkup, (markup: string, _alt: string, reference?: string) =>
-                embeddingCount(reference) > 0 ? "" : markup)
-            .trim()
+        const text = stripEmbeddings(
+            [ object.description?.description ?? "", object.description?.elaboration ?? "" ].join("\n\n"))
         const key = infoObjects?.get(object)
         if (key !== undefined && text !== "")
             spec[Number(key)][4] = scoped(object, () =>

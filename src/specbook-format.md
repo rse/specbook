@@ -702,6 +702,7 @@ type SpecObject = {
 type SpecDescription = {
     description:       string
     rationale?:        string
+    elaboration?:      string
     embedding?:        string[]
 }
 type SpecProperty = {
@@ -776,7 +777,7 @@ type SpecProperty = {
     BECAUSE a specification is a tree, not a flat list of statements
 
 -   `SpecDescription`:
-    description of an object: statement, rationale, and images,
+    description of an object: statement, rationale, elaboration, and images,
     BECAUSE the WHAT and the WHY are stored apart to be rendered apart
 
 -   `SpecDescription.description: string`:
@@ -785,11 +786,17 @@ type SpecProperty = {
 
 -   `SpecDescription.rationale?: string`:
     rationale text behind the `, BECAUSE ` split (the WHY),
+    up to the end of its paragraph,
     BECAUSE a statement without its WHY cannot be judged or revised
+
+-   `SpecDescription.elaboration?: string`:
+    blocks following the paragraph of the rationale (e.g. images),
+    BECAUSE further content must not end up inside the WHY
 
 -   `SpecDescription.embedding?: string[]`:
     image files embedded via `![xxx](yyy)`, inlined at parse time,
-    one entry per file in markup order (empty for an unreadable file),
+    one entry per file in markup order (those of the statement first,
+    those of the elaboration second, and empty for an unreadable file),
     BECAUSE the exports have to stand alone, without the image files
 
 -   `SpecProperty`:
@@ -1004,6 +1011,19 @@ A description is split into its *statement* and *rationale* at the first
 The event is created and configured but not visible to attendees,
 BECAUSE an event needs a private setup phase.
 ```
+
+The rationale ends with its paragraph: all blocks following it (further
+paragraphs, embedded images, and code blocks) form the *elaboration*,
+which is rendered below the statement and its rationale, so the
+description of a Complex Format object can state its WHAT and WHY first
+and illustrate them afterwards:
+
+````
+The event is created and configured but not visible to attendees,
+BECAUSE an event needs a private setup phase.
+
+![Event Lifecycle](event-lifecycle.svg)
+````
 
 ### Wiki-Style References
 
