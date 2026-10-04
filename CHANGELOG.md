@@ -9,6 +9,10 @@ ChangeLog
     The blocks following a `, BECAUSE ` paragraph ended up inside the rationale and lost their
     embeddings and diagrams, and now form the new description `elaboration` instead.
 
+-   BUGFIX [code]: Self-Adapting SVG Images Follow the Document Theme
+    An SVG image with `light-dark()` colors followed the system color scheme instead of the
+    document theme, as the HTML export now sets `color-scheme` on every image on screen.
+
 1.3.2 (2026-09-29)
 ------------------
 

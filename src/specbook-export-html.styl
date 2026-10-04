@@ -1097,6 +1097,16 @@ div.embedding img
     max-width: 100%
     height: auto
 
+/*  a self-adapting SVG image (via "light-dark()" or "prefers-color-scheme")
+    takes the color scheme of its <img> element, which hence follows the
+    color theme of the document instead of the one of the system, while
+    print (like the theme mapping above) always stays light  */
+@media screen
+    html.theme-light img
+        color-scheme: light
+    html.theme-dark img
+        color-scheme: dark
+
 /*  the two theme variants of a "{theme}" image embedding: the containers
     are layout-neutral and only the variant matching the active theme stays
     visible, where print (like the theme mapping above) always falls back

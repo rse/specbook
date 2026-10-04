@@ -357,6 +357,12 @@ kind, plain name, description HTML) tables, from which the client-side
 script composes the title paths (a trailing `^` of `data-info-path`
 keeps the last segment kind-only).
 
+A self-adapting SVG image (one drawing with `light-dark()` colors or
+`prefers-color-scheme` rules, like a draw.io SVG export) takes the color
+scheme of its `<img>` element, which otherwise falls back onto the one of
+the system: the stylesheet hence sets `color-scheme` on every image (on
+screen only, so print stays light) to the color theme of the document.
+
 The HTML export (and hence the PDF one) optimizes the embedded images
 on-the-fly, and so do the AST exports, which carry the images optimized
 exactly like the HTML export (sharing its cache), as the images are by
