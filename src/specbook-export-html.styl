@@ -80,7 +80,6 @@ html.theme-light
     --theme-color-specbook-symbol:            var(--theme-color-base-24)
     --theme-color-specbook-border:            var(--theme-color-base-28)
     --theme-color-specbook-stripe:            var(--theme-color-base-31)
-    --theme-color-specbook-stripe-deep:       var(--theme-color-base-30)
     --theme-color-specbook-tint:              var(--theme-color-accent-32)
     --theme-color-specbook-tint-stripe:       var(--theme-color-accent-30)
     --theme-color-specbook-tint-deep:         var(--theme-color-accent-28)
@@ -149,7 +148,6 @@ html.theme-light
         --theme-color-specbook-symbol:            var(--theme-color-base-20)
         --theme-color-specbook-border:            var(--theme-color-base-16)
         --theme-color-specbook-stripe:            var(--theme-color-base-9)
-        --theme-color-specbook-stripe-deep:       var(--theme-color-base-10)
         --theme-color-specbook-tint:              var(--theme-color-accent-1)
         --theme-color-specbook-tint-stripe:       var(--theme-color-accent-3)
         --theme-color-specbook-tint-deep:         var(--theme-color-accent-5)
@@ -958,28 +956,27 @@ span.value-absent::before
     -webkit-user-select: none
     user-select: none
 
-/*  the key/value property tables  */
+/*  the key/value property tables: a tinted key column beside a
+    transparent value column, the rows separated by thin lines (and
+    the columns by none, even inside the compact table cells)  */
 table.props
     border-collapse: collapse
     margin: 0.5rem 0 1.25rem 0
     width: 100%
 table.props td
     border: 0
-    border-left: 1px solid var(--theme-color-specbook-border)
     padding: 0.3rem 0.6rem
     vertical-align: top
     overflow-wrap: break-word
-table.props td:first-child
+table.props > tbody > tr > td
     border-left: 0
+table.props > tbody > tr + tr > td
+    border-top: 1px solid var(--theme-color-specbook-border)
 table.props td.key
     font-weight: bold
     width: 1px
     white-space: nowrap
     background-color: var(--theme-color-specbook-tint)
-table.props tr:nth-child(even) td
-    background-color: var(--theme-color-specbook-stripe)
-table.props tr:nth-child(even) td.key
-    background-color: var(--theme-color-specbook-tint-stripe)
 
 /*  the compact tables of the concise object renderings  */
 table.objects
@@ -1018,10 +1015,11 @@ table.objects table.chunks div.diagram
     margin: 0.15rem 0
     break-inside: avoid
 
-/*  bundle a chunk header row with its value row, so neither the
-    "Diagram" header nor the property names are orphaned at a page end  */
+/*  bundle a chunk header row with its value row (and a compact
+    sub-header with its content), so no header is orphaned at a page end  */
 @media print
-    table.objects table.chunks tr:has(> th)
+    table.objects table.chunks tr:has(> th),
+    table.objects td.compact > div.compact-head
         break-after: avoid
 
 /*  keep the cells of empty property values one text line high  */
@@ -1058,7 +1056,11 @@ table.objects table.chunks td:first-child
 
 /*  the single content cell of the "compact" tables, rendering the
     object like a section (diagram, key/value properties, description),
-    with the property tables keeping their own tints and stripes  */
+    with sub-headers like the chunk headers and with the property tables
+    keeping their own tint and lines (plus lines towards the adjacent
+    sub-headers, which follow them without a gap), both stretching over
+    the cell padding onto the cell borders (also onto the top and bottom
+    ones when leading and ending the cell)  */
 table.objects td.compact > *
     margin-top: 0.5rem
     margin-bottom: 0.5rem
@@ -1066,20 +1068,35 @@ table.objects td.compact > :first-child
     margin-top: 0
 table.objects td.compact > :last-child
     margin-bottom: 0
+table.objects td.compact > div.compact-head
+    margin: 0.5rem -0.6rem 0 -0.6rem
+    padding: 0.27rem 0.6rem
+    font-size: 80%
+    color: var(--theme-color-specbook-accent)
+    background-color: var(--theme-color-specbook-tint)
+table.objects td.compact > div.compact-head:first-child
+    margin-top: -0.3rem
+table.objects td.compact > div.compact-head + *
+    margin-top: 0.3rem
+table.objects td.compact > table.props
+    margin-left: -0.6rem
+    margin-right: -0.6rem
+    width: calc(100% + 1.2rem)
+table.objects td.compact > div.compact-head + table.props
+    margin-top: 0
+    border-top: 1px solid var(--theme-color-specbook-border)
+table.objects td.compact > table.props:not(:last-child)
+    margin-bottom: 0
+    border-bottom: 1px solid var(--theme-color-specbook-border)
+table.objects td.compact > table.props:last-child
+    margin-bottom: -0.3rem
+table.objects td.compact > table.props + div.compact-head
+    margin-top: 0
 table.objects td.compact > table.props td
     background-color: transparent
 table.objects td.compact > table.props td.key
     font-weight: bold
     background-color: var(--theme-color-specbook-tint)
-table.objects td.compact > table.props tr:nth-child(even) td
-    background-color: var(--theme-color-specbook-stripe)
-table.objects td.compact > table.props tr:nth-child(even) td.key
-    background-color: var(--theme-color-specbook-tint-stripe)
-
-/*  the property value stripes inside a striped row of the "compact"
-    tables, deepened to stand out from the row stripe  */
-table.objects tbody tr.even td.compact > table.props tr:nth-child(even) td:not(.key)
-    background-color: var(--theme-color-specbook-stripe-deep)
 
 /*  the nested renderings inside the description cells of the compact
     tables ("concise" sub-tables and pressed-in "complex" objects),
@@ -1134,6 +1151,50 @@ table.coverage span.bar > span
     display: block
     height: 100%
     background-color: var(--theme-color-specbook-accent)
+
+/*  the table lines in print: as Chromium widens every border to at
+    least one CSS pixel, which the smaller print font makes look heavy,
+    they are drawn as inset shadows of the given (non-inherited) widths,
+    the column lines on the right of the cells, so that the full-width
+    content of the compact cells does not paint over them  */
+@property --table-line-right
+    syntax: "<length>"
+    inherits: false
+    initial-value: 0px
+@property --table-line-top
+    syntax: "<length>"
+    inherits: false
+    initial-value: 0px
+@property --table-line-bottom
+    syntax: "<length>"
+    inherits: false
+    initial-value: 0px
+@media print
+    table.objects th,
+    table.objects td,
+    table.coverage th,
+    table.coverage td,
+    table.props td
+        border-left: 0
+        --table-line-right: 0.75px
+        box-shadow: inset calc(-1 * var(--table-line-right)) 0 0 0 var(--theme-color-specbook-border), inset 0 var(--table-line-top) 0 0 var(--theme-color-specbook-border), inset 0 calc(-1 * var(--table-line-bottom)) 0 0 var(--theme-color-specbook-border)
+    table.objects th:last-child,
+    table.objects td:last-child,
+    table.coverage th:last-child,
+    table.coverage td:last-child,
+    table.props > tbody > tr > td
+        --table-line-right: 0px
+    table.props > tbody > tr + tr > td
+        border-top: 0
+        --table-line-top: 0.75px
+    table.objects td.compact > div.compact-head + table.props
+        border-top: 0
+    table.objects td.compact > table.props:not(:last-child)
+        border-bottom: 0
+    table.objects td.compact > div.compact-head + table.props > tbody > tr:first-child > td
+        --table-line-top: 0.75px
+    table.objects td.compact > table.props:not(:last-child) > tbody > tr:last-child > td
+        --table-line-bottom: 0.75px
 
 /*  the object descriptions and their embedded images  */
 p.description,

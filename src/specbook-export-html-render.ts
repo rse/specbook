@@ -726,9 +726,12 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
     "compact" format: the name first, then a single cell rendering the
     object like a complex one, but without its heading (diagram,
     key/value properties, description, coverage, and children), for the
-    objects whose many properties a table row could not hold  */
+    objects whose many properties a table row could not hold, the first
+    three led by sub-headers like the chunk headers of "TableChunked"  */
 const renderCompact = (children: SpecObject[], maxColumns: number): string => {
     const { keys, desc } = tableShape(children)
+    const head = (label: string, html: string) =>
+        html.trim() !== "" ? `<div class="compact-head">${label}</div>${html}` : ""
     return render("TableCompact", { Table: {
         head:     children[0].kind !== "" ? children[0].kind : "Name",
         info:     infoKeyOf(children[0]),
@@ -739,12 +742,12 @@ const renderCompact = (children: SpecObject[], maxColumns: number): string => {
         width:    Math.round(100 / maxColumns),
         rows:     children.map((child, i) => scoped(child, () => {
             const properties = effectiveProperties(child)
-            let html = diagramOf(child).toString()
+            let html = head("Diagram", diagramOf(child).toString())
             if (properties.length > 0)
-                html += render("Properties", { Properties: inlineProperties(child, properties),
-                    Fold: formatOf(child)?.maxCellHeight })
+                html += head("Properties", render("Properties", { Properties: inlineProperties(child, properties),
+                    Fold: formatOf(child)?.maxCellHeight }))
             if (child.description !== undefined)
-                html += renderDescription(child.description)
+                html += head("Description", renderDescription(child.description))
             html += coverageOf(child).toString()
             html += renderChildren(child, 6, true)
             return {

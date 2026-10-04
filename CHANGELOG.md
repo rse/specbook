@@ -5,6 +5,14 @@ ChangeLog
 1.4.0 (2026-10-04)
 ------------------
 
+-   IMPROVEMENT [code]: Lined Instead of Striped Property Tables
+    The property tables drop their row stripes for a tinted key column, a transparent value column,
+    and thin grey row lines, and attach seamlessly to the cell borders inside `compact` tables.
+
+-   IMPROVEMENT [code]: Sub-Headers in the Compact Object Format
+    The content cell of a `compact` table leads its diagram, properties, and description with the
+    sub-headers "Diagram", "Properties", and "Description", styled like the chunk headers.
+
 -   FEATURE [code]: Compact Object Format
     The new `format` type `compact` renders a table whose single content cell holds the hub diagram,
     properties, and description; used for `COMPONENT`, `PREMISE`, `TERM`, and `PERMISSION`.
