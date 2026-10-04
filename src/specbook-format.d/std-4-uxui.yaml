@@ -44,12 +44,12 @@
                 it rejects is its `TRADE-OFF`), and is not verifiable by a metric (a measurable
                 quality bound is a Non-Functional Requirement instead).
             referenced:
-                -   "[[PATTERN:*]]"
+                -   "[[DIALOG-PATTERN:*]]"
             diagram:
                 type: hub
                 center: self
                 nodes: "[[PRINCIPLE:*]], [[PERSONA:*]], [[STEP:*]], [[USE-CASE:*]], [[CONVENTION:*]],
-                    [[PATTERN:*]], [[ELEMENT:*]], [[DECISION:*]]"
+                    [[DIALOG-PATTERN:*]], [[ELEMENT:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -194,7 +194,7 @@
     optional: true
     diagram:
         type: grid
-        nodes: "[[PATTERN:*]]"
+        nodes: "[[DIALOG-PATTERN:*]]"
         properties:
             -   CATEGORY
         config:
@@ -202,7 +202,7 @@
             size-node-height-scale: 2
             grid-columns-max: 4
     children:
-        -   kind: PATTERN
+        -   kind: DIALOG-PATTERN
             desc: >
                 A single reusable dialog pattern, named with a short (2-5 word) summary (e.g.
                 `Master-Detail`, `Wizard`, `Inline Edit`) and described in a concise (1-3 sentence)
@@ -216,7 +216,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[PATTERN:*]], [[PRINCIPLE:*]], [[STORYBOARD:*]], [[DECISION:*]]"
+                nodes: "[[DIALOG-PATTERN:*]], [[PRINCIPLE:*]], [[STORYBOARD:*]], [[DECISION:*]]"
                 deep: true
                 labeled: true
                 qualified: true
@@ -261,7 +261,7 @@
                         pattern is composed of (e.g. a `Master-Detail` using an `Inline Edit` in
                         its detail), so that the patterns form a language of related structures
                         rather than a flat catalogue.
-                    value: list([[PATTERN:*]])
+                    value: list([[DIALOG-PATTERN:*]])
                     optional: true
                 -   name: TRADE-OFF
                     desc: >
@@ -306,7 +306,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[STORYBOARD:*]], [[PERSONA:*]], [[SCENARIO:*]], [[PATTERN:*]], [[MOCKUP:*]]"
+                nodes: "[[STORYBOARD:*]], [[PERSONA:*]], [[SCENARIO:*]], [[DIALOG-PATTERN:*]], [[MOCKUP:*]]"
                 deep: true
                 labeled: true
                 qualified: true
@@ -358,7 +358,7 @@
                                 Comma-separated references to the DIALOG-PATTERNS objects the frame
                                 instantiates, so that a pattern is shown to recur across the
                                 concrete flows rather than merely being catalogued.
-                            value: list([[PATTERN:*]])
+                            value: list([[DIALOG-PATTERN:*]])
                             optional: true
                         -   name: SKETCH
                             desc: >

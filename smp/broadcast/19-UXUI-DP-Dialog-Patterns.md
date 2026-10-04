@@ -6,7 +6,7 @@ Modified: 2026-08-29 12:00
 UXUI: Dialog Patterns (DP)
 ==========================
 
-##  PATTERN: Two-Factor Login {{two-factor-login}}
+##  DIALOG-PATTERN: Two-Factor Login {{two-factor-login}}
 
 -   CATEGORY: Form
 -   ACTORS: [[PERSONA:attendee]]
@@ -18,7 +18,7 @@ UXUI: Dialog Patterns (DP)
 The dialog collects the email, sends a one-time token to it, and then collects that token in a second step, optionally
 pre-filling fields from the URL, BECAUSE a challenge-response over email proves address control with no stored credential.
 
-##  PATTERN: Consent Gate {{consent-gate}}
+##  DIALOG-PATTERN: Consent Gate {{consent-gate}}
 
 -   CATEGORY: Action
 -   ACTORS: [[PERSONA:attendee]]
@@ -29,21 +29,21 @@ pre-filling fields from the URL, BECAUSE a challenge-response over email proves 
 A modal presents the configured login or interaction information with required-to-accept controls and only releases the
 attendee onward once accepted, BECAUSE explicit acknowledgement is both a legal and psychological safeguard.
 
-##  PATTERN: Video-with-Sidebar {{video-sidebar}}
+##  DIALOG-PATTERN: Video-with-Sidebar {{video-sidebar}}
 
 -   CATEGORY: Layout
 -   ACTORS: [[PERSONA:attendee]]
 -   CONTEXT: The main attendee screen during a live event with interaction enabled.
 -   PROBLEM: The attendee must watch the stream and interact without either crowding the other.
 -   PRINCIPLES: [[PRINCIPLE:never-leave-stream]]
--   USES: [[PATTERN:message-stream]], [[PATTERN:composer]]
+-   USES: [[DIALOG-PATTERN:message-stream]], [[DIALOG-PATTERN:composer]]
 -   TRADE-OFF: A smaller video area on wide screens and a sidebar hidden behind a toggle on small screens.
 
 The video occupies the primary area while a tabbed sidebar hosts the Q&A, Hudspad, Chat, and Support tabs, collapsing
 responsively on small screens, BECAUSE co-locating stream and interaction keeps attention on the event while interaction
 stays reachable.
 
-##  PATTERN: Live Message Stream {{message-stream}}
+##  DIALOG-PATTERN: Live Message Stream {{message-stream}}
 
 -   CATEGORY: List
 -   ACTORS: [[PERSONA:attendee]]
@@ -57,7 +57,7 @@ left-aligned, moderator messages tinted, quoted originals linking back to their 
 placeholder, per-message like counts and reply affordances, and floating "new messages" jump indicators above and below,
 BECAUSE clear per-message styling and unread cues let attendees follow a fast, mixed stream without confusion.
 
-##  PATTERN: Inline Composer {{composer}}
+##  DIALOG-PATTERN: Inline Composer {{composer}}
 
 -   CATEGORY: Form
 -   ACTORS: [[PERSONA:attendee]]
@@ -70,7 +70,7 @@ A persistent input field with an emoji picker and send control sits below the me
 message appears in the stream marked "pending… / under review" until moderation resolves it, BECAUSE keeping the composer
 and the input's own state in one place makes posting and its consequence immediately legible.
 
-##  PATTERN: Kanban Moderation Board {{kanban-board}}
+##  DIALOG-PATTERN: Kanban Moderation Board {{kanban-board}}
 
 -   CATEGORY: List
 -   ACTORS: [[PERSONA:moderator-chat]], [[PERSONA:moderator-qa]]
@@ -82,7 +82,7 @@ and the input's own state in one place makes posting and its consequence immedia
 Messages appear as cards in state lanes (pending, accepted, forwarded, answered) that the moderator advances by action, with
 filters and manual reordering, BECAUSE spatial state and drag actions make high-throughput triage fast and unambiguous.
 
-##  PATTERN: Master-Detail Configuration {{master-detail}}
+##  DIALOG-PATTERN: Master-Detail Configuration {{master-detail}}
 
 -   CATEGORY: Layout
 -   ACTORS: [[PERSONA:manager]]
@@ -94,7 +94,7 @@ filters and manual reordering, BECAUSE spatial state and drag actions make high-
 A master list of channels and resources on one side drives a detail editor on the other, so selecting an item reveals its
 parameters for editing, BECAUSE master-detail keeps a large hierarchical configuration navigable and focused.
 
-##  PATTERN: Live Statistics Dashboard {{stats-dashboard}}
+##  DIALOG-PATTERN: Live Statistics Dashboard {{stats-dashboard}}
 
 -   CATEGORY: Data
 -   ACTORS: [[PERSONA:manager]], [[PERSONA:presenter]]

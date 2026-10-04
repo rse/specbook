@@ -1050,6 +1050,11 @@ table.objects div.description > :first-child
 table.objects div.description > :last-child
     margin-bottom: 0
 
+/*  keep the elaboration apart from the statement it follows  */
+table.objects p.description + div.description,
+table.objects div.description + div.description
+    margin-top: 0.5rem
+
 /*  the embedded per-object chunk tables of the over-wide compact tables  */
 table.objects td.chunks
     padding: 0

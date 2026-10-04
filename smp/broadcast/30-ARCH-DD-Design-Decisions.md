@@ -70,7 +70,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:token-strength]], [[PREMISE:email-at-hand]], [[PREMISE:email-delivery]]
--   AFFECTS:      [[COMPONENT:auth]], [[PATTERN:two-factor-login]], [[PRINCIPLE:frictionless-join]]
+-   AFFECTS:      [[COMPONENT:auth]], [[DIALOG-PATTERN:two-factor-login]], [[PRINCIPLE:frictionless-join]]
 -   DECIDES:      [[TACTIC:access-security]]
 -   ALTERNATIVES: password accounts, external identity providers
 -   WHEN:

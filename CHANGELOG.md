@@ -5,6 +5,14 @@ ChangeLog
 1.4.0 (2026-10-04)
 ------------------
 
+-   FEATURE [spec]: Code Patterns Artifact in the Standard Schema
+    The new `ARCH: Code Patterns` artifact (after Design Decisions) records `CODE-PATTERN` objects
+    showing as a listing how a recurring concern is coded (`APPLIES-TO`, `REALIZES`, `DECIDED-BY`).
+
+-   REFACTORING [spec]: Dialog Pattern Kind Renamed to `DIALOG-PATTERN`
+    The `PATTERN` kind of `UXUI: Dialog Patterns` is now `DIALOG-PATTERN` (headings and `[[...]]`
+    references alike), which frees the name for the code patterns and reads unambiguously.
+
 -   FEATURE [code]: Syntax-Highlighted Code Listings
     Fenced code blocks and embedded source files (`#lines=`, `#mark=`) render via Shiki with line
     numbers and themed keywords/literals/comments in DejaVu Sans Mono, and fold, maximize, omit.
