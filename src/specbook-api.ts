@@ -10,7 +10,7 @@ import { fileURLToPath }                                 from "node:url"
 import { glob }                                          from "glob"
 
 import { loadConfig, configStatistics }                  from "./specbook-config.js"
-import { loadProject, projectFile }                      from "./specbook-project.js"
+import { loadProject, writeProject, projectFile }        from "./specbook-project.js"
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
     from "./specbook-diagnostic.js"
 import { initSpecification }                             from "./specbook-cmd-init.js"
@@ -71,6 +71,13 @@ export interface ProjectOptions {
     cwd?:     string
 }
 
+/*  the result of "init": the created artifact files (relative to the base
+    directory) and the perhaps created project configuration file  */
+export interface InitResult {
+    files:    string[]
+    project?: string
+}
+
 /*  the options of "export": the project ones plus the requested formats,
     the live preview script, the omitted aspects, the Git exclude
     handling, and the per-format re-basing directories  */
@@ -107,7 +114,7 @@ export class SpecBook {
         its entry in the project configuration file. A given working
         directory anchors the given relative paths and keeps all paths
         absolute, else the project ones are rendered relative to ours  */
-    private project (options: ProjectOptions, verbose: Verbose): { config?: string[], basedir?: string } {
+    private project (options: ProjectOptions, verbose: Verbose): { file?: string, config?: string[], basedir?: string } {
         const cwd     = path.resolve(options.cwd ?? ".")
         const project = loadProject(cwd)
         if (project !== undefined)
@@ -124,6 +131,7 @@ export class SpecBook {
         const derived = (value: string) =>
             options.cwd !== undefined ? value : path.relative(cwd, value) || "."
         return {
+            file:   project?.file,
             config: config !== undefined && config.length > 0 ?
                 config.map((pattern) => pattern === "std" ? pattern : given(pattern)) :
                 project?.config?.map((pattern) => pattern === "std" ? pattern : derived(pattern)),
@@ -170,13 +178,26 @@ export class SpecBook {
         return config
     }
 
-    /*  initialize the configured specification artifact files
-        below the base directory  */
-    async init (options: ProjectOptions): Promise<string[]> {
+    /*  initialize the configured specification artifact files below the
+        base directory and persist the effective project options into a
+        new project configuration file in the working directory, unless
+        one already applies (as a new one would shadow it)  */
+    async init (options: ProjectOptions): Promise<InitResult> {
         const verbose = this.verboseOf("init")
         const project = this.project(options, verbose)
-        return initSpecification({ config: this.requireConfig(await this.configFiles(project.config), verbose),
+        const files   = initSpecification({ config: this.requireConfig(await this.configFiles(project.config), verbose),
             basedir: project.basedir ?? ".", verbose })
+        if (project.file !== undefined) {
+            verbose(`skipping existing project configuration "${literal(project.file)}"`)
+            return { files }
+        }
+        const cwd      = path.resolve(options.cwd ?? ".")
+        const relative = (value: string) => path.relative(cwd, path.resolve(cwd, value)) || "."
+        const file     = writeProject(cwd,
+            project.config?.map((pattern) => pattern === "std" ? pattern : relative(pattern)) ?? [ "std" ],
+            relative(project.basedir ?? "."))
+        verbose(`created project configuration "${literal(file)}"`)
+        return { files, project: options.cwd !== undefined ? file : path.relative(process.cwd(), file) }
     }
 
     /*  lint the specification Markdown files below the base directory,

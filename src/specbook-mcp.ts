@@ -58,14 +58,18 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
     server.registerTool("specbook_init", {
         title:       "Initialize Specification",
         description: "Initialize the configured specification artifact files below the base directory " +
-            "with their frontmatter and artifact heading, skipping already existing files.",
+            "with their frontmatter and artifact heading, skipping already existing files, and " +
+            `create the project configuration file "${projectFile}" in the working directory, ` +
+            "persisting the effective schema configuration and base directory, unless one already applies.",
         inputSchema: { config, basedir, cwd }
     }, async (args) => {
         try {
-            const created = await specbook.init(args)
-            return { content: [ { type: "text", text: created.length > 0 ?
-                `initialized artifact file(s): ${created.join(", ")}` :
-                "no artifact files were created" } ] }
+            const result = await specbook.init(args)
+            return { content: [ { type: "text", text: (result.files.length > 0 ?
+                `initialized artifact file(s): ${result.files.join(", ")}` :
+                "no artifact files were created") +
+                (result.project !== undefined ?
+                    `\ncreated project configuration file: ${result.project}` : "") } ] }
         }
         catch (err) {
             return errorResult(err)

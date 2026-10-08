@@ -101,7 +101,8 @@ API.
     -   `src/specbook-config.ts`: YAML schema configuration loading, merging, and validation (Valibot)
     -   `src/specbook-project.ts`: the upward search, loading, and
         validation (Valibot) of the YAML project configuration file
-        `.specbook.yaml` with its `config` and `basedir` entries
+        `.specbook.yaml` with its `config` and `basedir` entries,
+        and its writing by `init`
     -   `src/specbook-diagnostic.ts`: the `Diagnostic` type and its
         single-line/verbose renderers, shared by all layers
     -   `src/specbook-verbose.ts`: the marking (`literal`) and rendering
@@ -292,6 +293,12 @@ directory of a caller not sharing the one of the process (the skill
 passes it): it starts the search, anchors the explicit relative paths
 (the MCP output files included), and keeps all paths absolute, while
 otherwise the project paths are rendered relative to the process one.
+
+The `init` command also persists the effective `config` patterns (`std`
+if absent) and `basedir` (`.` if absent), relative to the working
+directory, into a new `.specbook.yaml` there (`writeProject` of
+`src/specbook-project.ts`), but only if no project configuration file
+applies at all, as a new one would shadow it.
 
 Exactly the artifact files referenced by its `file` fields are loaded and parsed,
 resolved against the base directory, in which generated specification

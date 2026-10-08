@@ -324,6 +324,10 @@ validated (an unknown entry or a wrongly typed value fails the command),
 and both an explicitly supplied option and its environment variable
 win over its entry.
 
+`specbook init` creates such a file in the current working directory
+(unless one already applies), so the options of the initialization
+stick for all subsequent commands.
+
 The default value of every CLI option `--xxx` can be overridden
 by a corresponding `SPECBOOK_XXX` environment variable (e.g.
 `SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_OUTPUT`,

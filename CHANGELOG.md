@@ -5,6 +5,10 @@ ChangeLog
 1.4.1 (2026-10-08)
 ------------------
 
+-   IMPROVEMENT [code]: Create Project Configuration on Initialization
+    `specbook init` now persists the effective `config` and `basedir` into a new `.specbook.yaml`
+    in the working directory, unless one already applies.
+
 -   IMPROVEMENT [code]: Seed Title Properties on Initialization
     `specbook init` now seeds the `META: Title` artifact with the properties the exports interpret
     (`LOGO`, `TITLE`, ..., `PAPER-SIZE`), each with its rendering default, as far as configured.

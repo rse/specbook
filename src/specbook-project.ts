@@ -4,13 +4,13 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import * as fs                               from "node:fs"
-import * as path                             from "node:path"
-import { parseDocument, LineCounter }        from "yaml"
-import * as v                                from "valibot"
+import * as fs                                  from "node:fs"
+import * as path                                from "node:path"
+import { parseDocument, stringify, LineCounter } from "yaml"
+import * as v                                   from "valibot"
 
-import { lineColOfPath }                     from "./specbook-config.js"
-import { renderDiagnostic, type Diagnostic } from "./specbook-diagnostic.js"
+import { lineColOfPath }                        from "./specbook-config.js"
+import { renderDiagnostic, type Diagnostic }    from "./specbook-diagnostic.js"
 
 /*  the name of the YAML project configuration file  */
 export const projectFile = ".specbook.yaml"
@@ -122,4 +122,14 @@ export const loadProject = (dir: string): Project | undefined => {
         config:  patterns?.map((pattern) => pattern === "std" ? pattern : path.resolve(base, pattern)),
         basedir: basedir !== undefined ? path.resolve(base, basedir) : undefined
     }
+}
+
+/*  write a new project configuration file into the directory, with the
+    schema configuration patterns and the base directory given relative
+    to it, never overwriting an existing file  */
+export const writeProject = (dir: string, config: string[], basedir: string): string => {
+    const file = path.join(dir, projectFile)
+    const text = stringify({ config: config.length === 1 ? config[0] : config, basedir })
+    fs.writeFileSync(file, text, { encoding: "utf8", flag: "wx" })
+    return file
 }

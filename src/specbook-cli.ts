@@ -169,15 +169,18 @@ withVerboseOption(program.command("mcp"))
         await serveMcp(verboseOf(opts, "mcp"))
     })
 
-/*  the init command creates the configured artifact files  */
+/*  the init command creates the configured artifact files and,
+    unless one already applies, the project configuration file  */
 withCommonOptions(program.command("init"))
     .description("initialize the configured specification artifact files below the base directory")
     .action(async (opts: CommonOptions) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const created  = await specbook.init({ config: configOf(opts), basedir: opts.basedir })
-        await writeStdout(created.length > 0 ?
-            `initialized artifact file(s): ${created.join(", ")}\n` :
-            "no artifact files were created\n")
+        const result   = await specbook.init({ config: configOf(opts), basedir: opts.basedir })
+        await writeStdout((result.files.length > 0 ?
+            `initialized artifact file(s): ${result.files.join(", ")}\n` :
+            "no artifact files were created\n") +
+            (result.project !== undefined ?
+                `created project configuration file: ${result.project}\n` : ""))
     })
 
 /*  the lint command reports all diagnostics and fails on any error  */
