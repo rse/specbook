@@ -455,16 +455,11 @@ const deriveCenter = (ctx: DiagramContext, object: SpecObject, diagram: SchemaDi
                 return undefined
             }
             centerUrl = `#${anchors.get(source) ?? source.id}`
-            if (centerCfg.property !== undefined) {
-                const value = propValue(parenProps, source, centerCfg.property)
-                if (value === undefined) {
-                    errors.push({ reason:
-                        `diagram "center" source lacks the property "${centerCfg.property}"` })
-                    return undefined
-                }
+            const value = centerCfg.property !== undefined ?
+                propValue(parenProps, source, centerCfg.property) : undefined
+            if (value !== undefined)
                 label = plainText(expandReferences(value, (ref) =>
                     resolveUnique(index, ref, source).target?.name ?? ref))
-            }
             else if (label === undefined)
                 label = plainText(source.name)
         }

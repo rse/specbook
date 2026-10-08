@@ -2,6 +2,11 @@
 ChangeLog
 =========
 
+
+-   IMPROVEMENT [code]: Diagram Center Label Falls Back on Absent Property
+    A synthetic diagram `center` whose `source` lacks the `property` now takes its `label` or the
+    name of the source object, instead of failing the diagram.
+
 1.4.0 (2026-10-04)
 ------------------
 
