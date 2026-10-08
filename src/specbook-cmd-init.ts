@@ -10,6 +10,7 @@ import * as path from "node:path"
 import { literal, type Verbose }          from "./specbook-verbose.js"
 import { type Schema, type SchemaObject } from "./specbook-format-schema.js"
 import { formatTimestamp }                from "./specbook-export-md.js"
+import { titleProperties }                from "./specbook-export-common.js"
 
 /*  the options of the init command  */
 export interface InitOptions {
@@ -18,8 +19,24 @@ export interface InitOptions {
     verbose: Verbose
 }
 
+/*  render the property list of the title artifact, seeding the properties
+    the exports interpret themselves with their rendering defaults (as far
+    as the schema configures them, as any other is reported as unknown)  */
+const titleList = (artifact: SchemaObject): string => {
+    if (artifact.kind !== "META" || artifact.name?.toUpperCase() !== "TITLE")
+        return ""
+    const props = titleProperties.filter((prop) =>
+        artifact.props?.some((p) => p.name === prop.name) === true)
+    if (props.length === 0)
+        return ""
+    const width = Math.max(...props.map((prop) => prop.name.length)) + 2
+    return props.map((prop) =>
+        `-   ${`${prop.name}:`.padEnd(width)}${prop.init}`.trimEnd() + "\n").join("") + "\n"
+}
+
 /*  initialize the configured specification artifact files below the
-    base directory with their frontmatter and artifact headings, where
+    base directory with their frontmatter and artifact headings (plus
+    the title properties), where
     all artifacts configured onto the same file reside in it side by
     side, following each other on level 1  */
 export const initSpecification = (options: InitOptions): string[] => {
@@ -51,7 +68,7 @@ export const initSpecification = (options: InitOptions): string[] => {
         const headings = artifacts.map((artifact) => {
             const name  = artifact.name ?? ""
             const paren = artifact.id !== undefined ? ` (${artifact.id})` : ""
-            return `#   ${artifact.kind}: ${name}${paren}\n\n`
+            return `#   ${artifact.kind}: ${name}${paren}\n\n` + titleList(artifact)
         }).join("")
         const text =
             "---\n" +

@@ -18,7 +18,7 @@ import { compileValueExpr, splitItems, type ValueExpr }
     from "./specbook-parse-value.js"
 import { embeddingRegex, embeddingCount, embeddingThemes, darkMark, type DarkMark }
     from "./specbook-parse-common.js"
-import { escapeHtml, fallbackLogo, imageDark, isTitleObject, type OmitAspect }
+import { escapeHtml, fallbackLogo, imageDark, isTitleObject, titleProperties, type OmitAspect }
     from "./specbook-export-common.js"
 import { isDocument }
     from "./specbook-export-image.js"
@@ -805,8 +805,7 @@ export const renderTitlePage = (object: SpecObject, created: string, modified: s
         return value !== undefined && value.trim() !== "" ? inline(value) : ""
     }
     const rest = object.properties.filter((property) =>
-        ![ "LOGO", "TITLE", "SUBTITLE", "AUTHOR", "VERSION",
-            "LANG", "CHARSET", "PAPER-SIZE", "THEME-STYLE", "THEME-TONE" ].includes(property.key))
+        !titleProperties.some((prop) => prop.name === property.key))
 
     /*  the logo is rendered above the title, from the embedded image content
         of the LOGO property or, for a non-embeddable reference, as its inline

@@ -12,6 +12,8 @@ import { embeddingThemes, darkMark, type DarkMark }
     from "./specbook-parse-common.js"
 import { plainText }
     from "./specbook-link.js"
+import { themeToneDefault }
+    from "./specbook-theme.js"
 
 /*  escape a text for embedding into template HTML (text and attributes)  */
 export const escapeHtml = (text: string): string =>
@@ -158,6 +160,22 @@ export const documentPaperSize = (specification: Spec): string => {
             `(expected ${paperSizes.join(", ")})`)
     return paper
 }
+
+/*  the properties of the title object the exports interpret themselves,
+    each with the value "init" seeds it with (its rendering default, an
+    empty value counting as an absent property)  */
+export const titleProperties: { name: string, init: string }[] = [
+    { name: "LOGO",        init: "" },
+    { name: "TITLE",       init: "Specification" },
+    { name: "SUBTITLE",    init: "" },
+    { name: "AUTHOR",      init: "" },
+    { name: "VERSION",     init: "" },
+    { name: "LANG",        init: "en" },
+    { name: "CHARSET",     init: "UTF-8" },
+    { name: "THEME-STYLE", init: "Light" },
+    { name: "THEME-TONE",  init: themeToneDefault },
+    { name: "PAPER-SIZE",  init: paperSizeDefault }
+]
 
 /*  the vertical room (in rem) the introducing heading of a diagram
     claims above it on the same page: without this reserve a maximally
