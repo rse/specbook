@@ -13,6 +13,9 @@ ChangeLog
     A synthetic diagram `center` whose `source` lacks the `property` now takes its `label` or the
     name of the source object, instead of failing the diagram.
 
+-   UPDATE [infr]: Upgrade NPM Dependencies
+    The NPM dependencies were updated.
+
 1.4.0 (2026-10-04)
 ------------------
 
