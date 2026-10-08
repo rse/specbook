@@ -323,7 +323,8 @@ type SchemaGradiaConfig = Partial<{
 -   `SchemaDiagram.center?: string | SchemaDiagramCenter`:
     object a `hub` diagram is projected onto (default: `self`), or a
     synthetic center node, labeled from a referenced `source` object (or
-    one of its properties, via `property`) or a literal `label`, typed
+    one of its properties, via `property`, falling back onto the `label`
+    or the object name while absent) or a literal `label`, typed
     (under `qualified`) by `kind`, and linked to the `source` object,
     BECAUSE the focus of a hub is not always a specification object --
     the solution itself, e.g., sits in the middle of a context diagram
@@ -572,7 +573,8 @@ Instead of naming an existing object, `center` can also declare a
 *synthetic* center node, which represents something no specification
 object models -- like the solution itself in the middle of a context
 diagram. Such a center is labeled from a referenced `source` object (or
-one of its properties, via `property`) or a literal `label`, and links
+one of its properties, via `property`, falling back onto the `label` or
+the object name while the property is absent) or a literal `label`, and links
 to the `source` object. As the nodes carry no `[[xxx]]` reference to a
 synthetic center, `centerEdges` synthesizes the edges from a direction
 `property` of the node objects: its `inbound` value maps onto a

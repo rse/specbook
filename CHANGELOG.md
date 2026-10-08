@@ -2,6 +2,12 @@
 ChangeLog
 =========
 
+1.4.1 (2026-10-08)
+------------------
+
+-   IMPROVEMENT [spec]: Optional Artifact Contents in the Standard Schema
+    The properties and child object kinds of all artifacts are now optional, so a freshly
+    initialized specification (`specbook init`) already lints cleanly instead of failing.
 
 -   IMPROVEMENT [code]: Diagram Center Label Falls Back on Absent Property
     A synthetic diagram `center` whose `source` lacks the `property` now takes its `label` or the

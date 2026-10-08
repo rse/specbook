@@ -47,6 +47,7 @@
                 belongs to, where the kind-specific parts (HTTP method, GraphQL operation, topic
                 direction, command) are carried by the `OPERATION` and `LOCATOR` properties of the
                 endpoints only.
+            optional: true
             diagram:
                 type: hub
                 center: self
@@ -302,6 +303,7 @@
                 Endpoints form a flat list: a hierarchy of sub-commands or sub-resources
                 is expressed by a path-style `LOCATOR` (e.g. `remote add`,
                 `/events/{eventId}/chat`) only.
+            optional: true
             diagram:
                 type: hub
                 center: self

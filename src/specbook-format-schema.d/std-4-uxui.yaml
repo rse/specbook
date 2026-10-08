@@ -43,6 +43,7 @@
                 is a Dialog Pattern instead), decides between design alternatives (the alternative
                 it rejects is its `TRADE-OFF`), and is not verifiable by a metric (a measurable
                 quality bound is a Non-Functional Requirement instead).
+            optional: true
             referenced:
                 -   "[[DIALOG-PATTERN:*]]"
             format:
@@ -142,6 +143,7 @@
                 solution phrases what it says, not what it does (a behavior is an Interaction
                 Concept principle instead) and not what a term means (a definition is a Domain
                 Glossary term instead).
+            optional: true
             format:
                 type: compact
             diagram:
@@ -227,6 +229,7 @@
                 occurring in a single flow is a Dialog Storyboard frame instead) and is bound to a
                 particular kind of screen or flow (a solution-wide rule independent of any screen
                 is an Interaction Concept principle instead).
+            optional: true
             diagram:
                 type: hub
                 center: self
@@ -317,6 +320,7 @@
                 one flow, as seen by its actors (the intent and the information exchanged are a Use
                 Cases scenario instead, and a structure recurring across flows is a Dialog Pattern
                 instead).
+            optional: true
             diagram:
                 type: hub
                 center: self
@@ -428,6 +432,7 @@
                 `MOCKUP` or a Dialog Storyboard frame instead), and is a decision rather than a
                 list of token values (the values are in the design system) or a measurable bound
                 (a bound is a Non-Functional Requirement instead).
+            optional: true
             format:
                 type: compact
                 maxTableColumns: 5
@@ -487,6 +492,7 @@
                 is a reference rendering of the final look of one screen (a low-fidelity sketch of
                 a screen within its flow is a Dialog Storyboard frame instead) and shows rules
                 applied rather than stating them (a rule is an `ELEMENT` instead).
+            optional: true
             format:
                 type: complex
             diagram:

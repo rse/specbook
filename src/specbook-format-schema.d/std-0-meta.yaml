@@ -93,7 +93,9 @@
 #
 #   -   All artifacts are optional, so that the schema can back not only
 #       a full specification but also the individual document types of
-#       the modeling coverage matrix above on their own.
+#       the modeling coverage matrix above on their own. Likewise, the
+#       properties and child objects of all artifacts are optional, so
+#       that a freshly initialized specification already lints cleanly.
 #
 #   -   The traditional hard Software Requirements Specification (SRS)
 #       vs. Architecture Description (AD) document split is
@@ -128,6 +130,7 @@
             optional: true
         -   name: TITLE
             desc: The title of the specification.
+            optional: true
         -   name: SUBTITLE
             desc: The subtitle of the specification.
             optional: true

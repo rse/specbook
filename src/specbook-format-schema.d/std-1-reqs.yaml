@@ -28,17 +28,21 @@
         -   name: PURPOSE
             desc: >
                 Why the solution exists.
+            optional: true
         -   name: TARGET-AUDIENCE
             desc: >
                 Whom the solution serves.
+            optional: true
         -   name: SOLUTION
             desc: >
                 What the solution is, in a single sentence naming its kind or
                 category (e.g. a self-hosted, browser-based streaming platform).
+            optional: true
         -   name: VALUE-PROPOSITION
             desc: >
                 The benefit the solution offers its target audience, stated in
                 absolute terms without reference to alternatives.
+            optional: true
         -   name: DIFFERENTIATORS
             desc: >
                 How the solution stands apart from the alternatives, naming the
@@ -112,6 +116,7 @@
                 enforces itself is a Domain Rule or a Non-Functional Requirement instead) and
                 states a fact or event, not a decision (a deliberate exclusion is the `SCOPE` of
                 the Solution Vision or a `WONT` requirement instead).
+            optional: true
             format:
                 type: compact
                 maxTableColumns: 5
@@ -187,6 +192,7 @@
                 (the `BROADER` term where one exists) and adds the characteristics delimiting the
                 term from its siblings (e.g. `A Message submitted by an Attendee as ...`), so that
                 the hierarchy and the definitions cross-check each other.
+            optional: true
             format:
                 type: compact
                 maxTableColumns: 5
@@ -284,6 +290,7 @@
                 exactly this part and hold exactly the rights the Authorization Model grants to it
                 (plus those of the roles it `INHERITS`), while a persona holding several roles
                 holds the union of them.
+            optional: true
             format:
                 maxTableColumns: 5
             referenced:
@@ -328,6 +335,7 @@
                 persona's own voice, like a "tagline", "mantra", or "defining statement" -- that
                 captures their core attitude, motivation, frustration, or need in a single memorable
                 line. Non-user stakeholders are modeled as personas of type `Stakeholder`.
+            optional: true
             format:
                 maxTableColumns: 5
             props:
@@ -419,6 +427,7 @@
             desc: >
                 The end-to-end journey of a single persona (or of multiple personas sharing the same
                 experience as role variants), named with a 2-5 word summary of the pursued scenario.
+            optional: true
             props:
                 -   name: ACTORS
                     desc: >
@@ -506,6 +515,7 @@
                 event-driven (`When <trigger>, the system MUST ...`), state-driven (`While <state>,
                 the system MUST ...`), optional-feature (`Where <feature>, the system MUST ...`), or
                 unwanted-behavior (`If <condition>, then the system MUST ...`).
+            optional: true
             format:
                 maxTableColumns: 6
             referenced:
@@ -580,6 +590,7 @@
                 them (a `WONT` requirement, which the architecture rightly ignores, is the tolerated
                 exception the lint warning cannot tell apart) and its hub diagram shows what
                 answers it.
+            optional: true
             referenced:
                 -   "[[TACTIC:*]]"
                 -   "[[DECISION:*]]"
@@ -684,6 +695,7 @@
                 <outcome>` item per case, applied in order with the first matching case winning,
                 and a closing sentence stating the outcome of the remaining cases ("otherwise")
                 and carrying the rationale.
+            optional: true
             format:
                 maxTableColumns: 5
             referenced:
@@ -796,6 +808,7 @@
                 cases, a use case spans several activities, and an activity performed outside the
                 solution is covered by none at all -- so the workflow is no mere sequence of use
                 cases and cannot be assembled from them.
+            optional: true
             automaton:
                 nodes: ACTIVITY
                 edges: HANDOFF
@@ -969,6 +982,7 @@
                 relate it n:m to the Domain Workflow activities -- a use case spans several
                 activities and an activity is covered by several use cases -- so the two decompose
                 the same domain independently instead of nesting into each other.
+            optional: true
             diagram:
                 type: hub
                 center: self

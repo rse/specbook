@@ -48,6 +48,7 @@
                 A named entity of the data model, carrying a Pascal-cased, 1-3 word long,
                 per-artifact unique name, and described by a 1-sentence description ("what") plus a
                 1-sentence rationale ("why").
+            optional: true
             diagram:
                 type: hub
                 center: self
@@ -215,6 +216,7 @@
                 state machine: exactly one initial state, at least one final state, every state
                 reachable from the initial state, and some final state reachable from every state
                 (a state from which no final state can be reached anymore is a livelock).
+            optional: true
             automaton:
                 nodes: STATE
                 edges: TRANSITION
@@ -378,6 +380,7 @@
                 they are granted, so that the permissions of all roles form the access matrix of
                 roles against entities. Any operation, state, or condition not covered by a
                 permission of the role (or of a role it `INHERITS`) is forbidden.
+            optional: true
             format:
                 type: compact
                 maxTableColumns: 8

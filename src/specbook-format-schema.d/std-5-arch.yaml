@@ -52,6 +52,7 @@
                 solution deploys and operates itself (e.g. a managed database of its own) is a
                 Deployment View node instead -- only a party or system the solution merely consumes
                 or serves belongs to the system context.
+            optional: true
             format:
                 type: compact
                 maxTableColumns: 5
@@ -170,6 +171,7 @@
                 otherwise) and which elaborates how the component fulfills it and collaborates
                 with the components it depends on, plus a 1-sentence rationale ("why") for the
                 component's existence and boundary.
+            optional: true
             format:
                 type: compact
                 maxTableColumns: 5
@@ -291,6 +293,7 @@
                                   or a shared module used by client and server), so a product
                                   used on several tiers is a single component here instead of
                                   one per tier; referenced by no Deployment View tier.
+            optional: true
             diagram:
                 type: hub
                 center: self
@@ -653,6 +656,7 @@
                 addressed by a Quality Perspectives tactic referencing the aspect through
                 `AFFECTS`, too, so the hub diagram of an aspect shows the decision and the tactic
                 behind it.
+            optional: true
             diagram:
                 type: hub
                 center: self
@@ -713,6 +717,7 @@
                 Model interface (e.g. of kind `MQTT` or `WebSocket`), and the platform element
                 hosting a managed broker a Deployment View `Managed` node -- only the executing
                 structure itself belongs to the Concurrency View.
+            optional: true
             diagram:
                 type: hub
                 center: self
@@ -813,6 +818,7 @@
                 `TIER`, a location-level tier (e.g. a data center) groups the tiers referencing it
                 via `PART-OF`, and a single deployment unit within a tier is a `NODE` -- only the
                 partition itself belongs here.
+            optional: true
             format:
                 type: concise
             diagram:
@@ -892,6 +898,7 @@
                 itself belongs to the Deployment View, with the tier and area the node belongs to
                 and the network segments it is attached to as its `TIER`, `AREA`, and `NETWORK`
                 siblings.
+            optional: true
             diagram:
                 type: hub
                 center: self
@@ -1062,6 +1069,7 @@
                 deployable artifact is a `Build` aspect of the Development Aspects, and the products
                 used are Technology Stack `Operate-Time` components referenced through `TOOLS` --
                 only the procedure itself, its trigger, and its responsible operator belong here.
+            optional: true
             diagram:
                 type: hub
                 center: self
@@ -1183,6 +1191,7 @@
                 (e.g. a hosting or budget mandate) protects no quality and is a Design Decisions
                 decision alone -- only the mechanism, the quality it achieves, and the elements it
                 shapes belong here.
+            optional: true
             format:
                 type: compact
             diagram:
@@ -1344,6 +1353,7 @@
                 decision is under-justified. The rationale should make the decision feel earned,
                 not asserted - if you delete the rationale and the decision suddenly looks
                 arbitrary, the rationale was doing its job.
+            optional: true
             format:
                 type: complex
             diagram:
@@ -1551,6 +1561,7 @@
                 `TOOLS`, and the rule about the source layout, build, or process it lives in is a
                 Development Aspects aspect -- only the recurring code shape, the elements written
                 that way, and the deviation ruled out belong here.
+            optional: true
             format:
                 type: complex
             diagram:
