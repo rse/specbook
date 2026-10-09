@@ -1148,7 +1148,7 @@ its own and embedded like an image -- `![<alt/>](<file/>.mmd)`,
 `![<alt/>](<file/>.mermaid)`, or `![<alt/>](<file/>.d2)` -- inside a
 description or property value, where its source is inlined at parse time.
 The HTML/PDF export renders every such diagram (Mermaid through
-`beautiful-mermaid`, D2 through `@terrastruct/d2`) in the theme colors of
+`beautiful-mermaid`, D2 through `@d2lang/d2`) in the theme colors of
 the document, once per color theme, like a theme-aware image. It folds,
 maximizes, and is omitted (`-O diagram:code`, for diagrams as code, or
 by nesting level) like a derived Gradia diagram. A diagram failing to render

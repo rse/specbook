@@ -7,7 +7,7 @@
 import type { Worker }                         from "node:worker_threads"
 
 import { marked, type Tokens }                 from "marked"
-import type { D2 }                             from "@terrastruct/d2"
+import type { D2 }                             from "@d2lang/d2"
 import type { RenderOptions as MermaidOptions } from "beautiful-mermaid"
 
 import type { Spec, SpecObject }
@@ -172,7 +172,7 @@ const d2Error = (err: unknown): string => {
 const renderD2 = (source: string, colors: Record<string, string>, style: ThemeStyle): Promise<string> => {
     const overrides = Object.entries(colors).map(([ key, color ]) => `${key}: "${color}"`).join("; ")
     const request = d2Chain.then(async () => {
-        d2 ??= import("@terrastruct/d2").then((module) => new module.D2())
+        d2 ??= import("@d2lang/d2").then((module) => new module.D2())
             .catch((err: unknown) => {
                 d2 = null
                 throw err
