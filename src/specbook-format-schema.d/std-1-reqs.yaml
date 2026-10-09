@@ -539,7 +539,7 @@
                 unwanted-behavior (`If <condition>, then the system MUST ...`).
             optional: true
             format:
-                maxTableColumns: 6
+                type: compact
             referenced:
                 -   "[[USE-CASE:*]]"
             diagram:
@@ -631,6 +631,8 @@
                 exception the lint warning cannot tell apart) and its hub diagram shows what
                 answers it.
             optional: true
+            format:
+                type: compact
             referenced:
                 -   "[[TACTIC:*]]"
                 -   "[[DECISION:*]]"

@@ -13,6 +13,10 @@ ChangeLog
     The new ARCH artifact `Architecture Patterns` (AP) holds the reusable structural patterns the
     components, tactics, decisions, and code patterns reference; the artifacts after it renumber.
 
+-   IMPROVEMENT [spec]: Compact Tables for the Requirements
+    The requirements of the Functional Requirements and Non-Functional Requirements artifacts now
+    render as `compact` tables, as their many properties no longer fit a concise table row.
+
 -   IMPROVEMENT [spec]: Grouping and Dependencies of Functional Requirements
     The Functional Requirements artifact gets a `GROUP` kind (an epic or feature, drawn as a box
     around its requirements) and the requirements a `GROUP` and an acyclic `DEPENDS-ON` property.
