@@ -2,7 +2,7 @@
 ChangeLog
 =========
 
-1.4.3 (2026-10-09)
+1.5.0 (2026-10-10)
 ------------------
 
 -   IMPROVEMENT [spec]: Architecture Tenets Artifact in the Standard Schema
