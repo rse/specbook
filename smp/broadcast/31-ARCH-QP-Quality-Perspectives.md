@@ -11,6 +11,7 @@ ARCH: Quality Perspectives (QP)
 -   QUALITY:     Scalability
 -   ADDRESSES:   [[REQUIREMENT:attendee-scale]], [[REQUIREMENT:scalability]]
 -   GUIDED-BY:   [[MAXIM:scale-out]], [[PRINCIPLE:stateless-tiers]]
+-   PATTERNS:    [[PATTERN:stateless-pool]]
 -   MECHANISM:   stateless proxy and relay pools behind a round-robin router
 -   TRADES-OFF:  Maintainability
 -   AFFECTS:     [[COMPONENT:router]], [[COMPONENT:proxy]], [[COMPONENT:relay]], [[UNIT:router]], [[UNIT:proxy-pool]],
@@ -62,6 +63,7 @@ BECAUSE layered, expiring secrets keep unauthorized viewers out without permanen
 
 -   QUALITY:    Performance
 -   ADDRESSES:  [[REQUIREMENT:config-latency]]
+-   PATTERNS:   [[PATTERN:pub-sub]]
 -   MECHANISM:  MQTT publish/subscribe fan-out on per-event topics
 -   AFFECTS:    [[COMPONENT:relay]], [[COMPONENT:service]], [[COMPONENT:client]], [[UNIT:relay-pool]], [[UNIT:service-loop]]
 -   TOOLS:      [[COMPONENT:messaging]]
@@ -109,6 +111,7 @@ the video through the solution would cap the quality at the solution's own capac
 -   QUALITY:     Security
 -   ADDRESSES:   [[REQUIREMENT:data-isolation]], [[REQUIREMENT:gdpr]]
 -   GUIDED-BY:   [[PRINCIPLE:isolated-persistence]]
+-   PATTERNS:    [[PATTERN:reverse-proxy-edge]]
 -   MECHANISM:   TLS-only public ingress, private backend VLAN, and an isolated database subnet
 -   TRADES-OFF:  Maintainability
 -   AFFECTS:     [[TIER:middleware-tier]], [[TIER:database-tier]], [[NODE:router]], [[NODE:database]], [[NETWORK:internet]],
@@ -151,6 +154,7 @@ which would saturate the single data center entry point.
 -   QUALITY:    Maintainability
 -   ADDRESSES:  [[REQUIREMENT:contract-safety]]
 -   GUIDED-BY:  [[PRINCIPLE:shared-contracts]]
+-   PATTERNS:   [[PATTERN:shared-kernel]]
 -   MECHANISM:  common module of shared types compiled by one TypeScript toolchain on both sides
 -   AFFECTS:    [[COMPONENT:client]], [[COMPONENT:service]], [[ASPECT:module-split]], [[ASPECT:typescript]],
                 [[ASPECT:dependency-layering]], [[ASPECT:linting]], [[ASPECT:identifier-naming]]

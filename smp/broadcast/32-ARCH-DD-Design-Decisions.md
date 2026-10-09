@@ -12,7 +12,7 @@ ARCH: Design Decisions (DD)
 -   DRIVEN-BY:    [[REQUIREMENT:attendee-scale]], [[REQUIREMENT:config-latency]], [[PREMISE:websocket-passage]]
 -   GUIDED-BY:    [[MAXIM:scale-out]], [[PRINCIPLE:stateless-tiers]]
 -   AFFECTS:      [[COMPONENT:relay]], [[COMPONENT:service]], [[UNIT:relay-pool]]
--   DECIDES:      [[TACTIC:reactivity]], [[COMPONENT:messaging]], [[COMPONENT:message-broker]]
+-   DECIDES:      [[PATTERN:pub-sub]], [[TACTIC:reactivity]], [[COMPONENT:messaging]], [[COMPONENT:message-broker]]
 -   ALTERNATIVES: REST polling, bespoke WebSocket protocol
 -   WHEN:
     A single event must push video state, configuration changes, chat, questions, and likes to between 2500 and 10000
@@ -136,6 +136,7 @@ ARCH: Design Decisions (DD)
 -   GUIDED-BY:    [[MAXIM:simplicity]], [[PRINCIPLE:one-process]]
 -   AFFECTS:      [[COMPONENT:service]], [[COMPONENT:auth]], [[COMPONENT:translation]], [[COMPONENT:statistics]],
                   [[UNIT:service-loop]], [[NODE:service]]
+-   DECIDES:      [[PATTERN:modular-monolith]]
 -   ALTERNATIVES: one service per capability (authentication, messaging, translation, statistics)
 -   WHEN:
     The business logic of events, access, moderation, translation, and statistics is small and shares one data model, the
@@ -157,7 +158,7 @@ ARCH: Design Decisions (DD)
 -   DRIVEN-BY:    [[REQUIREMENT:contract-safety]]
 -   GUIDED-BY:    [[PRINCIPLE:shared-contracts]]
 -   AFFECTS:      [[ASPECT:module-split]], [[ASPECT:typescript]], [[ASPECT:dependency-layering]], [[ASPECT:identifier-naming]]
--   DECIDES:      [[TACTIC:typed-contracts]], [[COMPONENT:language]]
+-   DECIDES:      [[PATTERN:shared-kernel]], [[TACTIC:typed-contracts]], [[COMPONENT:language]]
 -   ALTERNATIVES: plain JavaScript, per-tier types generated from an interface description (e.g. OpenAPI, AsyncAPI)
 -   WHEN:
     Client and server exchange dozens of message types over MQTT topics, both sides evolve together in one repository, and
@@ -195,7 +196,7 @@ ARCH: Design Decisions (DD)
 -   GUIDED-BY:    [[MAXIM:scale-out]]
 -   AFFECTS:      [[COMPONENT:router]], [[COMPONENT:proxy]], [[UNIT:router]], [[UNIT:proxy-pool]], [[TIER:middleware-tier]],
                   [[NODE:router]], [[NODE:proxy]]
--   DECIDES:      [[COMPONENT:reverse-proxy]]
+-   DECIDES:      [[PATTERN:reverse-proxy-edge]], [[COMPONENT:reverse-proxy]]
 -   ALTERNATIVES: nginx, Traefik, a managed cloud load balancer
 -   WHEN:
     Ten thousand long-lived WebSocket connections per event have to enter one hardened data center entry point and be

@@ -5,7 +5,7 @@ Modified: 2026-09-05 01:00
 
 #   ARCH: Functionality View (FV)
 
-![](24-ARCH-FV-Functionality-View-1.svg)
+![](25-ARCH-FV-Functionality-View-1.svg)
 
 ##  COMPONENT: Web Client {{client}}
 
@@ -29,6 +29,7 @@ before it is sent, BECAUSE filtering at the source reduces server load and can p
 ##  COMPONENT: Router {{router}}
 
 -   KIND:           Connector
+-   PATTERNS:       [[PATTERN:reverse-proxy-edge]]
 
 The router (HAProxy with NFTables) routes incoming HTTP and WebSocket traffic across the proxy instances of an environment
 using round-robin and separates the dev, QA, and production environments, BECAUSE traffic must be balanced and environments
@@ -37,6 +38,7 @@ isolated at the edge.
 ##  COMPONENT: Proxy {{proxy}}
 
 -   KIND:           Connector
+-   PATTERNS:       [[PATTERN:reverse-proxy-edge]], [[PATTERN:stateless-pool]]
 -   DEPENDS-ON:     [[COMPONENT:relay]]
 
 The proxy layer (HAProxy) forwards the HTTP and WebSocket requests of a specific environment to the relay layer and scales
@@ -45,6 +47,7 @@ horizontally per environment, BECAUSE request handling must scale independently 
 ##  COMPONENT: Relay {{relay}}
 
 -   KIND:           Connector
+-   PATTERNS:       [[PATTERN:pub-sub]], [[PATTERN:stateless-pool]]
 -   DEPENDS-ON:     [[COMPONENT:service]]
 
 The relay layer maintains thousands of bidirectional WebSocket/MQTT connections, brokering MQTT messages between clients
@@ -54,6 +57,7 @@ performance challenge.
 ##  COMPONENT: Service {{service}}
 
 -   KIND:           Service
+-   PATTERNS:       [[PATTERN:modular-monolith]]
 -   REALIZES:       [[REQUIREMENT:questions]], [[REQUIREMENT:chat]], [[REQUIREMENT:moderation]], [[REQUIREMENT:forward-presenter]], [[REQUIREMENT:config-propagation]]
 -   OWNS:           [[ENTITY:Event]], [[ENTITY:AgendaPoint]], [[ENTITY:Channel]], [[ENTITY:Resource]], [[ENTITY:ResourceProviderParam]], [[ENTITY:Role]], [[ENTITY:Message]], [[ENTITY:MessageText]], [[ENTITY:QuestionTag]]
 -   PROVIDES:       [[INTERFACE:server-cli]]

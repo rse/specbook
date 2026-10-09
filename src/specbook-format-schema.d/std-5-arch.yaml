@@ -10,9 +10,9 @@
     file: 22-ARCH-AT-Architecture-Tenets.md
     desc: >
         The architecture philosophy of the solution, stated as the few overarching maxims and the
-        standing principles derived from them, which every view, tactic, decision, and aspect of
-        the architecture has to obey, while the concrete structures belong to the views following
-        them. The maxims are listed in decreasing precedence, so that whenever two maxims conflict
+        standing principles derived from them, which every pattern, view, tactic, decision, and
+        aspect of the architecture has to obey, while the reusable structures belong to the
+        Architecture Patterns and the concrete ones to the views following them. The maxims are listed in decreasing precedence, so that whenever two maxims conflict
         in a particular design decision, the earlier one wins, and a principle conflict is settled
         by the precedence of the maxims the principles derive from.
 
@@ -126,9 +126,96 @@
                     optional: true
 
 -   kind: ARCH
+    name: Architecture Patterns
+    id: AP
+    file: 23-ARCH-AP-Architecture-Patterns.md
+    desc: >
+        The reusable structural solutions the architecture of the solution follows, each a named
+        pattern of the literature or of the organization (e.g. hexagonal architecture,
+        transactional outbox, backend for frontend) applied to the solution as a whole, which the
+        views following them realize, the tactics build upon, the decisions choose, and the code
+        patterns code. The artifact completes the guidance of the architecture: the Architecture
+        Tenets state what the architecture values and obeys, the patterns state the structures it
+        takes to do so.
+
+        A pattern names a structure, nothing else: the mechanism achieving one quality attribute
+        is a Quality Perspectives tactic (which may be built from patterns), the one-off trade-off
+        choosing a pattern over its alternatives is a Design Decisions decision, the coded form of
+        a pattern is a Code Patterns pattern shown as a listing, and a structure of the user
+        interface is a Dialog Patterns pattern.
+    optional: true
+    refs: >
+        -   Buschmann et al.: Pattern-Oriented Software Architecture, Vol. 1: A System of Patterns (1996),
+            https://www.wiley.com/en-us/Pattern+Oriented+Software+Architecture%2C+Volume+1%2C+A+System+of+Patterns-p-9780471958697
+        -   Fowler: Patterns of Enterprise Application Architecture (2002),
+            https://martinfowler.com/books/eaa.html
+        -   Hohpe/Woolf: Enterprise Integration Patterns (2003),
+            https://www.enterpriseintegrationpatterns.com/
+        -   Richardson: Microservices Patterns (2018),
+            https://microservices.io/patterns/
+    diagram:
+        type: grid
+        nodes: "[[PATTERN:*]]"
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 4
+    children:
+        -   kind: PATTERN
+            desc: >
+                A single architecture pattern, named with its established short (2-5 word) name
+                (e.g. `Hexagonal Architecture`, `Transactional Outbox`, `Backend for Frontend`)
+                and described in a concise (1-3 sentence) paragraph by the structure the pattern
+                prescribes and the problem it solves in the solution, plus a 1-sentence rationale
+                ("why") for adopting it. A pattern is a structure reusable beyond one quality
+                attribute (a mechanism for one quality is a Quality Perspectives tactic instead)
+                and beyond one decision (a trade-off made once is a Design Decisions decision
+                instead), applies the Architecture Tenets rather than restating them, and is
+                realized by the elements of the views following it, which reference it, so its
+                hub diagram shows where it took effect.
+            optional: true
+            format:
+                type: compact
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[PATTERN:*]], [[AT.PRINCIPLE:*]], [[NR.REQUIREMENT:*]], [[PREMISE:*]],
+                    [[FV.COMPONENT:*]], [[TACTIC:*]], [[DECISION:*]], [[CODE-PATTERN:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: PRINCIPLES
+                    desc: >
+                        Comma-separated references to the ARCHITECTURE-TENETS principles the
+                        pattern applies (e.g. a `Transactional Outbox` applying an `Async between
+                        Contexts` principle), so that a pattern is adopted for a stated stance of
+                        the architecture rather than for its popularity; omitted for a pattern
+                        applying no modeled principle.
+                    value: list([[AT.PRINCIPLE:*]])
+                    optional: true
+                -   name: DRIVEN-BY
+                    desc: >
+                        Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS or
+                        SOLUTION-PREMISES objects the pattern answers beyond the principles it
+                        applies (e.g. the scalability requirement, the hosting constraint); omitted
+                        for a pattern grounded in its principles alone.
+                    value: list([[NR.*]], [[PREMISE:*]])
+                    optional: true
+                -   name: USES
+                    desc: >
+                        Comma-separated references to the smaller ARCHITECTURE-PATTERNS objects
+                        the pattern is composed of (e.g. a `Saga` using a `Transactional Outbox`
+                        for its steps), so that the patterns form a language of related structures
+                        rather than a flat catalogue.
+                    value: list([[PATTERN:*]])
+                    optional: true
+                    acyclic: true
+
+-   kind: ARCH
     name: Context View
     id: CV
-    file: 23-ARCH-CV-Context-View.md
+    file: 24-ARCH-CV-Context-View.md
     desc: >
         The relationships, dependencies, and interactions between the solution and its environment,
         defining the system's boundary by enumerating the external entities sitting at it. The
@@ -260,7 +347,7 @@
 -   kind: ARCH
     name: Functionality View
     id: FV
-    file: 24-ARCH-FV-Functionality-View.md
+    file: 25-ARCH-FV-Functionality-View.md
     desc: >
         The functional components of the solution, their responsibilities, interfaces, and primary
         interactions, describing *how* the solution's runtime elements are structured and which
@@ -299,9 +386,9 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[FV.COMPONENT:*]], [[FR.REQUIREMENT:*]], [[INTERFACE:*]], [[DM.ENTITY:*]],
-                    [[UNIT:*]], [[NODE:*]], [[CONCERN:*]], [[TACTIC:*]], [[DECISION:*]],
-                    [[CODE-PATTERN:*]]"
+                nodes: "[[FV.COMPONENT:*]], [[FR.REQUIREMENT:*]], [[PATTERN:*]], [[INTERFACE:*]],
+                    [[DM.ENTITY:*]], [[UNIT:*]], [[NODE:*]], [[CONCERN:*]], [[TACTIC:*]],
+                    [[DECISION:*]], [[CODE-PATTERN:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -338,6 +425,14 @@
                         component realizes, i.e. whose capability its functionality delivers, so
                         that every Functional Requirement is owned by at least one component.
                     value: list([[FR.*]])
+                    optional: true
+                -   name: PATTERNS
+                    desc: >
+                        Comma-separated references to the ARCHITECTURE-PATTERNS objects the
+                        structure of the component follows (e.g. the service shaped by a
+                        `Hexagonal Architecture`, the publisher keeping a `Transactional Outbox`);
+                        omitted for a component following no modeled pattern.
+                    value: list([[PATTERN:*]])
                     optional: true
                 -   name: OWNS
                     desc: >
@@ -377,7 +472,7 @@
 -   kind: ARCH
     name: Technology Stack
     id: TS
-    file: 25-ARCH-TS-Technology-Stack.md
+    file: 26-ARCH-TS-Technology-Stack.md
     desc: >
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives
@@ -738,7 +833,7 @@
 -   kind: ARCH
     name: Development Aspects
     id: DA
-    file: 26-ARCH-DA-Development-Aspects.md
+    file: 27-ARCH-DA-Development-Aspects.md
     desc: >
         The architecture supporting the software development process, defining the module
         organization, build approach, and codeline conventions. The artifact is absent when the
@@ -813,7 +908,7 @@
 -   kind: ARCH
     name: Concurrency View
     id: CO
-    file: 27-ARCH-CO-Concurrency-View.md
+    file: 28-ARCH-CO-Concurrency-View.md
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
         threads, and defining how they coordinate and communicate. The artifact is absent when the
@@ -908,7 +1003,7 @@
 -   kind: ARCH
     name: Deployment View
     id: DV
-    file: 28-ARCH-DV-Deployment-View.md
+    file: 29-ARCH-DV-Deployment-View.md
     desc: >
         The environment into which the solution is deployed, partitioning it into tiers and mapping
         software elements to the runtime platform, hardware, and network topology.
@@ -1163,7 +1258,7 @@
 -   kind: ARCH
     name: Operations View
     id: OV
-    file: 29-ARCH-OV-Operations-View.md
+    file: 30-ARCH-OV-Operations-View.md
     desc: >
         The way the solution is operated, administered, and supported in production, defining the
         standing procedures by which the operating organization installs, configures, migrates,
@@ -1278,7 +1373,7 @@
 -   kind: ARCH
     name: Quality Perspectives
     id: QP
-    file: 30-ARCH-QP-Quality-Perspectives.md
+    file: 31-ARCH-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed by the architecture, through the
         tactics built into the solution across the views.
@@ -1313,7 +1408,9 @@
                 and is not restated, the production procedure performed against the mechanism
                 (e.g. scaling out, restoring) is an Operations View concern referenced through
                 `OPERATED-BY`, the tenet the mechanism follows is an Architecture Tenets maxim or
-                principle referenced through `GUIDED-BY`, the trade-off that chose the mechanism
+                principle referenced through `GUIDED-BY`, the structure it is built from is an
+                Architecture Patterns pattern referenced through `PATTERNS`, the trade-off that
+                chose the mechanism
                 over alternatives is a
                 Design Decisions decision referencing the tactic through `DECIDES`, the product
                 realizing the mechanism is a Technology Stack component referenced through
@@ -1331,9 +1428,9 @@
                 type: hub
                 center: self
                 nodes: "[[TACTIC:*]], [[NR.REQUIREMENT:*]], [[MAXIM:*]], [[AT.PRINCIPLE:*]],
-                    [[FV.COMPONENT:*]], [[UNIT:*]], [[ASPECT:*]], [[NODE:*]], [[DM.ENTITY:*]],
-                    [[CONCERN:*]], [[DECISION:*]], [[TS.TIER:*.COMPONENT:*]], [[CODE-PATTERN:*]],
-                    [[TEST-CASE:*]]"
+                    [[PATTERN:*]], [[FV.COMPONENT:*]], [[UNIT:*]], [[ASPECT:*]], [[NODE:*]],
+                    [[DM.ENTITY:*]], [[CONCERN:*]], [[DECISION:*]], [[TS.TIER:*.COMPONENT:*]],
+                    [[CODE-PATTERN:*]], [[TEST-CASE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1370,6 +1467,14 @@
                         a `Stateless Services` principle); omitted for a tactic following no
                         modeled tenet.
                     value: list([[MAXIM:*]], [[AT.PRINCIPLE:*]])
+                    optional: true
+                -   name: PATTERNS
+                    desc: >
+                        Comma-separated references to the ARCHITECTURE-PATTERNS objects the
+                        mechanism of the tactic is built from (e.g. the failover built on a
+                        `Circuit Breaker`), while `MECHANISM` states the mechanism itself; omitted
+                        for a tactic built from no modeled pattern.
+                    value: list([[PATTERN:*]])
                     optional: true
                 -   name: MECHANISM
                     desc: >
@@ -1413,7 +1518,7 @@
 -   kind: ARCH
     name: Design Decisions
     id: DD
-    file: 31-ARCH-DD-Design-Decisions.md
+    file: 32-ARCH-DD-Design-Decisions.md
     desc: >
         The major decisions related to the solution design, each recording the forces at play, the
         chosen response, and the reasoning that justifies it. The artifact is the last
@@ -1505,7 +1610,7 @@
                 type: hub
                 center: self
                 nodes: "[[DECISION:*]], [[NR.REQUIREMENT:*]], [[PREMISE:*]], [[MAXIM:*]],
-                    [[AT.PRINCIPLE:*]], [[DM.ENTITY:*]], [[LIFECYCLE:*]], [[ROLE:*]],
+                    [[AT.PRINCIPLE:*]], [[PATTERN:*]], [[DM.ENTITY:*]], [[LIFECYCLE:*]], [[ROLE:*]],
                     [[INTERFACE:*]], [[TYPE:*]], [[ENDPOINT:*]], [[IC.PRINCIPLE:*]],
                     [[CONVENTION:*]], [[DIALOG-PATTERN:*]], [[STORYBOARD:*]], [[ELEMENT:*]],
                     [[CV.ENTITY:*]], [[FV.COMPONENT:*]], [[UNIT:*]], [[ASPECT:*]], [[DV.TIER:*]],
@@ -1573,11 +1678,12 @@
                     optional: true
                 -   name: DECIDES
                     desc: >
-                        Comma-separated references to the QUALITY-PERSPECTIVES tactics or
-                        TECHNOLOGY-STACK components the decision chose over their alternatives,
-                        i.e. the mechanism or product which exists because of this decision; omitted
-                        when the decision chose no modeled tactic or product.
-                    value: list([[TACTIC:*]], [[TS.TIER:*.COMPONENT:*]])
+                        Comma-separated references to the ARCHITECTURE-PATTERNS objects,
+                        QUALITY-PERSPECTIVES tactics, or TECHNOLOGY-STACK components the decision
+                        chose over their alternatives, i.e. the pattern, mechanism, or product
+                        which exists because of this decision; omitted when the decision chose no
+                        modeled pattern, tactic, or product.
+                    value: list([[PATTERN:*]], [[TACTIC:*]], [[TS.TIER:*.COMPONENT:*]])
                     optional: true
                 -   name: ALTERNATIVES
                     desc: >
@@ -1667,7 +1773,7 @@
 -   kind: ARCH
     name: Code Patterns
     id: CP
-    file: 32-ARCH-CP-Code-Patterns.md
+    file: 33-ARCH-CP-Code-Patterns.md
     desc: >
         The implementation patterns the source code of the solution follows, each prescribing how
         one recurring concern (e.g. authorization enforcement, entity persistence, error
@@ -1708,8 +1814,9 @@
                 short (typically 10-30 lines) and the prose names what the listing cannot: the
                 places the pattern applies and the deviation it rules out (`AVOID`).
 
-                A pattern states how a concern is coded, and nothing else: the quality mechanism
-                it implements is a Quality Perspectives tactic referenced through `REALIZES`, the
+                A pattern states how a concern is coded, and nothing else: the structure or the
+                quality mechanism it implements is an Architecture Patterns pattern or a Quality
+                Perspectives tactic referenced through `REALIZES`, the
                 trade-off that chose its approach over alternatives is a Design Decisions decision
                 referenced through `DECIDED-BY` (a pattern weighs no alternatives itself), the
                 product it codes against is a Technology Stack component referenced through
@@ -1724,7 +1831,7 @@
                 center: self
                 nodes: "[[CODE-PATTERN:*]], [[FV.COMPONENT:*]], [[UNIT:*]], [[DM.ENTITY:*]],
                     [[ROLE:*]], [[INTERFACE:*]], [[ENDPOINT:*]], [[TS.TIER:*.COMPONENT:*]],
-                    [[TACTIC:*]], [[DECISION:*]]"
+                    [[PATTERN:*]], [[TACTIC:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -1742,10 +1849,12 @@
                     optional: true
                 -   name: REALIZES
                     desc: >
-                        Comma-separated references to the QUALITY-PERSPECTIVES tactics the pattern
-                        is the coded form of (e.g. the token check implementing the access
-                        security tactic); omitted for a pattern serving no modeled tactic.
-                    value: list([[TACTIC:*]])
+                        Comma-separated references to the ARCHITECTURE-PATTERNS objects or
+                        QUALITY-PERSPECTIVES tactics the pattern is the coded form of (e.g. the
+                        port interface coding the hexagonal architecture, the token check
+                        implementing the access security tactic); omitted for a pattern serving
+                        no modeled architecture pattern or tactic.
+                    value: list([[PATTERN:*]], [[TACTIC:*]])
                     optional: true
                 -   name: DECIDED-BY
                     desc: >
