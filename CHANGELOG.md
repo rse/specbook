@@ -13,6 +13,10 @@ ChangeLog
     The new ARCH artifact `Architecture Patterns` (AP) holds the reusable structural patterns the
     components, tactics, decisions, and code patterns reference; the artifacts after it renumber.
 
+-   IMPROVEMENT [spec]: Grouping and Dependencies of Functional Requirements
+    The Functional Requirements artifact gets a `GROUP` kind (an epic or feature, drawn as a box
+    around its requirements) and the requirements a `GROUP` and an acyclic `DEPENDS-ON` property.
+
 -   IMPROVEMENT [code]: Lay Out D2 Diagrams With TALA By Default
     The embedded D2 diagrams are now laid out by the TALA engine of `@d2lang/d2` by default,
     while a diagram's own `d2-config` `layout-engine` still wins.

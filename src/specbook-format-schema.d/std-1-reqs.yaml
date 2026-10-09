@@ -485,7 +485,10 @@
     desc: >
         The concrete behaviors and capabilities the solution must provide, describing *what* the
         system does in terms of functions, features, and operations, while the quality bounds and
-        constraints on them belong to the Non-Functional Requirements.
+        constraints on them belong to the Non-Functional Requirements. The requirements are
+        optionally grouped into the coherent capabilities they add up to (the epics of agile
+        planning, the features of product management), which the overview diagram draws as boxes
+        around their requirements.
     optional: true
     refs: >
         -   Mavin et al.: Easy Approach to Requirements Syntax (EARS) (2009),
@@ -497,12 +500,31 @@
     diagram:
         type: grid
         nodes: "[[FR.REQUIREMENT:*]]"
+        nest:
+            properties:
+                -   GROUP
         properties:
             -   PRIORITY
         config:
             size-node-width-max: 440
-            grid-columns-max: 4
+            grid-columns-max: 2
     children:
+        -   kind: GROUP
+            desc: >
+                A named group of strongly related requirements, carrying a short (1-3 word),
+                per-artifact unique name distinct from the names of its requirements (e.g.
+                `Moderation` for the moderating, forwarding, and answering of attendee inputs,
+                `Event Access` for the access URLs), and described by a 1-sentence description
+                ("what") of the capability the requirements add up to plus a 1-sentence rationale
+                ("why") of the cohesion. A group is an epic in the agile sense and a feature in the
+                product sense, but carries no obligation of its own: it has no priority, states no
+                behavior, and is verified through its requirements alone, so it affects the
+                overview diagram only, where its requirements are drawn next to each other inside
+                a box. The groups are listed before the requirements, and every requirement
+                belongs to at most one group.
+            optional: true
+            referenced:
+                -   "[[FR.REQUIREMENT:*]]"
         -   kind: REQUIREMENT
             desc: >
                 A single functional requirement, named with a short (3-8 word) summary and described
@@ -523,8 +545,9 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[FR.REQUIREMENT:*]], [[NR.REQUIREMENT:*]], [[PREMISE:*]], [[RULE:*]],
-                    [[USE-CASE:*]], [[DM.ENTITY:*]], [[FV.COMPONENT:*]], [[TEST-CASE:*]]"
+                nodes: "[[FR.GROUP:*]], [[FR.REQUIREMENT:*]], [[NR.REQUIREMENT:*]], [[PREMISE:*]],
+                    [[RULE:*]], [[USE-CASE:*]], [[DM.ENTITY:*]], [[FV.COMPONENT:*]],
+                    [[TEST-CASE:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -540,6 +563,23 @@
                         time"), preserving the conscious decision rather than silently dropping it,
                         with the statement still phrased as it would be if in scope.
                     value: enum(MUST,SHOULD,COULD,WONT)
+                -   name: GROUP
+                    desc: >
+                        Reference to the FUNCTIONAL-REQUIREMENTS group the requirement belongs to,
+                        placing it next to the other requirements of the group in the overview
+                        diagram; omitted for a requirement standing on its own.
+                    value: "[[FR.GROUP:*]]"
+                    optional: true
+                -   name: DEPENDS-ON
+                    desc: >
+                        Comma-separated references to the FUNCTIONAL-REQUIREMENTS objects the
+                        requirement presupposes, i.e. whose behavior has to exist before its own
+                        makes sense (e.g. replying to chat messages presupposes chat messages),
+                        so that dropping or deferring a requirement reveals what falls with it;
+                        omitted for a requirement presupposing no other one.
+                    value: list([[FR.REQUIREMENT:*]])
+                    optional: true
+                    acyclic: true
                 -   name: PREMISES
                     desc: >
                         Comma-separated references to the SOLUTION-PREMISES objects the
