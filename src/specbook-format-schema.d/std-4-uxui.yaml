@@ -25,7 +25,7 @@
     optional: true
     diagram:
         type: grid
-        nodes: "[[PRINCIPLE:*]]"
+        nodes: "[[IC.PRINCIPLE:*]]"
         properties:
             -   CATEGORY
         config:
@@ -41,8 +41,10 @@
                 solution, plus a 1-sentence rationale ("why"). A principle is solution-wide and
                 independent of any particular screen or flow (a structure recurring within one flow
                 is a Dialog Pattern instead), decides between design alternatives (the alternative
-                it rejects is its `TRADE-OFF`), and is not verifiable by a metric (a measurable
-                quality bound is a Non-Functional Requirement instead).
+                it rejects is its `TRADE-OFF`), is not verifiable by a metric (a measurable
+                quality bound is a Non-Functional Requirement instead), and governs the user's
+                experience (a principle governing the architecture is an Architecture Tenets
+                principle instead).
             optional: true
             referenced:
                 -   "[[DIALOG-PATTERN:*]]"
@@ -51,7 +53,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[PRINCIPLE:*]], [[PERSONA:*]], [[STEP:*]], [[USE-CASE:*]], [[CONVENTION:*]],
+                nodes: "[[IC.PRINCIPLE:*]], [[PERSONA:*]], [[STEP:*]], [[USE-CASE:*]], [[CONVENTION:*]],
                     [[DIALOG-PATTERN:*]], [[ELEMENT:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
@@ -149,7 +151,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[CONVENTION:*]], [[PERSONA:*]], [[PRINCIPLE:*]], [[TERM:*]], [[DECISION:*]]"
+                nodes: "[[CONVENTION:*]], [[PERSONA:*]], [[IC.PRINCIPLE:*]], [[TERM:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -178,7 +180,7 @@
                         Comma-separated references to the INTERACTION-CONCEPT objects the convention
                         supports in wording, so that a convention is grounded in the interaction
                         philosophy rather than in taste alone.
-                    value: list([[PRINCIPLE:*]])
+                    value: list([[IC.PRINCIPLE:*]])
                     optional: true
                 -   name: TERMS
                     desc: >
@@ -233,7 +235,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[DIALOG-PATTERN:*]], [[PRINCIPLE:*]], [[STORYBOARD:*]], [[DECISION:*]]"
+                nodes: "[[DIALOG-PATTERN:*]], [[IC.PRINCIPLE:*]], [[STORYBOARD:*]], [[DECISION:*]]"
                 deep: true
                 labeled: true
                 qualified: true
@@ -270,7 +272,7 @@
                         Comma-separated references to the INTERACTION-CONCEPT objects the pattern
                         embodies, so that every principle is shown to be honored by at least one
                         pattern rather than merely declared.
-                    value: list([[PRINCIPLE:*]])
+                    value: list([[IC.PRINCIPLE:*]])
                     optional: true
                 -   name: USES
                     desc: >
@@ -439,7 +441,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ELEMENT:*]], [[PERSONA:*]], [[PRINCIPLE:*]], [[MOCKUP:*]]"
+                nodes: "[[ELEMENT:*]], [[PERSONA:*]], [[IC.PRINCIPLE:*]], [[MOCKUP:*]]"
                 labeled: true
                 qualified: true
                 config:
@@ -469,7 +471,7 @@
                         Comma-separated references to the INTERACTION-CONCEPT objects the element
                         supports in appearance, so that an element is grounded in the interaction
                         philosophy rather than in taste alone.
-                    value: list([[PRINCIPLE:*]])
+                    value: list([[IC.PRINCIPLE:*]])
                     optional: true
                 -   name: SOURCE
                     desc: >

@@ -10,6 +10,7 @@ ARCH: Quality Perspectives (QP)
 
 -   QUALITY:     Scalability
 -   ADDRESSES:   [[REQUIREMENT:attendee-scale]], [[REQUIREMENT:scalability]]
+-   GUIDED-BY:   [[MAXIM:scale-out]], [[PRINCIPLE:stateless-tiers]]
 -   MECHANISM:   stateless proxy and relay pools behind a round-robin router
 -   TRADES-OFF:  Maintainability
 -   AFFECTS:     [[COMPONENT:router]], [[COMPONENT:proxy]], [[COMPONENT:relay]], [[UNIT:router]], [[UNIT:proxy-pool]],
@@ -24,6 +25,7 @@ environment, BECAUSE a single broker cannot hold the required attendee count whi
 
 -   QUALITY:    Availability
 -   ADDRESSES:  [[REQUIREMENT:failover]]
+-   GUIDED-BY:  [[PRINCIPLE:logical-resources]]
 -   MECHANISM:  multi-provider resources with server-pushed active-resource switch
 -   AFFECTS:    [[COMPONENT:service]], [[COMPONENT:client]], [[ENTITY:Channel]], [[ENTITY:Resource]]
 -   TOOLS:      [[COMPONENT:messaging]]
@@ -35,6 +37,7 @@ follow automatically, BECAUSE provider outages must be survived without attendee
 
 -   QUALITY:    Privacy
 -   ADDRESSES:  [[REQUIREMENT:privacy]], [[REQUIREMENT:gdpr]]
+-   GUIDED-BY:  [[MAXIM:privacy-first]], [[PRINCIPLE:no-permanent-identity]]
 -   MECHANISM:  automated anonymization on finish and no permanent accounts
 -   TRADES-OFF: Usability
 -   AFFECTS:    [[COMPONENT:service]], [[FV.database]], [[ENTITY:User]], [[ENTITY:Message]], [[ENTITY:AuthorizationToken]],
@@ -47,6 +50,7 @@ accounts, BECAUSE minimizing retained personal data is the strongest guarantee a
 
 -   QUALITY:    Security
 -   ADDRESSES:  [[REQUIREMENT:token-strength]]
+-   GUIDED-BY:  [[PRINCIPLE:no-permanent-identity]]
 -   MECHANISM:  unguessable URLs plus time-limited one-time tokens and single sessions
 -   TRADES-OFF: Usability
 -   AFFECTS:    [[COMPONENT:auth]], [[ENTITY:AuthorizationToken]], [[ENTITY:SessionToken]]
@@ -92,6 +96,7 @@ plugin-free web app reaches every recent browser on managed and unmanaged device
 
 -   QUALITY:    Performance
 -   ADDRESSES:  [[REQUIREMENT:streaming-quality]]
+-   GUIDED-BY:  [[MAXIM:buy-before-build]]
 -   MECHANISM:  provider-hosted encoding and delivery embedded by the client without transcoding
 -   AFFECTS:    [[COMPONENT:client]], [[ENTITY:Channel]], [[ENTITY:Resource]]
 
@@ -103,6 +108,7 @@ the video through the solution would cap the quality at the solution's own capac
 
 -   QUALITY:     Security
 -   ADDRESSES:   [[REQUIREMENT:data-isolation]], [[REQUIREMENT:gdpr]]
+-   GUIDED-BY:   [[PRINCIPLE:isolated-persistence]]
 -   MECHANISM:   TLS-only public ingress, private backend VLAN, and an isolated database subnet
 -   TRADES-OFF:  Maintainability
 -   AFFECTS:     [[TIER:middleware-tier]], [[TIER:database-tier]], [[NODE:router]], [[NODE:database]], [[NETWORK:internet]],
@@ -144,6 +150,7 @@ which would saturate the single data center entry point.
 
 -   QUALITY:    Maintainability
 -   ADDRESSES:  [[REQUIREMENT:contract-safety]]
+-   GUIDED-BY:  [[PRINCIPLE:shared-contracts]]
 -   MECHANISM:  common module of shared types compiled by one TypeScript toolchain on both sides
 -   AFFECTS:    [[COMPONENT:client]], [[COMPONENT:service]], [[ASPECT:module-split]], [[ASPECT:typescript]],
                 [[ASPECT:dependency-layering]], [[ASPECT:linting]], [[ASPECT:identifier-naming]]

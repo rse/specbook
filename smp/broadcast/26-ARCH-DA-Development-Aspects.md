@@ -9,6 +9,7 @@ ARCH: Development Aspects (DA)
 ##  ASPECT: Client/Common/Server Split {{module-split}}
 
 -   CATEGORY: Structure
+-   GUIDED-BY: [[PRINCIPLE:shared-contracts]]
 
 The codebase is organized into `src/client`, `src/common`, and
 `src/server` modules, with shared types and topic definitions living in
@@ -18,6 +19,7 @@ agree on contracts without duplicating them.
 ##  ASPECT: TypeScript Everywhere {{typescript}}
 
 -   CATEGORY: Standardization
+-   GUIDED-BY: [[PRINCIPLE:shared-contracts]]
 
 All client-side and server-side code is written in strongly typed
 TypeScript against shared type definitions, BECAUSE a single typed

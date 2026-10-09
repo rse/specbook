@@ -7,7 +7,7 @@
 -   kind: TEST
     name: Test Cases
     id: TC
-    file: 32-TEST-TC-Test-Cases.md
+    file: 33-TEST-TC-Test-Cases.md
     desc: >
         The verifiable conditions and steps used to confirm that requirements, domain rules, use
         case scenarios, state transitions, and the mechanisms, procedures, and decisions of the

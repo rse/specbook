@@ -5,6 +5,10 @@ ChangeLog
 1.4.3 (2026-10-09)
 ------------------
 
+-   IMPROVEMENT [spec]: Architecture Tenets Artifact in the Standard Schema
+    The new ARCH artifact `Architecture Tenets` (AT) holds the architecture maxims and principles
+    the decisions, tactics, and aspects reference via `GUIDED-BY`; the artifacts after it renumber.
+
 -   IMPROVEMENT [code]: Lay Out D2 Diagrams With TALA By Default
     The embedded D2 diagrams are now laid out by the TALA engine of `@d2lang/d2` by default,
     while a diagram's own `d2-config` `layout-engine` still wins.

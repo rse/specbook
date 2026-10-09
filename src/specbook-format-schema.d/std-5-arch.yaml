@@ -5,9 +5,130 @@
 ##
 
 -   kind: ARCH
+    name: Architecture Tenets
+    id: AT
+    file: 22-ARCH-AT-Architecture-Tenets.md
+    desc: >
+        The architecture philosophy of the solution, stated as the few overarching maxims and the
+        standing principles derived from them, which every view, tactic, decision, and aspect of
+        the architecture has to obey, while the concrete structures belong to the views following
+        them. The maxims are listed in decreasing precedence, so that whenever two maxims conflict
+        in a particular design decision, the earlier one wins, and a principle conflict is settled
+        by the precedence of the maxims the principles derive from.
+
+        The tenets are prescriptive and reusable, not verifiable and not decided once: a quality
+        bound verifiable by a metric is a Non-Functional Requirement, the mechanism achieving a
+        quality is a Quality Perspectives tactic, the rule about the source structure and process
+        is a Development Aspects aspect, the one-off trade-off between genuine alternatives is a
+        Design Decisions decision (which applies the tenets through `GUIDED-BY`), and the
+        principle governing the user's experience is an Interaction Concept principle.
+    optional: true
+    refs: >
+        -   The Open Group: TOGAF Standard, 10th ed.: Architecture Principles (2022),
+            https://pubs.opengroup.org/togaf-standard/adm-techniques/chap02.html
+        -   Greefhorst/Proper: Architecture Principles: The Cornerstones of Enterprise Architecture (2011),
+            https://link.springer.com/book/10.1007/978-3-642-20279-7
+        -   Starke/Hruschka: arc42 Template: Solution Strategy (2005),
+            https://arc42.org/overview
+    diagram:
+        type: grid
+        nodes: "[[MAXIM:*]], [[AT.PRINCIPLE:*]]"
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 4
+    children:
+        -   kind: MAXIM
+            desc: >
+                A single architecture maxim, named with a short (2-5 word) preference or imperative
+                (e.g. `Simplicity over Flexibility`, `Buy before Build`, `Own the Data`) and
+                described in a concise (1-3 sentence) paragraph by how it guides the architecture
+                of the solution as a whole, plus a 1-sentence rationale ("why"). A solution has only
+                a few (3-7) maxims: a maxim is solution-wide and independent of any particular view
+                or element (a rule bound to a structure is a principle instead), decides between
+                design alternatives (the subordinated side usually named by its `X over Y` form),
+                and is not verifiable by a metric (a measurable quality bound is a Non-Functional
+                Requirement instead).
+            optional: true
+            format:
+                type: compact
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[MAXIM:*]], [[AT.PRINCIPLE:*]], [[NR.REQUIREMENT:*]], [[PREMISE:*]],
+                    [[TACTIC:*]], [[DECISION:*]], [[ASPECT:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: DRIVEN-BY
+                    desc: >
+                        Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS or
+                        SOLUTION-PREMISES objects the maxim answers (e.g. the maintainability
+                        requirement, the small-team premise), so that a maxim is grounded in the
+                        forces on the solution rather than in taste alone; omitted for a maxim
+                        rooted in the Solution Vision alone.
+                    value: list([[NR.*]], [[PREMISE:*]])
+                    optional: true
+        -   kind: PRINCIPLE
+            desc: >
+                A single architecture principle, named with a short (2-5 word) summary (e.g.
+                `Stateless Services`, `One Owner per Entity`, `Async between Contexts`) and
+                described in a concise (1-3 sentence) paragraph as the standing rule the
+                architecture follows whenever its concern arises, stated with `MUST`/`MUST NOT`
+                or `SHOULD`/`SHOULD NOT`, plus a 1-sentence rationale ("why"). A principle is
+                bound to a particular structure of the architecture (a rule independent of any
+                structure is a maxim instead), reusable across many decisions (a trade-off made
+                once between genuine alternatives is a Design Decisions decision instead), names
+                no mechanism and no product (the mechanism is a Quality
+                Perspectives tactic, the product a Technology Stack component), and governs the
+                architecture, not the source process (a Development Aspects aspect), the code (a
+                Code Patterns pattern), or the user's experience (an Interaction Concept
+                principle).
+            optional: true
+            format:
+                type: compact
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[MAXIM:*]], [[AT.PRINCIPLE:*]], [[NR.REQUIREMENT:*]], [[PREMISE:*]],
+                    [[TACTIC:*]], [[DECISION:*]], [[ASPECT:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+            props:
+                -   name: MAXIMS
+                    desc: >
+                        Comma-separated references to the MAXIM objects the principle
+                        concretizes (e.g. a `Stateless Services` principle concretizing a
+                        `Scale Out over Scale Up` maxim), so that the principles form a hierarchy
+                        below the maxims rather than a flat catalogue; omitted for a principle
+                        standing on its own forces alone.
+                    value: list([[MAXIM:*]])
+                    optional: true
+                -   name: DRIVEN-BY
+                    desc: >
+                        Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS or
+                        SOLUTION-PREMISES objects the principle answers beyond the maxims it
+                        concretizes (e.g. the availability requirement, the hosting constraint);
+                        omitted for a principle grounded in its maxims alone.
+                    value: list([[NR.*]], [[PREMISE:*]])
+                    optional: true
+                -   name: IMPLICATIONS
+                    desc: >
+                        What following the principle obliges the architecture to, stated as a 1-2
+                        sentence description of the consequences for the elements it governs
+                        (e.g. `session state lives in the shared store, so every component
+                        instance is replaceable at any time`), as opposed to the rationale which
+                        states why the principle is worth these consequences; omitted when nothing
+                        non-obvious follows from the principle.
+                    optional: true
+
+-   kind: ARCH
     name: Context View
     id: CV
-    file: 22-ARCH-CV-Context-View.md
+    file: 23-ARCH-CV-Context-View.md
     desc: >
         The relationships, dependencies, and interactions between the solution and its environment,
         defining the system's boundary by enumerating the external entities sitting at it. The
@@ -139,7 +260,7 @@
 -   kind: ARCH
     name: Functionality View
     id: FV
-    file: 23-ARCH-FV-Functionality-View.md
+    file: 24-ARCH-FV-Functionality-View.md
     desc: >
         The functional components of the solution, their responsibilities, interfaces, and primary
         interactions, describing *how* the solution's runtime elements are structured and which
@@ -256,7 +377,7 @@
 -   kind: ARCH
     name: Technology Stack
     id: TS
-    file: 24-ARCH-TS-Technology-Stack.md
+    file: 25-ARCH-TS-Technology-Stack.md
     desc: >
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives
@@ -617,7 +738,7 @@
 -   kind: ARCH
     name: Development Aspects
     id: DA
-    file: 25-ARCH-DA-Development-Aspects.md
+    file: 26-ARCH-DA-Development-Aspects.md
     desc: >
         The architecture supporting the software development process, defining the module
         organization, build approach, and codeline conventions. The artifact is absent when the
@@ -649,18 +770,20 @@
                 states the product choice), does not restate the runtime structure (a Functionality
                 View `Module` or `Subsystem` groups the logic), does not cover production
                 procedures (an Operations View concern does), does not prescribe how a concern is
-                coded (a Code Patterns pattern shows that as a listing), and the trade-off that
+                coded (a Code Patterns pattern shows that as a listing), the tenet the rule
+                concretizes is an Architecture Tenets maxim or principle referenced through
+                `GUIDED-BY`, and the trade-off that
                 produced a rule is a Design Decisions decision referencing the aspect through
                 `AFFECTS`, while the quality the rule protects (usually a `Maintainability`
                 requirement) is
                 addressed by a Quality Perspectives tactic referencing the aspect through
-                `AFFECTS`, too, so the hub diagram of an aspect shows the decision and the tactic
-                behind it.
+                `AFFECTS`, too, so the hub diagram of an aspect shows the tenet, the decision, and
+                the tactic behind it.
             optional: true
             diagram:
                 type: hub
                 center: self
-                nodes: "[[ASPECT:*]], [[TACTIC:*]], [[DECISION:*]]"
+                nodes: "[[ASPECT:*]], [[MAXIM:*]], [[AT.PRINCIPLE:*]], [[TACTIC:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -678,11 +801,19 @@
                         standards and conventions), `Testing` (test conventions, layout, and
                         coverage rules), or `Tooling` (development tools and automation).
                     value: enum(Structure,Build,Dependency,Codeline,Standardization,Testing,Tooling)
+                -   name: GUIDED-BY
+                    desc: >
+                        Comma-separated references to the ARCHITECTURE-TENETS objects the aspect
+                        concretizes for the source structure and process (e.g. the module
+                        layering following a `Dependencies Point Inward` principle); omitted for
+                        an aspect concretizing no modeled tenet.
+                    value: list([[MAXIM:*]], [[AT.PRINCIPLE:*]])
+                    optional: true
 
 -   kind: ARCH
     name: Concurrency View
     id: CO
-    file: 26-ARCH-CO-Concurrency-View.md
+    file: 27-ARCH-CO-Concurrency-View.md
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
         threads, and defining how they coordinate and communicate. The artifact is absent when the
@@ -777,7 +908,7 @@
 -   kind: ARCH
     name: Deployment View
     id: DV
-    file: 27-ARCH-DV-Deployment-View.md
+    file: 28-ARCH-DV-Deployment-View.md
     desc: >
         The environment into which the solution is deployed, partitioning it into tiers and mapping
         software elements to the runtime platform, hardware, and network topology.
@@ -1032,7 +1163,7 @@
 -   kind: ARCH
     name: Operations View
     id: OV
-    file: 28-ARCH-OV-Operations-View.md
+    file: 29-ARCH-OV-Operations-View.md
     desc: >
         The way the solution is operated, administered, and supported in production, defining the
         standing procedures by which the operating organization installs, configures, migrates,
@@ -1147,7 +1278,7 @@
 -   kind: ARCH
     name: Quality Perspectives
     id: QP
-    file: 29-ARCH-QP-Quality-Perspectives.md
+    file: 30-ARCH-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed by the architecture, through the
         tactics built into the solution across the views.
@@ -1181,7 +1312,9 @@
                 mechanism has to meet is the `METRIC` of the addressed Non-Functional Requirement
                 and is not restated, the production procedure performed against the mechanism
                 (e.g. scaling out, restoring) is an Operations View concern referenced through
-                `OPERATED-BY`, the trade-off that chose the mechanism over alternatives is a
+                `OPERATED-BY`, the tenet the mechanism follows is an Architecture Tenets maxim or
+                principle referenced through `GUIDED-BY`, the trade-off that chose the mechanism
+                over alternatives is a
                 Design Decisions decision referencing the tactic through `DECIDES`, the product
                 realizing the mechanism is a Technology Stack component referenced through
                 `TOOLS`, the developer-facing rule about the source structure is an aspect of the
@@ -1197,9 +1330,10 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[TACTIC:*]], [[NR.REQUIREMENT:*]], [[FV.COMPONENT:*]], [[UNIT:*]],
-                    [[ASPECT:*]], [[NODE:*]], [[DM.ENTITY:*]], [[CONCERN:*]], [[DECISION:*]],
-                    [[TS.TIER:*.COMPONENT:*]], [[CODE-PATTERN:*]], [[TEST-CASE:*]]"
+                nodes: "[[TACTIC:*]], [[NR.REQUIREMENT:*]], [[MAXIM:*]], [[AT.PRINCIPLE:*]],
+                    [[FV.COMPONENT:*]], [[UNIT:*]], [[ASPECT:*]], [[NODE:*]], [[DM.ENTITY:*]],
+                    [[CONCERN:*]], [[DECISION:*]], [[TS.TIER:*.COMPONENT:*]], [[CODE-PATTERN:*]],
+                    [[TEST-CASE:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -1229,6 +1363,14 @@
                         Comma-separated references to the NON-FUNCTIONAL-REQUIREMENTS objects the
                         tactic addresses.
                     value: list([[NR.*]])
+                -   name: GUIDED-BY
+                    desc: >
+                        Comma-separated references to the ARCHITECTURE-TENETS objects the
+                        mechanism of the tactic follows (e.g. the stateless replication following
+                        a `Stateless Services` principle); omitted for a tactic following no
+                        modeled tenet.
+                    value: list([[MAXIM:*]], [[AT.PRINCIPLE:*]])
+                    optional: true
                 -   name: MECHANISM
                     desc: >
                         The design mechanism through which the tactic is applied to achieve the
@@ -1271,7 +1413,7 @@
 -   kind: ARCH
     name: Design Decisions
     id: DD
-    file: 30-ARCH-DD-Design-Decisions.md
+    file: 31-ARCH-DD-Design-Decisions.md
     desc: >
         The major decisions related to the solution design, each recording the forces at play, the
         chosen response, and the reasoning that justifies it. The artifact is the last
@@ -1338,7 +1480,10 @@
                 A constraint itself is not a decision: a compliance obligation, a hosting mandate,
                 or a partner-imposed threshold is a Non-Functional Requirement (of category
                 `Compliance`, `Constraint`, or the affected quality), and the decision is the
-                response to it, referencing it through `DRIVEN-BY`.
+                response to it, referencing it through `DRIVEN-BY`. A standing rule is not a
+                decision either: a maxim or principle reusable across many decisions is an
+                Architecture Tenets object, and the decision applies it, referencing it through
+                `GUIDED-BY`.
 
                 `WHEN`, `WHAT`, and `WHY` are each just a single paragraph of concise and brief
                 prose text, usually comprised of just 1 to 3 sentences. The value of a decision is
@@ -1359,11 +1504,12 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[DECISION:*]], [[NR.REQUIREMENT:*]], [[PREMISE:*]], [[DM.ENTITY:*]],
-                    [[LIFECYCLE:*]], [[ROLE:*]], [[INTERFACE:*]], [[TYPE:*]], [[ENDPOINT:*]],
-                    [[PRINCIPLE:*]], [[CONVENTION:*]], [[DIALOG-PATTERN:*]], [[STORYBOARD:*]],
-                    [[ELEMENT:*]], [[CV.ENTITY:*]], [[FV.COMPONENT:*]], [[UNIT:*]], [[ASPECT:*]],
-                    [[DV.TIER:*]], [[AREA:*]], [[NODE:*]], [[NETWORK:*]], [[TACTIC:*]],
+                nodes: "[[DECISION:*]], [[NR.REQUIREMENT:*]], [[PREMISE:*]], [[MAXIM:*]],
+                    [[AT.PRINCIPLE:*]], [[DM.ENTITY:*]], [[LIFECYCLE:*]], [[ROLE:*]],
+                    [[INTERFACE:*]], [[TYPE:*]], [[ENDPOINT:*]], [[IC.PRINCIPLE:*]],
+                    [[CONVENTION:*]], [[DIALOG-PATTERN:*]], [[STORYBOARD:*]], [[ELEMENT:*]],
+                    [[CV.ENTITY:*]], [[FV.COMPONENT:*]], [[UNIT:*]], [[ASPECT:*]], [[DV.TIER:*]],
+                    [[AREA:*]], [[NODE:*]], [[NETWORK:*]], [[TACTIC:*]],
                     [[TS.TIER:*.COMPONENT:*]], [[CODE-PATTERN:*]]"
                 labeled: true
                 qualified: true
@@ -1400,6 +1546,15 @@
                         and only exceptionally a premise alone, and a decision finding no
                         requirement to name reveals a missing one rather than a needless reference.
                     value: list([[NR.*]], [[PREMISE:*]])
+                -   name: GUIDED-BY
+                    desc: >
+                        Comma-separated references to the ARCHITECTURE-TENETS objects the decision
+                        applies (e.g. the `Buy before Build` maxim settling the choice of a managed
+                        service, the `Async between Contexts` principle settling the integration
+                        style), anchoring the principles the rationale `WHY` rests on; omitted for
+                        a decision applying no modeled tenet.
+                    value: list([[MAXIM:*]], [[AT.PRINCIPLE:*]])
+                    optional: true
                 -   name: AFFECTS
                     desc: >
                         Comma-separated references to the objects of the DATA, APIS, UXUI, or ARCH
@@ -1411,7 +1566,7 @@
                         chosen over a native one, the components split, the external system
                         integrated); omitted for a decision shaping no modeled element.
                     value: list([[DM.ENTITY:*]], [[LIFECYCLE:*]], [[ROLE:*]], [[INTERFACE:*]],
-                        [[TYPE:*]], [[ENDPOINT:*]], [[PRINCIPLE:*]], [[CONVENTION:*]],
+                        [[TYPE:*]], [[ENDPOINT:*]], [[IC.PRINCIPLE:*]], [[CONVENTION:*]],
                         [[DIALOG-PATTERN:*]], [[STORYBOARD:*]], [[ELEMENT:*]], [[CV.ENTITY:*]],
                         [[FV.COMPONENT:*]], [[UNIT:*]], [[ASPECT:*]], [[DV.TIER:*]], [[AREA:*]],
                         [[NODE:*]], [[NETWORK:*]])
@@ -1512,7 +1667,7 @@
 -   kind: ARCH
     name: Code Patterns
     id: CP
-    file: 31-ARCH-CP-Code-Patterns.md
+    file: 32-ARCH-CP-Code-Patterns.md
     desc: >
         The implementation patterns the source code of the solution follows, each prescribing how
         one recurring concern (e.g. authorization enforcement, entity persistence, error

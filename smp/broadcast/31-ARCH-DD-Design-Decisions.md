@@ -10,6 +10,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:attendee-scale]], [[REQUIREMENT:config-latency]], [[PREMISE:websocket-passage]]
+-   GUIDED-BY:    [[MAXIM:scale-out]], [[PRINCIPLE:stateless-tiers]]
 -   AFFECTS:      [[COMPONENT:relay]], [[COMPONENT:service]], [[UNIT:relay-pool]]
 -   DECIDES:      [[TACTIC:reactivity]], [[COMPONENT:messaging]], [[COMPONENT:message-broker]]
 -   ALTERNATIVES: REST polling, bespoke WebSocket protocol
@@ -31,6 +32,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:gdpr]], [[REQUIREMENT:cost]], [[PREMISE:eu-hosting]]
+-   GUIDED-BY:    [[MAXIM:simplicity]]
 -   AFFECTS:      [[TIER:datacenter]], [[ASPECT:codeline]]
 -   ALTERNATIVES: Azure, AWS, GitHub
 -   WHEN:
@@ -52,6 +54,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:privacy]], [[REQUIREMENT:gdpr]], [[PREMISE:message-personal-data]]
+-   GUIDED-BY:    [[MAXIM:privacy-first]], [[PRINCIPLE:no-permanent-identity]]
 -   AFFECTS:      [[COMPONENT:auth]], [[COMPONENT:service]], [[ENTITY:User]], [[PRINCIPLE:privacy-identity]]
 -   DECIDES:      [[TACTIC:privacy]]
 -   ALTERNATIVES: persistent user accounts
@@ -70,6 +73,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:token-strength]], [[PREMISE:email-at-hand]], [[PREMISE:email-delivery]]
+-   GUIDED-BY:    [[PRINCIPLE:no-permanent-identity]]
 -   AFFECTS:      [[COMPONENT:auth]], [[DIALOG-PATTERN:two-factor-login]], [[PRINCIPLE:frictionless-join]]
 -   DECIDES:      [[TACTIC:access-security]]
 -   ALTERNATIVES: password accounts, external identity providers
@@ -88,6 +92,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:failover]], [[PREMISE:provider-delivery]], [[PREMISE:two-languages]]
+-   GUIDED-BY:    [[MAXIM:buy-before-build]], [[PRINCIPLE:logical-resources]]
 -   AFFECTS:      [[COMPONENT:service]], [[COMPONENT:client]], [[ENTITY:Channel]], [[ENTITY:Resource]]
 -   DECIDES:      [[TACTIC:failover]]
 -   ALTERNATIVES: direct binding of clients to a single provider stream
@@ -106,6 +111,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:streaming-quality]], [[REQUIREMENT:cost]], [[PREMISE:provider-delivery]]
+-   GUIDED-BY:    [[MAXIM:buy-before-build]]
 -   AFFECTS:      [[COMPONENT:client]], [[ENTITY:Channel]], [[ENTITY:Resource]], [[ENTITY:provider]]
 -   DECIDES:      [[TACTIC:stream-passthrough]]
 -   ALTERNATIVES: self-hosted media server (e.g. OvenMediaEngine, Wowza), relaying the video through the data center
@@ -127,6 +133,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:cost]], [[REQUIREMENT:contract-safety]], [[REQUIREMENT:scalability]]
+-   GUIDED-BY:    [[MAXIM:simplicity]], [[PRINCIPLE:one-process]]
 -   AFFECTS:      [[COMPONENT:service]], [[COMPONENT:auth]], [[COMPONENT:translation]], [[COMPONENT:statistics]],
                   [[UNIT:service-loop]], [[NODE:service]]
 -   ALTERNATIVES: one service per capability (authentication, messaging, translation, statistics)
@@ -148,6 +155,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:contract-safety]]
+-   GUIDED-BY:    [[PRINCIPLE:shared-contracts]]
 -   AFFECTS:      [[ASPECT:module-split]], [[ASPECT:typescript]], [[ASPECT:dependency-layering]], [[ASPECT:identifier-naming]]
 -   DECIDES:      [[TACTIC:typed-contracts]], [[COMPONENT:language]]
 -   ALTERNATIVES: plain JavaScript, per-tier types generated from an interface description (e.g. OpenAPI, AsyncAPI)
@@ -184,6 +192,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:scalability]], [[REQUIREMENT:data-isolation]]
+-   GUIDED-BY:    [[MAXIM:scale-out]]
 -   AFFECTS:      [[COMPONENT:router]], [[COMPONENT:proxy]], [[UNIT:router]], [[UNIT:proxy-pool]], [[TIER:middleware-tier]],
                   [[NODE:router]], [[NODE:proxy]]
 -   DECIDES:      [[COMPONENT:reverse-proxy]]
@@ -206,6 +215,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:data-isolation]], [[REQUIREMENT:gdpr]]
+-   GUIDED-BY:    [[PRINCIPLE:isolated-persistence]]
 -   AFFECTS:      [[NETWORK:internet]], [[NETWORK:backend]], [[NETWORK:data]], [[NODE:database]], [[TIER:database-tier]]
 -   DECIDES:      [[TACTIC:network-isolation]]
 -   ALTERNATIVES: one flat private network, database attached to the backend network
@@ -224,6 +234,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:cost]], [[REQUIREMENT:scalability]], [[REQUIREMENT:maintenance-window]]
+-   GUIDED-BY:    [[MAXIM:simplicity]]
 -   AFFECTS:      [[NODE:service]], [[NODE:proxy]], [[NODE:relay]]
 -   DECIDES:      [[COMPONENT:container-orchestration]]
 -   ALTERNATIVES: Kubernetes, Nomad
@@ -245,6 +256,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:gdpr]], [[REQUIREMENT:recovery]], [[REQUIREMENT:cost]], [[PREMISE:eu-hosting]]
+-   GUIDED-BY:    [[MAXIM:buy-before-build]]
 -   AFFECTS:      [[FV.database]], [[UNIT:database]], [[NODE:database]], [[TIER:database-tier]]
 -   DECIDES:      [[TS.TIER:Database.COMPONENT:database]]
 -   ALTERNATIVES: a document store (e.g. MongoDB), an embedded database (e.g. SQLite), a managed cloud database
@@ -300,6 +312,7 @@ ARCH: Design Decisions (DD)
 
 -   STATUS:       Accepted
 -   DRIVEN-BY:    [[REQUIREMENT:asset-delivery]], [[REQUIREMENT:gdpr]], [[PREMISE:start-surge]]
+-   GUIDED-BY:    [[MAXIM:scale-out]]
 -   AFFECTS:      [[TIER:edge-tier]], [[NODE:cdn]], [[ENTITY:cdn]]
 -   DECIDES:      [[TACTIC:edge-delivery]]
 -   ALTERNATIVES: serving the bundle from the data center router, a second Hetzner location

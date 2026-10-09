@@ -5,7 +5,7 @@ Modified: 2026-09-05 01:00
 
 #   ARCH: Functionality View (FV)
 
-![](23-ARCH-FV-Functionality-View-1.svg)
+![](24-ARCH-FV-Functionality-View-1.svg)
 
 ##  COMPONENT: Web Client {{client}}
 
