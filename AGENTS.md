@@ -410,8 +410,11 @@ export emits a regular `div.diagram` block (type `mermaid`/`d2`, nesting
 level of the carrying object) holding the two theme variants as `<img>`
 elements (isolating their styles), drawn in colors picked out of the
 `THEME-TONE` spreads, while the Markdown and AST exports replace an
-embedded file by its rendered `light` SVG. A rendering failure is a
-verbose notice only and omits the diagram.
+embedded file by its rendered `light` SVG. A D2 diagram is laid out by
+the TALA engine by default (the `layout-engine` and `theme-overrides`
+are prepended as one `d2-config` line, so the own `d2-config` of a
+diagram still wins). A rendering failure is a verbose notice only and
+omits the diagram.
 
 The code listings -- a fenced code block whose info word is a Shiki
 language id or alias (except the diagram languages, as the embeddable

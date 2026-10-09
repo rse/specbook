@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.4.3 (2026-10-09)
+------------------
+
+-   IMPROVEMENT [code]: Lay Out D2 Diagrams With TALA By Default
+    The embedded D2 diagrams are now laid out by the TALA engine of `@d2lang/d2` by default,
+    while a diagram's own `d2-config` `layout-engine` still wins.
+
 1.4.1 (2026-10-08)
 ------------------
 

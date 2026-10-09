@@ -168,9 +168,9 @@ const d2Error = (err: unknown): string => {
     }
 }
 
-/*  render a D2 diagram, with the theme colors prepended as one line of
-    theme overrides (on the theme of the style), so the overrides of the
-    diagram itself still win  */
+/*  render a D2 diagram, with the TALA layout engine and the theme colors
+    prepended as one line of configuration (on the theme of the style),
+    so the configuration of the diagram itself still wins  */
 const renderD2 = (source: string, colors: Record<string, string>, style: ThemeStyle): Promise<string> => {
     const overrides = Object.entries(colors).map(([ key, color ]) => `${key}: "${color}"`).join("; ")
     const request = d2Chain.then(async () => {
@@ -184,7 +184,7 @@ const renderD2 = (source: string, colors: Record<string, string>, style: ThemeSt
         worker()?.ref()
         try {
             const result = await compiler.compile({
-                fs:      { index: `vars: { d2-config: { theme-overrides: { ${overrides} } } }\n${source}` },
+                fs:      { index: `vars: { d2-config: { layout-engine: tala; theme-overrides: { ${overrides} } } }\n${source}` },
                 options: { themeID: style === "dark" ? 200 : 0, scale: 1, pad: 0, noXMLTag: true }
             })
             return await compiler.render(result.diagram, result.renderOptions)
