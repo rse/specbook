@@ -21,6 +21,9 @@ ChangeLog
     The embedded D2 diagrams are now laid out by the TALA engine of `@d2lang/d2` by default,
     while a diagram's own `d2-config` `layout-engine` still wins.
 
+-   UPDATE [infr]: Upgrade NPM Dependencies
+    The NPM dependencies were updated.
+
 1.4.1 (2026-10-08)
 ------------------
 
