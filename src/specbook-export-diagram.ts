@@ -120,16 +120,18 @@ const mermaidColors = (colors: ThemeColors, style: ThemeStyle): MermaidOptions =
     theme color spreads after the shape of the D2 themes "Neutral
     Default" (light) and "Dark Mauve" (dark): the neutrals "N1" (text)
     to "N7" (background), the base colors "B1" (strokes) to "B6"
-    (fills), and the alternative accents "AA*"/"AB*"  */
+    (fills), and the alternative accents "AA*"/"AB*", where the fills
+    "B4" to "B6" of the nesting levels 1 to 3 are spread far apart and,
+    unlike in D2, recede towards the outer levels (the containers)  */
 const d2Colors = (colors: ThemeColors, style: ThemeStyle): Record<string, string> => {
     const [ b, a, s ] = [ colors.base, colors.accent, colors.signal ]
     return style === "dark" ? {
         N1:  b[28], N2: b[25], N3: b[22], N4: b[13], N5: b[10], N6: b[8], N7: b[6],
-        B1:  a[21], B2: a[21], B3: a[13], B4: a[10], B5: a[8],  B6: a[7],
+        B1:  a[21], B2: a[21], B3: a[13], B4: b[9],  B5: a[0],  B6: a[5],
         AA2: s[19], AA4: s[10], AA5: s[8], AB4: s[10], AB5: s[8]
     } : {
         N1:  b[3],  N2: b[13], N3: b[19], N4: b[25], N5: b[27], N6: b[29], N7: b[31],
-        B1:  a[7],  B2: a[11], B3: a[27], B4: a[28], B5: a[29], B6: a[30],
+        B1:  a[7],  B2: a[11], B3: a[27], B4: a[31], B5: a[28], B6: a[24],
         AA2: s[13], AA4: s[28], AA5: s[30], AB4: s[28], AB5: s[30]
     }
 }
