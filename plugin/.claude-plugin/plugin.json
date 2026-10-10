@@ -1,6 +1,6 @@
 {
     "name":        "specbook",
-    "version":     "1.5.1",
+    "version":     "1.5.2",
     "description": "Specification Book (SpecBook)",
     "keywords":    [ "specification", "markdown", "specbook" ],
     "homepage":    "https://specbook.tools",
