@@ -1,13 +1,29 @@
 ---
 Created:  2026-06-18 10:18
-Modified: 2026-09-05 13:10
+Modified: 2026-10-10 12:00
 ---
 
 REQS: Non-Functional Requirements (NR)
 ======================================
 
+-   GROUP: Audience Scale {{audience-scale}};
+    The solution serves the full audience of an event at once, from the
+    surge at its start to the end of the stream, BECAUSE the reach of a
+    production is the very reason for broadcasting it.
+
+-   GROUP: Live Continuity {{live-continuity}};
+    A running event proceeds without interruption and stays under the
+    control and insight of its operators, BECAUSE a live audience
+    tolerates neither a pause nor a problem nobody can see.
+
+-   GROUP: Data Protection {{data-protection}};
+    The personal data of the participants is processed lawfully,
+    minimally, and guarded against any unauthorized access, BECAUSE the
+    solution borrows that data for an event only.
+
 -   REQUIREMENT: Concurrent Attendee Scale {{attendee-scale}};
     PRIORITY: MUST; CATEGORY: Performance;
+    GROUP: [[GROUP:audience-scale]];
     PREMISES: [[PREMISE:audience-bound]], [[PREMISE:start-surge]];
     METRIC: 2500 to 10000 concurrently connected attendees per event;
     The system MUST support between 2500 and 10000 attendees connected
@@ -16,6 +32,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Horizontal Scalability {{scalability}};
     PRIORITY: MUST; CATEGORY: Performance;
+    GROUP: [[GROUP:audience-scale]];
     PREMISES: [[PREMISE:audience-bound]], [[PREMISE:start-surge]];
     METRIC: 10000 concurrent WebSocket connections per event;
     The system MUST scale horizontally by running multiple proxy, relay,
@@ -26,6 +43,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Streaming Quality {{streaming-quality}};
     PRIORITY: MUST; CATEGORY: Performance;
+    GROUP: [[GROUP:audience-scale]];
     PREMISES: [[PREMISE:two-languages]], [[PREMISE:provider-delivery]];
     METRIC: 1920x1080 pixels at 30 fps in 2 languages;
     The system MUST process and distribute video at 1080p30 (1920x1080
@@ -34,6 +52,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Provider Failover Continuity {{failover}};
     PRIORITY: MUST; CATEGORY: Reliability;
+    GROUP: [[GROUP:live-continuity]];
     QUALIFIES: [[REQUIREMENT:provider-switch]];
     PREMISES: [[PREMISE:provider-delivery]];
     METRIC: all attendee clients on the fallback provider within 10 seconds;
@@ -53,6 +72,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: GDPR Compliance {{gdpr}};
     PRIORITY: MUST; CATEGORY: Compliance;
+    GROUP: [[GROUP:data-protection]];
     QUALIFIES: [[REQUIREMENT:gdpr-eu]];
     PREMISES: [[PREMISE:eu-hosting]], [[PREMISE:message-personal-data]];
     METRIC: 100 % of personal data processed and hosted within the EU;
@@ -63,6 +83,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Privacy by Design {{privacy}};
     PRIORITY: MUST; CATEGORY: Security;
+    GROUP: [[GROUP:data-protection]];
     PREMISES: [[PREMISE:message-personal-data]];
     METRIC: 0 attendee personal-data records retained after the event finish procedure;
     The system MUST retain attendee personal data only while an event
@@ -72,6 +93,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Unguessable Access Tokens {{token-strength}};
     PRIORITY: MUST; CATEGORY: Security;
+    GROUP: [[GROUP:data-protection]];
     QUALIFIES: [[REQUIREMENT:individual-url]], [[REQUIREMENT:automatic-url]];
     PREMISES: [[PREMISE:email-at-hand]], [[PREMISE:email-delivery]], [[PREMISE:url-leakage]];
     METRIC: token expiry <= 5 minutes by default;
@@ -82,6 +104,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Isolated Persistence Node {{data-isolation}};
     PRIORITY: MUST; CATEGORY: Security;
+    GROUP: [[GROUP:data-protection]];
     QUALIFIES: [[REQUIREMENT:gdpr-eu]];
     PREMISES: [[PREMISE:message-personal-data]];
     METRIC: 0 routes to the database port from outside the business services;
@@ -93,6 +116,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Event Setup Recovery {{recovery}};
     PRIORITY: MUST; CATEGORY: Reliability;
+    GROUP: [[GROUP:live-continuity]];
     PREMISES: [[PREMISE:eu-hosting]];
     METRIC: RPO <= 24 hours (<= 1 hour right before an event) and RTO <= 2 hours;
     The system MUST allow the event setups and their messages to be
@@ -103,12 +127,14 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Event-Safe Maintenance {{maintenance-window}};
     PRIORITY: MUST; CATEGORY: Reliability;
+    GROUP: [[GROUP:live-continuity]];
     METRIC: 0 rollouts or reconfigurations while an event runs;
     The system MUST be upgraded and reconfigured only while no event
     runs, BECAUSE a live audience cannot be asked to wait for a restart.
 
 -   REQUIREMENT: Live Configuration Latency {{config-latency}};
     PRIORITY: SHOULD; CATEGORY: Performance;
+    GROUP: [[GROUP:live-continuity]];
     QUALIFIES: [[REQUIREMENT:config-propagation]];
     METRIC: propagation to all connected clients <= 2 seconds;
     The system SHOULD propagate an event configuration change to all
@@ -128,6 +154,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Interaction Abuse Throttling {{throttling}};
     PRIORITY: SHOULD; CATEGORY: Security;
+    GROUP: [[GROUP:data-protection]];
     QUALIFIES: [[REQUIREMENT:chat]], [[REQUIREMENT:questions]];
     PREMISES: [[PREMISE:interaction-abuse]];
     METRIC: <= 10 submissions per user per minute by default, configurable per event;
@@ -137,6 +164,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Start-Surge Asset Delivery {{asset-delivery}};
     PRIORITY: SHOULD; CATEGORY: Performance;
+    GROUP: [[GROUP:audience-scale]];
     QUALIFIES: [[REQUIREMENT:browser-access]];
     PREMISES: [[PREMISE:start-surge]];
     METRIC: client bundle delivered within 3 seconds at 10000 simultaneous joins;
@@ -155,6 +183,7 @@ REQS: Non-Functional Requirements (NR)
 
 -   REQUIREMENT: Live Diagnosability {{observability}};
     PRIORITY: SHOULD; CATEGORY: Maintainability;
+    GROUP: [[GROUP:live-continuity]];
     QUALIFIES: [[REQUIREMENT:event-stats]], [[REQUIREMENT:debug-stats]];
     METRIC: event counters at most 5 minutes old, every login failure traceable from token states and log;
     The system SHOULD let the administrator see the attendee, channel,

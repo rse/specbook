@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.5.2 (2026-10-10)
+------------------
+
+-   IMPROVEMENT [spec]: Grouping of Non-Functional Requirements
+    The Non-Functional Requirements artifact gets a `GROUP` kind (a quality goal spanning the
+    categories, drawn as a box around its requirements) and the requirements a `GROUP` property.
+
 1.5.0 (2026-10-10)
 ------------------
 
