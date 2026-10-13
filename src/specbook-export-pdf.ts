@@ -127,9 +127,7 @@ const decorationTemplates = (
     right:   string
 ): { headerTemplate: string, footerTemplate: string } => {
     const fontFace = css.match(/@font-face\s*\{[^}]*\}/)?.[0] ?? ""
-    const subtitle = heading.subtitle?.trim()
-    const headText = escapeHtml(heading.title) +
-        (subtitle !== undefined && subtitle !== "" ? ` &mdash; ${escapeHtml(subtitle)}` : "")
+    const headText = escapeHtml(heading.title)
     return {
         headerTemplate:
             `<style>${fontFace}</style>` +
@@ -150,7 +148,7 @@ const decorationTemplates = (
             `font-size: 8pt; color: ${theme.symbol}; display: flex; ` +
             `justify-content: space-between; border-top: 1px solid ${theme.border}; ` +
             "padding-top: 1mm;\">" +
-            `<span>${headText}</span>` +
+            "<span></span>" +
             `<span style="color: ${theme.muted}; font-weight: bold;" class="pageNumber"></span></div></div>`
     }
 }
