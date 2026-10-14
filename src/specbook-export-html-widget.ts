@@ -332,18 +332,43 @@ export const tocPanelScript = textframe`
                 window.removeEventListener("scroll", spy)
                 return
             }
+            /*  the targets are in document order, so their tops are
+                monotonic: binary-search the first target at or below the
+                viewport top instead of measuring all of them (each
+                measurement forces layout of skipped content), skipping
+                the absent and the hidden (filtered out) ones  */
+            const skip = (target) => target === null || target.getClientRects().length === 0
             let current = null
-            for (let i = 0; i < targets.length; i++) {
-                if (targets[i] === null || targets[i].getClientRects().length === 0)
+            let lo = 0
+            let hi = targets.length - 1
+            let first = targets.length
+            while (lo <= hi) {
+                const mid = (lo + hi) >> 1
+                let k = mid
+                while (k <= hi && skip(targets[k]))
+                    k++
+                if (k > hi) {
+                    hi = mid - 1
                     continue
-                const top = targets[i].getBoundingClientRect().top
-                if (top >= -1 && top < window.innerHeight) {
-                    current = links[i]
-                    break
                 }
-                if (top >= window.innerHeight)
-                    break
-                current = links[i]
+                if (targets[k].getBoundingClientRect().top >= -1) {
+                    first = k
+                    hi = mid - 1
+                }
+                else
+                    lo = k + 1
+            }
+            let next = first
+            while (next < targets.length && skip(targets[next]))
+                next++
+            if (next < targets.length && targets[next].getBoundingClientRect().top < window.innerHeight)
+                current = links[next]
+            else {
+                let prev = first - 1
+                while (prev >= 0 && skip(targets[prev]))
+                    prev--
+                if (prev >= 0)
+                    current = links[prev]
             }
             if (current === active)
                 return
