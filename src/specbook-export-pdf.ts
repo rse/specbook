@@ -7,14 +7,14 @@
 import * as fs
     from "node:fs"
 
-import type { PDFDocument, PDFArray, PDFRef }
+import type { PDFDocument, PDFPage, PDFArray, PDFRef }
     from "pdf-lib"
 import type { LaunchOptions }
     from "playwright"
 
 import { escapeHtml, paperSetup, paperLength, paperSizeDefault }
     from "./specbook-export-common.js"
-import type { OutlineEntry }
+import type { OutlineEntry, PrintDocument }
     from "./specbook-export-html.js"
 import type { ThemeMapping }
     from "./specbook-theme.js"
@@ -26,9 +26,8 @@ type Heading = { title: string, subtitle?: string, logo: string }
 
 /*  extract the per-anchor page numbers from a Chromium-generated PDF,
     which records the internal link targets as named PDF destinations  */
-const anchorPages = async (pdf: Uint8Array): Promise<Map<string, number>> => {
-    const { PDFDocument, PDFName, PDFDict, PDFArray, PDFRef } = await import("pdf-lib")
-    const doc     = await PDFDocument.load(pdf)
+const anchorPages = async (doc: PDFDocument): Promise<Map<string, number>> => {
+    const { PDFName, PDFDict, PDFArray, PDFRef } = await import("pdf-lib")
     const indexes = new Map<string, number>()
     doc.getPages().forEach((page, index) => indexes.set(page.ref.toString(), index + 1))
 
@@ -249,24 +248,58 @@ export const requireBrowser = async (verbose: Verbose): Promise<LaunchOptions> =
     return options
 }
 
-/*  the bound of the ToC page number fixpoint iteration, as the page
-    number column itself shifts the pagination and hence the iteration
-    can oscillate instead of ever reaching a stable rendering  */
+/*  the bound of the ToC page count fixpoint iteration, as the page
+    number column itself shifts the pagination of the table of contents
+    and hence the iteration can oscillate instead of ever reaching a
+    stable rendering  */
 const tocPasses = 3
 
-/*  render a self-contained HTML document into a PDF via Playwright,
-    re-rendering the HTML with the discovered ToC page numbers  */
+/*  the placeholder origin of the links of the separately paginated
+    table of contents, which Chromium would drop as internal links
+    without their targets in the same document, so they are turned into
+    external ones and back into internal ones once merged into the body  */
+const tocOrigin = "https://toc.invalid/"
+
+/*  turn the placeholder links of the merged table of contents pages back
+    into internal links onto the named destinations of the document  */
+const relinkPages = async (pages: PDFPage[]) => {
+    const { PDFName, PDFDict, PDFString, PDFHexString } = await import("pdf-lib")
+    for (const page of pages) {
+        const annots = page.node.Annots()
+        if (annots === undefined)
+            continue
+        for (let i = 0; i < annots.size(); i++) {
+            const annot  = annots.lookup(i, PDFDict)
+            const action = annot.lookupMaybe(PDFName.of("A"), PDFDict)
+            const uri    = action?.lookupMaybe(PDFName.of("URI"), PDFString, PDFHexString)?.decodeText()
+            if (uri === undefined || !uri.startsWith(`${tocOrigin}#`))
+                continue
+            annot.delete(PDFName.of("A"))
+            annot.set(PDFName.of("Dest"), PDFName.of(uri.slice(tocOrigin.length + 1)))
+        }
+    }
+}
+
+/*  render a self-contained HTML document into a PDF via Playwright: the
+    body of the document is paginated just once, the table of contents
+    apart from it (re-rendered with the page numbers of the body until
+    its own page count is stable) and merged in front of the body (right
+    behind a title page), and the page decoration (header/footer, with
+    page numbers counting all pages) is rendered as a document of empty
+    pages laid over the merged pages (except a title page), as only that
+    renders the page numbers of the body behind the table of contents  */
 export const htmlToPdf = async (
-    renderHtmlPass: (tocPages?: Map<string, number>) => Promise<string>,
-    heading:        Heading,
-    outline:        OutlineEntry[],
-    titlePage:      boolean,
-    verbose:        Verbose,
-    css:            string,
-    theme:          ThemeMapping,
-    paper           = paperSizeDefault
+    print:     PrintDocument,
+    heading:   Heading,
+    outline:   OutlineEntry[],
+    titlePage: boolean,
+    verbose:   Verbose,
+    css:       string,
+    theme:     ThemeMapping,
+    paper      = paperSizeDefault
 ): Promise<Buffer> => {
-    const { chromium } = await import("playwright")
+    const { chromium }    = await import("playwright")
+    const { PDFDocument } = await import("pdf-lib")
 
     /*  the page geometry of the chosen paper size  */
     const setup  = paperSetup(paper)
@@ -277,12 +310,19 @@ export const htmlToPdf = async (
     try {
         const page = await browser.newPage()
 
-        /*  render an HTML document into a paginated PDF  */
+        /*  render an HTML document into a paginated PDF, optionally with
+            its internal links turned into placeholder ones  */
         const renderPdf = async (html: string,
-            options: NonNullable<Parameters<typeof page.pdf>[0]> = {}) => {
+            options: NonNullable<Parameters<typeof page.pdf>[0]> = {}, external = false) => {
             await page.setContent(html, { waitUntil: "load", timeout: 0 })
             await page.evaluate(() => document.fonts.ready)
-            return page.pdf({
+            if (external)
+                await page.evaluate((origin) => {
+                    document.querySelectorAll("a[href^='#']").forEach((a) => {
+                        a.setAttribute("href", origin + a.getAttribute("href"))
+                    })
+                }, tocOrigin)
+            return PDFDocument.load(await page.pdf({
                 format:            paper,
                 margin:            {
                     top:    paperLength(setup, margin.top),
@@ -292,63 +332,74 @@ export const htmlToPdf = async (
                 printBackground:   true,
                 preferCSSPageSize: true,
                 ...options
-            })
+            }))
         }
 
-        /*  determine the ToC page numbers via a fixpoint iteration:
-            paginate undecorated, extract the per-anchor pages, and
-            re-render until the HTML is stable (bounded to "tocPasses"
-            passes), as the ToC page number column itself can shift
-            the pagination  */
-        verbose("determining ToC page numbers")
-        let html   = await renderHtmlPass()
-        let plain  = await renderPdf(html)
-        let stable = false
-        for (let i = 0; i < tocPasses && !stable; i++) {
-            const next = await renderHtmlPass(await anchorPages(plain))
-            stable = next === html
-            if (!stable) {
-                html  = next
-                plain = await renderPdf(html)
+        /*  paginate the body of the document just once  */
+        verbose("paginating document body")
+        const doc = await renderPdf(print.body)
+
+        /*  determine the page count of the table of contents via a
+            fixpoint iteration: render it with the page numbers of the
+            body shifted by the assumed page count of itself (where only
+            a title page stays in front of it) and re-render until the
+            assumption holds (bounded to "tocPasses" passes)  */
+        const front  = titlePage ? 1 : 0
+        const render = print.toc
+        if (render !== null) {
+            verbose("paginating table of contents")
+            const anchors  = await anchorPages(doc)
+            const paginate = (count: number) => renderPdf(render(new Map(Array.from(anchors,
+                ([ anchor, number ]) => [ anchor, number > front ? number + count : number ]))), {}, true)
+            let count = 0
+            let toc   = await paginate(count)
+            for (let i = 0; i < tocPasses && toc.getPageCount() !== count; i++) {
+                count = toc.getPageCount()
+                toc   = await paginate(count)
             }
+
+            /*  report an unconverged iteration, as the ToC then carries the
+                page numbers of a pagination other than the final one and
+                would otherwise ship silently wrong page numbers  */
+            if (toc.getPageCount() !== count)
+                verbose(`the ToC page numbers did not stabilize within ${literal(tocPasses)} ` +
+                    "passes -- they can be off by a page", "none")
+
+            /*  merge the table of contents into the body (keeping the
+                named destinations of the body and hence its internal
+                hyperlinks intact) and link its entries to them  */
+            const pages = await doc.copyPages(toc, toc.getPageIndices())
+            pages.forEach((merged, i) => { doc.insertPage(front + i, merged) })
+            await relinkPages(pages)
         }
 
-        /*  report an unconverged iteration, as the ToC then carries the
-            page numbers of a pagination other than the final one and
-            would otherwise ship silently wrong page numbers  */
-        if (!stable)
-            verbose(`the ToC page numbers did not stabilize within ${literal(tocPasses)} ` +
-                "passes -- they can be off by a page", "none")
-
-        /*  render the final document, decorated with header/footer  */
-        const decorated = await renderPdf(html, {
+        /*  render the page decoration onto all pages except a title page,
+            which carries no header/footer, as the decoration of empty
+            pages laid over the pages  */
+        verbose("decorating pages with header and footer")
+        const count = doc.getPageCount()
+        const decoration = await renderPdf("<!DOCTYPE html><html><head><style>" +
+            "div { height: 1px } div + div { break-before: page }</style></head><body>" +
+            "<div></div>".repeat(count) + "</body></html>", {
             displayHeaderFooter: true,
+            printBackground:     false,
             ...decorationTemplates(heading, css, theme,
                 paperLength(setup, margin.left), paperLength(setup, margin.right))
         })
-
-        /*  a title page carries no header/footer: as Chromium decorates
-            all pages unconditionally, swap the first page of the
-            identically paginated undecorated document (left over from
-            the ToC page number iteration) into the decorated document
-            *in place*, which keeps the decorated document's link
-            destinations (and hence the internal hyperlinks) intact  */
-        const { PDFDocument } = await import("pdf-lib")
-        const merged = await PDFDocument.load(decorated)
-        if (titlePage) {
-            const source = await PDFDocument.load(plain)
-            const [ first ] = await merged.copyPages(source, [ 0 ])
-            merged.removePage(0)
-            merged.insertPage(0, first)
-        }
+        if (decoration.getPageCount() !== count)
+            throw new Error(`page decoration paginated into ${decoration.getPageCount()} ` +
+                `instead of ${count} pages`)
+        const indices  = doc.getPageIndices().slice(front)
+        const overlays = await doc.embedPages(indices.map((index) => decoration.getPage(index)))
+        indices.forEach((index, i) => { doc.getPage(index).drawPage(overlays[i]) })
 
         /*  attach the document outline for the viewer side-bar  */
         verbose("attaching PDF outline (bookmarks)")
-        await addOutline(merged, outline)
+        await addOutline(doc, outline)
 
         /*  decorate every page with the vertical brand bar  */
-        await drawBrandBar(merged, theme.accent)
-        return Buffer.from(await merged.save())
+        await drawBrandBar(doc, theme.accent)
+        return Buffer.from(await doc.save())
     }
     finally {
         await browser.close()

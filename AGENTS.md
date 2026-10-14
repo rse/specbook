@@ -1131,11 +1131,19 @@ The PDF export prints the HTML through Playwright/Chromium (the browser
 explicitly configured by `SPECBOOK_BROWSER`, else the downloaded
 Playwright Chromium, else a system-installed Google Chrome, with a
 missing browser failing the export before the specification is
-even parsed) and post-processes it with `pdf-lib`: header/footer
-decoration, a vertical brand bar drawn onto the left edge of every page,
-and a hierarchical PDF outline. The page numbers of the table of
-contents are found by a bounded fixpoint iteration of at most three
-rendering passes, as the number column itself shifts the pagination.
+even parsed) and post-processes it with `pdf-lib`. The print HTML
+carries none of the client-side scripts of the screen, and its body
+(title page, diagram of contents, and artifacts) is paginated just once,
+while the table of contents is paginated apart from it with the page
+numbers of the body (shifted by its own page count, which a bounded
+fixpoint iteration of at most three passes of the table of contents
+alone determines, as the number column itself shifts its pagination),
+merged in front of the body behind a title page (its links turned into
+internal links onto the named destinations of the body), and overlaid
+with the header/footer decoration, rendered as a document of empty
+pages, so the page numbers count all pages. A vertical brand bar is
+drawn onto the left edge of every page, and a hierarchical PDF outline
+is attached.
 
 The `describe` command outputs `src/specbook-format.md` verbatim,
 followed by a "SpecBook Project Instantiation" section pointing to the

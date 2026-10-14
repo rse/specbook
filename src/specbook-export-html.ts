@@ -40,7 +40,8 @@ import { foldScript, omittedControls }
     from "./specbook-export-html-fold.js"
 import { withDocument, makeLinker, collectInfo, collectSpec, collectMembers,
     conciseGroup, flowChildren, groupChildren, formatDate,
-    renderTitlePage, renderArtifact, tocEntries, renderTocPanel }
+    renderTitlePage, renderArtifact, tocEntries, renderTocPanel,
+    type DocumentState }
     from "./specbook-export-html-render.js"
 
 /*  ==== Outline ====  */
@@ -178,17 +179,34 @@ const filterRows = (artifacts: SpecArtifact[], paths: Map<SpecObject, string>) =
     return Array.from(rows.values())
 }
 
-/*  render the entire specification into a self-contained HTML document,
-    with the build-time pre-assembled stylesheet embedded inline, the
-    artifact timestamps aggregated into min(Created)/max(Modified),
-    optional per-anchor page numbers attached to the ToC entries,
-    optionally the client-side script of the live preview injected and
-    aspects omitted (see "ExportOptions"), the embedded images
-    optimized for the screen or for print (the PDF), and the embedded
-    Mermaid/D2 diagrams rendered in the theme colors  */
-export const renderHtml = async (specification: Spec, config?: Schema,
-    tocPages?: Map<string, number>, css?: string, options: ExportOptions = {},
-    verbose?: Verbose, print = false): Promise<string> => {
+/*  the parts of the document a rendering composes: the entire one for
+    the screen, and for print (the PDF) the body without the table of
+    contents and the table of contents alone, which the PDF export
+    paginates apart from each other  */
+type DocumentPart = "screen" | "body" | "toc"
+
+/*  the print rendering of the document: its body without the table of
+    contents (the title page, the diagram of contents, and the
+    artifacts), and the rendering of the table of contents alone with
+    the given per-anchor page numbers attached to its entries (absent
+    without any entry)  */
+export type PrintDocument = {
+    body: string
+    toc:  ((pages: Map<string, number>) => string) | null
+}
+
+/*  prepare the rendering of the entire specification into self-contained
+    HTML documents, with the build-time pre-assembled stylesheet embedded
+    inline, the artifact timestamps aggregated into
+    min(Created)/max(Modified), optionally the client-side script of the
+    live preview injected and aspects omitted (see "ExportOptions"), the
+    embedded images optimized for the screen or for print (the PDF), and
+    the embedded Mermaid/D2 diagrams rendered in the theme colors: the
+    expensive preparations are done once, while the returned composition
+    of a document part can be repeated cheaply  */
+const prepareDocument = async (specification: Spec, config: Schema | undefined,
+    css: string | undefined, options: ExportOptions, verbose: Verbose | undefined,
+    print: boolean) => {
     /*  pre-render the configured diagrams as scaled embeddable SVGs
         (except for the omitted ones, which hence leave no trace at all)  */
     const omit     = options.omit ?? new Set<OmitAspect>()
@@ -225,9 +243,10 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         and the rendered rationale keyword translation  */
     const lang = documentLang(specification)
 
-    /*  establish the per-document rendering state (released again
-        afterwards, also on a failure of the collecting or rendering)  */
-    return withDocument({
+    /*  the per-document rendering state, established for every
+        composition (and released again afterwards, also on a failure
+        of the collecting or rendering)  */
+    const state: DocumentState = {
         lang,
         linker:      makeLinker(index),
         anchors:     paths,
@@ -243,9 +262,11 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         infoKeys:    config !== undefined ? infoKeys : null,
         infoObjects: config !== undefined ? infoObjects : null,
         omits:       omit
-    }, () => {
-        /*  collect the schema descriptions for the description popups,
-            plus the object table composing their title paths  */
+    }
+
+    /*  collect the schema descriptions for the description popups,
+        plus the object table composing their title paths  */
+    const { info, spec } = withDocument(state, () => {
         let info: InfoEntry[] | null = null
         const spec: SpecEntry[] = []
         if (config !== undefined) {
@@ -263,49 +284,57 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             for (const artifact of specification.artifacts)
                 collectSpec(artifact.objects, spec)
         }
+        return { info, spec }
+    })
 
-        /*  the artifact timestamps aggregate into the earliest creation
-            and the latest modification timestamp of the document  */
-        const created  = new Date(Math.min(
-            ...specification.artifacts.map((artifact) => artifact.created.getTime())))
-        const modified = new Date(Math.max(
-            ...specification.artifacts.map((artifact) => artifact.modified.getTime())))
+    /*  the artifact timestamps aggregate into the earliest creation
+        and the latest modification timestamp of the document  */
+    const created  = new Date(Math.min(
+        ...specification.artifacts.map((artifact) => artifact.created.getTime())))
+    const modified = new Date(Math.max(
+        ...specification.artifacts.map((artifact) => artifact.modified.getTime())))
 
-        /*  a "META: Title" object becomes the title page and leaves the regular
-            flow, while its diagram becomes the "Diagram of Contents" page  */
-        const title     = titlePageObject(specification)
-        const artifacts = specification.artifacts
-            .filter((artifact) => !artifact.objects.some(isTitleObject))
-        const meta      = titleObject(specification)
-        const doc       = meta !== undefined ? diagrams?.get(meta) : undefined
-        const objects   = artifacts.flatMap((artifact) => artifact.objects)
-        const entries   = tocEntries(objects, tocPages)
+    /*  a "META: Title" object becomes the title page and leaves the regular
+        flow, while its diagram becomes the "Diagram of Contents" page  */
+    const title     = titlePageObject(specification)
+    const artifacts = specification.artifacts
+        .filter((artifact) => !artifact.objects.some(isTitleObject))
+    const meta      = titleObject(specification)
+    const doc       = meta !== undefined ? diagrams?.get(meta) : undefined
+    const objects   = artifacts.flatMap((artifact) => artifact.objects)
 
-        /*  collect the reference table of the artifact filter: per
-            object its parent index, its anchor path segment (the path
-            less the one of its parent), and the indices of the objects
-            its own texts reference  */
-        const positions = new Map<SpecObject, number>(index.map((node) => [ node.object, node.pos ]))
-        const links     = index.map((node): FilterEntry => {
-            const path   = paths.get(node.object) ?? node.object.id
-            const parent = node.parent !== undefined ? paths.get(node.parent.object) : undefined
-            return [ node.parent?.pos ?? -1, parent !== undefined ? path.slice(parent.length + 1) : path,
-                referenceTargets(index, node.object).map((target) => positions.get(target) ?? -1)
-                    .filter((pos) => pos >= 0) ]
-        })
-        const rows = filterRows(artifacts, paths)
+    /*  collect the reference table of the artifact filter: per
+        object its parent index, its anchor path segment (the path
+        less the one of its parent), and the indices of the objects
+        its own texts reference  */
+    const positions = new Map<SpecObject, number>(index.map((node) => [ node.object, node.pos ]))
+    const links     = index.map((node): FilterEntry => {
+        const path   = paths.get(node.object) ?? node.object.id
+        const parent = node.parent !== undefined ? paths.get(node.parent.object) : undefined
+        return [ node.parent?.pos ?? -1, parent !== undefined ? path.slice(parent.length + 1) : path,
+            referenceTargets(index, node.object).map((target) => positions.get(target) ?? -1)
+                .filter((pos) => pos >= 0) ]
+    })
+    const rows = filterRows(artifacts, paths)
 
-        /*  the client-side scripts of the widgets and the side panel of
-            the table of contents serve the screen only, so print (the
-            PDF) neither carries nor runs them  */
-        const screen = !print
+    /*  compose a document part, optionally with per-anchor page numbers
+        attached to the ToC entries: the client-side scripts of the
+        widgets and the side panel of the table of contents serve the
+        screen only, so print (the PDF) neither carries nor runs them  */
+    const compose = (part: DocumentPart, tocPages?: Map<string, number>): string => withDocument(state, () => {
+        const screen  = part === "screen"
+        const content = part !== "toc"
+        const entries = part !== "body" ? tocEntries(objects, tocPages) : []
+
+        /*  render the artifacts  */
+        const contents = content ? artifacts.map((artifact) => renderArtifact(artifact)) : []
         return render("Document", { Document: {
             title:       documentTitle(specification).title,
             lang,
             theme:       documentThemeStyle(specification),
             css:         safe((css ?? stylesheet()) + (rendered !== null ? `\n${rendered.css}` : "") + omitCss),
             themescript: safe(themeScript),
-            titlepage:   title !== undefined ?
+            titlepage:   content && title !== undefined ?
                 safe(renderTitlePage(title,
                     formatDate(created), formatDate(modified))) : "",
             search:      screen ? safe(searchScript()) : "",
@@ -318,12 +347,32 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             info:        screen && info !== null ? safe(infoScript(info, spec)) : "",
             realtime:    screen && options.realtime === true ? safe(realtimeScript) : "",
             toc:         entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
-            tocpanel:    screen && entries.length > 0 ?
+            tocpanel:    screen && objects.length > 0 ?
                 safe(renderTocPanel(objects,
                     title !== undefined, doc !== undefined)) : "",
-            tocscript:   screen && entries.length > 0 ? safe(tocPanelScript) : "",
-            doc:         doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",
-            artifacts:   safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
+            tocscript:   screen && objects.length > 0 ? safe(tocPanelScript) : "",
+            doc:         content && doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",
+            artifacts:   safe(contents.join(""))
         } })
     })
+    return { compose, toc: objects.length > 0 }
+}
+
+/*  render the entire specification into a self-contained HTML document
+    for the screen (see "prepareDocument")  */
+export const renderHtml = async (specification: Spec, config?: Schema,
+    css?: string, options: ExportOptions = {}, verbose?: Verbose): Promise<string> => {
+    const { compose } = await prepareDocument(specification, config, css, options, verbose, false)
+    return compose("screen")
+}
+
+/*  render the entire specification into self-contained HTML documents
+    for print (see "prepareDocument" and "PrintDocument")  */
+export const renderPrintHtml = async (specification: Spec, config?: Schema,
+    css?: string, options: ExportOptions = {}, verbose?: Verbose): Promise<PrintDocument> => {
+    const { compose, toc } = await prepareDocument(specification, config, css, options, verbose, true)
+    return {
+        body: compose("body"),
+        toc:  toc ? (pages: Map<string, number>) => compose("toc", pages) : null
+    }
 }
