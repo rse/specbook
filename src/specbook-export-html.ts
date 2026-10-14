@@ -295,6 +295,14 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         })
         const rows = filterRows(artifacts, paths)
 
+        /*  number the top-level objects across all artifacts  */
+        let   number    = 1
+        const contents  = artifacts.map((artifact) => {
+            const html = renderArtifact(artifact, number)
+            number += artifact.objects.length
+            return html
+        })
+
         /*  the client-side scripts of the widgets and the side panel of
             the table of contents serve the screen only, so print (the
             PDF) neither carries nor runs them  */
@@ -323,7 +331,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
                     title !== undefined, doc !== undefined)) : "",
             tocscript:   screen && entries.length > 0 ? safe(tocPanelScript) : "",
             doc:         doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",
-            artifacts:   safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
+            artifacts:   safe(contents.join(""))
         } })
     })
 }

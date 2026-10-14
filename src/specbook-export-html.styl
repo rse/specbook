@@ -974,6 +974,31 @@ article h3::before
     content: counter(sec1, decimal-leading-zero) "." counter(sec2, decimal-leading-zero) "." \
         counter(sec3, decimal-leading-zero) " "
 
+/*  the top-level sections of the artifacts are rendered lazily on the
+    screen: the browser skips the layout and painting of the ones far
+    outside the viewport, which keeps very large documents responsive,
+    and sizes them by an estimate until they were rendered once (and by
+    their remembered size afterwards). As this contains each section, no
+    margin collapses through its edges anymore and its overflow is
+    clipped, so the heading moves its top margin onto the section, a
+    closing pseudo-element cancels the bottom margins of the trailing
+    content (as its positive and negative margins collapse with them),
+    and the section extends into the page margins beside it (where the
+    fold marks reside). The containment also scopes the section
+    counters, hence the top-level headings set their number explicitly  */
+@media screen
+    article > section
+        content-visibility: auto
+        contain-intrinsic-size: auto 1500px
+        margin: 3.0rem -2.0rem 0.5rem -2.0rem
+        padding: 0 2.0rem
+    article > section > h1
+        margin-top: 0
+    article > section::after
+        content: ""
+        display: block
+        margin: 3.0rem 0 -3.0rem 0
+
 a
     color: var(--theme-color-specbook-accent)
     text-decoration: none
