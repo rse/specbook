@@ -2,8 +2,12 @@
 ChangeLog
 =========
 
-1.5.3 (2026-10-25)
+1.6.0 (2026-10-25)
 ------------------
+
+-   IMPROVEMENT [code]: Artifact Filter Tab of the HTML Export
+    A new brand bar tab slides out a grid of the artifact kinds and their top-level artifacts, whose
+    enabled ones show entirely, while elsewhere only the transitively referenced objects stay visible.
 
 -   IMPROVEMENT [code]: Rationale Keyword in the Document Language
     The HTML/PDF export follows the `BECAUSE` of the rationales with its translation into the `LANG`

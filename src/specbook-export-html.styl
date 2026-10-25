@@ -400,10 +400,105 @@ div.info-popup.spec a.link-compact::before
     div.info-popup
         display: none
 
+/*  the artifact filter tab (screen-only): the tab riding right of the
+    brand bar between the search tab and the folding tab (as wide as
+    those, fixed independent of the content scrolling), showing a
+    layers icon (drawn like the search icon), which slides a grid out
+    to the right (and back in), hanging from the top of the tab beside
+    the tabs below, where the tab follows the bar when the table of
+    contents panel shifts it aside (a small gap keeping the grid off
+    the tabs below, bridged beside the tab itself, as the panel clips
+    everything outside of it); the grid holds one row per artifact
+    kind -- the kind cell first, toggling the whole row, then one cell
+    per top-level artifact of the kind, labeled by its id -- whose
+    cells are sticky checkboxes, bordered lighter than the panel in
+    both themes to read as buttons, carrying the mark colors while enabled
+    (a kind cell outlined while only some of its row is), like the
+    filter icon itself while any artifact is  */
+div.filter-switch
+    tab(10.66rem)
+    display: flex
+    align-items: center
+div.filter-switch.open,
+div.filter-switch.open div.filter-toggle
+    border-radius: 0
+div.filter-switch::after
+    content: ""
+    position: absolute
+    top: 0
+    bottom: 0
+    left: 100%
+    width: 0.4rem
+    background-color: var(--theme-color-specbook-accent)
+    visibility: hidden
+    transition: visibility 0s 0.3s
+div.filter-switch.open::after
+    visibility: visible
+    transition-delay: 0s
+div.filter-switch div.filter-toggle
+    padding: 0.65rem 0.1rem
+    line-height: 0
+    border-radius: 0 0.3rem 0.3rem 0
+    cursor: pointer
+div.filter-switch div.filter-toggle:hover
+    background-color: var(--theme-color-specbook-accent-soft)
+div.filter-switch svg.filter-icon
+    width: 1.1rem
+    height: 1.1rem
+    padding: 0.25rem
+    border-radius: 0.3rem
+    margin-right: 0.15rem
+body.filtering div.filter-switch svg.filter-icon
+    color: var(--theme-color-specbook-mark-text)
+    background-color: var(--theme-color-specbook-mark-back)
+div.filter-switch div.filter-panel
+    position: absolute
+    top: 0
+    left: calc(100% + 0.4rem)
+    width: max-content
+    overflow: hidden
+    max-width: 0
+    border-radius: 0 0.3rem 0.3rem 0.3rem
+    background-color: var(--theme-color-specbook-accent)
+    transition: max-width 0.3s ease
+    body:has(nav.toc-panel.open) &
+        box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
+div.filter-switch.open div.filter-panel
+    max-width: 48rem
+div.filter-switch div.filter-grid
+    display: grid
+    gap: 0.3rem
+    padding: 0.7rem
+    line-height: 1
+div.filter-switch div.filter-grid > div
+    padding: 0.3rem 0.4rem
+    border: 1px solid rgba(255, 255, 255, 0.45)
+    border-radius: 0.3rem
+    font-size: 0.8rem
+    text-align: center
+    white-space: nowrap
+    cursor: pointer
+    -webkit-user-select: none
+    user-select: none
+div.filter-switch div.filter-grid > div:hover
+    background-color: var(--theme-color-specbook-accent-soft)
+div.filter-switch div.filter-grid > div.on
+    color: var(--theme-color-specbook-mark-text)
+    background-color: var(--theme-color-specbook-mark-back)
+div.filter-switch div.filter-kind
+    grid-column: 1
+    font-weight: bold
+    text-align: left
+div.filter-switch div.filter-kind.some
+    border-color: var(--theme-color-specbook-mark-back)
+@media print
+    div.filter-switch
+        display: none
+
 /*  the folding tab (screen-only): the tab riding right of the brand
-    bar between the search tab and the table of contents tab (as wide
-    as those, fixed independent of the content scrolling), showing a
-    fold icon (drawn like the search icon), which slides the
+    bar between the artifact filter tab and the table of contents tab
+    (as wide as those, fixed independent of the content scrolling),
+    showing a fold icon (drawn like the search icon), which slides the
     controls out to the right (and back in), where the tab follows the
     bar when the table of contents panel shifts it aside; the controls
     fold and unfold all diagrams of a type, all diagrams from a nesting
@@ -411,7 +506,7 @@ div.info-popup.spec a.link-compact::before
     carry, like the fold icon itself, the mark colors in a rounded box
     while anything of their kind is folded  */
 div.fold-switch
-    tab(10.66rem)
+    tab(13.89rem)
     display: flex
     align-items: center
 div.fold-switch div.fold-toggle
@@ -622,7 +717,7 @@ html.maximized
     is active) while disconnected, plus blinking in a soft accent box
     for 2s (toggling every 250ms) after a content reload  */
 div.realtime-status
-    tab(17.12rem, 2px)
+    tab(20.35rem, 2px)
     padding: 0.65rem 0.1rem
     line-height: 0
     -webkit-user-select: none
@@ -730,7 +825,7 @@ nav.toc-panel.open div.toc-tab
     box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 nav.toc-panel div.toc-tab
     position: absolute
-    top: 13.89rem
+    top: 17.12rem
     left: calc(100% - 1px)
     padding: 0.9rem 0.35rem
     line-height: 0
@@ -1507,6 +1602,15 @@ tspan.search-hit
     stroke: none
 rect.search-hit
     fill: var(--theme-color-specbook-mark-back)
+
+/*  the artifact filter hiding (the hidden objects, the emptied tables
+    and articles, and the table of contents entries, where a fold
+    container inside a table cell outranks the bare class), plus the
+    diagram of contents, which spans all artifacts  */
+.filter-hide,
+div.fold.filter-hide,
+body.filtering nav.doc
+    display: none
 
 /*  the table of contents (with page numbers for print only): all
     section headings, numbered like the document (three levels deep,

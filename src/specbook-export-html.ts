@@ -6,11 +6,11 @@
 
 import { Gradia } from "@rse/gradia"
 
-import type { Spec, SpecObject }
+import type { Spec, SpecArtifact, SpecObject }
     from "./specbook-format-spec.js"
 import type { Schema, SchemaObject }
     from "./specbook-format-schema.js"
-import { buildLinkIndex, anchorPaths, plainText }
+import { buildLinkIndex, anchorPaths, plainText, referenceTargets }
     from "./specbook-link.js"
 import { stylesheet, searchScript, isTitleObject, titleObject,
     documentTitle, documentLang, documentThemeStyle,
@@ -33,7 +33,8 @@ import type { Verbose }
 import { safe, render }
     from "./specbook-export-html-template.js"
 import { themeScript, placeholderStylesheet, realtimeScript, scrollProgressScript,
-    maximizeScript, tocPanelScript, infoScript, type InfoEntry, type SpecEntry }
+    maximizeScript, tocPanelScript, infoScript, filterScript,
+    type InfoEntry, type SpecEntry, type FilterEntry }
     from "./specbook-export-html-widget.js"
 import { foldScript, omittedControls }
     from "./specbook-export-html-fold.js"
@@ -152,6 +153,34 @@ const wrapDiagrams = (svgs: Map<SpecObject, string>,
     return blocks
 }
 
+/*  derive a short label out of a name: the upper-cased initials of its
+    words, or the first two letters of a single-word name  */
+const idify = (name: string): string => {
+    const words = name.split(/[^\p{L}\p{N}]+/u).filter((word) => word !== "")
+    return (words.length === 1 ? words[0].slice(0, 2) : words.map((word) => word[0]).join("")).toUpperCase()
+}
+
+/*  the rows of the artifact filter grid: one per artifact kind (in the
+    order of first occurrence), carrying the top-level objects of the
+    flow artifacts of the kind as cells, each identified by its anchor
+    path, labeled by its explicit anchor or parenthesized id (else by
+    the initials of its name, as its slugified id would be as long as
+    the name), and titled like its heading  */
+const filterRows = (artifacts: SpecArtifact[], paths: Map<SpecObject, string>) => {
+    const rows = new Map<string, { kind: string, cells: { id: string, label: string, title: string }[] }>()
+    for (const object of artifacts.flatMap((artifact) => artifact.objects)) {
+        let row = rows.get(object.kind)
+        if (row === undefined) {
+            row = { kind: object.kind, cells: [] }
+            rows.set(object.kind, row)
+        }
+        row.cells.push({ id: paths.get(object) ?? object.id,
+            label: object.anchor ?? object.paren ?? idify(plainText(object.name)),
+            title: (object.kind !== "" ? `${object.kind}: ` : "") + plainText(object.name) })
+    }
+    return Array.from(rows.values())
+}
+
 /*  render the entire specification into a self-contained HTML document,
     with the build-time pre-assembled stylesheet embedded inline, the
     artifact timestamps aggregated into min(Created)/max(Modified),
@@ -185,6 +214,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     /*  collect the per-document rendering state, where the description
         popup keys are filled in below, once the state is established  */
     const index       = buildLinkIndex(specification)
+    const paths       = anchorPaths(index)
     const schemas     = config !== undefined ? collectSchemas(specification, config) : null
     const levels      = objectLevels(specification)
     const infoKeys    = new Map<SchemaObject, string>()
@@ -203,7 +233,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
     return withDocument({
         lang,
         linker:      makeLinker(index),
-        anchors:     anchorPaths(index),
+        anchors:     paths,
         members:     config !== undefined ? collectMembers(config, new Map()) : null,
         schemas,
         diagrams,
@@ -253,6 +283,20 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         const doc       = meta !== undefined ? diagrams?.get(meta) : undefined
         const objects   = artifacts.flatMap((artifact) => artifact.objects)
         const entries   = tocEntries(objects, tocPages)
+
+        /*  collect the reference table of the artifact filter: per
+            object its parent index, its anchor path segment (the path
+            less the one of its parent), and the indices of the objects
+            its own texts reference  */
+        const positions = new Map<SpecObject, number>(index.map((node) => [ node.object, node.pos ]))
+        const links     = index.map((node): FilterEntry => {
+            const path   = paths.get(node.object) ?? node.object.id
+            const parent = node.parent !== undefined ? paths.get(node.parent.object) : undefined
+            return [ node.parent?.pos ?? -1, parent !== undefined ? path.slice(parent.length + 1) : path,
+                referenceTargets(index, node.object).map((target) => positions.get(target) ?? -1)
+                    .filter((pos) => pos >= 0) ]
+        })
+        const rows = filterRows(artifacts, paths)
         return render("Document", { Document: {
             title:       documentTitle(specification).title,
             lang,
@@ -263,6 +307,8 @@ export const renderHtml = async (specification: Spec, config?: Schema,
                 safe(renderTitlePage(title,
                     formatDate(created), formatDate(modified))) : "",
             search:      safe(searchScript()),
+            filtergrid:  { rows, columns: 1 + Math.max(0, ...rows.map((row) => row.cells.length)) },
+            filter:      safe(filterScript(links)),
             progress:    safe(scrollProgressScript),
             omitted,
             fold:        safe(foldScript(omit.size > 0, omitted.text)),

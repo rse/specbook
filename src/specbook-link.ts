@@ -254,6 +254,25 @@ export const resolveUnique = (index: LinkIndex, reference: string, from?: SpecOb
     return { target: matches.length === 1 ? matches[0] : undefined, ambiguous: matches.length > 1 }
 }
 
+/*  resolve the references of the own texts of an object (its name,
+    property values, description, rationale, and elaboration) into
+    their distinct targets, in order of occurrence, leniently skipping
+    the unresolvable ones, as the reference pass reports those  */
+export const referenceTargets = (index: LinkIndex, object: SpecObject): SpecObject[] => {
+    const texts = [ object.name, ...object.properties.map((property) => property.value) ]
+    if (object.description !== undefined)
+        texts.push(object.description.description, object.description.rationale ?? "",
+            object.description.elaboration ?? "")
+    const targets = new Set<SpecObject>()
+    for (const text of texts)
+        for (const m of plainText(text).matchAll(referenceRegex)) {
+            const target = resolveUnique(index, m[1].trim(), object).target
+            if (target !== undefined && target !== object)
+                targets.add(target)
+        }
+    return Array.from(targets)
+}
+
 /*  derive the fully-qualified anchor path of every object: the
     "<kind>-<id>" segments (whitespace in kinds dashed) of the ancestor
     chain joined with "." (the index lists parents before children)  */

@@ -37,6 +37,17 @@ const templates = {
                         <span class="search-clear" id="search-clear" title="clear search">&#x00D7;</span>
                     </div>
                 </div>
+                <div class="filter-switch">
+                    <div class="filter-toggle" title="toggle artifact filter"><svg class="filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l-9 4.5 9 4.5 9-4.5z"/><path d="M3 12.25l9 4.5 9-4.5"/><path d="M3 17l9 4.5 9-4.5"/></svg></div>
+                    <div class="filter-panel">
+                        <div class="filter-grid" style="grid-template-columns: repeat({{ Document.filtergrid.columns }}, max-content)">
+                            {% for row in Document.filtergrid.rows %}
+                            <div class="filter-kind" title="toggle all {{ row.kind }} artifacts">{{ row.kind }}</div>
+                            {%- for cell in row.cells %}<div class="filter-cell" data-id="{{ cell.id }}" title="{{ cell.title }}">{{ cell.label }}</div>{% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
                 {%- if not Document.omitted.all %}
                 <div class="fold-switch">
                     <div class="fold-toggle" title="toggle folding controls"><svg class="fold-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5l5 5 5-5"/><path d="M7 20.5l5-5 5 5"/></svg></div>
@@ -61,6 +72,7 @@ const templates = {
                 {% if Document.search %}<script>{{ Document.search }}</script>{% endif %}
                 <script>{{ Document.progress }}</script>
                 <script>{{ Document.fold }}</script>
+                <script>{{ Document.filter }}</script>
                 <script>{{ Document.maximize }}</script>
                 {% if Document.tocpanel %}<script>{{ Document.tocscript }}</script>{% endif %}
                 {% if Document.info %}<script>{{ Document.info }}</script>{% endif %}

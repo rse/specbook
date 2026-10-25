@@ -575,9 +575,9 @@ rendered from the `META: Title` object, the table of contents, and the
 very object) followed by the artifacts, with the title object itself
 leaving the regular document flow. The vertical brand bar at the left
 viewport edge carries, top down, the theme-switching tab, the
-description popup tab, the search tab, the folding tab, the table of
-contents side panel tab, and (in the live preview only) the connection
-status tab, all of
+description popup tab, the search tab, the artifact filter tab, the
+folding tab, the table of contents side panel tab, and (in the live
+preview only) the connection status tab, all of
 which follow the bar when the side panel shifts it aside. The side panel
 remembers its open state, marks the active and the anchored entry, and
 closes on a jump, on `Escape`, and on an outside click. The search is a
@@ -593,6 +593,30 @@ and the corpus description of an object instance after the mouse rested
 400ms on it, the title path of an instance popup trailing the anchor id
 of the object (explicit or derived from its name) as ` (#xxx)`. The
 rendered HTML is finally minified with `@swc/html`.
+
+The artifact filter tab (screen only) slides out a grid holding one
+row per artifact kind: the kind cell first, then one cell per top-level
+artifact of the kind, labeled by its explicit anchor or parenthesized
+id (else by the upper-cased initials of its name). The cells are sticky
+checkboxes (persisted as the anchor paths of the enabled artifacts),
+carrying the mark colors while enabled, where a kind cell toggles all
+artifacts of its row (and is outlined while only some of them are
+enabled) and the tab icon is marked while any is. Every enabled
+artifact is an *origin* shown entirely, while in all other artifacts
+only the objects stay visible which the closure reaches from the
+origin objects through the outgoing `[[...]]` references -- the own
+references (name, properties, description) of a reached object
+continue the closure, those of its hidden children do not -- each
+shown with its properties and description but without its child
+objects, plus the headings of its enclosing objects; the table of
+contents (page and side panel) is filtered along, the "Diagram of
+Contents" is hidden, and the filter combines with the search. The
+closure is computed client-side from a per-object reference table
+(parent index, anchor path segment, referenced object indices) the
+HTML renderer collects through `referenceTargets` of
+`src/specbook-link.ts` and injects into the filter script of
+`src/specbook-export-html-widget.ts`; a hyperlink whose target the
+filter hid clears the filter before it jumps.
 
 The HTML export (screen only, so print and hence PDF always show the
 full content) folds the content on two levels: every diagram sits in a

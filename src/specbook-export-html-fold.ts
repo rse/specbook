@@ -466,7 +466,7 @@ export const omittedControls = (omit: Set<OmitAspect>) => {
     }
     const css =
         (omitted.text ? "\nspan.omit { color: var(--theme-color-specbook-muted) }" : "") +
-        (omitted.all  ? "\nnav.toc-panel div.toc-tab { top: 10.66rem }" +
-            "\ndiv.realtime-status { top: 13.89rem }" : "")
+        (omitted.all  ? "\nnav.toc-panel div.toc-tab { top: 13.89rem }" +
+            "\ndiv.realtime-status { top: 17.12rem }" : "")
     return { omitted, css }
 }

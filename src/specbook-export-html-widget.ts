@@ -383,6 +383,7 @@ export const tocPanelScript = textframe`
                 && event.target.closest("div.search")          === null
                 && event.target.closest("div.theme-switch")    === null
                 && event.target.closest("div.info-switch")     === null
+                && event.target.closest("div.filter-switch")   === null
                 && event.target.closest("div.fold-switch")     === null
                 && event.target.closest("div.realtime-status") === null)
                 toggle(false)
@@ -605,6 +606,213 @@ const infoPopupScript = textframe`
         })
     })(@INFO@, @SPEC@)
 `
+
+/*  the client-side script of the artifact filter: the filter tab
+    slides a grid out, holding one row per artifact kind -- the kind
+    cell first, then one cell per top-level artifact of the kind --,
+    whose cells are sticky checkboxes (persisted across page loads as
+    the anchor paths of the enabled artifacts), a kind cell toggling
+    all artifacts of its row. Every enabled artifact is an origin shown
+    entirely, while in all other artifacts only the objects stay
+    visible which the closure reaches from the origin objects through
+    the outgoing references (the own references of a reached object
+    continuing it, not those of its hidden children), each shown
+    without its child objects, plus the headings of its enclosing
+    objects; the table of contents (page and side panel) is filtered
+    along and the diagram of contents hidden. The closure is computed
+    from the injected LINKS table (per object: parent index, anchor
+    path segment, and referenced object indices), from which the anchor
+    paths identifying the DOM elements are composed. A hyperlink whose
+    target the filter hid clears the filter before it jumps. The script
+    runs at the end of the body, as the content it hides has to exist
+    already, and a live preview body swap replaces the tab and its
+    listeners along with the body  */
+const artifactFilterScript = textframe`
+    (function (LINKS) {
+        const tab = document.querySelector("div.filter-switch")
+        if (tab === null)
+            return
+
+        /*  let the filter icon slide the grid out of the tab (and
+            back in again), remembering the choice across page loads  */
+        try { if (localStorage.getItem("specbook-filter") === "open") tab.classList.add("open") }
+        catch { /*  an inaccessible storage just means no stored state  */ }
+        tab.querySelector("div.filter-toggle").addEventListener("click", () => {
+            tab.classList.toggle("open")
+            try { localStorage.setItem("specbook-filter", tab.classList.contains("open") ? "open" : "closed") }
+            catch { /*  an inaccessible storage just loses the state  */ }
+        })
+
+        /*  the anchor path of every object (composed from the segments
+            along its ancestor chain), the object index per path, and
+            the top-level object (the artifact) of every object  */
+        const paths  = []
+        const roots  = []
+        const byPath = new Map()
+        LINKS.forEach(([ parent, segment ], n) => {
+            paths[n] = parent >= 0 ? paths[parent] + "." + segment : segment
+            roots[n] = parent >= 0 ? roots[parent] : n
+            byPath.set(paths[n], n)
+        })
+
+        /*  the grid rows: the kind cell leading a row toggles the
+            artifact cells following it, each identified by the anchor
+            path (and hence the index) of its top-level object  */
+        const rows  = []
+        const cells = new Map()
+        for (const el of tab.querySelector("div.filter-grid").children) {
+            if (el.classList.contains("filter-kind"))
+                rows.push({ kind: el, cells: [] })
+            else {
+                const n = byPath.get(el.getAttribute("data-id"))
+                if (n === undefined || rows.length === 0)
+                    continue
+                cells.set(n, el)
+                rows[rows.length - 1].cells.push(n)
+            }
+        }
+
+        /*  the active origins (the indices of the enabled artifacts),
+            persisted across page loads as the list of their anchor paths  */
+        const active = new Set()
+        const store = () => {
+            try { localStorage.setItem("specbook-filter-origins", Array.from(active).map((n) => paths[n]).join(",")) }
+            catch { /*  an inaccessible storage just loses the state  */ }
+        }
+        try {
+            for (const path of (localStorage.getItem("specbook-filter-origins") ?? "").split(",")) {
+                const n = byPath.get(path)
+                if (n !== undefined && cells.has(n))
+                    active.add(n)
+            }
+        }
+        catch { /*  an inaccessible storage just means no stored state  */ }
+
+        /*  apply the active origins onto the cells and the content  */
+        const apply = () => {
+            document.querySelectorAll(".filter-hide").forEach((el) => { el.classList.remove("filter-hide") })
+            document.body.classList.toggle("filtering", active.size > 0)
+            for (const [ n, cell ] of cells)
+                cell.classList.toggle("on", active.has(n))
+            for (const row of rows) {
+                const count = row.cells.filter((n) => active.has(n)).length
+                row.kind.classList.toggle("on",   count > 0 && count === row.cells.length)
+                row.kind.classList.toggle("some", count > 0 && count !== row.cells.length)
+            }
+            if (active.size === 0)
+                return
+
+            /*  the visibility state of every object: the objects of the
+                origin artifacts are shown entirely (3), the objects the
+                closure reaches from them through the own references of
+                a reached object are shown without their children (2),
+                the ancestors of those as headings only (1), and all
+                other objects are hidden (0)  */
+            const state = LINKS.map((_, n) => active.has(roots[n]) ? 3 : 0)
+            const queue = LINKS.map((_, n) => n).filter((n) => state[n] === 3)
+            for (let i = 0; i < queue.length; i++) {
+                for (const target of LINKS[queue[i]][2]) {
+                    if (state[target] >= 2)
+                        continue
+                    state[target] = 2
+                    queue.push(target)
+                    for (let p = LINKS[target][0]; p >= 0 && state[p] === 0; p = LINKS[p][0])
+                        state[p] = 1
+                }
+            }
+
+            /*  hide a hidden object entirely (its section or table row)
+                and the own content of a heading-only one (everything in
+                its section but the heading and the child containers,
+                whose objects carry states of their own), plus the tables
+                and articles which ran entirely empty in the process  */
+            state.forEach((s, n) => {
+                if (s >= 2)
+                    return
+                const el = document.getElementById(paths[n])
+                if (el === null)
+                    return
+                const box = el.tagName === "TR" ? el : el.closest("section")
+                if (box === null)
+                    return
+                if (s === 0)
+                    box.classList.add("filter-hide")
+                else if (box !== el)
+                    for (const child of box.children)
+                        if (child !== el && child.tagName !== "SECTION" && !child.classList.contains("objects"))
+                            child.classList.add("filter-hide")
+            })
+            document.querySelectorAll("article table.objects").forEach((table) => {
+                if (table.querySelector(":scope > tbody > tr:not(.filter-hide)") === null)
+                    table.classList.add("filter-hide")
+            })
+            document.querySelectorAll("article").forEach((article) => {
+                if (article.querySelector(":scope > section:not(.filter-hide)") === null)
+                    article.classList.add("filter-hide")
+            })
+
+            /*  filter the table of contents (its page rows and its side
+                panel entries) along: an entry stays visible only while
+                its target still is (the diagram of contents, spanning
+                all artifacts, is hidden by the stylesheet)  */
+            document.querySelectorAll("nav.toc table tr, nav.toc-panel div.toc-list li").forEach((entry) => {
+                const link   = entry.querySelector(":scope > a, :scope > td > a")
+                const target = link !== null ?
+                    document.getElementById(decodeURIComponent(link.hash.slice(1))) : null
+                if (target !== null && (target.closest(".filter-hide") !== null || target.closest("nav.doc") !== null))
+                    entry.classList.add("filter-hide")
+            })
+        }
+        for (const [ n, cell ] of cells)
+            cell.addEventListener("click", () => {
+                if (!active.delete(n))
+                    active.add(n)
+                store()
+                apply()
+            })
+        for (const row of rows)
+            row.kind.addEventListener("click", () => {
+                const all = row.cells.every((n) => active.has(n))
+                for (const n of row.cells) {
+                    if (all)
+                        active.delete(n)
+                    else
+                        active.add(n)
+                }
+                store()
+                apply()
+            })
+
+        /*  let a hyperlink whose target the filter hid clear the filter
+            before it jumps, so the browser performs the regular jump
+            onto the revealed target  */
+        document.body.addEventListener("click", (event) => {
+            const link = event.target.closest("a[href^='#']")
+            if (link === null || active.size === 0)
+                return
+            const target = document.getElementById(
+                decodeURIComponent((link.getAttribute("href") ?? "").slice(1)))
+            if (target === null || target.closest(".filter-hide") === null)
+                return
+            active.clear()
+            store()
+            apply()
+        })
+        apply()
+    })(@LINKS@)
+`
+
+/*  an entry of the reference table of the artifact filter embedded
+    into the document: the table index of the parent (-1 for none), the
+    anchor path segment, and the table indices of the objects the own
+    texts of the object reference  */
+export type FilterEntry = [ parent: number, segment: string, targets: number[] ]
+
+/*  inject the reference table of the artifact filter into its
+    client-side script ("<" escaped, so no embedded text can close the
+    surrounding <script> element)  */
+export const filterScript = (links: FilterEntry[]): string =>
+    artifactFilterScript.replace("@LINKS@", () => JSON.stringify(links).replace(/</g, "\\u003c"))
 
 /*  an entry of the description popup map embedded into the document:
     the pre-rendered description HTML of an object kind ("d") and of
