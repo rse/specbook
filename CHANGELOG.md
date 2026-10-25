@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: PDF Export of Very Large Specifications
+    The PDF export waits for `load` without a timeout and its HTML omits the screen-only scripts and
+    the ToC side panel, so huge specifications finish.
+
 -   IMPROVEMENT [code]: Batched Layout of the Cell Text Folds
     The client-side cell text folding measures all cells before it cuts any, so it no longer forces
     a full layout per cut, which stalled large documents (contributed by Matthias Brusdeylins).

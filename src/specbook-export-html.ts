@@ -297,6 +297,11 @@ export const renderHtml = async (specification: Spec, config?: Schema,
                     .filter((pos) => pos >= 0) ]
         })
         const rows = filterRows(artifacts, paths)
+
+        /*  the client-side scripts of the widgets and the side panel of
+            the table of contents serve the screen only, so print (the
+            PDF) neither carries nor runs them  */
+        const screen = !print
         return render("Document", { Document: {
             title:       documentTitle(specification).title,
             lang,
@@ -306,20 +311,20 @@ export const renderHtml = async (specification: Spec, config?: Schema,
             titlepage:   title !== undefined ?
                 safe(renderTitlePage(title,
                     formatDate(created), formatDate(modified))) : "",
-            search:      safe(searchScript()),
+            search:      screen ? safe(searchScript()) : "",
             filtergrid:  { rows, columns: 1 + Math.max(0, ...rows.map((row) => row.cells.length)) },
-            filter:      safe(filterScript(links)),
-            progress:    safe(scrollProgressScript),
+            filter:      screen ? safe(filterScript(links)) : "",
+            progress:    screen ? safe(scrollProgressScript) : "",
             omitted,
-            fold:        safe(foldScript(omit.size > 0, omitted.text)),
-            maximize:    safe(maximizeScript),
-            info:        info !== null ? safe(infoScript(info, spec)) : "",
-            realtime:    options.realtime === true ? safe(realtimeScript) : "",
+            fold:        screen ? safe(foldScript(omit.size > 0, omitted.text)) : "",
+            maximize:    screen ? safe(maximizeScript) : "",
+            info:        screen && info !== null ? safe(infoScript(info, spec)) : "",
+            realtime:    screen && options.realtime === true ? safe(realtimeScript) : "",
             toc:         entries.length > 0 ? safe(render("Toc", { Toc: { entries } })) : "",
-            tocpanel:    entries.length > 0 ?
+            tocpanel:    screen && entries.length > 0 ?
                 safe(renderTocPanel(objects,
                     title !== undefined, doc !== undefined)) : "",
-            tocscript:   entries.length > 0 ? safe(tocPanelScript) : "",
+            tocscript:   screen && entries.length > 0 ? safe(tocPanelScript) : "",
             doc:         doc !== undefined ? safe(render("Doc", { Doc: { diagram: safe(doc) } })) : "",
             artifacts:   safe(artifacts.map((artifact) => renderArtifact(artifact)).join(""))
         } })

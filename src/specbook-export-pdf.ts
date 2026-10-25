@@ -280,7 +280,7 @@ export const htmlToPdf = async (
         /*  render an HTML document into a paginated PDF  */
         const renderPdf = async (html: string,
             options: NonNullable<Parameters<typeof page.pdf>[0]> = {}) => {
-            await page.setContent(html, { waitUntil: "networkidle" })
+            await page.setContent(html, { waitUntil: "load", timeout: 0 })
             await page.evaluate(() => document.fonts.ready)
             return page.pdf({
                 format:            paper,
