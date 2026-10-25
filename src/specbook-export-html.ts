@@ -194,7 +194,8 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         and the object tree nesting level the folding distinguishes  */
     const diagrams = rendered !== null ? wrapDiagrams(rendered.svgs, schemas, levels) : null
 
-    /*  the document language selects the smart typography quote style  */
+    /*  the document language selects the smart typography quote style
+        and the rendered rationale keyword translation  */
     const lang = documentLang(specification)
 
     /*  establish the per-document rendering state (released again

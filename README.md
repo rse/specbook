@@ -108,7 +108,8 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
     The title object of the specification drives the entire document:
     its title, subtitle, author, version, and logo fill the title page
     (with an optional light/dark variant of the logo), its language
-    selects the smart typography quote style, its color tone seeds the
+    selects the smart typography quote style and the translation of the
+    rationale keyword (like `BECAUSE (weil)`), its color tone seeds the
     theme color spreads of both the light and the dark theme, and its
     character set subsets the embedded fonts down to the actually needed
     glyphs.

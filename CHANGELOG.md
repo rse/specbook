@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.5.3 (2026-10-25)
+------------------
+
+-   IMPROVEMENT [code]: Rationale Keyword in the Document Language
+    The HTML/PDF export follows the `BECAUSE` of the rationales with its translation into the `LANG`
+    of the title object, like `BECAUSE (weil)` for `de`, through an internal mapping.
+
 1.5.2 (2026-10-10)
 ------------------
 

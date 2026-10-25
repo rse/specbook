@@ -197,10 +197,10 @@ const templates = {
     "Description": textframe`
         {%- if Description.block %}
         <div class="description">{{ Description.description }}{% if Description.rationale %}
-            <p class="rationale">&mdash; <span class="keyword">BECAUSE</span> {{ Description.rationale }}</p>{% endif %}</div>
+            <p class="rationale">&mdash; <span class="keyword">BECAUSE</span>{% if Description.keyword %} ({{ Description.keyword }}){% endif %} {{ Description.rationale }}</p>{% endif %}</div>
         {%- elif Description.description or Description.rationale %}
         <p class="description">{{ Description.description }}{% if Description.rationale %}
-            <span class="rationale">&mdash; <span class="keyword">BECAUSE</span> {{ Description.rationale }}</span>{% endif %}</p>
+            <span class="rationale">&mdash; <span class="keyword">BECAUSE</span>{% if Description.keyword %} ({{ Description.keyword }}){% endif %} {{ Description.rationale }}</span>{% endif %}</p>
         {%- endif %}
         {%- if Description.elaboration %}
         <div class="description">{{ Description.elaboration }}</div>

@@ -1027,6 +1027,13 @@ The event is created and configured but not visible to attendees,
 BECAUSE an event needs a private setup phase.
 ```
 
+The `, BECAUSE ` keyword is the source syntax and stays English in every
+document language, while the HTML/PDF export follows the bold `BECAUSE`
+with its non-bold, lower-case translation in parentheses into the
+language of the `LANG` property of the title object (`BECAUSE (weil)`
+for `de`, `BECAUSE (parce que)` for `fr`, and so on, while `en` and an
+unknown language render the bare `BECAUSE`).
+
 The rationale ends with its paragraph: all blocks following it (further
 paragraphs, embedded images, and diagrams) form the *elaboration*, which
 is rendered below the statement and its rationale, so the description

@@ -685,7 +685,12 @@ theme, and an absent `LOGO` falls back onto the bundled SpecBook logo),
 the description of the object closes the title page below the
 `Modified` date as the abstract (justified, the follow-up paragraphs
 indented on their first line),
-`LANG` selects the smart typography quote style, `CHARSET` (US-ASCII,
+`LANG` selects the smart typography quote style and the translation
+of the rationale keyword, rendered as a bold `BECAUSE` followed by the
+non-bold, lower-case translation in parentheses (`BECAUSE (weil)`
+for `de`, and so on for the popular languages of the internal mapping
+`rationaleKeywords` of `src/specbook-export-html-render.ts`, while
+`en` and an unknown language render the bare `BECAUSE`), `CHARSET` (US-ASCII,
 ISO-8859-1, ISO-8859-15, or UTF-8) subsets the embedded fonts,
 `THEME-STYLE` presets the light/dark theme, `THEME-TONE` seeds the theme
 color spreads (one `#RRGGBB` for the accent spread, optionally followed

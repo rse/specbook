@@ -61,6 +61,37 @@ const quoteStyles: Record<string, [ string, string ]> = {
 /*  the active double quote style (set per document during rendering)  */
 let quotes: [ string, string ] = quoteStyles.en
 
+/*  the per-language translations of the rationale keyword, rendered
+    behind the always English "BECAUSE" of the source syntax  */
+const rationaleKeywords: Record<string, string> = {
+    "de": "weil",
+    "nl": "omdat",
+    "fr": "parce que",
+    "it": "perché",
+    "es": "porque",
+    "pt": "porque",
+    "da": "fordi",
+    "no": "fordi",
+    "sv": "eftersom",
+    "fi": "koska",
+    "pl": "ponieważ",
+    "cs": "protože",
+    "sk": "pretože",
+    "hu": "mert",
+    "ro": "deoarece",
+    "tr": "çünkü",
+    "ru": "потому что",
+    "uk": "тому що",
+    "el": "επειδή",
+    "ja": "なぜなら",
+    "zh": "因为",
+    "ko": "왜냐하면"
+}
+
+/*  the active rationale keyword translation (set per document during
+    rendering, none for English and the unknown languages)  */
+let keyword: string | undefined
+
 /*  the private Markdown renderer instance, as the hooks below must not
     leak into the "marked" singleton shared with the parser and with the
     application embedding SpecBook as a library  */
@@ -114,7 +145,8 @@ let infoObjects: Map<SpecObject, string> | null       = null
 let omits:       Set<OmitAspect> | null               = null
 
 /*  the per-document rendering state, plus the document language
-    selecting the smart typography quote style  */
+    selecting the smart typography quote style and the rationale keyword
+    translation  */
 export type DocumentState = {
     lang:        string | undefined
     linker:      (text: string, compact: boolean) => string
@@ -138,7 +170,9 @@ export type DocumentState = {
     as it would otherwise retain the specification (and its embedded
     images) until the next rendering  */
 export const withDocument = <T>(state: DocumentState, body: () => T): T => {
-    quotes      = quoteStyles[state.lang?.toLowerCase().split(/[-_]/)[0] ?? "en"] ?? quoteStyles.en
+    const code  = state.lang?.toLowerCase().split(/[-_]/)[0] ?? "en"
+    quotes      = quoteStyles[code]       ?? quoteStyles.en
+    keyword     = rationaleKeywords[code]
     linker      = state.linker
     anchors     = state.anchors
     members     = state.members
@@ -420,6 +454,7 @@ const renderDescription = (description: SpecDescription): string => {
         description: text !== "" ? (blocked ? block(text, true) : inline(text, true)) : "",
         rationale:   description.rationale !== undefined ?
             inline(description.rationale, true) : undefined,
+        keyword,
         elaboration: elaboration !== "" ? block(elaboration, true) : undefined,
         embeddings
     } })
