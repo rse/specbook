@@ -239,7 +239,10 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
                 word position still fitting is found by a binary search over
                 the measured word positions, the text node is split there and
                 the chevron mark takes its place, followed by the remainder
-                hidden up the ancestor chain of the cell  */
+                hidden up the ancestor chain of the cell. All cells are
+                measured before the first cut and all cuts are applied before
+                their gain is measured, as every measurement after a change
+                of the document forces the browser to lay it out again  */
             for (const cut of cuts) {
                 const list = positions(cut.cell)
                 if (list.length === 0)
@@ -253,10 +256,14 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
                     else
                         hi = mid - 1
                 }
-                const tail    = list[lo].node.splitText(list[lo].offset)
-                const chevron = mark("fold-more", "fold/unfold the remaining text")
-                tail.parentNode.insertBefore(chevron, tail)
-                let current = chevron
+                cut.word = list[lo]
+            }
+            const applied = cuts.filter((cut) => cut.word !== undefined)
+            for (const cut of applied) {
+                const tail = cut.word.node.splitText(cut.word.offset)
+                cut.chevron = mark("fold-more", "fold/unfold the remaining text")
+                tail.parentNode.insertBefore(cut.chevron, tail)
+                let current = cut.chevron
                 while (current !== cut.cell) {
                     let next = current.nextSibling
                     while (next !== null) {
@@ -266,20 +273,22 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
                     }
                     current = current.parentNode
                 }
-
-                /*  the gain is measured on the applied fold, as only that
-                    one tells the real one, and a fold gaining less than the
-                    minimum share is taken back again, while a kept fold
-                    sheds the class again, as every cell starts out unfolded  */
                 cut.cell.classList.add("folded")
-                const gained = height(cut.cell) <= cut.full * (1 - cellGain / 100)
-                if (!gained) {
+            }
+
+            /*  the gain is measured on the applied fold, as only that
+                one tells the real one, and a fold gaining less than the
+                minimum share is taken back again, while a kept fold
+                sheds the class again, as every cell starts out unfolded  */
+            const gained = applied.map((cut) => height(cut.cell) <= cut.full * (1 - cellGain / 100))
+            applied.forEach((cut, i) => {
+                if (!gained[i]) {
                     uncut(cut.cell)
-                    continue
+                    return
                 }
                 cut.cell.classList.toggle("folded", state.get(cut.cell) ?? all)
                 folds.text.push(cut.cell)
-                chevron.addEventListener("click", (event) => {
+                cut.chevron.addEventListener("click", (event) => {
                     /*  the cut can land inside a hyperlink, whose navigation
                         the chevron has to suppress for its own click alone,
                         so the remaining link text still follows the link  */
@@ -287,7 +296,7 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
                     cut.cell.classList.toggle("folded")
                     sync()
                 })
-            }
+            })
         }
         layout()
 

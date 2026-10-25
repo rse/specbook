@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: Batched Layout of the Cell Text Folds
+    The client-side cell text folding measures all cells before it cuts any, so it no longer forces
+    a full layout per cut, which stalled large documents (contributed by Matthias Brusdeylins).
+
 -   IMPROVEMENT [code]: Artifact Filter Tab of the HTML Export
     A new brand bar tab slides out a grid of the artifact kinds and their top-level artifacts, whose
     enabled ones show entirely, while elsewhere only the transitively referenced objects stay visible.
