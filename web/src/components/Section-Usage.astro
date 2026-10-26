@@ -13,22 +13,24 @@ import SectionGlow from "./Section-Glow.astro"
 import Terminal    from "./Widget-Terminal.astro"
 import Compass     from "@lucide/astro/icons/compass"
 
-/*  the six CLI commands, each with its one-line purpose and its distinctive
+/*  the seven CLI commands, each with its one-line purpose and its distinctive
     options; the very same commands the MCP service exposes as
     `specbook_<cmd>` tools and the API class as `SpecBook` methods (except
     `preview`, which is a long-running server, and `mcp`, which *is* the
     service).  */
 const commands = [
     { name: "init",     purpose: "Generate the initial specification Markdown files from the schema configuration.",
-      options: [ "-v", "-c", "-b" ] },
+      options: [ "-v", "-c", "-b", "-F", "-s" ] },
     { name: "lint",     purpose: "Parse and validate the whole corpus, reporting file- and line-precise diagnostics.",
-      options: [ "-v", "-c", "-b" ] },
+      options: [ "-v", "-c", "-b", "-F", "-g" ] },
     { name: "export",   purpose: "Render the specification into one or more output formats, optionally watching the sources.",
-      options: [ "-v", "-c", "-b", "-o", "-w", "-O" ] },
+      options: [ "-v", "-c", "-b", "-F", "-g", "-o", "-w", "-O" ] },
     { name: "preview",  purpose: "Serve the HTML export live in the browser, updating it in place on every change.",
-      options: [ "-v", "-c", "-b", "-O", "-a", "-p" ] },
+      options: [ "-v", "-c", "-b", "-F", "-g", "-O", "-a", "-p" ] },
     { name: "describe", purpose: "Emit the description of the SpecBook models, formats, and the effective schema.",
-      options: [ "-v", "-c", "-b", "-e", "-z", "-f", "-p", "-o" ] },
+      options: [ "-v", "-c", "-b", "-F", "-e", "-z", "-f", "-p", "-o" ] },
+    { name: "search",   purpose: "Find shareable schema configurations: the bundled standard one, npm packages, and GitHub repositories.",
+      options: [ "-v", "-F" ] },
     { name: "mcp",      purpose: "Run the Model-Context-Protocol service over stdio for an Agentic AI Coding tool.",
       options: [ "-v" ] }
 ]
@@ -36,8 +38,11 @@ const commands = [
 /*  the CLI options, each with the environment variable overriding its default  */
 const options = [
     [ "-v, --verbose [<level>]",           "SPECBOOK_VERBOSE", "verbosity: 0 notices, 1 processing, 2 ratios, 3 details" ],
-    [ "-c, --config <yaml-file>",          "SPECBOOK_CONFIG",  "schema configuration (glob patterns, repeatable, merged)" ],
+    [ "-c, --config <yaml-file>",          "SPECBOOK_CONFIG",  "schema configuration (glob patterns or remote references, repeatable, merged)" ],
     [ "-b, --basedir <dir>",               "SPECBOOK_BASEDIR", "base directory the artifact files resolve against" ],
+    [ "-F, --fetch <mode>",                "SPECBOOK_FETCH",   "network access for remote references: never, auto (default), or always" ],
+    [ "-s, --sample",                      "SPECBOOK_SAMPLE",  "scaffold a sample object per object kind instead of bare headings" ],
+    [ "-g, --gitignore",                   "SPECBOOK_GITIGNORE", "treat artifact files excluded by the Git exclude rules as absent" ],
     [ "-o, --output [<format>:]<file>",    "SPECBOOK_OUTPUT",  "output file, format inferred from its extension" ],
     [ "-w, --watch",                       "SPECBOOK_WATCH",   "re-export on every change of a source or an asset" ],
     [ "-O, --omit <aspect>[,...]",         "SPECBOOK_OMIT",    "omit diagrams (by type or nesting level) and long cell texts" ],
@@ -55,7 +60,7 @@ const options = [
             Quickly <span class="text-accent">Get Started</span>
         </h2>
         <p class="sb-lead sb-justify">
-            <b>SpecBook</b> is a small, sharp command-line tool with exactly six
+            <b>SpecBook</b> is a small, sharp command-line tool with exactly seven
             commands and no hidden workflow. You author Markdown, it lints and
             renders. The following gives you a few hints on how to quickly get
             started.
@@ -98,7 +103,7 @@ const options = [
                         copy={true}
                         title="Authoring"
                         commands={[
-                            "**specbook** init -b docs/spec/",
+                            "**specbook** init -s -b docs/spec/",
                             "**specbook** preview -b docs/spec/",
                             "**specbook** lint -v -b docs/spec/"
                         ]}
@@ -170,6 +175,9 @@ const options = [
             by the path delimiter of the platform. An entirely absent <code>-c</code> or <code>-b</code> falls
             back onto the <code>config</code> and <code>basedir</code> entries of the closest{" "}
             <code>.specbook.yaml</code>, searched from the current directory upwards.
+            The option <code>-c</code> also takes remote references (<code>npm:</code>,{" "}
+            <code>github:</code>, and <code>https:</code>): <code>specbook search</code> finds the
+            shareable ones, and <code>-F</code> controls when they are fetched.
         </p>
     </div>
 </section>

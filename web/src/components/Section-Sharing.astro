@@ -6,12 +6,14 @@
 */
 
 /*  "Sharing" section: the remote references of the shareable schema
-    configurations, plus a framed table of the npm packages carrying the
-    keyword `specbook-schema`, discovered through the npm search API at build
-    time (the table is left out while none exists or the discovery fails),
-    followed by the explanatory NOTICE callouts on referencing and publishing.  */
+    configurations, a terminal showing their search and use, plus a framed
+    table of the npm packages carrying the keyword `specbook-schema`,
+    discovered through the npm search API at build time (the table is left
+    out while none exists or the discovery fails), followed by the
+    explanatory NOTICE callouts on referencing and publishing.  */
 
 import SectionGlow from "./Section-Glow.astro"
+import Terminal    from "./Widget-Terminal.astro"
 
 type Row = { ref: string, description: string }
 const rows: Row[] = []
@@ -40,9 +42,25 @@ catch (err) {
             project repositories. Every place expecting a schema configuration
             hence also takes a <i>remote reference</i>: hand one to{" "}
             <code>-c</code>, and it is fetched, cached, versioned, and then
-            merged exactly like a local file.
+            merged exactly like a local file. To find one, ask{" "}
+            <code>specbook search</code>, which lists the bundled standard
+            schema configuration and queries the npm registry and GitHub.
         </p>
     </header>
+
+    <div data-reveal>
+        <Terminal
+            class="mx-auto mt-12 max-w-2xl"
+            prefix="Shell"
+            copy={true}
+            title="Sharing"
+            commands={[
+                "**specbook** search",
+                "**specbook** lint -c std -c npm:[...] -b docs/spec/",
+                "**specbook** lint -F never -c github:[...] -b docs/spec/"
+            ]}
+        />
+    </div>
 
     {rows.length > 0 && (
         <div class="mt-12 bg-background-elevated overflow-hidden rounded-xl border border-border-strong p-2 shadow-xl sm:p-3" data-reveal>
