@@ -11,7 +11,8 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z }                    from "zod"
 
 import { SpecBook, renderDiagnostic, renderVerbose, formats, parseOutputSpec, describeFormats,
-    describeParts, compressLevels, projectFile, omitAspects, version, type VerboseSink } from "./specbook-api.js"
+    describeParts, compressLevels, projectFile, omitAspects, fetchModes, version,
+    type VerboseSink } from "./specbook-api.js"
 
 /*  render an error with its cause chain into a tool error result  */
 const errorResult = (err: unknown) => {
@@ -32,14 +33,19 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
     const specbook = new SpecBook({ verbose })
 
     /*  the input schema fields shared by the specification processing tools  */
-    const config    = z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
-        "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
+    const remote    = "\"npm:<pkg>[@<range>][/<path>]\" or \"github:<user>/<repo>[/<path>][#<ref>]\""
+    const config    = z.array(z.string()).optional().describe("YAML schema configuration files, glob " +
+        `patterns, or remote references (${remote}, or an "http[s]://..." URL), merged in order ` +
+        "(\"std\" for the bundled standard schema configuration; " +
         "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
         "of the project configuration file, else the bundled standard " +
         "schema configuration)")
     const basedir   = z.string().optional().describe("base directory of the specification Markdown files " +
         "(default: the SPECBOOK_BASEDIR environment variable, else the \"basedir\" entry " +
         "of the project configuration file, else \".\")")
+    const fetch     = z.enum(fetchModes).optional().describe("when to fetch the remote references through " +
+        "the network (\"never\": the download cache only, \"auto\": whenever the download cache lacks them " +
+        "or is no longer fresh, \"always\": ignoring the download cache; default: \"auto\")")
     const gitignore = z.boolean().optional().describe("skip the artifact files excluded by the Git " +
         "exclude rules (the \".gitignore\" files, \"info/exclude\", and the global excludes " +
         "file), treating such a file exactly like an absent one (default: false)")
@@ -65,7 +71,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             "allowed object kind), skipping already existing files, and " +
             `create the project configuration file "${projectFile}" in the working directory, ` +
             "persisting the effective schema configuration and base directory, unless one already applies.",
-        inputSchema: { config, basedir, sample, cwd }
+        inputSchema: { config, basedir, fetch, sample, cwd }
     }, async (args) => {
         try {
             const result = await specbook.init(args)
@@ -84,7 +90,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         title:       "Lint Specification",
         description: "Lint the specification Markdown files the YAML schema configuration references " +
             "below the base directory against this configuration and return all diagnostics.",
-        inputSchema: { config, basedir, gitignore, cwd }
+        inputSchema: { config, basedir, fetch, gitignore, cwd }
     }, async (args) => {
         try {
             const result = await specbook.lint(args)
@@ -107,7 +113,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             "The normalized Markdown embeds its images as \"data:\" URL definitions (so it is large), and " +
             "its remaining image references are re-based onto the directory of the " +
             "output file, while a directly returned result keeps them unchanged.",
-        inputSchema: { config, basedir, gitignore, cwd,
+        inputSchema: { config, basedir, fetch, gitignore, cwd,
             format:    z.enum(formats).optional().describe("output format (default: inferred from the " +
                 "output file extension, else json)"),
             output:    z.string().optional().describe("output file path (\"-\" or omitted returns the result directly)"),
@@ -128,8 +134,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             const rebase = spec.format === "md" && spec.output !== undefined && spec.output !== "-" ?
                 path.dirname(spec.output) : undefined
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
-                cwd: args.cwd, formats: [ spec.format ], rebase: [ rebase ], omit: args.omit,
-                gitignore: args.gitignore })
+                cwd: args.cwd, fetch: args.fetch, formats: [ spec.format ], rebase: [ rebase ],
+                omit: args.omit, gitignore: args.gitignore })
             if (spec.output !== undefined && spec.output !== "-") {
                 await fs.promises.writeFile(outputOf(args, spec.output), data)
                 return { content: [ { type: "text", text: `exported specification into "${spec.output}" (${data.length} bytes)` } ] }
@@ -155,16 +161,19 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             "points to the artifacts of that particular project. The description can be reduced to a " +
             "single part and emitted as the raw original file content instead of Markdown.",
         inputSchema: {
-            config:   z.array(z.string()).optional().describe("YAML schema configuration files or glob " +
-                "patterns, merged in order (\"std\" for the bundled standard schema configuration; " +
+            config:   z.array(z.string()).optional().describe("YAML schema configuration files, glob " +
+                `patterns, or remote references (${remote}, or an "http[s]://..." URL), merged in order ` +
+                "(\"std\" for the bundled standard schema configuration; " +
                 "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
                 "of the project configuration file, else the bundled standard " +
                 "schema configuration, embedded)"),
             basedir:  z.string().optional().describe("base directory of the specification Markdown files " +
                 "(default: the SPECBOOK_BASEDIR environment variable, else the \"basedir\" entry " +
                 "of the project configuration file)"),
+            fetch,
             embed:    z.boolean().optional().describe("embed the given YAML schema configuration instead " +
-                "of just referencing it (default: false; the bundled standard one is always embedded)"),
+                "of just referencing it (default: false; the bundled standard one and a remote one are " +
+                "always embedded)"),
             compress: z.literal(compressLevels).optional().describe("compression level of the emitted " +
                 "YAML schema configuration (embedded or raw): 0 for verbatim, 1 for re-emitted with 2-space " +
                 "indentation and without comments, 2 for additionally without its \"refs\", \"diagram\", and " +
@@ -187,6 +196,30 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
                 return { content: [ { type: "text", text: `described specification format into "${output}"` } ] }
             }
             return { content: [ { type: "text", text } ] }
+        }
+        catch (err) {
+            return errorResult(err)
+        }
+    })
+
+    server.registerTool("specbook_search", {
+        title:       "Search Schema Configurations",
+        description: "Search the bundled standard schema configuration (reference \"std\"), the npm " +
+            "registry (the packages carrying the keyword \"specbook-schema\"), and GitHub (the repositories " +
+            "carrying the same topic) for the shareable schema configurations (reusable building blocks for " +
+            "the \"config\" option) matching a term, and return the hits as a JSON array of objects with the " +
+            "fields \"ref\" (the remote reference to use), \"name\", \"version\", \"description\", and " +
+            "\"source\" (\"builtin\", \"npm\", or \"github\").",
+        inputSchema: {
+            term: z.string().optional().describe("the words a matching schema configuration has to carry " +
+                "(default: none, matching all of them)"),
+            fetch,
+            cwd
+        }
+    }, async (args) => {
+        try {
+            const hits = await specbook.search(args)
+            return { content: [ { type: "text", text: JSON.stringify(hits, null, 4) } ] }
         }
         catch (err) {
             return errorResult(err)

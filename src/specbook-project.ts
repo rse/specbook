@@ -15,6 +15,13 @@ import { renderDiagnostic, type Diagnostic }    from "./specbook-diagnostic.js"
 /*  the name of the YAML project configuration file  */
 export const projectFile = ".specbook.yaml"
 
+/*  whether a schema configuration pattern is a remote reference
+    (resolved by the remote module) instead of a local path: the literal
+    "std" (the bundled standard schema configuration), an "npm:" or
+    "github:" reference, or an "http:" or "https:" URL  */
+export const isRemote = (value: string): boolean =>
+    value === "std" || (/^(?:npm|github):|^https?:\/\//).test(value)
+
 /*  the schema of the YAML project configuration: the files or glob
     patterns of the YAML schema configuration and the base directory
     of the specification Markdown files  */
@@ -78,13 +85,17 @@ const readProject = (file: string): string => {
 /*  find, load, and validate the project configuration, failing on any
     problem, where its relative paths resolve against the directory of
     the file itself (and not against the perhaps deeper directory the
-    search started at) and the literal "std" still names the bundled
-    standard schema configuration  */
+    search started at)  */
 export const loadProject = (dir: string): Project | undefined => {
     const file = findProject(dir)
-    if (file === undefined)
-        return undefined
+    return file !== undefined ? loadProjectFile(file) : undefined
+}
 
+/*  load and validate a particular project configuration file, failing
+    on any problem, where its relative paths resolve against the
+    directory of the file and the remote references (the literal "std"
+    included) stay as they are  */
+export const loadProjectFile = (file: string): Project => {
     /*  parse the YAML, reporting its syntax errors as positioned diagnostics  */
     const diagnostics = new Array<Diagnostic>()
     const lines       = new LineCounter()
@@ -119,7 +130,7 @@ export const loadProject = (dir: string): Project | undefined => {
     const patterns = typeof config === "string" ? [ config ] : config
     return {
         file,
-        config:  patterns?.map((pattern) => pattern === "std" ? pattern : path.resolve(base, pattern)),
+        config:  patterns?.map((pattern) => isRemote(pattern) ? pattern : path.resolve(base, pattern)),
         basedir: basedir !== undefined ? path.resolve(base, basedir) : undefined
     }
 }

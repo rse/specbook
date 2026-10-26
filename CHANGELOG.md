@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: Remote Schema Configurations
+    `-c` accepts the remote references `npm:`, `github:`, and `http[s]:` (cached, per `--fetch`),
+    and `specbook search` finds the shareable schema configurations on npm and GitHub.
+
 -   IMPROVEMENT [code]: Sample Scaffolding of `init`
     The new option `-s`/`--sample` of `init` scaffolds one lint-clean sample object per allowed
     object kind, with placeholder values satisfying the schema, so the format is learnable from it.

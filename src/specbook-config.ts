@@ -91,6 +91,28 @@ const unshared = (value: unknown): unknown => {
     for the diagnostics) and its raw content for the path translation  */
 type ConfigDoc = { file: string, doc: Document, lines: LineCounter, raw: unknown }
 
+/*  an artifact several configuration files define (and hence merge),
+    labeled by its kind plus id (or name)  */
+export interface ConfigOverlap { artifact: string, files: string[] }
+
+/*  determine the artifacts several configuration files define  */
+const overlapsOf = (docs: ConfigDoc[]): ConfigOverlap[] => {
+    const defined = new Map<string, ConfigOverlap>()
+    for (const { file, raw } of docs)
+        if (Array.isArray(raw))
+            for (const item of raw as unknown[]) {
+                if (!isPlainObject(item))
+                    continue
+                const object  = item as Record<string, unknown>
+                const kind    = String(object.kind ?? "")
+                const label   = object.id !== undefined ? `${kind} (${String(object.id)})` : `${kind}: ${String(object.name ?? "")}`
+                const overlap = defined.get(identityOf(item)) ?? { artifact: label, files: [] }
+                overlap.files.push(file)
+                defined.set(identityOf(item), overlap)
+            }
+    return Array.from(defined.values()).filter((overlap) => overlap.files.length > 1)
+}
+
 /*  determine file and line/column of a path into the merged
     configuration by translating the path into every document (from the
     last to the first one, as a later document overrides an earlier one),
@@ -325,8 +347,9 @@ export const configStatistics = (config: Schema): { objects: number, links: numb
 /*  load and validate the YAML schema configuration, merged in order out
     of its files (the later ones into the earlier ones), where every file
     has to be readable and syntactically valid on its own, while the
-    merged result alone is validated  */
-export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Diagnostic[] } => {
+    merged result alone is validated, and report the artifacts several
+    files define  */
+export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Diagnostic[], overlaps: ConfigOverlap[] } => {
     if (files.length === 0)
         throw new Error("no configuration files given")
     const diagnostics = new Array<Diagnostic>()
@@ -362,8 +385,9 @@ export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Dia
         if (doc.errors.length === 0)
             docs.push({ file, doc, lines, raw: doc.toJS() })
     }
+    const overlaps = overlapsOf(docs)
     if (diagnostics.length > 0)
-        return { diagnostics }
+        return { diagnostics, overlaps }
 
     /*  merge the documents in order, out of unshared deep copies of
         the conversions, as the merge mutates its target while the raw
@@ -383,11 +407,11 @@ export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Dia
             diagnostics.push({ file, line, column, severity: "error",
                 message: `invalid configuration: ${where}${issue.message}` })
         }
-        return { diagnostics }
+        return { diagnostics, overlaps }
     }
 
     /*  check the constraints beyond the structural schema  */
     diagnostics.push(...checkConstraints(result.output, posOfPath))
 
-    return { config: diagnostics.length === 0 ? result.output : undefined, diagnostics }
+    return { config: diagnostics.length === 0 ? result.output : undefined, diagnostics, overlaps }
 }

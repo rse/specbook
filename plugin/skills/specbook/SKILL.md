@@ -20,10 +20,12 @@ allowed-tools:
     - mcp__specbook__specbook_lint
     - mcp__specbook__specbook_export
     - mcp__specbook__specbook_describe
+    - mcp__specbook__specbook_search
     - mcp__plugin_specbook_specbook__specbook_init
     - mcp__plugin_specbook_specbook__specbook_lint
     - mcp__plugin_specbook_specbook__specbook_export
     - mcp__plugin_specbook_specbook__specbook_describe
+    - mcp__plugin_specbook_specbook__specbook_search
     - Bash(pwd:*)
     - Bash(date:*)
 ---
@@ -59,8 +61,9 @@ Skill Conventions
     them.
 
 -   *IMPORTANT*: The tools `specbook_init`, `specbook_lint`,
-    `specbook_export`, and `specbook_describe` are the tools of the
-    `specbook` MCP server (the MCP service `specbook mcp`). Whenever a
+    `specbook_export`, `specbook_describe`, and `specbook_search` are the
+    tools of the `specbook` MCP server (the MCP service `specbook mcp`).
+    Whenever a
     call of them fails because the MCP server is not available, only
     output the following <template/> and then immediately *STOP*
     processing the entire current skill:
@@ -174,9 +177,9 @@ Usage
 
 ```text
 /specbook        [-c|--config <yaml-file>] [-b|--basedir <basedir>] [<query>]
-/specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-s|--sample]
-/specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
-/specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
+/specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-s|--sample]
+/specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-g|--gitignore]
+/specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-g|--gitignore]
                  [-O|--omit <aspect>[,...]] [-o|--output [<format>:]<output-file>] [...]
 /specbook edit   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--grill]
                  [-r|--grill-rounds <n>] [-v|--verify] [-l|--loop] [<query>]
@@ -227,6 +230,8 @@ Procedure
         -   <opt-config/> to the list of all `-c`|`--config` values
             (the option is repeatable; default: empty list),
         -   <opt-basedir/> to the `-b`|`--basedir` value (default: empty),
+        -   <opt-fetch/> to the `-F`|`--fetch` value of `init`, `lint`,
+            and `export` (one of `never`, `auto`, or `always`; default: empty),
         -   <opt-sample/> to `true` for `-s`|`--sample` of `init`
             (default: `false`),
         -   <opt-gitignore/> to `true` for `-g`|`--gitignore` of `lint`
@@ -285,9 +290,10 @@ Procedure
         the bundled standard schema configuration and `.`.
 
     6.  Set <params/> to the tool parameters `cwd: <cwd/>`, -- only if
-        <opt-basedir/> is not empty -- `basedir: <opt-basedir/>`, and
+        <opt-basedir/> is not empty -- `basedir: <opt-basedir/>`,
         -- only if <opt-config/> is not empty -- `config: <opt-config/>`
-        (a string array). You *MUST* pass <opt-basedir/>, <opt-config/>,
+        (a string array), and -- only if <opt-fetch/> is not empty --
+        `fetch: <opt-fetch/>`. You *MUST* pass <opt-basedir/>, <opt-config/>,
         and <opt-output/> *verbatim*: as the MCP server does not
         necessarily share the current working directory, the MCP service
         itself anchors their relative paths against <cwd/>.

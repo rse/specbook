@@ -4,13 +4,13 @@
 **  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
 */
 
-import * as fs                                           from "node:fs"
 import * as path                                         from "node:path"
-import { fileURLToPath }                                 from "node:url"
-import { glob }                                          from "glob"
 
 import { loadConfig, configStatistics }                  from "./specbook-config.js"
-import { loadProject, writeProject, projectFile }        from "./specbook-project.js"
+import { loadProject, writeProject, projectFile, isRemote } from "./specbook-project.js"
+import { version, standardConfig, cacheDir, isCached, expandPattern, resolveConfig,
+    reportOverlaps, search, fetchModes, parseFetchMode,
+    type RemoteOptions, type SearchHit, type FetchMode } from "./specbook-remote.js"
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
     from "./specbook-diagnostic.js"
 import { initSpecification }                             from "./specbook-cmd-init.js"
@@ -37,19 +37,9 @@ export { compressLevels, parseCompressLevel }
 export { type DescribeFormat, type DescribePart, type CompressLevel }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
 export { type LintResult }
+export { version, standardConfig, cacheDir, fetchModes, parseFetchMode, type FetchMode, type SearchHit }
 export type { Spec, SpecArtifact, SpecObject, SpecDescription, SpecProperty } from "./specbook-format-spec.js"
 export type { Schema, SchemaObject, SchemaProperty }                          from "./specbook-format-schema.js"
-
-/*  our own version, taken from the package manifest, which resides one
-    level above both the source and the compiled module directory  */
-export const version = (JSON.parse(
-    fs.readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string }).version
-
-/*  the bundled standard YAML schema configuration, which resides
-    alongside the compiled module and is used whenever no particular
-    schema configuration is given  */
-export const standardConfig =
-    fileURLToPath(new URL("specbook-format.yaml", import.meta.url))
 
 /*  the sink of the verbose messages, receiving the emitting command,
     the message, and its severity, so consumers can qualify the message
@@ -63,12 +53,15 @@ export interface SpecBookOptions {
 }
 
 /*  the project options of all commands: the YAML schema configuration
-    patterns, the base directory, and the working directory, from which
-    the project configuration file is searched upwards  */
+    patterns (local files or glob patterns, or remote references), the
+    base directory, the working directory, from which the project
+    configuration file is searched upwards, and the fetch mode of the
+    remote references ("never", "auto", or "always", default "auto")  */
 export interface ProjectOptions {
     config?:  string[]
     basedir?: string
     cwd?:     string
+    fetch?:   FetchMode
 }
 
 /*  the result of "init": the created artifact files (relative to the base
@@ -76,6 +69,14 @@ export interface ProjectOptions {
 export interface InitResult {
     files:    string[]
     project?: string
+}
+
+/*  the options of "search": the term the matching schema configurations
+    have to carry, the working directory, and the fetch mode  */
+export interface SearchRequest {
+    term?:  string
+    cwd?:   string
+    fetch?: FetchMode
 }
 
 /*  the options of "export": the project ones plus the requested formats,
@@ -133,34 +134,32 @@ export class SpecBook {
         return {
             file:   project?.file,
             config: config !== undefined && config.length > 0 ?
-                config.map((pattern) => pattern === "std" ? pattern : given(pattern)) :
-                project?.config?.map((pattern) => pattern === "std" ? pattern : derived(pattern)),
+                config.map((pattern) => isRemote(pattern) ? pattern : given(pattern)) :
+                project?.config?.map((pattern) => isRemote(pattern) ? pattern : derived(pattern)),
             basedir: basedir !== undefined ? given(basedir) :
                 project?.basedir !== undefined ? derived(project.basedir) :
                     options.cwd !== undefined ? cwd : undefined
         }
     }
 
+    /*  the options of the remote resolution of a command  */
+    private remoteOptions (options: { cwd?: string, fetch?: FetchMode }, verbose: Verbose): RemoteOptions {
+        return { fetch: parseFetchMode(options.fetch ?? "auto"),
+            cwd: path.resolve(options.cwd ?? "."), verbose }
+    }
+
     /*  determine the files of the YAML schema configuration out of the
-        glob patterns, in the order of the patterns and alphabetically
-        within a pattern, where the literal "std" names the bundled
-        standard schema configuration, which is also the fallback if no
-        pattern is given at all  */
-    private async configFiles (patterns?: string[]): Promise<string[]> {
+        patterns, in the order of the patterns and alphabetically within
+        a pattern, where a remote reference (the literal "std" included,
+        naming the bundled standard schema configuration, which is also
+        the fallback if no pattern is given at all) is resolved into the
+        files of the download cache  */
+    private async configFiles (patterns: string[] | undefined, access: RemoteOptions): Promise<string[]> {
         if (patterns === undefined || patterns.length === 0)
             return [ standardConfig ]
         const files = new Array<string>()
-        for (const pattern of patterns) {
-            if (pattern === "std") {
-                files.push(standardConfig)
-                continue
-            }
-            const matches = await glob(pattern, { nodir: true,
-                windowsPathsNoEscape: process.platform === "win32" })
-            if (matches.length === 0)
-                throw new Error(`no configuration file matches "${pattern}"`)
-            files.push(...matches.sort())
-        }
+        for (const pattern of patterns)
+            files.push(...(isRemote(pattern) ? await resolveConfig(pattern, access) : await expandPattern(pattern)))
         return files
     }
 
@@ -168,10 +167,11 @@ export class SpecBook {
     private requireConfig (files: string[], verbose: Verbose): Schema {
         verbose("loading schema configuration " +
             files.map((file) => `"${literal(file)}"`).join(", "))
-        const { config, diagnostics } = loadConfig(files)
+        const { config, diagnostics, overlaps } = loadConfig(files)
         if (config === undefined)
             throw new Error("invalid configuration:\n" +
                 diagnostics.map(renderDiagnostic).join("\n"))
+        reportOverlaps(overlaps, verbose)
         const stats = configStatistics(config)
         verbose(`loaded schema configuration specifying ${literal(stats.objects)} object kind(s) ` +
             `and ${literal(stats.links)} link relationship(s)`)
@@ -186,7 +186,8 @@ export class SpecBook {
     async init (options: ProjectOptions & { sample?: boolean }): Promise<InitResult> {
         const verbose = this.verboseOf("init")
         const project = this.project(options, verbose)
-        const files   = initSpecification({ config: this.requireConfig(await this.configFiles(project.config), verbose),
+        const config  = await this.configFiles(project.config, this.remoteOptions(options, verbose))
+        const files   = initSpecification({ config: this.requireConfig(config, verbose),
             basedir: project.basedir ?? ".", sample: options.sample === true, verbose })
         if (project.file !== undefined) {
             verbose(`skipping existing project configuration "${literal(project.file)}"`)
@@ -195,7 +196,7 @@ export class SpecBook {
         const cwd      = path.resolve(options.cwd ?? ".")
         const relative = (value: string) => path.relative(cwd, path.resolve(cwd, value)) || "."
         const file     = writeProject(cwd,
-            project.config?.map((pattern) => pattern === "std" ? pattern : relative(pattern)) ?? [ "std" ],
+            project.config?.map((pattern) => isRemote(pattern) ? pattern : relative(pattern)) ?? [ "std" ],
             relative(project.basedir ?? "."))
         verbose(`created project configuration "${literal(file)}"`)
         return { files, project: options.cwd !== undefined ? file : path.relative(process.cwd(), file) }
@@ -207,8 +208,17 @@ export class SpecBook {
     async lint (options: ProjectOptions & { gitignore?: boolean }): Promise<LintResult> {
         const verbose = this.verboseOf("lint")
         const project = this.project(options, verbose)
-        return lint({ config: await this.configFiles(project.config),
+        return lint({ config: await this.configFiles(project.config, this.remoteOptions(options, verbose)),
             basedir: project.basedir ?? ".", gitignore: options.gitignore === true, verbose })
+    }
+
+    /*  search the bundled standard schema configuration, the npm
+        registry, and GitHub for the shareable schema configurations
+        matching a term  */
+    async search (options: SearchRequest): Promise<SearchHit[]> {
+        const verbose = this.verboseOf("search")
+        verbose(`searching for schema configurations matching "${literal(options.term ?? "")}"`)
+        return search(options.term ?? "", this.remoteOptions(options, verbose))
     }
 
     /*  render an already parsed specification into the requested formats
@@ -259,7 +269,7 @@ export class SpecBook {
         const requested = options.formats ?? [ "json" ]
         const omit      = parseOmit(options.omit)
         const project   = this.project(options, verbose)
-        const config    = await this.configFiles(project.config)
+        const config    = await this.configFiles(project.config, this.remoteOptions(options, verbose))
 
         /*  a missing browser is an environment problem, so let the PDF
             export fail before the specification is even parsed  */
@@ -285,7 +295,7 @@ export class SpecBook {
         verbose: Verbose): Promise<void> {
         const omit    = parseOmit(options.omit)
         const project = this.project(options, verbose)
-        const config  = await this.configFiles(project.config)
+        const config  = await this.configFiles(project.config, this.remoteOptions(options, verbose))
 
         /*  a missing browser is an environment problem, so let the PDF
             export fail before the specification is even parsed, but
@@ -296,10 +306,12 @@ export class SpecBook {
             /*  the lint result carries the files to observe even for an
                 invalid specification, and the configuration files are
                 observed, too, so a failing export (even one due to an
-                invalid configuration) still keeps the observe loop fed  */
+                invalid configuration) still keeps the observe loop fed,
+                while the files of the download cache never change  */
             const result = lint({ config, basedir: project.basedir ?? ".",
                 gitignore: options.gitignore === true, verbose })
             const files  = [ ...config.map((file) => path.resolve(file)), ...result.files ]
+                .filter((file) => !isCached(file))
 
             /*  an output which is itself an observed source would re-trigger
                 the observation with its own write and hence feed an endless
@@ -377,12 +389,13 @@ export class SpecBook {
         /*  the schema-bearing parts require a schema configuration, so
             they fall back onto the bundled standard one, which is always
             embedded (also when named explicitly through "std"), as its
-            bundled file is no meaningful reference  */
+            bundled file is no meaningful reference, and so is a remote
+            one, as its download cache file is none either  */
         const given    = project.config !== undefined
         const config   = given || part === "all" || part === "schema" ?
-            await this.configFiles(project.config) : undefined
+            await this.configFiles(project.config, this.remoteOptions(options, verbose)) : undefined
         const standard = config !== undefined && config.every((file) => file === standardConfig)
-        const embed    = options.embed === true || standard
+        const embed    = options.embed === true || standard || (config?.some(isCached) ?? false)
         const basedir  = project.basedir ?? (part === "spec" ? "." : undefined)
         const schema   = config !== undefined ? this.requireConfig(config, verbose) : undefined
         verbose(`describing the "${literal(part)}" part of the SpecBook models and formats ` +

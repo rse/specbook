@@ -8,6 +8,7 @@ import * as fs   from "node:fs"
 import * as path from "node:path"
 
 import { loadConfig, configStatistics }                         from "./specbook-config.js"
+import { reportOverlaps }                                       from "./specbook-remote.js"
 import { literal, type Verbose }                                from "./specbook-verbose.js"
 import { type Diagnostic }                                      from "./specbook-diagnostic.js"
 import { parseSpecification, specStatistics, resolveArtifact, collectSchemas, type SourceFile }
@@ -93,6 +94,7 @@ export const lint = (options: LintOptions): LintResult => {
         options.config.map((file) => `"${literal(file)}"`).join(", "))
     const loaded = loadConfig(options.config)
     diagnostics.push(...loaded.diagnostics)
+    reportOverlaps(loaded.overlaps, options.verbose)
     const config = loaded.config
     if (config !== undefined) {
         const stats = configStatistics(config)

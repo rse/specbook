@@ -140,17 +140,20 @@ $ specbook init \
   [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
+  [-F|--fetch <mode>] \
   [-s|--sample]
 
 $ specbook lint \
   [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
-  [-b|--basedir <spec-md-file-basedir>]
+  [-b|--basedir <spec-md-file-basedir>] \
+  [-F|--fetch <mode>]
 
 $ specbook export \
   [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
+  [-F|--fetch <mode>] \
   [-o|--output [<format>:]<output-file>] \
   [-w|--watch] \
   [-O|--omit <aspect>[,...]] \
@@ -160,6 +163,7 @@ $ specbook preview \
   [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
+  [-F|--fetch <mode>] \
   [-O|--omit <aspect>[,...]] \
   [-a|--addr <ip-addr>] \
   [-p|--port <tcp-port>]
@@ -168,11 +172,17 @@ $ specbook describe \
   [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
+  [-F|--fetch <mode>] \
   [-e|--embed] \
   [-z|--compress [<level>]] \
   [-f|--format <format>] \
   [-p|--part <part>] \
   [-o|--output <output-file>]
+
+$ specbook search \
+  [-v|--verbose [<level>]] \
+  [-F|--fetch <mode>] \
+  [<term> ...]
 
 $ specbook mcp \
   [-v|--verbose [<level>]]
@@ -215,12 +225,24 @@ Options:
     counterpart, an unmatched one is appended. Every file has to be valid
     YAML on its own, while the merged result alone is validated against
     the schema of the configuration.
+    Instead of a local file, the option also accepts a *remote reference*
+    (see "Remote References" below): `npm:<pkg>[@<range>][/<path>]`,
+    `github:<user>/<repo>[/<path>][#<ref>]`, or an `http://` or `https://`
+    URL of a single file, which is fetched into the download cache and then merged
+    exactly like a local file.
 
 -   `-b|--basedir <spec-md-file-basedir>`:
     The base directory (default: the `basedir` entry of the project
     configuration file `.specbook.yaml`, else `.`) is the directory the
     referenced artifact files are resolved against, and generated
     specification Markdown files are placed inside it, too.
+
+-   `-F|--fetch <mode>`:
+    When to fetch the remote references of the schema configuration
+    through the network: `never` (the download cache only, where a
+    reference which is not cached is an error), `auto` (the default:
+    whenever the download cache lacks a reference or it is no longer
+    fresh), or `always` (ignoring the download cache).
 
 -   `-o|--output [<format>:]<output-file>` (`export` only):
     The output file (`-` for stdout) is required and can be given multiple times.
@@ -357,6 +379,62 @@ Chrome* (the equivalent of `chrome`). An explicitly configured browser
 failing to launch fails the export instead of falling back onto another
 browser.
 
+Remote References
+-----------------
+
+Useful schema configurations should not stay buried in individual
+project repositories. SpecBook hence resolves *remote references*
+wherever a schema configuration is expected (`-c|--config`, the `config`
+entry of `.specbook.yaml`, `SPECBOOK_CONFIG`):
+
+-   `npm:<pkg>[@<range>][/<path>]`: a package of the npm registry (the
+    package perhaps scoped, the version a semver range or dist-tag,
+    default `latest`), resolved and fetched through the npm registry
+    client itself, so the `registry`, the scoped `@scope:registry`, and
+    the `//host/:_authToken` credentials of your `.npmrc` files (and the
+    `npm_config_*` environment variables) are honored, while none of the
+    scripts of the package is ever run.
+
+-   `github:<user>/<repo>[/<path>][#<ref>]`: a GitHub repository at a
+    branch, tag, or commit (default: `HEAD`), fetched as its tarball,
+    where `GITHUB_TOKEN` (or `SPECBOOK_GITHUB_TOKEN`) authenticates the
+    private repositories.
+
+-   `http[s]://<host>[:<port>]/<path>/<file>`: a single schema
+    configuration file.
+
+The `<path>` inside a package names a schema configuration file, a glob
+pattern of such files, or a named building block of the
+`"specbook": { "schema": { "<name>": "<file>", ... } }` map of the
+`package.json` of the package. An absent path resolves through the
+`"specbook": { "schema": "<file>" }` entry of the `package.json`, then
+through the `config` entries of the `.specbook.yaml` of the package
+(whose remote entries resolve transitively, a cycle being an error),
+and finally through its `index.yaml`. A package may
+declare the SpecBook versions it supports through
+`"engines": { "specbook": "<range>" }` of its `package.json`, which is
+checked. The artifacts several schema configuration files define (and
+hence merge) are reported at verbosity level `2`, and unconditionally
+if two remote files collide, as such a merge is hardly intended.
+
+The downloads are cached under `SPECBOOK_CACHE` (default: the native
+cache location of the platform, like `~/Library/Caches/specbook` on
+macOS, `%LOCALAPPDATA%\specbook\Cache` on Windows, and
+`$XDG_CACHE_HOME/specbook` or `~/.cache/specbook` elsewhere): an exact
+npm version or a commit hash is immutable and stays cached forever,
+while a floating reference (a range, a branch, a tag, a URL) is
+fetched again after five minutes. With `-F|--fetch never` (or
+`SPECBOOK_FETCH=never`), only the cache is consulted, and a reference
+which is not cached is an error, while `-F|--fetch always` fetches every
+reference again.
+
+To share a schema configuration of your own, publish it as a plain npm
+package carrying the keyword `specbook-schema` (or push it to a GitHub
+repository carrying the same topic), so `specbook search [<term> ...]`
+(and the MCP tool `specbook_search`) finds it, right after the bundled
+standard schema configuration `std`, which it always lists first (and
+which is all it lists under `--fetch never`).
+
 Agent Skill
 -----------
 
@@ -371,9 +449,9 @@ $ claude plugin install specbook@specbook
 
 ```text
 /specbook        [-c|--config <yaml-file>] [-b|--basedir <basedir>] [<query>]
-/specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-s|--sample]
-/specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
-/specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
+/specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-s|--sample]
+/specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-g|--gitignore]
+/specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-g|--gitignore]
                  [-O|--omit <aspect>[,...]] [-o|--output [<format>:]<output-file>] [...]
 /specbook edit   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--grill]
                  [-r|--grill-rounds <n>] [-v|--verify] [-l|--loop] [<query>]

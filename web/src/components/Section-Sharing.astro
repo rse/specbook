@@ -1,0 +1,121 @@
+---
+/*
+**  Specification Book (SpecBook)
+**  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+**  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+*/
+
+/*  "Sharing" section: the remote references of the shareable schema
+    configurations, plus a framed table of the npm packages carrying the
+    keyword `specbook-schema`, discovered through the npm search API at build
+    time (the table is left out while none exists or the discovery fails),
+    followed by the explanatory NOTICE callouts on referencing and publishing.  */
+
+import SectionGlow from "./Section-Glow.astro"
+
+type Row = { ref: string, description: string }
+const rows: Row[] = []
+try {
+    const url      = "https://registry.npmjs.org/-/v1/search?text=keywords:specbook-schema&size=50"
+    const response = await fetch(url)
+    if (!response.ok)
+        throw new Error(`HTTP ${response.status}`)
+    const result = await response.json() as { objects: { package: { name: string, description?: string } }[] }
+    for (const { package: pkg } of result.objects)
+        rows.push({ ref: `npm:${pkg.name}`, description: pkg.description ?? "" })
+}
+catch (err) {
+    console.warn(`sharing: npm discovery of the schema packages failed: ${err instanceof Error ? err.message : String(err)}`)
+}
+---
+<section id="sharing" class="relative isolate mx-auto max-w-4xl px-6 py-8">
+    <SectionGlow variant="section" side="right" />
+
+    <header class="sb-section-head" data-reveal>
+        <h2 class="sb-h2 mt-12">
+            Shareable Schema <span class="text-accent">Configurations</span>
+        </h2>
+        <p class="sb-lead sb-justify">
+            Useful schema configurations should not stay buried in individual
+            project repositories. Every place expecting a schema configuration
+            hence also takes a <i>remote reference</i>: hand one to{" "}
+            <code>-c</code>, and it is fetched, cached, versioned, and then
+            merged exactly like a local file.
+        </p>
+    </header>
+
+    {rows.length > 0 && (
+        <div class="mt-12 bg-background-elevated overflow-hidden rounded-xl border border-border-strong p-2 shadow-xl sm:p-3" data-reveal>
+            <table class="w-full text-left text-xs sm:text-sm">
+                <thead>
+                    <tr class="border-b border-border-strong text-foreground">
+                        <th class="pb-2 pr-1 font-semibold sm:pr-3">Reference</th>
+                        <th class="pb-2 pl-1 font-semibold sm:pl-3">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows.map((r) => (
+                        <tr class="border-b border-border-strong last:border-0">
+                            <td class="py-1.5 pr-1 align-top sm:pr-3"><code class="code-plain font-mono text-foreground-muted">{r.ref}</code></td>
+                            <td class="py-1.5 pl-1 align-top text-foreground-secondary sm:pl-3">{r.description}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    )}
+
+    <div class="mt-10 grid gap-8 lg:grid-cols-2 lg:items-start">
+        {/*  referencing NOTICE — reveals from the left edge
+            ("right" starts off-screen left, per Scroll-Reveal's inverted naming)  */}
+        <div data-reveal="right">
+            <blockquote class="border-l-4 border-accent bg-background-elevated/60 px-6 py-2 text-foreground-secondary">
+                <b class="text-accent">NOTICE: Referencing</b>
+
+                <p class="mt-1 text-foreground-secondary sb-justify">
+                    <code>-c</code> takes{" "}
+                    <code>npm:&lt;pkg&gt;[@&lt;range&gt;][/&lt;path&gt;]</code> (a package of the
+                    npm registry, honoring your <code>.npmrc</code>),{" "}
+                    <code>github:&lt;user&gt;/&lt;repo&gt;[/&lt;path&gt;][#&lt;ref&gt;]</code> (a
+                    repository at a branch, tag, or commit, honoring{" "}
+                    <code>GITHUB_TOKEN</code>), and a plain{" "}
+                    <code>http://</code> or <code>https://</code> URL of a single file.
+                </p>
+
+                <p class="text-foreground-secondary sb-indent-p sb-justify">
+                    A path inside a package may be a glob pattern, and an absent
+                    one resolves through the <code>specbook.schema</code> entry of
+                    its <code>package.json</code>, its own <code>.specbook.yaml</code>{" "}
+                    (whose remote entries resolve transitively), or its{" "}
+                    <code>index.yaml</code>. Exact versions and commits are cached
+                    forever, floating ones for five minutes, and{" "}
+                    <code>--fetch never</code> never touches the network at all,
+                    while <code>--fetch always</code> fetches everything again.
+                </p>
+            </blockquote>
+        </div>
+
+        {/*  publishing NOTICE — reveals from the right edge
+            ("left" starts off-screen right, per Scroll-Reveal's inverted naming)  */}
+        <div data-reveal="left">
+            <blockquote class="border-l-4 border-accent bg-background-elevated/60 px-6 py-2 text-foreground-secondary">
+                <b class="text-accent">NOTICE: Publishing</b>
+
+                <p class="mt-1 text-foreground-secondary sb-justify">
+                    To share a schema configuration of your own, publish it as a
+                    plain npm package carrying the keyword <code>specbook-schema</code>{" "}
+                    (or push it to a GitHub repository carrying the same topic), so{" "}
+                    <code>specbook search</code> finds it.
+                </p>
+
+                <p class="text-foreground-secondary sb-indent-p sb-justify">
+                    Name the schema configuration through{" "}
+                    <code>"specbook": {"{"} "schema": "..." {"}"}</code>{" "}
+                    (a file, or a map of named building blocks) and the supported
+                    SpecBook versions through <code>"engines": {"{"} "specbook": "..." {"}"}</code>{" "}
+                    in the <code>package.json</code>.
+                </p>
+            </blockquote>
+        </div>
+    </div>
+</section>

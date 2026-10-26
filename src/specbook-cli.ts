@@ -13,7 +13,8 @@ import chalk                       from "chalk"
 import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, renderVerbose, literal,
     parseOutputSpec, previewAddr, previewPort, describeFormats, describeParts,
     parseDescribeFormat, parseDescribePart, parseCompressLevel, parseVerbosity, verbosityOf,
-    projectFile, omitAspects, version, type VerboseSink, type VerboseLevel } from "./specbook-api.js"
+    projectFile, omitAspects, parseFetchMode, version,
+    type VerboseSink, type VerboseLevel, type FetchMode } from "./specbook-api.js"
 import { serveMcp }                from "./specbook-mcp.js"
 
 /*  the parsed value of the verbose option: a bare flag, a level, or the
@@ -86,13 +87,15 @@ const withVerboseOption = (command: Command): Command => command
         "3: also the traces like the unreferenced objects; default: 0, bare flag: 1)",
     envDefault("verbose", "0"))
 
-/*  provide the repeatable schema configuration option, whose files or
-    glob patterns are merged in order (with "std" naming the bundled
-    standard one), and determine its value, where an absent one is left
-    to the API, which resolves it through the environment variable
-    SPECBOOK_CONFIG and the project configuration file  */
+/*  provide the repeatable schema configuration option, whose files,
+    glob patterns, or remote references are merged in order (with "std"
+    naming the bundled standard one), and determine its value, where an
+    absent one is left to the API, which resolves it through the
+    environment variable SPECBOOK_CONFIG and the project configuration file  */
 const withConfigOption = (command: Command, fallback: string): Command => command
-    .option("-c, --config <yaml-file>", "YAML schema configuration file or glob pattern " +
+    .option("-c, --config <yaml-file>", "YAML schema configuration file, glob pattern, or remote reference " +
+        "(\"npm:<pkg>[@<range>][/<path>]\", \"github:<user>/<repo>[/<path>][#<ref>]\", " +
+        "or an \"http[s]://...\" URL) " +
         "(repeatable, merged in order, \"std\" for the bundled standard schema configuration; " +
         `default: SPECBOOK_CONFIG, else the "config" entry of "${projectFile}", else ${fallback})`,
     (value: string, previous: string[]) => previous.concat(value), new Array<string>())
@@ -106,14 +109,23 @@ const withBasedirOption = (command: Command, fallback: string): Command => comma
     .option("-b, --basedir <directory>", "base directory of the specification Markdown files " +
         `(default: SPECBOOK_BASEDIR, else the "basedir" entry of "${projectFile}", else ${fallback})`)
 
+/*  provide the fetch option, which selects when the remote references
+    are fetched through the network, and determine its value  */
+const withFetchOption = (command: Command): Command => command
+    .option("-F, --fetch <mode>", "when to fetch the remote references through the network (\"never\": " +
+        "the download cache only, \"auto\": whenever the download cache lacks them or is no longer fresh, " +
+        "\"always\": ignoring the download cache; default: auto)", envDefault("fetch", "auto"))
+const fetchOf = (opts: { fetch: string }): FetchMode =>
+    parseFetchMode(opts.fetch)
+
 /*  provide the common options of the specification processing sub-commands,
     for which the YAML schema configuration falls back onto the standard one  */
 const withCommonOptions = (command: Command): Command =>
-    withBasedirOption(withConfigOption(withVerboseOption(command),
-        "the bundled standard schema configuration"), "\".\"")
+    withFetchOption(withBasedirOption(withConfigOption(withVerboseOption(command),
+        "the bundled standard schema configuration"), "\".\""))
 
 /*  the parsed values of the common options  */
-type CommonOptions = VerboseOption & { config: string[], basedir?: string }
+type CommonOptions = VerboseOption & { config: string[], basedir?: string, fetch: string }
 
 /*  provide the Git exclude option of the specification *reading*
     sub-commands (not of "init", which creates artifact files instead of
@@ -179,7 +191,8 @@ withCommonOptions(program.command("init"))
     envDefaultFlag("sample", false))
     .action(async (opts: CommonOptions & { sample: boolean }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const result   = await specbook.init({ config: configOf(opts), basedir: opts.basedir, sample: opts.sample })
+        const result   = await specbook.init({ config: configOf(opts), basedir: opts.basedir,
+            fetch: fetchOf(opts), sample: opts.sample })
         await writeStdout((result.files.length > 0 ?
             `initialized artifact file(s): ${result.files.join(", ")}\n` :
             "no artifact files were created\n") +
@@ -194,7 +207,7 @@ withGitignoreOption(withCommonOptions(program.command("lint")))
         const verbose  = verboseOf(opts)
         const specbook = new SpecBook({ verbose })
         const result   = await specbook.lint({ config: configOf(opts), basedir: opts.basedir,
-            gitignore: opts.gitignore })
+            fetch: fetchOf(opts), gitignore: opts.gitignore })
         const detailed = parseVerbosity(opts.verbose) > 0
         for (const diagnostic of result.diagnostics)
             await writeStdout(detailed ?
@@ -249,11 +262,11 @@ withOmitOption(withGitignoreOption(withCommonOptions(program.command("export")))
         const formats  = distinct.map(({ format }) => format)
         const rebase   = distinct.map(rebaseOf)
         if (opts.watch)
-            await specbook.watch({ config: configOf(opts), basedir: opts.basedir,
+            await specbook.watch({ config: configOf(opts), basedir: opts.basedir, fetch: fetchOf(opts),
                 formats, rebase, omit: omitOf(opts), gitignore: opts.gitignore,
                 outputs: outputs.map(({ output }) => output), onExport: write })
         else
-            await write(await specbook.export({ config: configOf(opts), basedir: opts.basedir,
+            await write(await specbook.export({ config: configOf(opts), basedir: opts.basedir, fetch: fetchOf(opts),
                 formats, rebase, omit: omitOf(opts), gitignore: opts.gitignore }))
     })
 
@@ -268,14 +281,14 @@ withOmitOption(withGitignoreOption(withCommonOptions(program.command("preview"))
         if (!Number.isInteger(port) || port < 1 || port > 65535)
             throw new Error(`invalid TCP port "${opts.port}"`)
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        await specbook.preview({ config: configOf(opts), basedir: opts.basedir, addr: opts.addr, port,
-            omit: omitOf(opts), gitignore: opts.gitignore })
+        await specbook.preview({ config: configOf(opts), basedir: opts.basedir, fetch: fetchOf(opts),
+            addr: opts.addr, port, omit: omitOf(opts), gitignore: opts.gitignore })
     })
 
 /*  the describe command also describes the generic SpecBook models and
     formats alone, so its YAML schema configuration stays optional  */
-withBasedirOption(withConfigOption(withVerboseOption(program.command("describe")),
-    "the bundled standard schema configuration, embedded"), "none")
+withFetchOption(withBasedirOption(withConfigOption(withVerboseOption(program.command("describe")),
+    "the bundled standard schema configuration, embedded"), "none"))
     .description("describe the SpecBook models and formats as Markdown")
     .option("-e, --embed", "embed the given YAML schema configuration instead of just referencing it",
         envDefaultFlag("embed", false))
@@ -293,9 +306,26 @@ withBasedirOption(withConfigOption(withVerboseOption(program.command("describe")
         const verbose  = verboseOf(opts)
         const specbook = new SpecBook({ verbose })
         const text     = await specbook.describe({ config: configOf(opts), basedir: opts.basedir,
-            embed: opts.embed, compress: parseCompressLevel(opts.compress),
+            fetch: fetchOf(opts), embed: opts.embed, compress: parseCompressLevel(opts.compress),
             format: parseDescribeFormat(opts.format), part: parseDescribePart(opts.part) })
         await writeOutput(opts.output, text, "describe", verbose)
+    })
+
+/*  the search command finds the bundled standard schema configuration
+    and the shareable ones of the npm registry and GitHub  */
+withFetchOption(withVerboseOption(program.command("search")))
+    .description("search the bundled standard schema configuration, the npm registry, " +
+        "and GitHub for shareable schema configurations")
+    .argument("[term...]", "the words a matching schema configuration has to carry")
+    .action(async (term: string[], opts: VerboseOption & { fetch: string }) => {
+        const specbook = new SpecBook({ verbose: verboseOf(opts) })
+        const hits     = await specbook.search({ term: term.join(" "), fetch: fetchOf(opts) })
+        if (hits.length === 0)
+            await writeStdout("no matching schema configurations found\n")
+        const width = Math.max(0, ...hits.map((hit) => hit.ref.length))
+        for (const hit of hits)
+            await writeStdout(`${hit.ref.padEnd(width)}  ` +
+                `${(hit.version ?? "").padEnd(8)}  ${hit.description ?? ""}`.trimEnd() + "\n")
     })
 
 /*  run the command line program  */

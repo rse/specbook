@@ -106,7 +106,17 @@ API.
     -   `src/specbook-project.ts`: the upward search, loading, and
         validation (Valibot) of the YAML project configuration file
         `.specbook.yaml` with its `config` and `basedir` entries,
-        and its writing by `init`
+        its writing by `init`, and the `isRemote` predicate telling
+        the remote references apart from the local paths
+    -   `src/specbook-remote.ts`: the remote references of the schema
+        configurations (`npm:` through `pacote`, `github:` through the
+        codeload tarballs and `tar`, and `http:`/`https:` URLs), their
+        download cache (`SPECBOOK_CACHE`, else the native cache
+        location), the resolution of a reference into schema
+        configuration files (`resolveConfig`), the `search` of the npm
+        registry and GitHub, the report of the artifacts several
+        configuration files define, and the installation constants
+        `version` and `standardConfig`
     -   `src/specbook-diagnostic.ts`: the `Diagnostic` type and its
         single-line/verbose renderers, shared by all layers
     -   `src/specbook-verbose.ts`: the marking (`literal`) and rendering
@@ -252,11 +262,12 @@ blue hero flag).
 ## CLI Commands
 
 ```
-specbook init     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-s]
-specbook lint     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g]
-specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-w] [-O <aspect>[,...]] [-o [<format>:]<output-file>] [...]
-specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-g] [-O <aspect>[,...]] [-a <ip-addr>] [-p <tcp-port>]
-specbook describe [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-e] [-z [<level>]] [-f <format>] [-p <part>] [-o <markdown-file>]
+specbook init     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-s]
+specbook lint     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g]
+specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g] [-w] [-O <aspect>[,...]] [-o [<format>:]<output-file>] [...]
+specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g] [-O <aspect>[,...]] [-a <ip-addr>] [-p <tcp-port>]
+specbook describe [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-e] [-z [<level>]] [-f <format>] [-p <part>] [-o <markdown-file>]
+specbook search   [-v [<level>]] [-F <mode>] [<term> ...]
 specbook mcp      [-v [<level>]]
 ```
 
@@ -265,8 +276,9 @@ onto the bundled standard one (assembled from `src/specbook-format-schema.d/`
 into `dst/` at build time), while `describe` references the given one only
 and falls back onto the standard one by embedding it.
 
-The option `-c`/`--config` accepts glob patterns (expanded via `glob`)
-and can occur multiple times: the matching files (in pattern order,
+The option `-c`/`--config` accepts glob patterns (expanded via `glob`
+through `expandPattern` of `src/specbook-remote.ts`) and remote references
+(see below) and can occur multiple times: the matching files (in pattern order,
 alphabetically within a pattern, with the literal `std` naming the
 bundled standard one, and a pattern matching no file being an error) are
 merged in order into one effective schema configuration (the later files
@@ -347,6 +359,74 @@ the generation is best-effort, the created files are re-parsed
 afterwards and their diagnostics reported (the errors at verbose level
 `none`, the warnings at `notice`), the files staying as the starting
 point to fix. Without the option, the output stays as before.
+
+Wherever a schema configuration pattern is expected (`-c`,
+`SPECBOOK_CONFIG`, the `config` entry of `.specbook.yaml`, the API/MCP
+option `config`), a *remote reference*
+is accepted, too, which `src/specbook-remote.ts` resolves into the files of
+the download cache (`isRemote` of `src/specbook-project.ts` telling them
+apart from the local paths, the literal `std` counting as one):
+`npm:<pkg>[@<range>][/<path>]` (the package perhaps scoped, the range
+resolved through `pacote.manifest` against the registry, default
+`latest`, the tarball extracted through `pacote.extract` without ever
+running a script, the `.npmrc` files -- `NPM_CONFIG_USERCONFIG` or
+`~/.npmrc`, then the one of the working directory -- and the
+`npm_config_*` environment variables passed on as the client options,
+with `${VAR}` expanded), `github:<user>/<repo>[/<path>][#<ref>]` (the
+codeload tarball of the branch, tag, or commit, default `HEAD`, its
+top-level directory stripped by `tar`, `GITHUB_TOKEN` or
+`SPECBOOK_GITHUB_TOKEN` authenticating), and an `http:` or `https:` URL
+of a single file. A `<path>` never leaves its package (no `..`), names a
+file, a glob pattern (expanded inside the package), or a named building
+block of the `specbook.schema` map of the `package.json`, while an
+absent one resolves through the `specbook.schema` file entry, then the
+`config` entries of the `.specbook.yaml` of the package
+(`loadProjectFile`, remote entries recursively with a cycle being an
+error), then its `index.yaml`. An `engines.specbook` range of a
+`package.json` (of the root, and of a nested package directory) is
+checked against our version. The specifications themselves (`-b`) are
+deliberately never remote: they are the authored, locally versioned
+source of a project, not a consumed dependency.
+
+The download cache lives under `SPECBOOK_CACHE`, else the native cache
+location (`~/Library/Caches/specbook`, `%LOCALAPPDATA%\specbook\Cache`,
+`$XDG_CACHE_HOME/specbook` or `~/.cache/specbook`), as `npm/<name>/<version>/`
+(plus the `npm/_cacache` of pacote), `github/<user>/<repo>/<ref>/`, and
+`url/<sha256>/<file>` entries, each materialized through a temporary
+sibling renamed into place: an exact version or a commit hash is
+immutable (an already extracted exact npm version not even consulting
+the registry), while a floating reference (a range, a branch, a tag, a
+URL) expires after five minutes (`floatingTtl`), the TTL
+of the npm packuments. The option `-F`/`--fetch <mode>` (the API/MCP
+option `fetch`, `SPECBOOK_FETCH`, validated by `parseFetchMode`) of
+`init`, `lint`, `export`, `preview`, `describe`, and `search` selects
+when `ensure` fetches through the network: `never` resolves out of the
+cache only (pacote in its `only-if-cached` mode via `offline`), an
+uncached reference being an error, `auto` (the default) fetches a
+missing or no longer fresh entry, and `always` fetches every entry again
+(pacote revalidating via `preferOnline`, an exact npm version consulting
+the registry again, too). The files
+of the cache are never observed by `export --watch`/`preview`
+(`isCached`), and `describe` always embeds a cached schema configuration
+(like the standard one). The artifacts several configuration files
+define are reported by `reportOverlaps` after every `loadConfig` (whose
+result carries them as `overlaps`): at verbose level `detail`, or at
+`none` if two cached files collide, as such a merge is hardly intended.
+
+The `search` command (the API method `search`, the MCP tool
+`specbook_search`) lists the bundled standard schema configuration first
+(reference `std`, our version, source `builtin`, matched locally by all
+words of the term against its reference, name, and description, and the
+only source `--fetch never` searches), then queries the npm registry (`/-/v1/search` through
+`npm-registry-fetch` for the keyword `specbook-schema`) and GitHub (the
+repository search for the same topic, a `User-Agent` being mandatory
+there), where a failing source is reported at level `none` but does not
+fail the search, and returns the deduplicated hits (`ref`, `name`,
+`version`, `description`, `source`), which the CLI renders as aligned
+lines and the MCP tool as JSON. There is no curated index of our own to
+maintain: the website merely renders the npm packages discovered through
+the keyword at build time in its "Sharing" section
+(`Section-Sharing.astro`, the table left out while none exists).
 
 Exactly the artifact files referenced by its `file` fields are loaded and parsed,
 resolved against the base directory, in which generated specification
