@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: Sample Scaffolding of `init`
+    The new option `-s`/`--sample` of `init` scaffolds one lint-clean sample object per allowed
+    object kind, with placeholder values satisfying the schema, so the format is learnable from it.
+
 -   IMPROVEMENT [code]: PDF Export of Very Large Specifications
     The PDF export waits for `load` without a timeout and its HTML omits the screen-only scripts and
     the ToC side panel, so huge specifications finish.

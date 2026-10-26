@@ -179,14 +179,15 @@ export class SpecBook {
     }
 
     /*  initialize the configured specification artifact files below the
-        base directory and persist the effective project options into a
-        new project configuration file in the working directory, unless
-        one already applies (as a new one would shadow it)  */
-    async init (options: ProjectOptions): Promise<InitResult> {
+        base directory (where "sample" scaffolds a sample object per
+        allowed object kind into them) and persist the effective project
+        options into a new project configuration file in the working
+        directory, unless one already applies (as a new one would shadow it)  */
+    async init (options: ProjectOptions & { sample?: boolean }): Promise<InitResult> {
         const verbose = this.verboseOf("init")
         const project = this.project(options, verbose)
         const files   = initSpecification({ config: this.requireConfig(await this.configFiles(project.config), verbose),
-            basedir: project.basedir ?? ".", verbose })
+            basedir: project.basedir ?? ".", sample: options.sample === true, verbose })
         if (project.file !== undefined) {
             verbose(`skipping existing project configuration "${literal(project.file)}"`)
             return { files }

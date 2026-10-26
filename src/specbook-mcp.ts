@@ -43,6 +43,9 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
     const gitignore = z.boolean().optional().describe("skip the artifact files excluded by the Git " +
         "exclude rules (the \".gitignore\" files, \"info/exclude\", and the global excludes " +
         "file), treating such a file exactly like an absent one (default: false)")
+    const sample    = z.boolean().optional().describe("scaffold a sample object per allowed object kind " +
+        "into the artifact files, with placeholder values satisfying the schema configuration " +
+        "(default: false)")
 
     /*  the working directory of the client, which this server does not
         necessarily share: it anchors the relative paths and starts the
@@ -58,10 +61,11 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
     server.registerTool("specbook_init", {
         title:       "Initialize Specification",
         description: "Initialize the configured specification artifact files below the base directory " +
-            "with their frontmatter and artifact heading, skipping already existing files, and " +
+            "with their frontmatter and artifact heading (or, with \"sample\", with a sample object per " +
+            "allowed object kind), skipping already existing files, and " +
             `create the project configuration file "${projectFile}" in the working directory, ` +
             "persisting the effective schema configuration and base directory, unless one already applies.",
-        inputSchema: { config, basedir, cwd }
+        inputSchema: { config, basedir, sample, cwd }
     }, async (args) => {
         try {
             const result = await specbook.init(args)

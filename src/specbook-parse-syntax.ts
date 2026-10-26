@@ -107,7 +107,7 @@ const parseHeadingText = (raw: string) => {
 }
 
 /*  derive a stable slug identifier from an object name  */
-const slugify = (text: string): string =>
+export const slugify = (text: string): string =>
     text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
 
 /*  extract the plain text lines of a Markdown list item (excluding any

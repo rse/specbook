@@ -174,7 +174,7 @@ Usage
 
 ```text
 /specbook        [-c|--config <yaml-file>] [-b|--basedir <basedir>] [<query>]
-/specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>]
+/specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-s|--sample]
 /specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
 /specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
                  [-O|--omit <aspect>[,...]] [-o|--output [<format>:]<output-file>] [...]
@@ -227,6 +227,8 @@ Procedure
         -   <opt-config/> to the list of all `-c`|`--config` values
             (the option is repeatable; default: empty list),
         -   <opt-basedir/> to the `-b`|`--basedir` value (default: empty),
+        -   <opt-sample/> to `true` for `-s`|`--sample` of `init`
+            (default: `false`),
         -   <opt-gitignore/> to `true` for `-g`|`--gitignore` of `lint`
             and `export` (default: `false`),
         -   <opt-omit/> to the list of all `-O`|`--omit` values of
@@ -395,7 +397,7 @@ of the commands of this skill:
 Command: init
 -------------
 
-1.  Call the `specbook_init(<params/>)` tool.
+1.  Call the `specbook_init(<params/>, sample: <opt-sample/>)` tool.
 
 2.  Only output the following <template/>, where <result/> is the
     *verbatim* result of the tool call:

@@ -139,7 +139,8 @@ Commands:
 $ specbook init \
   [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
-  [-b|--basedir <spec-md-file-basedir>]
+  [-b|--basedir <spec-md-file-basedir>] \
+  [-s|--sample]
 
 $ specbook lint \
   [-v|--verbose [<level>]] \
@@ -327,7 +328,12 @@ win over its entry.
 
 `specbook init` creates such a file in the current working directory
 (unless one already applies), so the options of the initialization
-stick for all subsequent commands.
+stick for all subsequent commands. With `-s|--sample` it scaffolds a
+small sample into the created artifact files instead of the bare
+headings -- one object per allowed object kind, with every configured
+property carrying a placeholder value satisfying the schema and the
+first sentence of the schema description of the kind as its statement
+-- so the format is learnable from the generated files alone.
 
 The default value of every CLI option `--xxx` can be overridden
 by a corresponding `SPECBOOK_XXX` environment variable (e.g.
@@ -365,7 +371,7 @@ $ claude plugin install specbook@specbook
 
 ```text
 /specbook        [-c|--config <yaml-file>] [-b|--basedir <basedir>] [<query>]
-/specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>]
+/specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-s|--sample]
 /specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
 /specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--gitignore]
                  [-O|--omit <aspect>[,...]] [-o|--output [<format>:]<output-file>] [...]

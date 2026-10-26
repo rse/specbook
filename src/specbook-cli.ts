@@ -169,13 +169,17 @@ withVerboseOption(program.command("mcp"))
         await serveMcp(verboseOf(opts, "mcp"))
     })
 
-/*  the init command creates the configured artifact files and,
-    unless one already applies, the project configuration file  */
+/*  the init command creates the configured artifact files (optionally
+    with a sample object per allowed object kind) and, unless one already
+    applies, the project configuration file  */
 withCommonOptions(program.command("init"))
     .description("initialize the configured specification artifact files below the base directory")
-    .action(async (opts: CommonOptions) => {
+    .option("-s, --sample", "scaffold a sample object per allowed object kind into the artifact files, " +
+        "with placeholder values satisfying the schema configuration",
+    envDefaultFlag("sample", false))
+    .action(async (opts: CommonOptions & { sample: boolean }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const result   = await specbook.init({ config: configOf(opts), basedir: opts.basedir })
+        const result   = await specbook.init({ config: configOf(opts), basedir: opts.basedir, sample: opts.sample })
         await writeStdout((result.files.length > 0 ?
             `initialized artifact file(s): ${result.files.join(", ")}\n` :
             "no artifact files were created\n") +

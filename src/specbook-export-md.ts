@@ -106,7 +106,7 @@ const renderConciseMd = (object: SpecObject, depth = 0): string => {
     level 6, the deepest one Markdown knows, below which the children are
     concise regardless -- and the optionally derived Gradia diagram spec
     embedded as a "gradia" fenced code block below the heading  */
-const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecObject, string>): string => {
+export const renderObjectMd = (object: SpecObject, level: number, diagrams?: Map<SpecObject, string>): string => {
     const heading = `${"#".repeat(level)}${" ".repeat(Math.max(1, 4 - level))}` +
         `${object.kind}: ${object.name}${nameSuffixMd(object)}`
     const parts = [ heading ]
