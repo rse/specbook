@@ -88,8 +88,8 @@ const withVerboseOption = (command: Command): Command => command
     envDefault("verbose", "0"))
 
 /*  provide the repeatable schema configuration option, whose files,
-    glob patterns, or remote references are merged in order (with "std"
-    and "meta" naming the bundled ones), and determine its value, where
+    glob patterns, or remote references are merged in order (with "std",
+    "meta", and "pm" naming the bundled ones), and determine its value, where
     an absent one is left to the API, which resolves it through the
     environment variable SPECBOOK_CONFIG and the project configuration file  */
 const withConfigOption = (command: Command, fallback: string): Command => command
@@ -97,7 +97,7 @@ const withConfigOption = (command: Command, fallback: string): Command => comman
         "(\"npm:<pkg>[@<range>][/<path>]\", \"github:<user>/<repo>[/<path>][#<ref>]\", " +
         "or an \"http[s]://...\" URL) " +
         "(repeatable, merged in order, \"std\" for the bundled standard schema configuration, " +
-        "\"meta\" for the bundled meta one; " +
+        "\"meta\" for the bundled meta one, \"pm\" for the bundled project management one; " +
         `default: SPECBOOK_CONFIG, else the "config" entry of "${projectFile}", else ${fallback})`,
     (value: string, previous: string[]) => previous.concat(value), new Array<string>())
 const configOf = (opts: { config: string[] }): string[] | undefined =>

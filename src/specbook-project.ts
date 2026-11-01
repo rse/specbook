@@ -17,10 +17,11 @@ export const projectFile = ".specbook.yaml"
 
 /*  whether a schema configuration pattern is a remote reference
     (resolved by the remote module) instead of a local path: the literals
-    "std" and "meta" (the bundled standard and meta schema configurations),
-    an "npm:" or "github:" reference, or an "http:" or "https:" URL  */
+    "std", "meta", and "pm" (the bundled standard, meta, and project
+    management schema configurations), an "npm:" or "github:" reference,
+    or an "http:" or "https:" URL  */
 export const isRemote = (value: string): boolean =>
-    value === "std" || value === "meta" || (/^(?:npm|github):|^https?:\/\//).test(value)
+    value === "std" || value === "meta" || value === "pm" || (/^(?:npm|github):|^https?:\/\//).test(value)
 
 /*  the schema of the YAML project configuration: the files or glob
     patterns of the YAML schema configuration and the base directory

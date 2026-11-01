@@ -184,6 +184,62 @@ API.
         standard YAML schema configuration (`std-0-meta` through
         `std-6-test`), assembled into one file at build time and used
         whenever no particular one is given
+    -   `src/specbook-format-schema.d/pm.yaml`: the bundled project
+        management YAML schema configuration (a single file, copied to
+        `dst/specbook-format-pm.yaml` at build time, never assembled
+        into the standard one) and named through the literal `pm`: a stand-alone
+        schema configuration (its own `META: Title` artifact and the
+        `PM` artifacts Project Charter, Project Organization, Governance
+        Model, Delivery Scope, Work Breakdown, Project Schedule, Risk
+        Register, and Change Log, the charter holding the objectives with their measurable
+        success criteria, the constraints (of kind `Time`, `Budget`,
+        `Scope`, `Quality`, `Resource`, `Technology`, or `Legal`), and
+        the assumptions, and stating as its own properties the
+        development `APPROACH` (`Predictive`, `Agile`, or `Hybrid`), the
+        money `BUDGET`, and the `RESERVE` held back out of it, every
+        deliverable tracing back onto the objectives it `SERVES`, so the
+        Delivery Scope reports the objective coverage, naming its
+        producing `OWNER` and its accepting `APPROVER`, its `ACCEPTANCE`
+        criteria and the `VERIFICATION` method checking them (`Review`,
+        `Test`, `Demonstration`, or `Audit`), and the Delivery
+        Scope listing the `EXCLUSION`s of the scope, every milestone
+        naming the deliverables it `ACCEPTS`, so the Project Schedule
+        reports the deliverable coverage, and the `GATES` of the
+        Governance Model held at it (the governance preceding the plan,
+        so the ceremonies know no milestones), the schedule anchoring its
+        week `0` onto the calendar through its own `START` date, the
+        deliverables and tasks
+        tracking their progress through an optional `STATUS` defaulting
+        to `Planned` (a deliverable also `Rejected`, a task also
+        `Blocked` or `Cancelled`), the phases carrying a person-day
+        `BUDGET`, the work packages a non-labor money `COST` beside
+        their person-day `EFFORT`, and the
+        parties a `RATE` for the money view, the risks a `TYPE` (`Threat`,
+        the default, or `Opportunity`), a response
+        `STRATEGY` out of the threat, the opportunity, and the shared
+        responses (`Accept`, `Escalate`), and an early-warning `TRIGGER`,
+        and threatening tasks,
+        too, the parties placed on the power/interest grid through
+        `INFLUENCE` and `INTEREST`, planned by their `ENGAGEMENT` and
+        `ATTITUDE`, a party of kind `Stakeholder` affected by the results
+        without contributing members, every party engaged through the
+        ceremonies naming it as a participant (beside the members) and
+        threatened by the risks naming it, the tasks naming their
+        `STAFF`, the Work Breakdown and the Governance Model reporting
+        the deliverable and the member and party coverage, the
+        schedule drawn as a `gantt`
+        diagram, and the Change Log closing the artifact chain with the
+        `ISSUE` objects of kind `Request`, `Problem`, or `Off-Spec`,
+        each `RAISED-BY` a member or party, owned, analyzed for its
+        `IMPACT`, `DECIDED-BY` a ceremony, tracked through its `STATUS`
+        (`Open`, `Approved`, `Rejected`, `Deferred`, `Resolved`), naming
+        the objects of the other artifacts it `CONCERNS` (apart from the
+        `AFFECTS` of the risks, so their graphs stay apart) and the
+        occurred risk it was `CAUSED-BY`, while the baseline alone is
+        modeled, never the actuals, which the header of the schema
+        configuration states beside its other modeling decisions) for
+        the project management handbook
+        written beside the specification of the solution it delivers
     -   `src/specbook-format-schema.d/meta.yaml`: the bundled meta YAML
         schema configuration (copied to `dst/specbook-format-meta.yaml`
         at build time, never assembled into the standard one),
@@ -200,8 +256,11 @@ API.
     and the artwork (logos, posters, screenshots)
 -   `smp/`: the sample specification corpus (`broadcast/`, based on the
     standard schema configuration, exported into the git-ignored
-    `smp/broadcast.*` files) and a small standalone sample (`sample/`,
-    with its own `sample.yaml` schema configuration)
+    `smp/broadcast.*` files), a small standalone sample (`sample/`,
+    with its own `sample.yaml` schema configuration), and the project
+    management handbook of the Broadcast project (`pm/`, based on the
+    bundled `pm` schema configuration, exported into the git-ignored
+    `smp/pm.*` files)
 -   `web/`: the project website, a self-contained Astro/Tailwind
     single-page application with its own `package.json`, `etc/stx.conf`,
     and `node_modules/` (see "Website" below)
@@ -234,9 +293,10 @@ npm start build-cmd        # tsc, stylus+postcss, and the asset copies (all into
 npm start lint             # eslint on src/*.ts and src/specbook-format-schema.d/*.yaml, markdownlint-cli2 on src/specbook-format.md and plugin/skills/*/*.md
 npm start build-watch      # nodemon rebuild on src/**/*.{ts,md}
 npm start lint-watch       # nodemon relint on src/**/*.{ts,md}
-npm start sample           # sample-broadcast + sample-sample
+npm start sample           # sample-broadcast + sample-sample + sample-pm
 npm start sample-broadcast # lint smp/broadcast/, export it into all formats, and describe it
 npm start sample-sample    # lint smp/sample/ and export it into HTML and PDF
+npm start sample-pm        # lint smp/pm/ (against "pm") and export it into HTML and PDF
 npm start dev              # chokidar rebuild + dev-sample on src/ and smp/broadcast/ changes
 npm start dev-sample       # export smp/broadcast/ into smp/broadcast.html only
 npm start publish          # version bump (-i<part>), commit, tag, push, npm publish, GitHub release
@@ -249,7 +309,8 @@ to `dst/specbook-export-html.css` (Stylus, then PostCSS inlining the font
 faces as base64 `data:` URIs), copies the client-side search script and
 `src/specbook-format.md`, assembles `src/specbook-format-schema.d/std-*.yaml`
 into `dst/specbook-format.yaml`, copies `src/specbook-format-schema.d/meta.yaml`
-to `dst/specbook-format-meta.yaml`, and copies the two theme variants of the
+to `dst/specbook-format-meta.yaml` and `src/specbook-format-schema.d/pm.yaml`
+to `dst/specbook-format-pm.yaml`, and copies the two theme variants of the
 logo.
 
 No test target is defined.
@@ -406,7 +467,7 @@ Wherever a schema configuration pattern is expected (`-c`,
 option `config`), a *remote reference*
 is accepted, too, which `src/specbook-remote.ts` resolves into the files of
 the download cache (`isRemote` of `src/specbook-project.ts` telling them
-apart from the local paths, the literals `std` and `meta` counting as ones):
+apart from the local paths, the literals `std`, `meta`, and `pm` counting as ones):
 `npm:<pkg>[@<range>][/<path>]` (the package perhaps scoped, the range
 resolved through `pacote.manifest` against the registry, default
 `latest`, the tarball extracted through `pacote.extract` without ever
@@ -455,8 +516,8 @@ result carries them as `overlaps`): at verbose level `detail`, or at
 `none` if two cached files collide, as such a merge is hardly intended.
 
 The `search` command (the API method `search`, the MCP tool
-`specbook_search`) lists the bundled standard and meta schema configurations first
-(references `std` and `meta`, our version, source `builtin`, matched locally by all
+`specbook_search`) lists the bundled schema configurations first
+(references `std`, `meta`, and `pm`, our version, source `builtin`, matched locally by all
 words of the term against their reference, name, and description, and the
 only sources `--fetch never` searches), then queries the npm registry (`/-/v1/search` through
 `npm-registry-fetch` for the keyword `specbook-schema`) and GitHub (the
@@ -551,7 +612,7 @@ at `, BECAUSE ` like any other), followed by the prose of its
 onto the involved kinds) and its `refs` as an ordered list, and when
 several configuration files are merged, every object carries its
 `ORIGIN` (the contributing files, labeled by the reference or path they
-were given as, `std` and `meta` included), taken from the `origins`
+were given as, `std`, `meta`, and `pm` included), taken from the `origins`
 `loadConfig` reports per object kind and property. The reference
 patterns of the configuration are resolved at the kind level through
 the regular `resolveSet` against a skeleton corpus holding one object

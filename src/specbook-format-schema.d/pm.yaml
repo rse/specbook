@@ -1,0 +1,1240 @@
+##
+##  Specification Book (SpecBook)
+##  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+##  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+##
+
+#   This is the "Project Management" SpecBook schema.
+#
+#   Modeling Purpose
+#   ----------------
+#
+#   This schema allows specifying the management of a project delivering a
+#   solution, system, or software: the charter justifying and funding it, the
+#   organization of its parties and persons, the deliverables, the work
+#   breakdown of the scope, the schedule of the work, the risks threatening
+#   and the opportunities favoring it, the governance steering it, and the
+#   issues and changes it handles. It stands on its own (`specbook <cmd> -c pm`),
+#   beside the specification of the solution it delivers: the specification
+#   describes *what* is built, the project management handbook *who* builds it,
+#   *when*, and *how* the project is steered.
+#
+#   Modeling Coverage
+#   -----------------
+#
+#   | "Project Management" SpecBook | PMBOK Performance Domain | PRINCE2 Practice | IPMA ICB Practice Element             |
+#   | ----------------------------- | ------------------------ | ---------------- | ------------------------------------- |
+#   | META: Title (TI)              |                          |                  |                                       |
+#   | ----------------------------- | ------------------------ | ---------------- | ------------------------------------- |
+#   | PM: Project Charter (PC)      | Planning, Measurement    | Business Case    | Requirements and Objectives, Finance  |
+#   | PM: Project Organization (PO) | Team, Stakeholders       | Organizing       | Organisation, Resources, Stakeholders |
+#   | PM: Governance Model (GM)     | Project Work             | Directing        | Organisation, Plan and Control        |
+#   | PM: Delivery Scope (DS)       | Delivery, Measurement    | Plans, Quality   | Scope, Quality                        |
+#   | PM: Work Breakdown (WB)       | Planning                 | Plans            | Scope, Resources, Finance             |
+#   | PM: Project Schedule (PS)     | Planning, Measurement    | Plans, Progress  | Time, Plan and Control                |
+#   | PM: Risk Register (RR)        | Uncertainty              | Risk             | Risk and Opportunity                  |
+#   | PM: Change Log (CL)           | Project Work             | Issues           | Plan and Control, Change              |
+#
+#   Modeling Decisions
+#   ------------------
+#
+#   -   The artifacts are ordered so that every reference points
+#       backward: the charter (why), the organization (who), the
+#       governance (how it is steered), the deliverables (what), the work
+#       breakdown (which work), the schedule (when), the risks (what could
+#       go wrong or turn out well), and the change log (what did change).
+#       Only the "referenced" and "coverage" constraints and the diagram
+#       node sets name later objects.
+#
+#   -   The governance precedes the plan, as the ceremonies steer
+#       whatever is planned and are set up with the organization: the
+#       milestones of the schedule hence name the gates held at them
+#       ("GATES"), instead of a ceremony naming its milestones, and the
+#       issues of the change log name the ceremony deciding on them.
+#
+#   -   The charter carries no owner references, as it precedes the
+#       team: the objectives are served by the deliverables (which
+#       trace back onto them through "SERVES"), not owned by persons.
+#
+#   -   The money lives at the ends of the chain: the charter fixes the
+#       total "BUDGET" and the "RESERVE" held back out of it, the work
+#       packages carry the non-labor "COST" (licenses, hardware, travel)
+#       beside their person-day "EFFORT", and the party "RATE" prices the
+#       person-days, so the budget is checkable against the priced
+#       efforts plus the costs plus the reserve without a cost model of
+#       its own.
+#
+#   -   The schedule runs in weeks from week 0, as a plan outlives its
+#       dates, while the optional "START" date of the Project Schedule
+#       artifact anchors week 0 onto the calendar, so that a "Time"
+#       constraint of the charter is checkable against the Gantt chart.
+#
+#   -   The dependencies of the tasks ("AFTER") are finish-to-start ones
+#       without a lag, the one relationship a Gantt chart draws as an
+#       arrow and the one a reader reconstructs from the bars alone: a
+#       start-to-start overlap is expressed by splitting the predecessor,
+#       and a lag by the earliest "START" of the successor.
+#
+#   -   The development approach of the project ("APPROACH" of the
+#       charter: predictive, agile, or hybrid) is stated, not modeled: the
+#       phases and tasks of the schedule carry a predictive plan as well
+#       as the sprints of an agile one, and the ceremonies the events of
+#       either, so the approach merely tells the reader how to read them.
+#
+#   -   The threats and the opportunities form one object kind "RISK",
+#       told apart by their "TYPE", as both are uncertain events rated by
+#       probability and impact, owned, and answered by a strategy, while
+#       the threat and the opportunity responses share the "STRATEGY"
+#       enumeration (the description naming which applies to which).
+#
+#   -   The issues (the change requests, the problems, and the
+#       off-specifications) form the "ISSUE" object kind of the Change
+#       Log, as the home of everything which happened instead of being
+#       planned: a risk which occurred refers to it through "CAUSED-BY",
+#       the decision on it names the ceremony taking it, and the
+#       affected objects of all other artifacts are referenced, which is
+#       why the Change Log closes the artifact chain.
+#
+#   -   The stakeholders are parties, too, instead of a roster of their
+#       own, as the customer and the contractor are stakeholders and
+#       parties alike: a party of kind "Stakeholder" is affected by the
+#       results without contributing members, every party is analyzed
+#       on the power/interest grid ("INFLUENCE", "INTEREST"), planned
+#       by its "ENGAGEMENT" and "ATTITUDE", engaged through the
+#       ceremonies naming it (a party with members has to be named
+#       itself, as a reference onto a member does not cover it), and
+#       threatened by the risks naming it.
+#
+#   -   A milestone is a task without a duration, so the tasks and the
+#       milestones of the plan form one object kind and depend on each
+#       other without a forward reference between two kinds.
+#
+#   -   The durations and starts of the plan are plain numbers of weeks
+#       (the time axis, coarse enough for a chart fitting onto a page),
+#       while the efforts of the work packages and the budgets of the
+#       phases are plain numbers of person-days (the work), as a package
+#       of ten person-days done by two persons spans one week; a party
+#       rate turns the person-days into money.
+#
+#   -   All artifacts are optional, so that the schema can back a single
+#       plan as well as a complete project handbook, and so that a freshly
+#       initialized specification already lints cleanly.
+#
+#   -   The progress is tracked by the optional "STATUS" of the
+#       deliverables and tasks (beside the one of the risks), whose
+#       absence means "Planned", so a plan written before the project
+#       starts carries no status at all and the statuses are added as
+#       the project proceeds.
+#
+#   -   The handbook carries the baseline, not the actuals: no actual
+#       effort of a package, no actual finish of a task, no percentage
+#       complete, as these figures change weekly and live in the time
+#       tracking and the status report (a "Report" ceremony), whose
+#       variance analysis compares them against the baseline stated
+#       here. A re-planning (a changed baseline) is an approved issue of
+#       the Change Log, and the plan is edited to match.
+#
+
+-   kind: META
+    name: Title
+    id:   TI
+    file: 00-TI-Title.md
+    desc: >
+        The top-level specification meta information.
+        Some of the information is rendered onto the title page.
+    optional: true
+    diagram:
+        type: graph
+        nodes: "[[PM:*]]"
+        deep: true
+        qualified: true
+        ordered: true
+        nest:
+            kind: true
+            crossing: target
+        config:
+            graph-columns-max: 2
+    props:
+        -   name: LOGO
+            desc: The logo of the specification.
+            optional: true
+        -   name: TITLE
+            desc: The title of the specification.
+            optional: true
+        -   name: SUBTITLE
+            desc: The subtitle of the specification.
+            optional: true
+        -   name: AUTHOR
+            desc: The author of the specification.
+            optional: true
+        -   name: VERSION
+            desc: The version of the specification.
+            optional: true
+        -   name: LANG
+            desc: The language of the specification texts (ISO 639-1 code).
+            value: /^[a-z]{2}(-[A-Za-z0-9]+)?$/
+            optional: true
+        -   name: CHARSET
+            desc: The character set the embedded fonts are subsetted to.
+            value: enum(US-ASCII,ISO-8859-1,ISO-Latin-1,ISO-8859-15,ISO-Latin-15,UTF-8)
+            optional: true
+        -   name: PAPER-SIZE
+            desc: The paper size the print/PDF rendering is targeted at.
+            value: enum(A4,Letter,Legal)
+            optional: true
+        -   name: THEME-STYLE
+            desc: The theme style.
+            value: enum(Dark,Light)
+            optional: true
+        -   name: THEME-TONE
+            desc: The theme color tone, optionally followed by the complement color tone (else derived).
+            value: /^#[0-9a-fA-F]{6}(\s+#[0-9a-fA-F]{6})?$/
+            optional: true
+
+-   kind: PM
+    name: Project Charter
+    id: PC
+    file: 01-PC-Project-Charter.md
+    desc: >
+        The justification of the project, defining *why* it is undertaken: the objectives it
+        pursues, each with the measurable criterion by which its success is judged, the
+        constraints it has to respect, and the assumptions it rests on, plus the development
+        approach it follows and the budget and the reserve funding it, so that every
+        deliverable serves a stated objective and the project is closed against its own success
+        criteria instead of against its last plan.
+    optional: true
+    refs: >
+        -   PMI: A Guide to the Project Management Body of Knowledge (PMBOK Guide), 7th ed.: Planning, Measurement, and Development Approach and Life Cycle Performance Domains (2021),
+            https://www.pmi.org/standards/pmbok
+        -   Axelos: Managing Successful Projects with PRINCE2, 7th ed.: Business Case (2023),
+            https://www.axelos.com/certifications/propath/prince2-project-management
+        -   IPMA: Individual Competence Baseline (ICB), 4th ed.: Requirements and Objectives, Finance (2015),
+            https://www.ipma.world/individuals/standard/
+        -   ISO 21502:2020: Project, programme and portfolio management -- Guidance on project management: Pre-project activities (2020),
+            https://www.iso.org/standard/74947.html
+    diagram:
+        type: tree
+        nodes: "[[OBJECTIVE:*]], [[CONSTRAINT:*]], [[ASSUMPTION:*]]"
+        links: []
+        markUncovered: referenced
+        nest:
+            kind: true
+        config:
+            tree-stack-min: 1
+    props:
+        -   name: APPROACH
+            desc: |
+                The development approach of the project, one of:
+                -   `Predictive`: The scope, the schedule, and the budget are planned upfront and
+                    the results delivered at the end (the "waterfall").
+                -   `Agile`:      The scope evolves in iterations delivering increments, the
+                    schedule and the budget being fixed per iteration.
+                -   `Hybrid`:     The phases and the milestones are predictive, while the
+                    construction inside them runs in iterations.
+                Omitted where it is not stated, as the schedule carries either.
+            value: enum(Predictive,Agile,Hybrid)
+            optional: true
+        -   name: BUDGET
+            desc: >
+                The total budget of the project as money (e.g. `240000 EUR`): the person-day
+                budgets of the phases priced by the `RATE` of the parties, the non-labor `COST`
+                of the work packages, and the `RESERVE`; omitted where no budget is fixed (e.g.
+                a time and material contract).
+            optional: true
+        -   name: RESERVE
+            desc: >
+                The part of the `BUDGET` held back as money (e.g. `22500 EUR`) for the
+                contingencies of the risks and the approved changes of the Change Log, released
+                by the steering alone; omitted where no reserve is held.
+            optional: true
+    children:
+        -   kind: OBJECTIVE
+            desc: >
+                A single objective of the project, named with a short (2-5 word) noun phrase of
+                the outcome (e.g. `Townhall Backchannel`, `Independent Operation`) and described
+                in a concise (1-3 sentence) paragraph by the benefit the customer gains once it is
+                reached, plus a 1-sentence rationale ("why") stating the need behind it. Every
+                objective is served by at least one deliverable of the Delivery Scope.
+            optional: true
+            format:
+                type: concise
+                maxTableColumns: 5
+            referenced:
+                -   "[[DELIVERABLE:*]]"
+            props:
+                -   name: PRIORITY
+                    desc: >
+                        The priority of the objective: `High` for one the project fails without,
+                        `Medium` for one it is expected to reach, or `Low` for one it reaches if
+                        the constraints permit.
+                    value: enum(High,Medium,Low)
+                -   name: SUCCESS
+                    desc: >
+                        The measurable criterion by which the objective is judged reached, stated
+                        as an observable condition with its figure and its point in time (e.g.
+                        `5000 attendees sustained in the load test before the go-live`), so that
+                        the success of the project is a fact, not an opinion.
+        -   kind: CONSTRAINT
+            desc: >
+                A single constraint of the project, named with a short (2-5 word) summary (e.g.
+                `Fixed Price`, `EU Data Residency`) and described in a concise (1-2 sentence)
+                paragraph by the limit it imposes and its origin (a contract, a law, a date, a
+                budget), so that the plan is checked against it instead of discovering it.
+            optional: true
+            format:
+                type: concise
+                maxTableColumns: 5
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the constraint, one of:
+                        -   `Time`:       A fixed date or deadline the project has to meet.
+                        -   `Budget`:     A limit of the money or effort the project may consume.
+                        -   `Scope`:      A boundary of what the project does or does not deliver.
+                        -   `Quality`:    A standard or level the results have to reach.
+                        -   `Resource`:   A limit of the staff, skills, or facilities available to the project.
+                        -   `Technology`: A platform, product, or technology the project has to use.
+                        -   `Legal`:      A law, regulation, or contract term the project has to obey.
+                    value: enum(Time,Budget,Scope,Quality,Resource,Technology,Legal)
+        -   kind: ASSUMPTION
+            desc: >
+                A single assumption of the project, named with a short (2-5 word) summary (e.g.
+                `Stream Provider Stays`) and described in a concise (1-2 sentence) paragraph by
+                the condition taken for granted and the part of the plan resting on it, so that
+                a refuted assumption is recognized as a change of the plan, not as a surprise.
+            optional: true
+            format:
+                type: concise
+                maxTableColumns: 5
+            props:
+                -   name: STATUS
+                    desc: |
+                        The status of the assumption, one of:
+                        -   `Open`:      The assumption is taken for granted but not yet verified.
+                        -   `Confirmed`: The assumption was verified to hold.
+                        -   `Refuted`:   The assumption turned out not to hold, the plan is revised.
+                    value: enum(Open,Confirmed,Refuted)
+
+-   kind: PM
+    name: Project Organization
+    id: PO
+    file: 02-PO-Project-Organization.md
+    desc: >
+        The parties taking part in or affected by the project and the members they contribute,
+        defining who commissions, delivers, supplies, steers, and is affected by the project,
+        which role every person plays in it, and how every party is analyzed and engaged as a
+        stakeholder, so that every deliverable, work package, task, risk, and ceremony can name
+        its owner, its participants, or the party it addresses.
+    optional: true
+    refs: >
+        -   PMI: A Guide to the Project Management Body of Knowledge (PMBOK Guide), 7th ed.: Team Performance Domain (2021),
+            https://www.pmi.org/standards/pmbok
+        -   Axelos: Managing Successful Projects with PRINCE2, 7th ed.: Organizing (2023),
+            https://www.axelos.com/certifications/propath/prince2-project-management
+        -   ISO 21502:2020: Project, programme and portfolio management -- Guidance on project management (2020),
+            https://www.iso.org/standard/74947.html
+    diagram:
+        -   type: tree
+            nodes: "[[PARTY:*]], [[MEMBER:*]]"
+            links: []
+            markUncovered: referenced
+            nest:
+                parent: true
+            config:
+                tree-stack-min: 1
+        -   type: grid
+            nodes: "[[PARTY:*]]"
+            properties:
+                -   INFLUENCE
+                -   INTEREST
+            config:
+                size-node-width-max: 440
+                grid-columns-max: 4
+    children:
+        -   kind: PARTY
+            desc: >
+                A single party of the project, named by its organization or organizational unit
+                (e.g. `ACME Corp.`, `Engineering Department`, `Works Council`) and described in a
+                concise (1-2 sentence) paragraph by its stake in the project, while its MEMBER
+                children are the persons it contributes (none for a party merely affected by the
+                results). Every party is engaged through at least one ceremony of the Governance
+                Model naming it (or, for a party contributing members, naming the party itself
+                beside them).
+            optional: true
+            badge: team
+            referenced:
+                -   "[[CEREMONY:*]]"
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the party, one of:
+                        -   `Customer`:    Commissions and accepts the project results.
+                        -   `Contractor`:  Delivers the project results.
+                        -   `Supplier`:    Provides products or services to the contractor.
+                        -   `Partner`:     Shares the delivery with the contractor.
+                        -   `Authority`:   Regulates, certifies, or audits the project results.
+                        -   `Stakeholder`: Is affected by the project results without contributing
+                            to them (e.g. the end users, a works council, the operations
+                            department, a neighboring project).
+                    value: enum(Customer,Contractor,Supplier,Partner,Authority,Stakeholder)
+                -   name: ROLE
+                    desc: >
+                        The role of the party in the project in a short (1-5 word) phrase (e.g.
+                        `Commissioning party`, `Prime contractor`, `Hosting provider`, `End
+                        users`).
+                -   name: INFLUENCE
+                    desc: >
+                        The power of the party over the project (its decisions, budget, and
+                        scope): `Low`, `Medium`, or `High`, the one axis of the power/interest
+                        grid of the stakeholder analysis.
+                    value: enum(Low,Medium,High)
+                -   name: INTEREST
+                    desc: >
+                        The stake of the party in the outcome of the project: `Low`, `Medium`, or
+                        `High`, the other axis of the power/interest grid, so that a party of high
+                        influence and low interest is kept satisfied, one of high influence and
+                        high interest managed closely, and so on.
+                    value: enum(Low,Medium,High)
+                -   name: ENGAGEMENT
+                    desc: |
+                        The chosen level of engaging the party (the stakeholder engagement plan),
+                        one of:
+                        -   `Inform`:      The party is kept informed of the progress and the decisions.
+                        -   `Consult`:     The party is asked for its view before the decisions concerning it.
+                        -   `Involve`:     The party takes part in the work concerning it.
+                        -   `Collaborate`: The party shares the decisions and their consequences.
+                        Omitted where the power/interest grid alone implies it.
+                    value: enum(Inform,Consult,Involve,Collaborate)
+                    optional: true
+                -   name: ATTITUDE
+                    desc: >
+                        The current attitude of the party towards the project (the stakeholder
+                        engagement assessment): `Supportive`, `Neutral`, or `Resistant`, omitted
+                        where it is not assessed; a gap between the attitude and the engagement
+                        the project needs is what the engagement closes.
+                    value: enum(Supportive,Neutral,Resistant)
+                    optional: true
+                -   name: RATE
+                    desc: >
+                        The price of one person-day of the members of the party (e.g. `950 EUR`),
+                        so that the person-day budgets of the phases turn into money; omitted for
+                        a party whose effort is not charged to the project.
+                    optional: true
+            children:
+                -   kind: MEMBER
+                    desc: >
+                        A single member of the project team, named by the person (or by the
+                        position where the person is not yet known, e.g. `Tester 2`) and described
+                        in a 1-sentence description of what the member is accountable for.
+                    optional: true
+                    badge: person
+                    format:
+                        type: concise
+                        maxTableColumns: 5
+                    referenced:
+                        -   "[[DELIVERABLE:*]]"
+                        -   "[[WORK-PACKAGE:*]]"
+                        -   "[[TASK:*]]"
+                        -   "[[RISK:*]]"
+                        -   "[[CEREMONY:*]]"
+                    diagram:
+                        type: hub
+                        center: self
+                        nodes: "[[MEMBER:*]], [[DELIVERABLE:*]], [[WORK-PACKAGE:*]], [[TASK:*]],
+                            [[RISK:*]], [[CEREMONY:*]], [[ISSUE:*]]"
+                        labeled: true
+                        qualified: true
+                        config:
+                            size-node-width-max:    440
+                            size-node-height-scale: 1.75
+                            hub-node-count-max:     3
+                    props:
+                        -   name: ROLE
+                            desc: >
+                                The role of the member in the project in a short (1-3 word) phrase
+                                (e.g. `Sponsor`, `Product Owner`, `Project Manager`, `Architect`,
+                                `Developer`, `Tester`), a person playing several roles listing all
+                                of them.
+                        -   name: CAPACITY
+                            desc: >
+                                The share of the working time of the member available to the
+                                project (e.g. `100%`, `2 days/week`), so that the effort of the
+                                work packages owned by the member is plannable.
+                            optional: true
+                        -   name: CONTACT
+                            desc: >
+                                The contact address of the member (e.g. an email address), omitted
+                                for a position not yet staffed.
+                            optional: true
+
+-   kind: PM
+    name: Governance Model
+    id: GM
+    file: 03-GM-Governance-Model.md
+    desc: >
+        The ceremonies through which the project is steered: the recurring meetings, reports, and
+        reviews, and the gates the milestones of the Project Schedule are decided at, each with
+        its cadence and its participants, so that the decisions of the project (the ones on the
+        issues of the Change Log included) are taken at known occasions by known people, and
+        where every member and every party of the Project Organization takes part in some ceremony (a
+        party as a whole being the audience of a report or a stakeholder without members).
+    optional: true
+    coverage:
+        -   "[[MEMBER:*]]"
+        -   "[[PARTY:*]]"
+    refs: >
+        -   ISO 21505:2017: Project, programme and portfolio management -- Guidance on governance (2017),
+            https://www.iso.org/standard/63578.html
+        -   Axelos: Managing Successful Projects with PRINCE2, 7th ed.: Directing a Project (2023),
+            https://www.axelos.com/certifications/propath/prince2-project-management
+        -   IPMA: Individual Competence Baseline (ICB), 4th ed.: Organisation and Information, Plan and Control (2015),
+            https://www.ipma.world/individuals/standard/
+        -   Schwaber/Sutherland: The Scrum Guide: Scrum Events (2020),
+            https://scrumguides.org/scrum-guide.html
+    diagram:
+        -   type: grid
+            nodes: "[[CEREMONY:*]]"
+            properties:
+                -   KIND
+                -   CADENCE
+            config:
+                size-node-width-max: 440
+                grid-columns-max: 4
+        -   type: graph
+            nodes: "[[CEREMONY:*]], [[MEMBER:*]], [[PARTY:*]], [[TASK:*]]"
+            links:
+                -   PARTICIPANTS
+                -   GATES
+            reverse:
+                -   GATES
+            onlyConnected: true
+            nest:
+                kind: true
+    children:
+        -   kind: CEREMONY
+            desc: >
+                A single ceremony, named with a short (1-4 word) summary (e.g. `Steering
+                Committee`, `Status Report`, `Sprint Review`) and described in a concise (1-2
+                sentence) paragraph by its purpose and the decisions or outputs it yields. A
+                ceremony of kind `Gate` is named by the milestones of the Project Schedule it is
+                held at.
+            optional: true
+            badge:
+                property: KIND
+                map:
+                    Meeting: communication
+                    Report:  document
+                    Review:  team
+                    Gate:    clock
+            format:
+                type: compact
+                maxTableColumns: 5
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[CEREMONY:*]], [[MEMBER:*]], [[PARTY:*]], [[TASK:*]], [[ISSUE:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
+                    hub-node-count-max:     3
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the ceremony, one of:
+                        -   `Meeting`: A synchronous gathering taking decisions.
+                        -   `Report`:  A written status handed to its recipients.
+                        -   `Review`:  An inspection of results yielding findings.
+                        -   `Gate`:    A go/no-go decision at a milestone.
+                    value: enum(Meeting,Report,Review,Gate)
+                -   name: CADENCE
+                    desc: >
+                        The rhythm of the ceremony (e.g. `Weekly`, `Bi-weekly`, `Monthly`, `At
+                        milestone`, `On demand`).
+                -   name: PARTICIPANTS
+                    desc: >
+                        Comma-separated references to the PROJECT-ORGANIZATION members taking
+                        part in the ceremony and/or the parties it addresses as a whole (the audience of
+                        a report, a stakeholder without members), so that every party is engaged
+                        through some ceremony.
+                    value: list([[MEMBER:*]], [[PARTY:*]])
+
+-   kind: PM
+    name: Delivery Scope
+    id: DS
+    file: 04-DS-Delivery-Scope.md
+    desc: >
+        The results the project hands over, each with the criteria by which it is accepted and
+        the method by which it is verified against them,
+        defining *what* the project delivers (the documents, software, services, hardware,
+        training, and data) as opposed to the work producing it (the Work Breakdown) and the
+        time at which it is produced (the Project Schedule), tracing every result back to the
+        objectives of the Project Charter it serves, and listing the exclusions the project
+        explicitly does *not* deliver, so that a scope dispute is decided by the document.
+    optional: true
+    coverage:
+        -   "[[OBJECTIVE:*]]"
+    refs: >
+        -   PMI: A Guide to the Project Management Body of Knowledge (PMBOK Guide), 7th ed.: Delivery Performance Domain (2021),
+            https://www.pmi.org/standards/pmbok
+        -   Axelos: Managing Successful Projects with PRINCE2, 7th ed.: Product-Based Planning, Quality (2023),
+            https://www.axelos.com/certifications/propath/prince2-project-management
+        -   IPMA: Individual Competence Baseline (ICB), 4th ed.: Scope, Quality (2015),
+            https://www.ipma.world/individuals/standard/
+        -   ISO 21502:2020: Project, programme and portfolio management -- Guidance on project management (2020),
+            https://www.iso.org/standard/74947.html
+    diagram:
+        type: grid
+        nodes: "[[DELIVERABLE:*]]"
+        markUncovered: referenced
+        properties:
+            -   KIND
+            -   STATUS
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 4
+    children:
+        -   kind: DELIVERABLE
+            desc: >
+                A single deliverable, named with a short (2-5 word) summary (e.g. `Operations
+                Manual`, `Production Release 1.0`) and described in a concise (1-3 sentence)
+                paragraph by its content and its recipient, plus a 1-sentence rationale ("why")
+                stating the need it satisfies.
+            optional: true
+            badge:
+                property: KIND
+                map:
+                    Document: document
+                    Software: package
+                    Service:  service
+                    Hardware: device
+                    Training: person
+                    Data:     database
+            format:
+                type: compact
+                maxTableColumns: 5
+            referenced:
+                -   "[[WORK-PACKAGE:*]]"
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[DELIVERABLE:*]], [[OBJECTIVE:*]], [[MEMBER:*]], [[WORK-PACKAGE:*]],
+                    [[TASK:*]], [[RISK:*]], [[ISSUE:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
+                    hub-node-count-max:     3
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the deliverable, one of:
+                        -   `Document`: A written result (specification, manual, report).
+                        -   `Software`: An executable result (release, package, image).
+                        -   `Service`:  An operated result (hosted system, support).
+                        -   `Hardware`: A physical result (device, installation).
+                        -   `Training`: A taught result (course, workshop, handover).
+                        -   `Data`:     A migrated or compiled result (data set, content).
+                    value: enum(Document,Software,Service,Hardware,Training,Data)
+                -   name: FORMAT
+                    desc: >
+                        The form in which the deliverable is handed over (e.g. `PDF`, `OCI
+                        image`, `Git tag`), omitted where the kind implies it.
+                    optional: true
+                -   name: OWNER
+                    desc: >
+                        Reference to the PROJECT-ORGANIZATION member accountable for producing
+                        the deliverable (the producer).
+                    value: "[[MEMBER:*]]"
+                -   name: APPROVER
+                    desc: >
+                        Reference to the PROJECT-ORGANIZATION member accepting the deliverable
+                        by its criteria (the approver), usually on the side of the customer and
+                        never the `OWNER` producing it.
+                    value: "[[MEMBER:*]]"
+                -   name: SERVES
+                    desc: >
+                        Comma-separated references to the PROJECT-CHARTER objectives the
+                        deliverable serves (in full or in part), so that every objective is
+                        served by a result and no result is delivered for its own sake.
+                    value: list([[OBJECTIVE:*]])
+                -   name: ACCEPTANCE
+                    desc: >
+                        The criteria by which the recipient accepts the deliverable, stated as
+                        observable conditions (e.g. `all acceptance tests pass in the QA
+                        environment`), so that the acceptance is a decision, not a negotiation.
+                -   name: VERIFICATION
+                    desc: |
+                        The method by which the deliverable is verified against its `ACCEPTANCE`
+                        criteria before the `APPROVER` decides, one of:
+                        -   `Review`:        The deliverable is inspected by its readers (a document).
+                        -   `Test`:          The deliverable is executed against test cases (software, a service).
+                        -   `Demonstration`: The recipient performs with the deliverable (a manual, a training).
+                        -   `Audit`:         A third party checks the deliverable against a standard.
+                        Omitted where the criteria imply the method.
+                    value: enum(Review,Test,Demonstration,Audit)
+                    optional: true
+                -   name: STATUS
+                    desc: |
+                        The progress of the deliverable, one of:
+                        -   `Planned`:     The deliverable is defined, the work not yet started (the default).
+                        -   `In Progress`: The work producing the deliverable is underway.
+                        -   `Delivered`:   The deliverable is handed over, the acceptance pending.
+                        -   `Accepted`:    The recipient accepted the deliverable by its criteria.
+                        -   `Rejected`:    The recipient rejected the deliverable by its criteria, the
+                            work resumes (an off-specification of the Change Log).
+                    value: enum(Planned,"In Progress",Delivered,Accepted,Rejected)
+                    optional: true
+        -   kind: EXCLUSION
+            desc: >
+                A single exclusion from the scope, named with a short (2-5 word) noun phrase of
+                the result the project explicitly does *not* deliver (e.g. `Native Mobile Apps`)
+                and described in one sentence stating what is excluded, plus a 1-sentence
+                rationale ("why") naming who delivers it instead or why nobody has to.
+            optional: true
+            format:
+                type: concise
+                maxTableColumns: 5
+
+-   kind: PM
+    name: Work Breakdown
+    id: WB
+    file: 05-WB-Work-Breakdown.md
+    desc: >
+        The hierarchical decomposition of the entire scope of the project into work packages,
+        defining *what work* has to be done (down to the packages which are estimated, owned,
+        and scheduled) as opposed to *when* it is done (the Project Schedule), where every package
+        is either decomposed into sub-packages or scheduled by a task, and the packages of one
+        level together cover their parent completely (the "100% rule"), and where every
+        deliverable of the Delivery Scope traces back to the packages producing it.
+    optional: true
+    coverage:
+        -   "[[DELIVERABLE:*]]"
+    refs: >
+        -   PMI: Practice Standard for Work Breakdown Structures, 3rd ed. (2019),
+            https://www.pmi.org/standards/wbs
+        -   PMI: A Guide to the Project Management Body of Knowledge (PMBOK Guide), 7th ed.: Planning Performance Domain (2021),
+            https://www.pmi.org/standards/pmbok
+        -   Axelos: Managing Successful Projects with PRINCE2, 7th ed.: Product Breakdown Structure (2023),
+            https://www.axelos.com/certifications/propath/prince2-project-management
+        -   IPMA: Individual Competence Baseline (ICB), 4th ed.: Scope, Resources, Finance (2015),
+            https://www.ipma.world/individuals/standard/
+    diagram:
+        type: tree
+        nodes: "[[WORK-PACKAGE:*]]"
+        links: []
+        markUncovered: referenced
+        nest:
+            properties:
+                -   PART-OF
+        config:
+            tree-stack-min: 1
+    children:
+        -   kind: WORK-PACKAGE
+            desc: >
+                A single work package, named with a short (2-5 word) noun phrase of the work (e.g.
+                `Backend Implementation`, `Load Testing`) and described in a concise (1-3
+                sentence) paragraph by the work it comprises and the result it ends with, so that
+                its completion is decidable.
+            optional: true
+            format:
+                type: compact
+                maxTableColumns: 5
+            referenced:
+                -   "[[WORK-PACKAGE:*]]"
+                -   "[[TASK:*]]"
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[WORK-PACKAGE:*]], [[MEMBER:*]], [[DELIVERABLE:*]], [[TASK:*]], [[RISK:*]],
+                    [[ISSUE:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
+                    hub-node-count-max:     3
+            props:
+                -   name: PART-OF
+                    desc: >
+                        Reference to the WORK-BREAKDOWN package this package is a part of, so that
+                        the packages form a hierarchy (at most one parent, keeping it a tree);
+                        omitted for a top-level package.
+                    value: "[[WORK-PACKAGE:*]]"
+                    optional: true
+                    acyclic: true
+                -   name: EFFORT
+                    desc: >
+                        The estimated effort of the package in person-days (PD) as a plain number
+                        (e.g. `12`), stated on the packages which are not decomposed any further
+                        (the effort of a decomposed package is the sum of its parts), and omitted
+                        otherwise.
+                    value: /^\d+(\.\d+)?$/
+                    optional: true
+                -   name: COST
+                    desc: >
+                        The non-labor cost of the package as money (e.g. `6000 EUR`): the
+                        licenses, hardware, services, and travel it consumes beyond the
+                        person-days of its `EFFORT`, stated on the packages which are not
+                        decomposed any further (like the effort) and omitted where the package
+                        consumes labor only.
+                    optional: true
+                -   name: OWNER
+                    desc: >
+                        Reference to the PROJECT-ORGANIZATION member accountable for the package.
+                    value: "[[MEMBER:*]]"
+                    optional: true
+                -   name: PRODUCES
+                    desc: >
+                        Comma-separated references to the DELIVERY-SCOPE deliverables the
+                        package produces (in full or in part), so that every deliverable traces
+                        back to the work producing it.
+                    value: list([[DELIVERABLE:*]])
+                    optional: true
+
+-   kind: PM
+    name: Project Schedule
+    id: PS
+    file: 06-PS-Project-Schedule.md
+    desc: >
+        The schedule of the project as phases of tasks and milestones, defining *when* the work
+        of the Work Breakdown is done, in which order, and by whom, where the tasks depend on
+        each other and the critical path (the chain of tasks any delay of which delays the
+        project) follows from the dependencies and durations alone, in weeks from the start
+        date of the project, and where the
+        milestones date the deliverables of the Delivery Scope by accepting them and name the
+        gates of the Governance Model deciding on them.
+    optional: true
+    coverage:
+        -   "[[DELIVERABLE:*]]"
+    refs: >
+        -   Gantt: Organizing for Work (1919),
+            https://archive.org/details/organizingforwor00gantuoft
+        -   Kelley/Walker: Critical-Path Planning and Scheduling (1959),
+            https://doi.org/10.1145/1460299.1460318
+        -   PMI: A Guide to the Project Management Body of Knowledge (PMBOK Guide), 7th ed.: Planning Performance Domain (2021),
+            https://www.pmi.org/standards/pmbok
+        -   Axelos: Managing Successful Projects with PRINCE2, 7th ed.: Plans (2023),
+            https://www.axelos.com/certifications/propath/prince2-project-management
+        -   IPMA: Individual Competence Baseline (ICB), 4th ed.: Time, Plan and Control (2015),
+            https://www.ipma.world/individuals/standard/
+    diagram:
+        type: gantt
+        nodes: "[[PHASE:*]], [[TASK:*]]"
+        links:
+            -   AFTER
+        reverse:
+            -   AFTER
+        duration: DURATION
+        start: START
+        qualified: true
+        nest:
+            parent: true
+        config:
+            gantt-unit-name: weeks
+    props:
+        -   name: START
+            desc: >
+                The calendar date (ISO 8601, e.g. `2026-08-24`, usually a Monday) at which week
+                `0` of the schedule starts, so that the week numbers of the tasks turn into
+                dates and the `Time` constraints of the Project Charter are checkable against
+                the schedule; omitted while the start of the project is not fixed.
+            value: /^\d{4}-\d{2}-\d{2}$/
+            optional: true
+    children:
+        -   kind: PHASE
+            desc: >
+                A single phase of the project, named with a short (1-3 word) summary (e.g.
+                `Inception`, `Construction`, `Transition`) and described in a concise (1-2
+                sentence) paragraph by its purpose and the state of the project at its end,
+                while its TASK children, in document order, are the tasks and milestones it
+                comprises.
+            optional: true
+            props:
+                -   name: GOAL
+                    desc: >
+                        The goal of the phase in one sentence, i.e. the observable state of the
+                        project at the end of the phase (e.g. `the architecture is proven by a
+                        walking skeleton`).
+                -   name: BUDGET
+                    desc: >
+                        The budget of the phase in person-days (PD) as a plain number (e.g.
+                        `120`), the same unit as the `EFFORT` of the work packages, so that the
+                        packages the tasks of the phase realize are checkable against it;
+                        omitted where no budget is fixed per phase.
+                    value: /^\d+(\.\d+)?$/
+                    optional: true
+            children:
+                -   kind: TASK
+                    desc: >
+                        A single task of the phase, named with a short (2-5 word) summary of the
+                        work (e.g. `Implement Backend`) or, for a milestone, of the event (e.g.
+                        `Go-Live`), and described by a 1-sentence description of its outcome. A
+                        task carries a `DURATION`, while a milestone carries none and marks a
+                        point in time, usually the acceptance of deliverables at a gate.
+                    optional: true
+                    format:
+                        type: compact
+                        maxTableColumns: 5
+                    diagram:
+                        type: hub
+                        center: self
+                        nodes: "[[TASK:*]], [[MEMBER:*]], [[WORK-PACKAGE:*]], [[DELIVERABLE:*]],
+                            [[RISK:*]], [[CEREMONY:*]], [[ISSUE:*]]"
+                        labeled: true
+                        qualified: true
+                        config:
+                            size-node-width-max:    440
+                            size-node-height-scale: 1.75
+                            hub-node-count-max:     3
+                    props:
+                        -   name: DURATION
+                            desc: >
+                                The duration of the task in weeks as a plain number (e.g. `2` or
+                                `0.5`), i.e. the elapsed time from its start to its end (not the
+                                effort, which is the `EFFORT` of the work packages it realizes),
+                                omitted for a milestone.
+                            value: /^\d+(\.\d+)?$/
+                            optional: true
+                        -   name: START
+                            desc: >
+                                The earliest start of the task in weeks from the start of the
+                                project as a plain number (e.g. `4`), where the dependencies
+                                alone do not fix it (e.g. a date agreed with the customer, or a
+                                lag behind a predecessor), the project starting at week `0` (the
+                                `START` date of the schedule).
+                            value: /^\d+(\.\d+)?$/
+                            optional: true
+                        -   name: AFTER
+                            desc: >
+                                Comma-separated references to the PROJECT-SCHEDULE tasks this task
+                                starts after (once all of them are finished, i.e. finish-to-start
+                                without a lag), omitted for a task
+                                which can start right away; the dependencies form no cycle.
+                            value: list([[TASK:*]])
+                            optional: true
+                            acyclic: true
+                        -   name: OWNER
+                            desc: >
+                                Reference to the PROJECT-ORGANIZATION member responsible for the
+                                task, omitted where the owners of the realized work packages are.
+                            value: "[[MEMBER:*]]"
+                            optional: true
+                        -   name: STAFF
+                            desc: >
+                                Comma-separated references to the PROJECT-ORGANIZATION members
+                                working on the task, so that their `CAPACITY` and the `DURATION` of the task
+                                are reconcilable against the `EFFORT` of the realized packages;
+                                omitted for a milestone.
+                            value: list([[MEMBER:*]])
+                            optional: true
+                        -   name: REALIZES
+                            desc: >
+                                Comma-separated references to the WORK-BREAKDOWN packages the
+                                task realizes (in full or in part), so that every package is
+                                scheduled; omitted for a milestone.
+                            value: list([[WORK-PACKAGE:*]])
+                            optional: true
+                        -   name: ACCEPTS
+                            desc: >
+                                Comma-separated references to the DELIVERY-SCOPE deliverables
+                                accepted at this milestone (or at the end of this task), so that
+                                every deliverable has a due date; omitted for a task accepting
+                                none.
+                            value: list([[DELIVERABLE:*]])
+                            optional: true
+                        -   name: GATES
+                            desc: >
+                                Comma-separated references to the GOVERNANCE-MODEL ceremonies
+                                (usually the gates) held at this milestone (or at the end of this
+                                task), deciding on the accepted deliverables; omitted for a task
+                                no ceremony is held at.
+                            value: list([[CEREMONY:*]])
+                            optional: true
+                        -   name: STATUS
+                            desc: |
+                                The progress of the task or milestone, one of:
+                                -   `Planned`:   The task is scheduled, not yet started (the default).
+                                -   `Active`:    The task is underway.
+                                -   `Blocked`:   The task cannot proceed until an issue of the Change Log is resolved.
+                                -   `Done`:      The task is finished, resp. the milestone is reached.
+                                -   `Cancelled`: The task was descoped by a decision of the Change Log, its work undone.
+                            value: enum(Planned,Active,Blocked,Done,Cancelled)
+                            optional: true
+
+-   kind: PM
+    name: Risk Register
+    id: RR
+    file: 07-RR-Risk-Register.md
+    desc: >
+        The uncertain events which, should they occur, affect the work, the deliverables, the
+        schedule, or the parties of the project -- the threats harming it and the opportunities
+        favoring it -- each rated by its probability and impact and answered by a strategy, a
+        mitigation (changing the probability or the impact beforehand), and a contingency (the
+        response once it occurred), so that the risks are managed instead of suffered and the
+        opportunities seized instead of missed.
+    optional: true
+    refs: >
+        -   ISO 31000:2018: Risk management -- Guidelines (2018),
+            https://www.iso.org/standard/65694.html
+        -   PMI: The Standard for Risk Management in Portfolios, Programs, and Projects (2019),
+            https://www.pmi.org/standards/risk-management
+        -   Axelos: Managing Successful Projects with PRINCE2, 7th ed.: Risk (2023),
+            https://www.axelos.com/certifications/propath/prince2-project-management
+        -   IPMA: Individual Competence Baseline (ICB), 4th ed.: Risk and Opportunity (2015),
+            https://www.ipma.world/individuals/standard/
+    diagram:
+        -   type: grid
+            nodes: "[[RISK:*]]"
+            properties:
+                -   PROBABILITY
+                -   IMPACT
+                -   STATUS
+            config:
+                size-node-width-max: 440
+                grid-columns-max: 4
+        -   type: graph
+            nodes: "[[RISK:*]], [[WORK-PACKAGE:*]], [[DELIVERABLE:*]], [[TASK:*]], [[PARTY:*]]"
+            links:
+                -   AFFECTS
+            onlyConnected: true
+            nest:
+                kind: true
+    children:
+        -   kind: RISK
+            desc: >
+                A single risk, named with a short (2-6 word) summary of the uncertain event (e.g.
+                `Key Developer Unavailable`, `Late API Access`, or, for an opportunity, `Second
+                Department Adopts Solution`) and described in a concise (1-3 sentence) paragraph
+                by its cause and its effect on the project.
+            optional: true
+            format:
+                type: compact
+                maxTableColumns: 5
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[RISK:*]], [[MEMBER:*]], [[WORK-PACKAGE:*]], [[DELIVERABLE:*]], [[TASK:*]],
+                    [[PARTY:*]], [[ISSUE:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
+                    hub-node-count-max:     3
+            props:
+                -   name: TYPE
+                    desc: |
+                        The type of the risk, one of:
+                        -   `Threat`:      The event harms the project should it occur (the default).
+                        -   `Opportunity`: The event benefits the project should it occur.
+                    value: enum(Threat,Opportunity)
+                    optional: true
+                -   name: PROBABILITY
+                    desc: >
+                        The likelihood that the risk occurs: `Low`, `Medium`, or `High`.
+                    value: enum(Low,Medium,High)
+                -   name: IMPACT
+                    desc: >
+                        The severity of the effect on the project should the risk occur (the
+                        harm of a threat, the benefit of an opportunity): `Low`, `Medium`, or
+                        `High`.
+                    value: enum(Low,Medium,High)
+                -   name: STATUS
+                    desc: |
+                        The status of the risk, one of:
+                        -   `Open`:      The risk is identified and watched.
+                        -   `Mitigated`: The mitigation is in effect.
+                        -   `Occurred`:  The risk occurred (a threat turning into an issue of the
+                            Change Log naming it as its cause), the contingency applies.
+                        -   `Closed`:    The risk can no longer occur.
+                    value: enum(Open,Mitigated,Occurred,Closed)
+                -   name: OWNER
+                    desc: >
+                        Reference to the PROJECT-ORGANIZATION member watching the risk and
+                        triggering its responses.
+                    value: "[[MEMBER:*]]"
+                -   name: AFFECTS
+                    desc: >
+                        Comma-separated references to the WORK-BREAKDOWN packages, the
+                        DELIVERY-SCOPE deliverables, the PROJECT-SCHEDULE tasks, and/or the
+                        PROJECT-ORGANIZATION parties the risk threatens or favors (a schedule
+                        risk the tasks rather than the packages, a stakeholder risk the party
+                        whose support or acceptance is at stake).
+                    value: list([[WORK-PACKAGE:*]], [[DELIVERABLE:*]], [[TASK:*]], [[PARTY:*]])
+                -   name: TRIGGER
+                    desc: >
+                        The early-warning indicator telling that the risk is about to occur (e.g.
+                        `a developer reports more than three sick days in a sprint`), omitted
+                        where none is observable.
+                    optional: true
+                -   name: STRATEGY
+                    desc: |
+                        The type of the response to the risk, for a threat one of:
+                        -   `Avoid`:    The plan is changed so that the threat cannot occur.
+                        -   `Reduce`:   The probability or the impact is lowered beforehand.
+                        -   `Transfer`: The impact is shifted onto a third party (contract, insurance).
+                        For an opportunity one of:
+                        -   `Exploit`:  The plan is changed so that the opportunity surely occurs.
+                        -   `Enhance`:  The probability or the impact is raised beforehand.
+                        -   `Share`:    The benefit is shared with a third party better placed to seize it.
+                        For either one of:
+                        -   `Accept`:   The risk is taken as it is and merely watched.
+                        -   `Escalate`: The risk is beyond the project, its response is owned by
+                            the sponsor or the program.
+                    value: enum(Avoid,Reduce,Transfer,Exploit,Enhance,Share,Accept,Escalate)
+                -   name: MITIGATION
+                    desc: >
+                        The concrete action of the `STRATEGY` taken beforehand (e.g. `pair every
+                        key developer with a deputy`), for an accepted risk the watching alone and
+                        for an escalated one the handing over.
+                -   name: CONTINGENCY
+                    desc: >
+                        The response once the risk occurred (e.g. `the deputy takes over, the
+                        phase is extended by two weeks`, or, for an opportunity, `a follow-up
+                        project is offered`), omitted where none is prepared.
+                    optional: true
+
+-   kind: PM
+    name: Change Log
+    id: CL
+    file: 08-CL-Change-Log.md
+    desc: >
+        The issues the project handles: the requests for a change of the agreed scope, the
+        problems and concerns arising, and the off-specifications (results failing their
+        criteria), each raised by someone, owned by someone, analyzed for its impact on the
+        scope, the schedule, and the budget, decided at a ceremony, and tracked to its
+        resolution, so that every deviation from the plan is a recorded decision instead of a
+        silent drift, and where an occurred risk names the issue it caused.
+    optional: true
+    refs: >
+        -   PMI: A Guide to the Project Management Body of Knowledge (PMBOK Guide), 7th ed.: Project Work Performance Domain (2021),
+            https://www.pmi.org/standards/pmbok
+        -   Axelos: Managing Successful Projects with PRINCE2, 7th ed.: Issues (2023),
+            https://www.axelos.com/certifications/propath/prince2-project-management
+        -   IPMA: Individual Competence Baseline (ICB), 4th ed.: Plan and Control, Change and Transformation (2015),
+            https://www.ipma.world/individuals/standard/
+        -   ISO 21502:2020: Project, programme and portfolio management -- Guidance on project management: Change control, Issues management (2020),
+            https://www.iso.org/standard/74947.html
+    diagram:
+        -   type: grid
+            nodes: "[[ISSUE:*]]"
+            properties:
+                -   KIND
+                -   STATUS
+            config:
+                size-node-width-max: 440
+                grid-columns-max: 4
+        -   type: graph
+            nodes: "[[ISSUE:*]], [[RISK:*]], [[OBJECTIVE:*]], [[CONSTRAINT:*]], [[ASSUMPTION:*]],
+                [[DELIVERABLE:*]], [[WORK-PACKAGE:*]], [[TASK:*]], [[CEREMONY:*]]"
+            links:
+                -   CAUSED-BY
+                -   CONCERNS
+                -   DECIDED-BY
+            onlyConnected: true
+            nest:
+                kind: true
+    children:
+        -   kind: ISSUE
+            desc: >
+                A single issue, named with a short (2-5 word) summary of the request, problem, or
+                deviation (e.g. `Vote Result Export`, `Chat Latency Above Target`) and described
+                in a concise (1-3 sentence) paragraph by what is asked, what happened, or what
+                deviates, plus a 1-sentence rationale ("why") stating the need or the cause
+                behind it.
+            optional: true
+            badge:
+                property: KIND
+                map:
+                    Request:  mail
+                    Problem:  security
+                    Off-Spec: document
+            format:
+                type: compact
+                maxTableColumns: 5
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[ISSUE:*]], [[MEMBER:*]], [[PARTY:*]], [[RISK:*]], [[OBJECTIVE:*]],
+                    [[CONSTRAINT:*]], [[ASSUMPTION:*]], [[DELIVERABLE:*]], [[WORK-PACKAGE:*]],
+                    [[TASK:*]], [[CEREMONY:*]]"
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max:    440
+                    size-node-height-scale: 1.75
+                    hub-node-count-max:     3
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the issue, one of:
+                        -   `Request`:  A request for a change of the agreed scope, schedule, or budget.
+                        -   `Problem`:  A problem or concern arising which the plan did not foresee
+                            (a refuted assumption, an occurred risk, an impediment).
+                        -   `Off-Spec`: A result failing or about to fail its acceptance criteria
+                            or the specification.
+                    value: enum(Request,Problem,"Off-Spec")
+                -   name: WEEK
+                    desc: >
+                        The week of the project in which the issue was raised as a plain number
+                        (e.g. `7`, the project starting at week `0` of the Project Schedule),
+                        omitted where it does not matter.
+                    value: /^\d+(\.\d+)?$/
+                    optional: true
+                -   name: STATUS
+                    desc: |
+                        The status of the issue, one of:
+                        -   `Open`:     The issue is raised and analyzed, the decision pending.
+                        -   `Approved`: The change is approved, its implementation underway.
+                        -   `Rejected`: The change is rejected, the plan stands.
+                        -   `Deferred`: The change is postponed beyond the project (e.g. to a later release).
+                        -   `Resolved`: The issue is settled, the approved change implemented or
+                            the problem or off-specification fixed.
+                    value: enum(Open,Approved,Rejected,Deferred,Resolved)
+                -   name: RAISED-BY
+                    desc: >
+                        Reference to the PROJECT-ORGANIZATION member or party raising the issue
+                        (the one to answer).
+                    value: list([[MEMBER:*]], [[PARTY:*]])
+                -   name: OWNER
+                    desc: >
+                        Reference to the PROJECT-ORGANIZATION member analyzing the issue and
+                        carrying out its decision.
+                    value: "[[MEMBER:*]]"
+                -   name: CAUSED-BY
+                    desc: >
+                        Reference to the RISK-REGISTER risk which occurred and caused the issue
+                        (its status being `Occurred`), omitted for an issue no risk foresaw.
+                    value: "[[RISK:*]]"
+                    optional: true
+                -   name: CONCERNS
+                    desc: >
+                        Comma-separated references to the PROJECT-CHARTER objectives, constraints,
+                        or assumptions, the DELIVERY-SCOPE deliverables, the WORK-BREAKDOWN
+                        packages, and/or the PROJECT-SCHEDULE tasks the issue concerns, so that
+                        the impact of a decision is traceable onto the plan it changes (named
+                        apart from the `AFFECTS` of the risks, so the graphs of both stay apart).
+                    value: list([[OBJECTIVE:*]], [[CONSTRAINT:*]], [[ASSUMPTION:*]], [[DELIVERABLE:*]], [[WORK-PACKAGE:*]], [[TASK:*]])
+                -   name: IMPACT
+                    desc: >
+                        The analyzed effect of the issue on the scope, the schedule, and the
+                        budget of the project (e.g. `+4 PD on the backend, the go-live
+                        unchanged`), omitted while not yet analyzed.
+                    optional: true
+                -   name: DECIDED-BY
+                    desc: >
+                        Reference to the GOVERNANCE-MODEL ceremony taking the decision on the
+                        issue, omitted while the decision is pending or where the `OWNER` decides
+                        within the own authority.
+                    value: "[[CEREMONY:*]]"
+                    optional: true
+                -   name: DECISION
+                    desc: >
+                        The decision taken on the issue in one sentence, naming what was decided
+                        and when (e.g. `approved in week 8 as a scope change funded from the
+                        reserve`), omitted while the decision is pending.
+                    optional: true
+

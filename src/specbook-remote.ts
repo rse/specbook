@@ -43,9 +43,15 @@ export const standardConfig =
 export const metaConfig =
     fileURLToPath(new URL("specbook-format-meta.yaml", import.meta.url))
 
+/*  the bundled project management YAML schema configuration, which
+    resides alongside the compiled module, too, and plans the delivery
+    of a solution in a handbook beside its specification  */
+export const pmConfig =
+    fileURLToPath(new URL("specbook-format-pm.yaml", import.meta.url))
+
 /*  whether a file is one of the bundled schema configurations  */
 export const isBundled = (file: string): boolean =>
-    file === standardConfig || file === metaConfig
+    file === standardConfig || file === metaConfig || file === pmConfig
 
 /*  the directory of the download cache: SPECBOOK_CACHE, else the native
     cache location of the platform  */
@@ -363,8 +369,9 @@ export const expandPattern = async (pattern: string): Promise<string[]> => {
 }
 
 /*  resolve a remote reference of a schema configuration into its local
-    files: the bundled standard one for "std" (and the bundled meta one
-    for "meta"), the single file of a URL,
+    files: the bundled standard one for "std" (the bundled meta one for
+    "meta", and the bundled project management one for "pm"), the single
+    file of a URL,
     and for a package the file or
     glob pattern its path names inside the package (or the named building
     block of the "specbook.schema" map of its manifest), while a
@@ -377,6 +384,8 @@ export const resolveConfig = async (ref: string, options: RemoteOptions, chain: 
         return [ standardConfig ]
     else if (ref === "meta")
         return [ metaConfig ]
+    else if (ref === "pm")
+        return [ pmConfig ]
     const parsed = parseRef(ref)
     if (parsed.kind === "url")
         return [ await fetchUrl(parsed, options) ]
@@ -437,7 +446,7 @@ export interface SearchHit {
 interface NpmSearch    { objects: { package: { name: string, version: string, description?: string, keywords?: string[] } }[] }
 interface GithubSearch { items: { full_name: string, description: string | null, topics?: string[] }[] }
 
-/*  the search hits of the bundled standard and meta schema configurations  */
+/*  the search hits of the bundled schema configurations  */
 const bundledHits: SearchHit[] = [ {
     ref:         "std",
     name:        "standard",
@@ -450,9 +459,15 @@ const bundledHits: SearchHit[] = [ {
     version,
     description: "SpecBook Meta Schema (describing a schema configuration itself)",
     source:      "builtin"
+}, {
+    ref:         "pm",
+    name:        "pm",
+    version,
+    description: "SpecBook Project Management Schema (planning the delivery of a specification)",
+    source:      "builtin"
 } ]
 
-/*  search the bundled standard and meta schema configurations (matched
+/*  search the bundled schema configurations (matched
     locally by all words of the term), the npm registry (the packages
     carrying the keyword "specbook-schema"), and GitHub (the repositories
     carrying the same topic) for the shareable schema configurations

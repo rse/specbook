@@ -36,7 +36,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
     const remote    = "\"npm:<pkg>[@<range>][/<path>]\" or \"github:<user>/<repo>[/<path>][#<ref>]\""
     const config    = z.array(z.string()).optional().describe("YAML schema configuration files, glob " +
         `patterns, or remote references (${remote}, or an "http[s]://..." URL), merged in order ` +
-        "(\"std\" for the bundled standard schema configuration, \"meta\" for the bundled meta one; " +
+        "(\"std\" for the bundled standard schema configuration, \"meta\" for the bundled meta one, " +
+        "\"pm\" for the bundled project management one; " +
         "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
         "of the project configuration file, else the bundled standard " +
         "schema configuration)")

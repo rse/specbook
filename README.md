@@ -219,8 +219,10 @@ Options:
     The option accepts glob patterns and can be given multiple times: the
     matching files (in the order of the patterns and alphabetically within
     a pattern, where the literal `std` names the bundled standard schema
-    configuration and the literal `meta` the bundled meta one, which
-    describes a schema configuration itself, and where a pattern matching
+    configuration, the literal `meta` the bundled meta one, which
+    describes a schema configuration itself, and the literal `pm` the
+    bundled project management one, which plans the delivery of a
+    solution in a handbook beside its specification, and where a pattern matching
     no file is an error) are
     merged in order into one effective schema configuration, the later
     files into the earlier ones. The objects merge deeply, while the
@@ -374,7 +376,7 @@ basedir: docs/spec
 
 The entry `config` is a single file or glob pattern or a list of them
 (exactly like the repeatable `-c|--config`, including the literals
-`std` and `meta`), and the entry `basedir` is a directory. Relative paths resolve
+`std`, `meta`, and `pm`), and the entry `basedir` is a directory. Relative paths resolve
 against the directory of the `.specbook.yaml` itself, the file is
 validated (an unknown entry or a wrongly typed value fails the command),
 and both an explicitly supplied option and its environment variable
@@ -464,7 +466,7 @@ To share a schema configuration of your own, publish it as a plain npm
 package carrying the keyword `specbook-schema` (or push it to a GitHub
 repository carrying the same topic), so `specbook search [<term> ...]`
 (and the MCP tool `specbook_search`) finds it, right after the bundled
-standard and meta schema configurations `std` and `meta`, which it always
+schema configurations `std`, `meta`, and `pm`, which it always
 lists first (and which are all it lists under `--fetch never`).
 
 Agent Skill
@@ -562,6 +564,32 @@ $ specbook export -v \
 ### PDF Rendering
 
 ![screenshot-broadcast-print](etc/screenshot-broadcast-print.png)
+
+Example: Project Management
+---------------------------
+
+Check out the *project management handbook* of the Broadcast
+project, based on **SpecBook**'s built-in "pm" schema, which plans the
+delivery of a solution (the project charter with its objectives,
+constraints, assumptions, and budget, the team, the deliverables, the
+work breakdown, the project plan as a Gantt chart, the risks and
+opportunities, the governance, and the change log of the issues) in a
+handbook of its own beside the specification:
+
+### Sources
+
+-   [Specification](smp/pm/)
+-   [Schema](src/specbook-format-schema.d/)
+
+### Generation
+
+```bash
+$ specbook export -v \
+    -c pm \
+    -b smp/pm \
+    -o smp/pm.html \
+    -o smp/pm.pdf
+```
 
 See Also
 --------

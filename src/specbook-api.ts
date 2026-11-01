@@ -8,7 +8,7 @@ import * as path                                         from "node:path"
 
 import { loadConfig, configStatistics }                  from "./specbook-config.js"
 import { loadProject, writeProject, projectFile, isRemote } from "./specbook-project.js"
-import { version, standardConfig, metaConfig, isBundled, cacheDir, isCached, expandPattern,
+import { version, standardConfig, metaConfig, pmConfig, isBundled, cacheDir, isCached, expandPattern,
     resolveConfig, reportOverlaps, search, fetchModes, parseFetchMode,
     type RemoteOptions, type SearchHit, type FetchMode } from "./specbook-remote.js"
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
@@ -38,7 +38,8 @@ export { compressLevels, parseCompressLevel }
 export { type DescribeFormat, type DescribePart, type CompressLevel }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
 export { type LintResult }
-export { version, standardConfig, metaConfig, cacheDir, fetchModes, parseFetchMode, type FetchMode, type SearchHit }
+export { version, standardConfig, metaConfig, pmConfig, cacheDir, fetchModes, parseFetchMode,
+    type FetchMode, type SearchHit }
 export type { Spec, SpecArtifact, SpecObject, SpecDescription, SpecProperty } from "./specbook-format-spec.js"
 export type { Schema, SchemaObject, SchemaProperty }                          from "./specbook-format-schema.js"
 
@@ -153,9 +154,9 @@ export class SpecBook {
 
     /*  determine the files of the YAML schema configuration out of the
         patterns, in the order of the patterns and alphabetically within
-        a pattern, where a remote reference (the literals "std" and "meta"
-        included, naming the bundled schema configurations, the standard
-        one being also the fallback if no pattern is given at all) is
+        a pattern, where a remote reference (the literals "std", "meta",
+        and "pm" included, naming the bundled schema configurations, the
+        standard one being also the fallback if no pattern is given at all) is
         resolved into the files of the download cache, and optionally
         collect the display label of every file: the remote reference it
         stems from (plus its base name, if the reference yields several
@@ -421,8 +422,9 @@ export class SpecBook {
 
         /*  the schema-bearing parts require a schema configuration, so
             they fall back onto the bundled standard one, which is always
-            embedded (also when named explicitly through "std", and so is
-            the bundled meta one named through "meta"), as its bundled
+            embedded (also when named explicitly through "std", and so are
+            the bundled meta and project management ones named through
+            "meta" and "pm"), as its bundled
             file is no meaningful reference, and so is a remote one, as
             its download cache file is none either  */
         const given    = project.config !== undefined
