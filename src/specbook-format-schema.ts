@@ -124,7 +124,7 @@ export type SchemaDiagramNest = {
     switches, the node nesting, and the node annotations  */
 export type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid" | "state" | "layer" | "slice" | "tree" | "matrix" | "sequence"
-                       | "petri"
+                       | "petri" | "gantt"
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -142,6 +142,8 @@ export type SchemaDiagram = {
     places?:           string
     tokens?:           string
     capacity?:         string
+    duration?:         string
+    start?:            string
     hierarchy?:        boolean
     deep?:             boolean
     descend?:          string[]
@@ -258,7 +260,7 @@ const SchemaDiagramNest: v.GenericSchema<SchemaDiagramNest> = v.strictObject({
 })
 const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     type:              v.optional(v.picklist([ "graph", "hub", "grid", "state", "layer", "slice", "tree",
-        "matrix", "sequence", "petri" ])),
+        "matrix", "sequence", "petri", "gantt" ])),
     nodes:             v.optional(v.string()),
     edges:             v.optional(v.string()),
     local:             v.optional(v.boolean()),
@@ -276,6 +278,8 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     places:            v.optional(v.string()),
     tokens:            v.optional(v.string()),
     capacity:          v.optional(v.string()),
+    duration:          v.optional(v.string()),
+    start:             v.optional(v.string()),
     hierarchy:         v.optional(v.boolean()),
     deep:              v.optional(v.boolean()),
     descend:           v.optional(v.array(v.string())),

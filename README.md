@@ -60,7 +60,7 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 
 -   **Object Model Diagram Visualisation**:
     Object kinds can declare one or more "graph", "hub", "grid", "state",
-    "layer", "slice", "tree", "matrix", "sequence", or "petri" diagrams in
+    "layer", "slice", "tree", "matrix", "sequence", "petri", or "gantt" diagrams in
     the schema, whose nodes and edges are automatically derived from the
     object model and its references. The diagrams are rendered with the
     sibling project [Gradia](https://github.com/rse/gradia), which is
@@ -301,7 +301,7 @@ Options:
     in the browser. The aspects match the folding controls of the HTML
     export: `diagram:graph`, `diagram:hub`, `diagram:grid`, `diagram:state`,
     `diagram:layer`, `diagram:slice`, `diagram:tree`, `diagram:matrix`, `diagram:sequence`, `diagram:petri`,
-    `diagram:code` (Mermaid/D2), and `diagram:image` (images and PDF pages) omit all
+    `diagram:gantt`, `diagram:code` (Mermaid/D2), and `diagram:image` (images and PDF pages) omit all
     diagrams of a type, `diagram:1` (alias: `diagram`), `diagram:2`, and
     `diagram:3` omit all diagrams from an object tree nesting level on
     (level 1 hence all, including the "Diagram of Contents" page), and

@@ -43,7 +43,7 @@ export const fallbackLogo = (theme: typeof embeddingThemes[number]): string =>
     long texts  */
 export const omitAspects = [ "diagram:graph", "diagram:hub", "diagram:grid", "diagram:state",
     "diagram:layer", "diagram:slice", "diagram:tree", "diagram:matrix", "diagram:sequence", "diagram:petri",
-    "diagram:code", "diagram:image", "diagram:listing",
+    "diagram:gantt", "diagram:code", "diagram:image", "diagram:listing",
     "diagram:1", "diagram:2", "diagram:3", "text:long" ] as const
 export type OmitAspect = typeof omitAspects[number]
 

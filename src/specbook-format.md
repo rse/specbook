@@ -127,7 +127,8 @@ type SchemaDiagramNest = {
 }
 type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid" | "state" | "layer" |
-                       "slice" | "tree" | "matrix" | "sequence" | "petri"
+                       "slice" | "tree" | "matrix" | "sequence" | "petri" |
+                       "gantt"
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -377,7 +378,7 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE the relations of a specification are graspable only when drawn
 
 -   `SchemaDiagram.type?: "graph" | "hub" | "grid" | "state" | "layer" |
-    "slice" | "tree" | "matrix" | "sequence" | "petri"`:
+    "slice" | "tree" | "matrix" | "sequence" | "petri" | "gantt"`:
     diagram shape: `graph` (free), `hub` (centered), `grid` (edge-less),
     `state` (state machine, with the `automaton` flags as pseudo-states),
     `layer` (stacked bands, with the `nest` containers as the layers),
@@ -387,6 +388,8 @@ type SchemaGradiaConfig = Partial<{
     containers as the partitions), `sequence` (sequence diagram, with
     the edge objects as the messages), `petri` (Petri net, with the
     `places` objects as the places and all other nodes as the transitions),
+    `gantt` (Gantt chart, with the nodes as the tasks, the edges as their
+    dependencies, and the `nest` containers as the partitions),
     BECAUSE one object set tells different stories as different shapes
 
 -   `SchemaDiagram.nodes?: string`:
@@ -512,6 +515,18 @@ type SchemaGradiaConfig = Partial<{
     property of a place carrying its capacity (an integer of at least 1)
     in a `petri` diagram, an absent one leaving the place unbounded,
     BECAUSE a bound decides whether a producer has to wait
+
+-   `SchemaDiagram.duration?: string`:
+    property of a task carrying its duration (a non-negative number of
+    time units) in a `gantt` diagram, an absent one making the task a
+    milestone,
+    BECAUSE the length of a bar is the one fact a schedule rests on
+
+-   `SchemaDiagram.start?: string`:
+    property of a task carrying its earliest start (a non-negative number
+    of time units, default: `0`) in a `gantt` diagram,
+    BECAUSE some tasks start at an agreed time, not when their
+    dependencies allow
 
 -   `SchemaDiagram.onlyConnected?: boolean`:
     whether a diagram (except a `hub` or `grid`) drops its edge-less
@@ -730,7 +745,7 @@ a [Gradia](https://github.com/rse/gradia) diagram for every object of
 that kind -- or a list of such diagram configurations, which derives
 all of them, in their order. Its `type` selects the diagram shape
 (`graph`, `hub`, `grid`, `state`, `layer`, `slice`, `tree`,
-`matrix`, `sequence`, or `petri`), `nodes` and
+`matrix`, `sequence`, `petri`, or `gantt`), `nodes` and
 `edges` select the participating objects through
 comma-separated `[[xxx]]` reference patterns (`nodes` defaults to the
 object itself plus all objects below it, and `local: true` restricts the
@@ -823,6 +838,22 @@ on its object: the tokens are an integer of at least 0, the capacity one
 of at least 1 holding them, and an arc connects a place with a
 transition. A `petri` diagram accepts no `nest`, and `tokens` and
 `capacity` require `places`.
+
+A `gantt` diagram draws a Gantt chart: the node objects are its tasks
+(one row each, a task without a `duration` being a milestone), the
+edges its finish-to-start dependencies (so a property referencing the
+*preceding* tasks is listed under `reverse`, as a dependency arrow runs
+from the predecessor), and the `nest` containers the partitions of its
+rows (like in a `matrix`, the containers themselves being no tasks).
+The `duration` and `start` options name the properties of the tasks
+carrying their duration and earliest start in abstract time units (a
+`gantt-unit-name` in `config` labels them), from which Gradia schedules
+the tasks as early as possible, draws the slack of every task, and
+marks the critical path. The schedule is validated, each violation
+reported on its object: the duration and the start are non-negative
+numbers, and the dependencies form no cycle. A `gantt` diagram accepts
+no `nest` layout or crossing, and `duration` and `start` apply to it
+alone.
 
 Instead of naming an existing object, `center` can also declare a
 *synthetic* center node, which represents something no specification

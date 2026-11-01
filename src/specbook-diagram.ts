@@ -210,8 +210,8 @@ interface DiagramNesting {
     label, the container node as the parent, band, or cluster, the badge icon
     and the multiplicity of its object kind, the "incomplete" mark of an
     uncovered object, the pseudo-state kind of a synthetic pseudo-state,
-    the place or transition kind of a Petri net node) and one edge
-    statement per derived edge  */
+    the place or transition kind of a Petri net node, the duration and
+    start of a task) and one edge statement per derived edge  */
 const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
     centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[], nesting: DiagramNesting,
     pseudo: Map<SpecObject, PseudoState>, places: Set<SpecObject> | undefined): string => {
@@ -252,13 +252,15 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
             attrs.push("primary: true")
         const container = nesting.parentOf.get(node)
         const banded    = type === "layer" || type === "slice"
-        if (banded || type === "matrix") {
-            /*  a "layer", "slice", or "matrix" diagram knows no
+        if (banded || type === "matrix" || type === "gantt") {
+            /*  a "layer", "slice", "matrix", or "gantt" diagram knows no
                 containers: in a "layer" or "slice" one the container
                 names the band of the node and the containers enclosing
                 it the path of the clusters grouping that band, while in
                 a "matrix" one a container (where a row and column there)
-                and all containers of a node form the path of its partition  */
+                and all containers of a node form the path of its partition
+                (in a "gantt" one just the containers of a task, as a
+                container is no task)  */
             if (banded && container !== undefined)
                 attrs.push(`${type}: ${atom(plainText(container.name))}`)
             const clusters = new Array<string>()
@@ -288,16 +290,23 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
             attrs.push(`state: ${state}`)
 
         /*  the kind of a node of a "petri" diagram, plus the initial
-            tokens and the capacity of a place  */
+            tokens and the capacity of a place, and the duration and the
+            earliest start of a task of a "gantt" diagram  */
         if (places !== undefined) {
             attrs.push(`petri: ${places.has(node) ? "place" : "transition"}`)
             if (places.has(node))
                 for (const key of [ "tokens", "capacity" ] as const) {
-                    const value = petriValue(ctx, diagram, node, key)
+                    const value = optionValue(ctx, diagram, node, key)
                     if (value !== undefined)
                         attrs.push(`${key}: ${value}`)
                 }
         }
+        if (type === "gantt")
+            for (const key of [ "duration", "start" ] as const) {
+                const value = optionValue(ctx, diagram, node, key)
+                if (value !== undefined)
+                    attrs.push(`${key}: ${value}`)
+            }
 
         /*  attach the values of the configured properties as Gradia
             key/value attributes (a node lacking a property is fine, as
@@ -528,11 +537,12 @@ const validateMessages = (edges: DiagramEdge[], errors: DiagramError[]) => {
     })
 }
 
-/*  the initial tokens or the capacity of a place of a "petri" diagram:
-    the trimmed value of the property the "tokens" or "capacity"
-    option names (if any)  */
-const petriValue = (ctx: DiagramContext, diagram: SchemaDiagram, node: SpecObject,
-    key: "tokens" | "capacity"): string | undefined => {
+/*  the initial tokens or the capacity of a place of a "petri" diagram,
+    or the duration or earliest start of a task of a "gantt" diagram:
+    the trimmed value of the property the option of the same name
+    names (if any)  */
+const optionValue = (ctx: DiagramContext, diagram: SchemaDiagram, node: SpecObject,
+    key: "tokens" | "capacity" | "duration" | "start"): string | undefined => {
     const name  = diagram[key]
     const value = name !== undefined ? propValue(ctx.parenProps, node, name) : undefined
     return value !== undefined ? plainText(value).trim() : undefined
@@ -550,7 +560,7 @@ const validatePetri = (ctx: DiagramContext, diagram: SchemaDiagram, nodes: SpecO
             continue
         const numbers: { tokens?: number, capacity?: number } = {}
         for (const [ key, min ] of [ [ "tokens", 0 ], [ "capacity", 1 ] ] as const) {
-            const value = petriValue(ctx, diagram, node, key)
+            const value = optionValue(ctx, diagram, node, key)
             if (value === undefined)
                 continue
             if (!(/^\d+$/).test(value) || Number(value) < min)
@@ -568,6 +578,43 @@ const validatePetri = (ctx: DiagramContext, diagram: SchemaDiagram, nodes: SpecO
                 reason: `connects ${places.has(edge.source) ? "place" : "transition"} "${edge.source.name}" ` +
                     `with ${places.has(edge.target) ? "place" : "transition"} "${edge.target.name}", ` +
                     "but an arc connects a place with a transition only" })
+}
+
+/*  validate the schedule of a "gantt" diagram exactly like Gradia does,
+    so an invalid plan becomes a diagnostic on the offending object
+    instead of failing the rendering: the duration and the earliest
+    start of a task are non-negative numbers, and the dependencies form
+    no cycle (reported on the first task of the cycle found)  */
+const validateGantt = (ctx: DiagramContext, diagram: SchemaDiagram, nodes: SpecObject[],
+    edges: DiagramEdge[], errors: DiagramError[]) => {
+    for (const node of nodes)
+        for (const key of [ "duration", "start" ] as const) {
+            const value = optionValue(ctx, diagram, node, key)
+            if (value !== undefined && !(/^\d+(?:\.\d+)?$/).test(value))
+                errors.push({ object: node, reason: `carries the invalid ${key} "${value}" ` +
+                    "(expected a non-negative number)" })
+        }
+    const successors = new Map<SpecObject, SpecObject[]>()
+    for (const edge of edges)
+        successors.set(edge.source, [ ...(successors.get(edge.source) ?? []), edge.target ])
+    const done  = new Set<SpecObject>()
+    const path  = new Set<SpecObject>()
+    const visit = (node: SpecObject): boolean => {
+        if (path.has(node))
+            return true
+        if (done.has(node))
+            return false
+        path.add(node)
+        const cyclic = (successors.get(node) ?? []).some(visit)
+        path.delete(node)
+        done.add(node)
+        return cyclic
+    }
+    for (const node of nodes)
+        if (visit(node)) {
+            errors.push({ object: node, reason: "takes part in a cycle of dependencies" })
+            break
+        }
 }
 
 /*  derive the edges of a diagram: the reference edges of the node
@@ -1017,15 +1064,16 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
             errors.push({ reason: `"${type}" diagram cannot carry a "nest" configuration` })
         else {
             nesting = deriveNesting(ctx, diagram.nest, nodes, nodeSet, errors, type === "tree")
-            const banded = type === "layer" || type === "slice"
+            const banded = type === "layer" || type === "slice" || type === "gantt"
             if ((banded || type === "tree" || type === "matrix") && diagram.nest.layout !== undefined)
                 errors.push({ reason: `"${type}" diagram cannot carry a "nest" layout configuration` })
             if ((banded || type === "tree") && diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
                 errors.push({ reason: `"${type}" diagram cannot carry a "nest" crossing configuration` })
             if (banded) {
                 /*  a "layer" or "slice" diagram draws its containers as
-                    bands and cluster groups instead of as nodes, so it
-                    drops the edges ending at one  */
+                    bands and cluster groups, a "gantt" one as the
+                    partitions of its rows, instead of as nodes, so they
+                    drop the edges ending at one  */
                 nodes = nodes.filter((node) => !nesting.containers.has(node))
                 edges = edges.filter((edge) => !nesting.containers.has(edge.source)
                     && !nesting.containers.has(edge.target))
@@ -1095,6 +1143,16 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
                 errors.push({ reason: type === "petri" ?
                     `"petri" diagram cannot carry a "${field}" configuration without a "places" one` :
                     `"${type}" diagram cannot carry a "${field}" configuration` })
+
+    /*  a "gantt" diagram takes the nodes as its tasks (a node without a
+        duration being a milestone) and the edges as their dependencies,
+        where the "duration" and "start" options name properties of the tasks  */
+    if (type === "gantt")
+        validateGantt(ctx, diagram, nodes, edges, errors)
+    else
+        for (const field of [ "duration", "start" ] as const)
+            if (diagram[field] !== undefined)
+                errors.push({ reason: `"${type}" diagram cannot carry a "${field}" configuration` })
     if (errors.length > 0)
         return { type, errors }
 

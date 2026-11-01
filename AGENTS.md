@@ -103,7 +103,7 @@ API.
         variable block, and the layer-2 semantic mapping the PDF
         decoration needs outside of CSS
     -   `src/specbook-diagram.ts`: the derivation of the Gradia specs of
-        the configured `graph`/`hub`/`grid`/`state`/`layer`/`slice`/`tree`/`matrix`/`sequence`/`petri`
+        the configured `graph`/`hub`/`grid`/`state`/`layer`/`slice`/`tree`/`matrix`/`sequence`/`petri`/`gantt`
         diagrams (one or a list of them per object kind) from the object
         model and its references (including the `links` restriction onto
         listed properties, the `descend` attribution of the references of
@@ -121,7 +121,11 @@ API.
         only, mirroring Gradia), and its participants in the order of
         their first involvement, the places and transitions of a `petri`
         diagram with the tokens and capacities of its places and their
-        validation (mirroring Gradia, too),
+        validation (mirroring Gradia, too), the tasks of a `gantt`
+        diagram with their durations and earliest starts, their
+        dependencies, and their validation (non-negative numbers, no
+        dependency cycle, mirroring Gradia once more) with the `nest`
+        containers as the partitions of its rows,
         the opt-in `markUncovered` marking of the objects lacking their
         demanded `referenced` or reported `coverage` coverage, and the
         object kind `badge` icons and `multiple` stacks of the
@@ -904,10 +908,10 @@ color,
 and a running search unfolds
 everything, so no match hides inside. Everything starts out
 unfolded, while the folding tab slides
-out a panel of seventeen controls in two rows (exactly as the artifact
+out a panel of eighteen controls in two rows (exactly as the artifact
 filter tab slides out its grid), which fold and unfold at once all
 diagrams of a type (the first row: `graph`,
-`hub`, `grid`, `state`, `layer`, `slice`, `tree`, `matrix`, `sequence`, and `petri`; the second row: the Mermaid/D2 ones as `code`, the images and PDF
+`hub`, `grid`, `state`, `layer`, `slice`, `tree`, `matrix`, `sequence`, `petri`, and `gantt`; the second row: the Mermaid/D2 ones as `code`, the images and PDF
 pages as `image`, and the code listings as `listing`, each with an icon
 of its own), all diagrams from an
 object tree nesting level on (`1`, hence all, `2`, and `3`, a nesting
@@ -931,8 +935,8 @@ validated up-front by `parseOmit` of `src/specbook-export-common.ts`)
 omits content aspects at generation time instead of leaving them
 foldable. The aspects match the sets of the folding controls:
 `diagram:graph`, `diagram:hub`, `diagram:grid`, `diagram:state`,
-`diagram:layer`, `diagram:slice`, `diagram:tree`, `diagram:matrix`, `diagram:sequence`, `diagram:petri`, `diagram:code`,
-`diagram:image`, `diagram:listing`, `diagram:1` (alias
+`diagram:layer`, `diagram:slice`, `diagram:tree`, `diagram:matrix`, `diagram:sequence`, `diagram:petri`, `diagram:gantt`,
+`diagram:code`, `diagram:image`, `diagram:listing`, `diagram:1` (alias
 `diagram`, hence all diagrams, the "Diagram of Contents" page included),
 `diagram:2`, `diagram:3`, and `text:long`. An omitted diagram
 (`omittedDiagrams` of `src/specbook-diagram.ts`, per diagram, as an
@@ -952,7 +956,7 @@ it, and the client-side cell text folding is off. The
 fold controls of the omitted aspects leave the folding tab along with
 the implied ones (`diagram:2` also drops `level3`, all Gradia diagram
 types omitted drop the first row of the panel, no diagrams at all drop
-all sixteen diagram controls, and everything omitted drops the tab,
+all seventeen diagram controls, and everything omitted drops the tab,
 the tabs below moving up). The few extra style rules and the two script
 variations are emitted under the option only, so an export without it
 stays byte-identical. The rendering options `realtime` and `omit` travel
