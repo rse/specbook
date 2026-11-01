@@ -537,7 +537,10 @@ every export except the Markdown one for its fenced blocks: the HTML/PDF
 export emits a regular `div.diagram` block (type `mermaid`/`d2`, nesting
 level of the carrying object) holding the two theme variants as `<img>`
 elements (isolating their styles), drawn in colors picked out of the
-`THEME-TONE` spreads, while the Markdown and AST exports replace an
+`THEME-TONE` spreads (where the class headers of a Mermaid class diagram
+are recolored in the rendered SVG to a dark accent background with a
+light stereotype and name, an option Mermaid lacks), while the Markdown
+and AST exports replace an
 embedded file by its rendered `light` SVG. A D2 diagram is laid out by
 the TALA engine by default (the `layout-engine` and `theme-overrides`
 are prepended as one `d2-config` line, so the own `d2-config` of a

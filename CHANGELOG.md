@@ -17,6 +17,10 @@ ChangeLog
     A `[[...]]` inside an inline code span is plain code now, like inside a fenced code block,
     instead of being expanded into link markup, which the code span then showed as raw HTML.
 
+-   IMPROVEMENT [code]: Accent-Colored Mermaid Class Headers
+    The class boxes of a Mermaid class diagram carry their stereotype and name in a light text
+    on a dark accent header (deeper on the dark theme), instead of the grey header of Mermaid.
+
 -   IMPROVEMENT [code]: Remote Schema Configurations
     `-c` accepts the remote references `npm:`, `github:`, and `http[s]:` (cached, per `--fetch`),
     and `specbook search` finds the shareable schema configurations on npm and GitHub.
