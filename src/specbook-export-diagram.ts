@@ -136,29 +136,38 @@ const d2Colors = (colors: ThemeColors, style: ThemeStyle): Record<string, string
     }
 }
 
-/*  the header colors of the classes of the Mermaid class diagrams per
-    theme style (a dark accent background with a light text, on the dark
-    theme deeper than the accent tinted box body), which Mermaid itself
-    offers no option for  */
-const mermaidClassHeader = (colors: ThemeColors, style: ThemeStyle): { fill: string, text: string } => {
+/*  the colors of the class boxes of the Mermaid class diagrams per theme
+    style, which Mermaid itself offers no option for: the header (a dark
+    accent background with a light text), the body (on the dark theme a
+    dark neutral one, setting the deep accent header apart), and the
+    members (their names in a dark resp. light accent, their types and
+    separators in lighter resp. darker steps of it)  */
+type ClassColors = { header: string, title: string, body?: string, name: string, type: string, mark: string }
+const mermaidClassColors = (colors: ThemeColors, style: ThemeStyle): ClassColors => {
     const [ b, a ] = [ colors.base, colors.accent ]
-    return style === "dark" ? { fill: a[3], text: b[31] } : { fill: a[7], text: b[31] }
+    return style === "dark" ?
+        { header: a[3], title: b[31], body: b[9], name: a[27], type: a[22], mark: a[16] } :
+        { header: a[7], title: b[31],             name: a[5],  type: a[11], mark: a[17] }
 }
 
 /*  render a Mermaid diagram, stripping the web font import the SVG
     carries, as an SVG embedded through an <img> never loads it and it
     would be the only external reference of the exported document, and
-    recoloring the headers of the class boxes of a class diagram (their
-    background, stereotype, and name, inside every "class-node" group)  */
-const renderMermaid = async (source: string, colors: MermaidOptions,
-    header: { fill: string, text: string }): Promise<string> => {
+    recoloring the class boxes of a class diagram (their header with its
+    stereotype and name, their body, and their members, inside every
+    "class-node" group)  */
+const renderMermaid = async (source: string, colors: MermaidOptions, cls: ClassColors): Promise<string> => {
     const { renderMermaidSVG } = await import("beautiful-mermaid")
     return renderMermaidSVG(source, { ...colors, transparent: true, padding: 4 })
         .replace(/^\s*@import url\([^)]*\);\s*$/m, "")
         .replace(/<g class="class-node"[^>]*>[\s\S]*?<\/g>/g, (group) => group
-            .replace("fill=\"var(--_group-hdr)\"", `fill="${header.fill}"`)
-            .replace("fill=\"var(--_text-muted)\">&lt;&lt;", `fill="${header.text}">&lt;&lt;`)
-            .replace("font-weight=\"700\" fill=\"var(--_text)\"", `font-weight="700" fill="${header.text}"`))
+            .replace("fill=\"var(--_node-fill)\"", `fill="${cls.body ?? "var(--_node-fill)"}"`)
+            .replace("fill=\"var(--_group-hdr)\"", `fill="${cls.header}"`)
+            .replace("fill=\"var(--_text-muted)\">&lt;&lt;", `fill="${cls.title}">&lt;&lt;`)
+            .replace("font-weight=\"700\" fill=\"var(--_text)\"", `font-weight="700" fill="${cls.title}"`)
+            .replaceAll("<tspan fill=\"var(--_text-sec)\">",   `<tspan fill="${cls.name}">`)
+            .replaceAll("<tspan fill=\"var(--_text-muted)\">", `<tspan fill="${cls.type}">`)
+            .replaceAll("<tspan fill=\"var(--_text-faint)\">", `<tspan fill="${cls.mark}">`))
 }
 
 /*  the D2 compiler, created on first use (as it spins up its WebAssembly
@@ -249,8 +258,8 @@ export const renderEmbeddedDiagrams = async (specification: Spec,
         else {
             try {
                 variants = language === "mermaid" ? {
-                    light: await renderMermaid(source, mermaidColors(colors, "light"), mermaidClassHeader(colors, "light")),
-                    dark:  await renderMermaid(source, mermaidColors(colors, "dark"),  mermaidClassHeader(colors, "dark"))
+                    light: await renderMermaid(source, mermaidColors(colors, "light"), mermaidClassColors(colors, "light")),
+                    dark:  await renderMermaid(source, mermaidColors(colors, "dark"),  mermaidClassColors(colors, "dark"))
                 } : {
                     light: await renderD2(source, d2Colors(colors, "light"), "light"),
                     dark:  await renderD2(source, d2Colors(colors, "dark"),  "dark")

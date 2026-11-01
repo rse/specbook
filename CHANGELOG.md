@@ -17,9 +17,9 @@ ChangeLog
     A `[[...]]` inside an inline code span is plain code now, like inside a fenced code block,
     instead of being expanded into link markup, which the code span then showed as raw HTML.
 
--   IMPROVEMENT [code]: Accent-Colored Mermaid Class Headers
-    The class boxes of a Mermaid class diagram carry their stereotype and name in a light text
-    on a dark accent header (deeper on the dark theme), instead of the grey header of Mermaid.
+-   IMPROVEMENT [code]: Accent-Colored Mermaid Class Boxes
+    The class boxes of a Mermaid class diagram carry a light title on a dark accent header and
+    their members in accent colors (on a dark body on the dark theme), instead of Mermaid's grey.
 
 -   IMPROVEMENT [code]: Recurring Artifacts
     A level 1 object kind configured with neither `name` nor `id` is matched by any number of
