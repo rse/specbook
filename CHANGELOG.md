@@ -9,6 +9,10 @@ ChangeLog
     The new artifact `ARCH: Runtime View` (`26-ARCH-RV`) precedes the moved Concurrency View, so
     rename the files: `28-CO` → `27-CO`, `26-TS` → `28-TS`, `27-DA` → `29-DA`, and `29`–`34` by +1.
 
+-   CLEANUP [spec]: Backward-Only Kind References
+    The Deployment View defines its networks before its nodes, so the standard schema carries no
+    reference onto an object kind defined later anymore.
+
 -   IMPROVEMENT [code, spec]: Petri Net Diagrams of the Concurrency View
     The new type `petri` (options `places`, `tokens`, `capacity`, `reverse`) draws and analyzes the
     new Concurrency View resources as places between the units consuming and producing them.
