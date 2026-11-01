@@ -21,6 +21,10 @@ ChangeLog
     The class boxes of a Mermaid class diagram carry their stereotype and name in a light text
     on a dark accent header (deeper on the dark theme), instead of the grey header of Mermaid.
 
+-   IMPROVEMENT [code]: List-Valued Diagram Edge Targets
+    An `edgeTarget` property carrying a `list(...)` of references yields one edge per target, and
+    the new diagram flag `local` restricts the `nodes`/`edges` patterns to the subtree of the object.
+
 -   IMPROVEMENT [code]: Remote Schema Configurations
     `-c` accepts the remote references `npm:`, `github:`, and `http[s]:` (cached, per `--fetch`),
     and `specbook search` finds the shareable schema configurations on npm and GitHub.

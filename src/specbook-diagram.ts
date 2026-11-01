@@ -12,7 +12,7 @@ import type { Spec, SpecObject, SpecProperty }
 import type { Schema, SchemaDiagram, SchemaDiagramCenterEdges, SchemaDiagramNest }
     from "./specbook-format-schema.js"
 import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths,
-    expandReferences, plainText, type LinkIndex }
+    chainOf, expandReferences, plainText, type LinkIndex }
     from "./specbook-link.js"
 import type { ParseContext }
     from "./specbook-parse-common.js"
@@ -296,42 +296,49 @@ const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes
 /*  derive the object edges of a diagram from the edge objects by
     convention (source: parent object, target: first reference in the
     property values, name: object name, arity: "ARITY" property),
-    overridable via "edgeSource"/"edgeTarget"/"edgeArity"  */
+    overridable via "edgeSource"/"edgeTarget"/"edgeArity", where a
+    configured target property carrying several references (a "list"
+    valued one) yields one edge per resolvable target  */
 const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodeSet: Set<SpecObject>,
     edgeObjects: SpecObject[], errors: DiagramError[]): DiagramEdge[] => {
     const { index, parents, parenProps } = ctx
     const edges = new Array<DiagramEdge>()
 
-    /*  resolve the node an edge object references through a named
-        property, or through its first single-reference property when
-        no name is configured (skipping the source property)  */
-    const edgeNode = (edgeObject: SpecObject, key: string | undefined) => {
+    /*  resolve the nodes an edge object references through a named
+        property (all of its references), or through the first reference
+        of its first single-reference property when no name is configured
+        (skipping the source property)  */
+    const edgeNodes = (edgeObject: SpecObject, key: string | undefined): SpecObject[] => {
         const value = key !== undefined ?
             propValue(parenProps, edgeObject, key) :
             propsOf(parenProps, edgeObject).filter((property) => property.key !== diagram.edgeSource)
                 .map((property) => property.value).find((v) => referenceOnce.test(v))
-        const reference = value !== undefined ? plainText(value).match(referenceOnce)?.[1].trim() : undefined
-        return reference !== undefined ? resolveUnique(index, reference, edgeObject).target : undefined
+        if (value === undefined)
+            return []
+        const references = Array.from(plainText(value).matchAll(referenceRegex), (m) => m[1].trim())
+        return (key !== undefined ? references : references.slice(0, 1))
+            .map((reference) => resolveUnique(index, reference, edgeObject).target)
+            .filter((target): target is SpecObject => target !== undefined)
     }
     for (const edgeObject of edgeObjects) {
         const source = diagram.edgeSource !== undefined ?
-            edgeNode(edgeObject, diagram.edgeSource) : parents.get(edgeObject)
-        const target = edgeNode(edgeObject, diagram.edgeTarget)
+            edgeNodes(edgeObject, diagram.edgeSource)[0] : parents.get(edgeObject)
+        const targets = edgeNodes(edgeObject, diagram.edgeTarget)
         if (source === undefined) {
             errors.push({ object: edgeObject, reason: diagram.edgeSource !== undefined ?
                 "carries no resolvable source reference" :
                 "has no parent object as source" })
             continue
         }
-        if (target === undefined) {
+        if (targets.length === 0) {
             errors.push({ object: edgeObject, reason: "carries no resolvable target reference" })
             continue
         }
-        if (!nodeSet.has(source) || !nodeSet.has(target))
-            continue
         const arity = propValue(parenProps, edgeObject, diagram.edgeArity ?? "ARITY")
-        edges.push({ source, target, name: plainText(edgeObject.name),
-            arity: arity !== undefined ? plainText(arity) : undefined })
+        for (const target of targets)
+            if (nodeSet.has(source) && nodeSet.has(target))
+                edges.push({ source, target, name: plainText(edgeObject.name),
+                    arity: arity !== undefined ? plainText(arity) : undefined })
     }
     return edges
 }
@@ -672,9 +679,16 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
     const errors = new Array<DiagramError>()
 
     /*  determine the node objects and the edge objects (default: none),
-        with the edge objects never acting as nodes themselves  */
-    let nodes = deriveNodes(index, object, diagram, errors)
-    const edgeObjects = diagram.edges !== undefined ? resolvePatterns(index, errors, diagram.edges, "edges") : []
+        with the edge objects never acting as nodes themselves, where a
+        "local" diagram keeps only the matches of its patterns below
+        the object itself (as the patterns match corpus-wide)  */
+    let nodes       = deriveNodes(index, object, diagram, errors)
+    let edgeObjects = diagram.edges !== undefined ? resolvePatterns(index, errors, diagram.edges, "edges") : []
+    if (diagram.local === true) {
+        const below = (match: SpecObject) => chainOf(index, match).includes(object)
+        nodes       = nodes.filter(below)
+        edgeObjects = edgeObjects.filter(below)
+    }
     const edgeSet     = new Set<SpecObject>(edgeObjects)
     nodes = nodes.filter((node) => !edgeSet.has(node))
     const nodeSet = new Set<SpecObject>(nodes)

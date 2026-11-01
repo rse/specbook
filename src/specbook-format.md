@@ -107,6 +107,7 @@ type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid"
     nodes?:            string
     edges?:            string
+    local?:            boolean
     center?:           string | SchemaDiagramCenter
     centerEdges?:      SchemaDiagramCenterEdges
     links?:            "props" | "all"
@@ -320,6 +321,12 @@ type SchemaGradiaConfig = Partial<{
     comma-separated `[[xxx]]` patterns of the objects acting as edges, not nodes,
     BECAUSE some relations are objects, yet still connect two nodes
 
+-   `SchemaDiagram.local?: boolean`:
+    whether the `nodes` and `edges` patterns match only the object
+    itself and its descendants (default: `false`),
+    BECAUSE the patterns match corpus-wide, while a per-object diagram
+    of a recurring kind shows the own subtree only
+
 -   `SchemaDiagram.center?: string | SchemaDiagramCenter`:
     object a `hub` diagram is projected onto (default: `self`), or a
     synthetic center node, labeled from a referenced `source` object (or
@@ -356,7 +363,8 @@ type SchemaGradiaConfig = Partial<{
 
 -   `SchemaDiagram.edgeTarget?: string`:
     edge property naming the target node (default: the first non-source
-    property whose value is a single reference),
+    property whose value is a single reference), where a `list(...)`
+    of references yields one edge per target,
     BECAUSE the convention breaks on multiple references per object
 
 -   `SchemaDiagram.edgeArity?: string`:
@@ -547,7 +555,9 @@ the edges derived from descriptions stay unlabeled.
 An object acting as an edge (`edges`) connects its parent object to the
 object its target property references. Where an edge object is a sibling
 of its own source instead of a child of it, `edgeSource` names the
-property carrying that source.
+property carrying that source, and where the target property named by
+`edgeTarget` carries a `list(...)` of references, the edge object yields
+one edge per resolvable target.
 
 As the *nesting* of the objects carries no such reference, `hierarchy:
 true` additionally derives a containment edge from every node object to
@@ -564,7 +574,9 @@ a [Gradia](https://github.com/rse/gradia) diagram for every object of
 that kind. Its `type` selects the diagram shape (`graph`, `hub`, or
 `grid`), `nodes` and `edges` select the participating objects through
 comma-separated `[[xxx]]` reference patterns (`nodes` defaults to the
-object itself plus all objects below it), and `center` names the object
+object itself plus all objects below it, and `local: true` restricts the
+matches of both patterns to the object itself plus all objects below it,
+as the patterns match corpus-wide), and `center` names the object
 a `hub` is projected onto (default: `self`). An edge object of the
 center targeting the center itself (a self-reference) places the center
 a second time among its outputs, rendered as a dashed "self" node.

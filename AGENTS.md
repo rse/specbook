@@ -99,9 +99,11 @@ API.
     -   `src/specbook-diagram.ts`: the derivation of the Gradia specs of
         the configured `graph`/`hub`/`grid` diagrams from the object
         model and its references (including the `nest` container
-        nesting of the nodes), the compact Gradia geometry presets a
-        diagram `config` overrides, their validation, and the in-memory
-        cache of the rendered SVGs
+        nesting of the nodes, the `local` restriction of the node and
+        edge patterns onto the own subtree, and the `list(...)`-valued
+        `edgeTarget` yielding one edge per target), the compact Gradia
+        geometry presets a diagram `config` overrides, their validation,
+        and the in-memory cache of the rendered SVGs
     -   `src/specbook-config.ts`: YAML schema configuration loading, merging, and validation (Valibot)
     -   `src/specbook-project.ts`: the upward search, loading, and
         validation (Valibot) of the YAML project configuration file

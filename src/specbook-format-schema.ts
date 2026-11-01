@@ -84,12 +84,14 @@ export type SchemaDiagramNest = {
 }
 
 /*  the diagram derived for every object of an object kind: its shape,
-    its node/edge selection, the edge property roles, the derivation
+    its node/edge selection (optionally restricted to the object itself
+    and its descendants), the edge property roles, the derivation
     switches, the node nesting, and the node annotations  */
 export type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid"
     nodes?:            string
     edges?:            string
+    local?:            boolean
     center?:           string | SchemaDiagramCenter
     centerEdges?:      SchemaDiagramCenterEdges
     links?:            "props" | "all"
@@ -199,6 +201,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     type:              v.optional(v.picklist([ "graph", "hub", "grid" ])),
     nodes:             v.optional(v.string()),
     edges:             v.optional(v.string()),
+    local:             v.optional(v.boolean()),
     center:            v.optional(v.union([ v.string(), SchemaDiagramCenter ])),
     centerEdges:       v.optional(SchemaDiagramCenterEdges),
     links:             v.optional(v.picklist([ "props", "all" ])),
