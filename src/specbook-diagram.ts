@@ -119,10 +119,24 @@ const configValue = (value: string | number | boolean): string => {
 
 /*  a derived diagram edge between two specification objects  */
 interface DiagramEdge {
-    source: SpecObject
-    target: SpecObject
-    name?:  string
-    arity?: string
+    source:    SpecObject
+    target:    SpecObject
+    name?:     string
+    arity?:    string
+    kind?:     MessageKind
+    duration?: string
+    time?:     string
+}
+
+/*  the message kinds of a "sequence" diagram, and the (case-insensitive)
+    values of an "edgeKind" property mapping onto them: the SpecBook
+    vocabulary plus the Gradia one  */
+type MessageKind = "sync" | "async" | "return" | "create" | "destroy"
+const messageKinds: Record<string, MessageKind> = {
+    call:   "sync",   sync:    "sync",
+    signal: "async",  async:   "async",
+    return: "return", create:  "create",
+    destroy: "destroy"
 }
 
 /*  the synthetic properties supplied by the parenthesized name tokens
@@ -293,8 +307,16 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
             const op = "--" +
                 (edge.name  !== undefined && edge.name  !== "" ? `(${nameToken(edge.name)})--` : "") + ">" +
                 (edge.arity !== undefined && edge.arity !== "" ? `[${arityToken(edge.arity)}]` : "")
+            const attrs = new Array<string>()
+            if (edge.kind !== undefined && edge.kind !== "sync")
+                attrs.push(`kind: ${edge.kind}`)
+            if (edge.duration !== undefined && edge.duration !== "")
+                attrs.push(`duration: ${atom(edge.duration)}`)
+            if (edge.time !== undefined && edge.time !== "")
+                attrs.push(`time: ${atom(edge.time)}`)
             lines.push(`${atom(anchors.get(edge.source) ?? edge.source.id)} ${op} ` +
-                atom(anchors.get(edge.target) ?? edge.target.id))
+                atom(anchors.get(edge.target) ?? edge.target.id) +
+                (attrs.length > 0 ? ` { ${attrs.join(", ")} }` : ""))
         }
     }
     return lines.join("\n") + "\n"
@@ -370,9 +392,11 @@ const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes
     property values, name: object name, arity: "ARITY" property),
     overridable via "edgeSource"/"edgeTarget"/"edgeArity", where a
     configured target property carrying several references (a "list"
-    valued one) yields one edge per resolvable target, and where the
-    "edgeGuard" property value follows the name in brackets  */
-const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodeSet: Set<SpecObject>,
+    valued one) yields one edge per resolvable target, where the
+    "edgeGuard" property value follows the name in brackets, and where
+    the "edgeKind", "edgeDuration", and "edgeTime" property values make
+    the message kind and the timing constraints of a "sequence" diagram  */
+const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, admits: (object: SpecObject) => boolean,
     edgeObjects: SpecObject[], errors: DiagramError[]): DiagramEdge[] => {
     const { index, parents, parenProps } = ctx
     const edges = new Array<DiagramEdge>()
@@ -413,10 +437,22 @@ const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodeSet:
         const name  = plainText(edgeObject.name) + (guard !== undefined ?
             ` [${plainText(expandReferences(guard, (reference) =>
                 resolveUnique(index, reference, edgeObject).target?.name ?? reference))}]` : "")
+        const text  = (key: string | undefined) => {
+            const value = key !== undefined ? propValue(parenProps, edgeObject, key) : undefined
+            return value !== undefined ? plainText(value).trim() : undefined
+        }
+        const label = text(diagram.edgeKind)
+        const kind  = label !== undefined ?
+            (Object.hasOwn(messageKinds, label.toLowerCase()) ? messageKinds[label.toLowerCase()] : undefined) : undefined
+        if (label !== undefined && kind === undefined) {
+            errors.push({ object: edgeObject, reason: `carries the unknown message kind "${label}"` })
+            continue
+        }
         for (const target of targets)
-            if (nodeSet.has(source) && nodeSet.has(target))
+            if (admits(source) && admits(target))
                 edges.push({ source, target, name,
-                    arity: arity !== undefined ? plainText(arity) : undefined })
+                    arity: arity !== undefined ? plainText(arity) : undefined,
+                    kind, duration: text(diagram.edgeDuration), time: text(diagram.edgeTime) })
     }
     return edges
 }
@@ -424,14 +460,25 @@ const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodeSet:
 /*  derive the edges of a diagram: the reference edges of the node
     objects, the object edges of the edge objects, and the containment
     edges of the object hierarchy (a "grid" diagram is edge-less by
-    definition, so no edges are derived at all)  */
+    definition, so no edges are derived at all, and a "sequence" diagram
+    knows the object edges, its messages, only)  */
 const deriveEdges = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramType,
     nodes: SpecObject[], nodeSet: Set<SpecObject>, edgeObjects: SpecObject[],
     errors: DiagramError[]): DiagramEdge[] => {
     const edges = new Array<DiagramEdge>()
-    if (type !== "grid") {
+    if (type === "sequence") {
+        /*  a "sequence" diagram draws the edge objects as its messages
+            alone, as references and the object nesting carry no order,
+            between any objects unless "nodes" restricts its participants  */
+        for (const field of [ "links", "hierarchy", "deep", "labeled" ] as const)
+            if (diagram[field] !== undefined && diagram[field] !== false)
+                errors.push({ reason: `"sequence" diagram cannot carry a "${field}" configuration` })
+        edges.push(...deriveObjectEdges(ctx, diagram,
+            (object) => diagram.nodes === undefined || nodeSet.has(object), edgeObjects, errors))
+    }
+    else if (type !== "grid") {
         edges.push(...deriveReferenceEdges(ctx, diagram, nodes, nodeSet))
-        edges.push(...deriveObjectEdges(ctx, diagram, nodeSet, edgeObjects, errors))
+        edges.push(...deriveObjectEdges(ctx, diagram, (object) => nodeSet.has(object), edgeObjects, errors))
 
         /*  derive the containment edges from the object hierarchy, as
             the nesting of the objects carries no "[[...]]" reference  */
@@ -773,8 +820,11 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
     /*  determine the node objects and the edge objects (default: none),
         with the edge objects never acting as nodes themselves, where a
         "local" diagram keeps only the matches of its patterns below
-        the object itself (as the patterns match corpus-wide)  */
-    let nodes       = deriveNodes(index, object, diagram, errors)
+        the object itself (as the patterns match corpus-wide), and where
+        a "sequence" diagram without "nodes" takes its participants from
+        its messages instead (see below)  */
+    let nodes       = type === "sequence" && diagram.nodes === undefined ? [] :
+        deriveNodes(index, object, diagram, errors)
     let edgeObjects = diagram.edges !== undefined ? resolvePatterns(index, errors, diagram.edges, "edges") : []
     if (diagram.local === true) {
         const below = (match: SpecObject) => chainOf(index, match).includes(object)
@@ -785,8 +835,13 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
     nodes = nodes.filter((node) => !edgeSet.has(node))
     const nodeSet = new Set<SpecObject>(nodes)
 
-    /*  derive the edges of the diagram  */
+    /*  derive the edges of the diagram, with the message kinds and the
+        timing constraints known to a "sequence" diagram only  */
     let edges = deriveEdges(ctx, diagram, type, nodes, nodeSet, edgeObjects, errors)
+    if (type !== "sequence")
+        for (const field of [ "edgeKind", "edgeDuration", "edgeTime" ] as const)
+            if (diagram[field] !== undefined)
+                errors.push({ reason: `"${type}" diagram cannot carry an "${field}" configuration` })
 
     /*  determine the center of a "hub" diagram (the only shape
         carrying a center at all)  */
@@ -805,10 +860,25 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
     /*  synthesize the center edges of a "hub" diagram, as the nodes
         carry no "[[...]]" reference to a synthetic center, and only
         then deduplicate all edges, as a center edge of a real center
-        can coincide with a reference edge of a node onto it  */
+        can coincide with a reference edge of a node onto it (except
+        the messages of a "sequence" diagram, which may repeat)  */
     if (type === "hub" && diagram.centerEdges !== undefined)
         edges.push(...deriveCenterEdges(ctx, diagram.centerEdges, nodes, center, errors))
-    edges = dedupEdges(edges, anchors)
+    if (type !== "sequence")
+        edges = dedupEdges(edges, anchors)
+
+    /*  the participants of a "sequence" diagram line up in the order
+        their messages first involve them, the uninvolved ones dropped  */
+    if (type === "sequence") {
+        const involved = new Set<SpecObject>()
+        for (const edge of edges) {
+            involved.add(edge.source)
+            involved.add(edge.target)
+        }
+        nodes = Array.from(involved)
+        if (diagram.ordered === true)
+            errors.push({ reason: "\"sequence\" diagram cannot carry an \"ordered\" configuration" })
+    }
 
     /*  project a "hub" diagram onto its center object, which has
         to be part of the node set  */
@@ -821,14 +891,15 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
     }
 
     /*  nest the nodes into container nodes (except in a "hub" diagram,
-        where every container would need a primary node of its own, and
-        in a "state" diagram, where every container would be a composite
-        state needing an initial state of its own), dropping the edges
-        between a container and its own members, which Gradia rejects,
-        as the nesting already shows them  */
+        where every container would need a primary node of its own, in a
+        "state" diagram, where every container would be a composite state
+        needing an initial state of its own, and in a "sequence" diagram,
+        whose participants nest not at all), dropping the edges between
+        a container and its own members, which Gradia rejects, as the
+        nesting already shows them  */
     let nesting: DiagramNesting = { parentOf: new Map(), containers: new Set(), furtherOf: new Map() }
     if (diagram.nest !== undefined) {
-        if (type === "hub" || type === "state")
+        if (type === "hub" || type === "state" || type === "sequence")
             errors.push({ reason: `"${type}" diagram cannot carry a "nest" configuration` })
         else {
             nesting = deriveNesting(ctx, diagram.nest, nodes, nodeSet, errors, type === "tree")

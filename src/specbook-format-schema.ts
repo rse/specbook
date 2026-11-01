@@ -123,7 +123,7 @@ export type SchemaDiagramNest = {
     and its descendants), the edge property roles, the derivation
     switches, the node nesting, and the node annotations  */
 export type SchemaDiagram = {
-    type?:             "graph" | "hub" | "grid" | "state" | "layer" | "slice" | "tree" | "matrix"
+    type?:             "graph" | "hub" | "grid" | "state" | "layer" | "slice" | "tree" | "matrix" | "sequence"
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -135,6 +135,9 @@ export type SchemaDiagram = {
     edgeTarget?:       string
     edgeArity?:        string
     edgeGuard?:        string
+    edgeKind?:         string
+    edgeDuration?:     string
+    edgeTime?:         string
     hierarchy?:        boolean
     deep?:             boolean
     onlyConnected?:    boolean
@@ -249,7 +252,7 @@ const SchemaDiagramNest: v.GenericSchema<SchemaDiagramNest> = v.strictObject({
 })
 const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     type:              v.optional(v.picklist([ "graph", "hub", "grid", "state", "layer", "slice", "tree",
-        "matrix" ])),
+        "matrix", "sequence" ])),
     nodes:             v.optional(v.string()),
     edges:             v.optional(v.string()),
     local:             v.optional(v.boolean()),
@@ -261,6 +264,9 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     edgeTarget:        v.optional(v.string()),
     edgeArity:         v.optional(v.string()),
     edgeGuard:         v.optional(v.string()),
+    edgeKind:          v.optional(v.string()),
+    edgeDuration:      v.optional(v.string()),
+    edgeTime:          v.optional(v.string()),
     hierarchy:         v.optional(v.boolean()),
     deep:              v.optional(v.boolean()),
     onlyConnected:     v.optional(v.boolean()),

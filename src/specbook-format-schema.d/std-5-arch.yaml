@@ -486,9 +486,108 @@
                     optional: true
 
 -   kind: ARCH
+    name: Runtime View
+    id: RV
+    file: 26-ARCH-RV-Runtime-View.md
+    desc: >
+        The runtime interactions of the solution: for each significant use case scenario or
+        technical situation, the ordered messages its participants -- roles, Functionality View
+        components, and Context View entities -- exchange, describing *how* the components
+        collaborate at runtime to deliver the behaviors their static structure merely enables.
+    optional: true
+    refs: >
+        -   Starke/Hruschka: arc42 Template: Runtime View (2005),
+            https://docs.arc42.org/section-6/
+        -   OMG UML 2.5.1: Unified Modeling Language: Interactions (2017),
+            https://www.omg.org/spec/UML/2.5.1
+        -   Brown: The C4 Model: Dynamic Diagram (2018),
+            https://c4model.com/diagrams/dynamic
+        -   Kruchten: Architectural Blueprints -- The "4+1" View Model of Software Architecture (1995),
+            https://ieeexplore.ieee.org/document/469759
+        -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Functional Viewpoint (2011),
+            https://www.viewpoints-and-perspectives.info/home/viewpoints/functional/
+    diagram:
+        type: grid
+        nodes: "[[INTERACTION:*]]"
+        config:
+            size-node-width-max: 440
+            grid-columns-max: 3
+    children:
+        -   kind: INTERACTION
+            desc: >
+                A single runtime interaction, named with a short (2-5 word) summary of the
+                situation it shows (e.g. `Ask a Question`, `Login with Token`) and described in a
+                concise (1-3 sentence) paragraph by its trigger and its outcome, plus a 1-sentence
+                rationale ("why") stating what the interaction makes explicit, while its MESSAGE
+                children, in document order, are the messages its participants exchange.
+            optional: true
+            diagram:
+                type: sequence
+                edges: "[[MESSAGE:*]]"
+                local: true
+                edgeSource: FROM
+                edgeTarget: TO
+                edgeKind: KIND
+                edgeDuration: DURATION
+                edgeTime: TIME
+                qualified: true
+            props:
+                -   name: REALIZES
+                    desc: >
+                        Comma-separated references to the USE-CASES objects (use cases or their
+                        scenarios) the interaction realizes, tracing the runtime behavior back to
+                        the behavior the requirements state; omitted for a purely technical
+                        interaction (e.g. a startup or a failover).
+                    value: list([[USE-CASE:*]], [[SCENARIO:*]])
+                    optional: true
+            children:
+                -   kind: MESSAGE
+                    desc: >
+                        A single message of the interaction, named with a short (1-4 word),
+                        per-interaction unique summary of the operation, event, or response it
+                        carries (e.g. `submit question`, `question stored`) and described by a
+                        1-sentence description of its effect.
+                    format:
+                        type: concise
+                        maxTableColumns: 7
+                        withUnusedProps: true
+                    props:
+                        -   name: FROM
+                            desc: >
+                                Reference to the participant sending the message: a USER-PERSONAS
+                                role, a FUNCTIONALITY-VIEW component, or a CONTEXT-VIEW entity.
+                            value: list([[ROLE:*]], [[FV.COMPONENT:*]], [[CV.ENTITY:*]])
+                        -   name: TO
+                            desc: >
+                                Comma-separated references to the participants receiving the
+                                message (several ones yielding one message each): USER-PERSONAS
+                                roles, FUNCTIONALITY-VIEW components, or CONTEXT-VIEW entities.
+                            value: list([[ROLE:*]], [[FV.COMPONENT:*]], [[CV.ENTITY:*]])
+                        -   name: KIND
+                            desc: |
+                                The kind of the message, one of:
+                                -   `Call`:    Synchronous request the sender waits for (the default).
+                                -   `Signal`:  Asynchronous notification the sender does not wait for.
+                                -   `Return`:  Response to the latest unanswered call of its receiver.
+                                -   `Create`:  Instantiation of its receiver, which starts there.
+                                -   `Destroy`: Termination of its receiver, which ends there.
+                            value: enum(Call,Signal,Return,Create,Destroy)
+                            optional: true
+                        -   name: DURATION
+                            desc: >
+                                Duration constraint of a call up to its return (e.g. `< 200ms`),
+                                drawn as a bracket beside the lifeline of the caller.
+                            optional: true
+                        -   name: TIME
+                            desc: >
+                                Time constraint or observation at the start of the message (e.g.
+                                `t = now`), drawn beside the lifeline of the sender.
+                            optional: true
+
+-   kind: ARCH
     name: Technology Stack
     id: TS
-    file: 26-ARCH-TS-Technology-Stack.md
+    file: 27-ARCH-TS-Technology-Stack.md
     desc: >
         The concrete technology products the solution is built upon, organized by tier and lifecycle
         phase, recording for each component its chosen product, its purpose, and the alternatives
@@ -847,7 +946,7 @@
 -   kind: ARCH
     name: Development Aspects
     id: DA
-    file: 27-ARCH-DA-Development-Aspects.md
+    file: 28-ARCH-DA-Development-Aspects.md
     desc: >
         The architecture supporting the software development process, defining the module
         organization, build approach, and codeline conventions. The artifact is absent when the
@@ -922,7 +1021,7 @@
 -   kind: ARCH
     name: Concurrency View
     id: CO
-    file: 28-ARCH-CO-Concurrency-View.md
+    file: 29-ARCH-CO-Concurrency-View.md
     desc: >
         The concurrency structure of the solution, mapping functional components to processes and
         threads, and defining how they coordinate and communicate. The artifact is absent when the
@@ -1020,7 +1119,7 @@
 -   kind: ARCH
     name: Deployment View
     id: DV
-    file: 29-ARCH-DV-Deployment-View.md
+    file: 30-ARCH-DV-Deployment-View.md
     desc: >
         The environment into which the solution is deployed, partitioning it into tiers and mapping
         software elements to the runtime platform, hardware, and network topology.
@@ -1295,7 +1394,7 @@
 -   kind: ARCH
     name: Operations View
     id: OV
-    file: 30-ARCH-OV-Operations-View.md
+    file: 31-ARCH-OV-Operations-View.md
     desc: >
         The way the solution is operated, administered, and supported in production, defining the
         standing procedures by which the operating organization installs, configures, migrates,
@@ -1410,7 +1509,7 @@
 -   kind: ARCH
     name: Quality Perspectives
     id: QP
-    file: 31-ARCH-QP-Quality-Perspectives.md
+    file: 32-ARCH-QP-Quality-Perspectives.md
     desc: >
         How the Non-Functional Requirements (NR) are addressed by the architecture, through the
         tactics built into the solution across the views.
@@ -1555,7 +1654,7 @@
 -   kind: ARCH
     name: Design Decisions
     id: DD
-    file: 32-ARCH-DD-Design-Decisions.md
+    file: 33-ARCH-DD-Design-Decisions.md
     desc: >
         The major decisions related to the solution design, each recording the forces at play, the
         chosen response, and the reasoning that justifies it. The artifact is the last
@@ -1810,7 +1909,7 @@
 -   kind: ARCH
     name: Code Patterns
     id: CP
-    file: 33-ARCH-CP-Code-Patterns.md
+    file: 34-ARCH-CP-Code-Patterns.md
     desc: >
         The implementation patterns the source code of the solution follows, each prescribing how
         one recurring concern (e.g. authorization enforcement, entity persistence, error

@@ -27,7 +27,7 @@ const cellGainMin       = 25
     left corner, folds the text of every table cell towering over the
     other cells of its row behind a chevron mark of its own, and lets
     the controls of the fold tab fold and unfold all diagrams of a type
-    ("graph", "hub", "grid", "state", "layer", "slice", "tree", "matrix", plus the embedded
+    ("graph", "hub", "grid", "state", "layer", "slice", "tree", "matrix", "sequence", plus the embedded
     Mermaid/D2 ones as "code",
     the embedded images and PDF pages as "image", and the code listings
     as "listing"), all diagrams from an object tree nesting level on
@@ -54,6 +54,7 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
             slice:   tab.querySelector("div.fold-slices"),
             tree:    tab.querySelector("div.fold-trees"),
             matrix:  tab.querySelector("div.fold-matrices"),
+            sequence: tab.querySelector("div.fold-sequences"),
             code:    tab.querySelector("div.fold-codes"),
             image:   tab.querySelector("div.fold-images"),
             listing: tab.querySelector("div.fold-listings"),
@@ -108,7 +109,7 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
             control; a diagram joins the set of its type plus the sets
             of all nesting levels up to its own one (3 standing for all
             deeper ones), so the sets of the controls overlap  */
-        const folds = { graph: [], hub: [], grid: [], state: [], layer: [], slice: [], tree: [], matrix: [],
+        const folds = { graph: [], hub: [], grid: [], state: [], layer: [], slice: [], tree: [], matrix: [], sequence: [],
             code: [], image: [], listing: [],
             level1: [], level2: [], level3: [], text: [] }
         document.querySelectorAll("article div.diagram, nav.doc div.diagram").forEach((el) => {
@@ -467,8 +468,8 @@ export const omittedControls = (omit: Set<OmitAspect>) => {
     const none    = omit.has("diagram:1")
         || (omit.has("diagram:graph") && omit.has("diagram:hub") && omit.has("diagram:grid")
             && omit.has("diagram:state") && omit.has("diagram:layer") && omit.has("diagram:slice")
-            && omit.has("diagram:tree") && omit.has("diagram:matrix") && omit.has("diagram:code")
-            && omit.has("diagram:image") && omit.has("diagram:listing"))
+            && omit.has("diagram:tree") && omit.has("diagram:matrix") && omit.has("diagram:sequence")
+            && omit.has("diagram:code") && omit.has("diagram:image") && omit.has("diagram:listing"))
     const omitted = {
         graph:   none || omit.has("diagram:graph"),
         hub:     none || omit.has("diagram:hub"),
@@ -478,6 +479,7 @@ export const omittedControls = (omit: Set<OmitAspect>) => {
         slice:   none || omit.has("diagram:slice"),
         tree:    none || omit.has("diagram:tree"),
         matrix:  none || omit.has("diagram:matrix"),
+        sequence: none || omit.has("diagram:sequence"),
         code:    none || omit.has("diagram:code"),
         image:   none || omit.has("diagram:image"),
         listing: none || omit.has("diagram:listing"),

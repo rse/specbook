@@ -126,8 +126,8 @@ type SchemaDiagramNest = {
     crossing?:         "nodes" | "target" | "both"
 }
 type SchemaDiagram = {
-    type?:             "graph" | "hub" | "grid" | "state" |
-                       "layer" | "slice" | "tree" | "matrix"
+    type?:             "graph" | "hub" | "grid" | "state" | "layer" |
+                       "slice" | "tree" | "matrix" | "sequence"
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -139,6 +139,9 @@ type SchemaDiagram = {
     edgeTarget?:       string
     edgeArity?:        string
     edgeGuard?:        string
+    edgeKind?:         string
+    edgeDuration?:     string
+    edgeTime?:         string
     hierarchy?:        boolean
     deep?:             boolean
     onlyConnected?:    boolean
@@ -369,14 +372,15 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE the relations of a specification are graspable only when drawn
 
 -   `SchemaDiagram.type?: "graph" | "hub" | "grid" | "state" | "layer" |
-    "slice" | "tree" | "matrix"`:
+    "slice" | "tree" | "matrix" | "sequence"`:
     diagram shape: `graph` (free), `hub` (centered), `grid` (edge-less),
     `state` (state machine, with the `automaton` flags as pseudo-states),
     `layer` (stacked bands, with the `nest` containers as the layers),
     `slice` (side-by-side bands, with the `nest` containers as the
     slices), `tree` (tidy tree, with the `nest` containers as the
     parents), `matrix` (dependency structure matrix, with the `nest`
-    containers as the partitions),
+    containers as the partitions), `sequence` (sequence diagram, with
+    the edge objects as the messages),
     BECAUSE one object set tells different stories as different shapes
 
 -   `SchemaDiagram.nodes?: string`:
@@ -444,6 +448,22 @@ type SchemaGradiaConfig = Partial<{
     edge property whose value follows the edge name in brackets
     (e.g. `submit [complete]`), rendered italic in a `state` diagram,
     BECAUSE a transition is only understood together with its condition
+
+-   `SchemaDiagram.edgeKind?: string`:
+    edge property whose value is the message kind of a `sequence`
+    diagram: `Call` (the default), `Signal`, `Return`, `Create`, or
+    `Destroy` (case-insensitive, plus the Gradia names `sync` and `async`),
+    BECAUSE a call, a notification, and a response read differently
+
+-   `SchemaDiagram.edgeDuration?: string`:
+    edge property whose value is the duration constraint of a call of a
+    `sequence` diagram up to its return (e.g. `< 200ms`),
+    BECAUSE response time budgets belong to the interaction they bound
+
+-   `SchemaDiagram.edgeTime?: string`:
+    edge property whose value is the time constraint or observation at
+    the start of a message of a `sequence` diagram (e.g. `t = now`),
+    BECAUSE some interactions are defined by their timing
 
 -   `SchemaDiagram.hierarchy?: boolean`:
     whether containment edges derive from the nesting (default: `false`),
@@ -667,8 +687,8 @@ An object kind can additionally carry a `diagram` field, which derives
 a [Gradia](https://github.com/rse/gradia) diagram for every object of
 that kind -- or a list of such diagram configurations, which derives
 all of them, in their order. Its `type` selects the diagram shape
-(`graph`, `hub`, `grid`, `state`, `layer`, `slice`, `tree`, or
-`matrix`), `nodes` and
+(`graph`, `hub`, `grid`, `state`, `layer`, `slice`, `tree`,
+`matrix`, or `sequence`), `nodes` and
 `edges` select the participating objects through
 comma-separated `[[xxx]]` reference patterns (`nodes` defaults to the
 object itself plus all objects below it, and `local: true` restricts the
@@ -728,6 +748,20 @@ object (without any edge) names the partition only. `qualified: true`
 puts the shared object kind into the corner. A `matrix` diagram accepts
 no `nest.layout`. It usually restricts the `links` onto the very
 relation it is about, e.g. `links: [ DEPENDS-ON ]`.
+
+A `sequence` diagram draws the edge objects (`edges`) as its messages,
+top-down in document order and never merged, so a repeated message
+stays: `edgeSource` and `edgeTarget` name the sender and the receivers,
+`edgeKind` the message kind (a `Return` answering the latest unanswered
+`Call` of its sender, which activates the callee until then),
+`edgeDuration` a duration constraint of a call, and `edgeTime` a time
+constraint at a message. Its participants are the senders and receivers
+of its messages, lined up in the order the messages first involve
+them (unless `nodes` restricts them), so `local: true` usually
+restricts the messages onto the own subtree. A `sequence` diagram
+derives no reference edges and hence accepts neither `links`,
+`hierarchy`, `deep`, `labeled`, `nest`, nor `ordered`, while `edgeKind`,
+`edgeDuration`, and `edgeTime` apply to it alone.
 
 Instead of naming an existing object, `center` can also declare a
 *synthetic* center node, which represents something no specification
