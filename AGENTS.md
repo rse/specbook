@@ -152,6 +152,11 @@ API.
     -   `src/specbook-files.ts`: the recursive scan of the specification
         Markdown files below the base directory (`specFiles`) and the
         below-directory predicate (`isBelow`) of the Markdown output guard
+    -   `src/specbook-ignore.ts`: the Git exclude rules of the
+        `--gitignore` option (`excluder`): the global excludes file,
+        the `info/exclude` of the Git common directory, and the
+        `.gitignore` files, compiled into `picomatch` matchers under
+        `core.ignoreCase`, with Git's precedence and directory semantics
     -   `src/specbook-diagnostic.ts`: the `Diagnostic` type and its
         single-line/verbose renderers, shared by all layers
     -   `src/specbook-verbose.ts`: the marking (`literal`) and rendering
@@ -269,7 +274,7 @@ API.
     and `node_modules/` (see "Website" below)
 -   `plugin/`: the Claude Code plugin `specbook` (listed by the
     marketplace manifest `.claude-plugin/marketplace.json` at the
-    repository root), comprised of the manifest
+    repository root), consisting of the manifest
     `plugin/.claude-plugin/plugin.json`, the MCP server registration
     `plugin/.mcp.json` (running `specbook mcp`), and the single,
     self-contained skill `plugin/skills/specbook/SKILL.md`: `/specbook
@@ -283,7 +288,7 @@ API.
     reading or changing of a specification); it never enters the npm
     package either
 -   `dst/`: the compiled output (`main` is `dst/specbook-api.js`,
-    `bin` `specbook` is `dst/specbook-cli.js`) -- never edit it, it is regenerated
+    `bin` `specbook` is `dst/specbook-cli.js`) -- never edit it; it is regenerated
 
 ## Build System
 
@@ -553,7 +558,7 @@ the error `missing artifact "..."`, reported against its configured
 `file` below the base directory (where `init` would create it, present
 or not), else against the schema configuration file. As a normalized
 Markdown output below the base directory would be parsed as a
-specification file on the next run, `export` (and `preview`) refuse an
+specification file on the next run, `export` (and `preview`) refuses an
 `md` output whose re-basing directory is at or below the base directory
 (`guardRebase` of `src/specbook-api.ts`, `isBelow` of
 `src/specbook-files.ts`).

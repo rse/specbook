@@ -1,5 +1,6 @@
 
-<img src="https://raw.githubusercontent.com/rse/specbook/master/etc/specbook-logo-blue-light.svg" width="400" align="right" alt=""/>
+<img src="https://raw.githubusercontent.com/rse/specbook/master/etc/specbook-logo-blue-light.svg"
+     width="400" align="right" alt=""/>
 
 SpecBook
 ========
@@ -8,8 +9,13 @@ SpecBook
 
 [specbook.tools](https://specbook.tools)
 
-[![github (author stars)](https://img.shields.io/github/stars/rse?logo=github&label=author%20stars&color=%233377aa)](https://github.com/rse)
-[![github (author followers)](https://img.shields.io/github/followers/rse?label=author%20followers&logo=github&color=%234477aa)](https://github.com/rse)
+[![github (author stars)][badge-stars]](https://github.com/rse)
+[![github (author followers)][badge-followers]](https://github.com/rse)
+
+[badge-stars]:
+    https://img.shields.io/github/stars/rse?logo=github&label=author%20stars&color=%233377aa
+[badge-followers]:
+    https://img.shields.io/github/followers/rse?label=author%20followers&logo=github&color=%234477aa
 
 About
 -----
@@ -29,7 +35,7 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 
 -   **Hierarchical Object Model**:
     A specification is a tree of typed objects, each with a kind and
-    name, an optional id, optional properties, optional description, and
+    name, an optional id, optional properties, an optional description, and
     optional child objects. The allowed object hierarchy is defined per
     context by the YAML schema configuration.
 
@@ -41,7 +47,7 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
 
 -   **Wiki-Style Object Linking**:
     Objects can hierarchically reference each other through Wiki-style
-    `[[xxx]]` references, which are resolved against the locally-unique
+    `[[xxx]]` references, which are resolved against the locally unique
     ids and names of all objects. In the HTML and PDF exports they become
     navigable links onto precise anchors.
 
@@ -58,7 +64,7 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
     demands is reported as a warning only. A bundled standard schema
     configuration applies if no particular one is given.
 
--   **Object Model Diagram Visualisation**:
+-   **Object Model Diagram Visualization**:
     Object kinds can declare one or more "graph", "hub", "grid", "state",
     "layer", "slice", "tree", "matrix", "sequence", "petri", or "gantt" diagrams in
     the schema, whose nodes and edges are automatically derived from the
@@ -85,11 +91,15 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
     a table-of-contents (also as a slide-in side panel for quick navigation),
     a diagram-of-contents, a fuzzy full-text search, embedded images,
     embedded Mermaid and D2 diagrams (inline or as files, in the theme colors),
-    embedded PDF pages,
+    embedded PDF pages, syntax-highlighted code listings (fenced or as
+    files, with line numbers and marked lines),
     reference coverage tables (e.g. the share of the use cases, scenarios,
     requirements, and rules the test cases verify), a
     scroll progress meter (which also scrolls back to the top on click),
     diagram maximization (into the viewport or the fullscreen),
+    folding of the diagrams and over-long table cells, an artifact
+    filter (which shows only the objects the selected artifacts reach
+    through their references),
     description popups (which show the schema and corpus description of
     an object kind, property, or object instance on hover), and a
     light/dark theme toggle. It is intended for the day-to-day online
@@ -148,13 +158,15 @@ $ specbook lint \
   [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
-  [-F|--fetch <mode>]
+  [-F|--fetch <mode>] \
+  [-g|--gitignore]
 
 $ specbook export \
   [-v|--verbose [<level>]] \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
   [-F|--fetch <mode>] \
+  [-g|--gitignore] \
   [-S|--schema] \
   [-o|--output [<format>:]<output-file>] \
   [-w|--watch] \
@@ -166,6 +178,7 @@ $ specbook preview \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
   [-F|--fetch <mode>] \
+  [-g|--gitignore] \
   [-S|--schema] \
   [-O|--omit <aspect>[,...]] \
   [-a|--addr <ip-addr>] \
@@ -195,7 +208,8 @@ Options:
 
 -   `-v|--verbose [<level>]`:
     Enable verbose logging of processing information to `stderr` at the
-    given verbosity level: `0` (the default) logs the notices only, `1`
+    given verbosity level: `0` (the default) logs the warnings and the
+    environment problems only, `1`
     (the bare flag) also the regular processing information, `2` also
     the reference coverage ratios, and `3` also the unreferenced objects
     of a reference coverage.
@@ -252,6 +266,14 @@ Options:
     whenever the download cache lacks a reference or it is no longer
     fresh), or `always` (ignoring the download cache).
 
+-   `-g|--gitignore` (`lint`, `export`, and `preview` only):
+    Set aside every specification file the Git exclude rules (the global
+    excludes file, the repository-local `info/exclude`, and the
+    `.gitignore` files, with Git's own precedence) exclude from its
+    project, as it is no part of the project: silently if all of its
+    artifacts are optional, else as the error `artifact file excluded by
+    Git`. A base directory outside any Git working tree excludes nothing.
+
 -   `-S|--schema` (`export` and `preview` only):
     Export (or preview) the *effective schema configuration itself* --
     the one `-c|--config` selects, merged out of its local, bundled, or
@@ -268,7 +290,8 @@ Options:
     artifact kind (with a graph of its artifacts and object kinds),
     every artifact and object kind
     (with its file, name pattern, optionality, `referenced`/`coverage`
-    patterns, `automaton`, `diagram`, and `format` configuration, its
+    patterns, `automaton`, `badge`, `multiple`, `diagram`, and `format`
+    configuration, its
     description and literature references, and a hub diagram of its
     references, every artifact also with a Mermaid UML class diagram of
     it and its object kinds, omittable via `-O diagram:code` and left out
@@ -304,9 +327,11 @@ Options:
     PDF outputs at generation time, instead of just leaving them foldable
     in the browser. The aspects match the folding controls of the HTML
     export: `diagram:graph`, `diagram:hub`, `diagram:grid`, `diagram:state`,
-    `diagram:layer`, `diagram:slice`, `diagram:tree`, `diagram:matrix`, `diagram:sequence`, `diagram:petri`,
-    `diagram:gantt`, `diagram:code` (Mermaid/D2), and `diagram:image` (images and PDF pages) omit all
-    diagrams of a type, `diagram:1` (alias: `diagram`), `diagram:2`, and
+    `diagram:layer`, `diagram:slice`, `diagram:tree`, `diagram:matrix`,
+    `diagram:sequence`, `diagram:petri`, `diagram:gantt`, `diagram:code`
+    (Mermaid/D2), `diagram:image` (images and PDF pages), and
+    `diagram:listing` (code listings) omit all diagrams of a type,
+    `diagram:1` (alias: `diagram`), `diagram:2`, and
     `diagram:3` omit all diagrams from an object tree nesting level on
     (level 1 hence all, including the "Diagram of Contents" page), and
     `text:long` cuts every table cell whose estimated number of text
@@ -347,7 +372,8 @@ Options:
     raw file content), so the configuration costs fewer tokens: `0`
     emits it verbatim, `1` re-emits it with 2-space indentation, unwrapped
     lines, and without comments, `2` additionally leaves out its `refs`,
-    `diagram`, and `format` fields, and `3` additionally leaves out its
+    `badge`, `multiple`, `diagram`, and `format` fields, and `3`
+    additionally leaves out its
     `desc` fields of objects and properties. The MCP tool `specbook_describe` defaults to
     `2` instead, as its consumer is an LLM.
 
@@ -410,7 +436,7 @@ an executable path and any other one as a Playwright channel name
 `chrome-dev`, `chrome-canary`, `msedge`, `msedge-beta`, `msedge-dev`,
 or `msedge-canary`). The variable itself has no default value: when it
 is unset, the downloaded Playwright Chromium is used (the equivalent of
-`chromium`) and only if that one is absent a system-installed *Google
+`chromium`) and, only if that one is absent, a system-installed *Google
 Chrome* (the equivalent of `chrome`). An explicitly configured browser
 failing to launch fails the export instead of falling back onto another
 browser.
@@ -485,10 +511,13 @@ $ claude plugin install specbook@specbook
 
 ```text
 /specbook        [-c|--config <yaml-file>] [-b|--basedir <basedir>] [<query>]
-/specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-s|--sample]
-/specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-g|--gitignore]
-/specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-g|--gitignore]
-                 [-O|--omit <aspect>[,...]] [-o|--output [<format>:]<output-file>] [...]
+/specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>]
+                 [-s|--sample]
+/specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>]
+                 [-g|--gitignore]
+/specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>]
+                 [-g|--gitignore] [-O|--omit <aspect>[,...]]
+                 [-o|--output [<format>:]<output-file>] [...]
 /specbook edit   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--grill]
                  [-r|--grill-rounds <n>] [-v|--verify] [-l|--loop] [<query>]
 ```
@@ -516,7 +545,7 @@ query (`--loop`). All commands leave an absent `--config` and
 Example: Simple
 ---------------
 
-Check out the *simple* specification of simple
+Check out the *simple* specification of a simple
 example data model:
 
 ### Sources
@@ -605,7 +634,7 @@ Support
 **SpecBook** is developed in the experience context of industrial Software
 Engineering at the [*msg group*](https://www.msg.group) and in the
 educational context of the *Software Engineering Academy (SEA)*. **SpecBook**
-development is supported by *msg Research* and *Software Engineering
+development is supported by *msg Research* and the *Software Engineering
 Academy (SEA)*.
 
 License
