@@ -43,6 +43,13 @@ export const badgeIcons = [ "person", "team", "bot", "device", "mobile", "browse
     "communication", "clock", "security", "cloud", "network" ] as const
 export type BadgeIcon = typeof badgeIcons[number]
 
+/*  the node attribute keys Gradia consumes instead of displaying them
+    (generally, or for one of its diagram types), which hence cannot
+    name a displayed diagram property  */
+export const reservedAttributes = [ "url", "type", "primary", "group", "cluster", "parent",
+    "container", "order", "badge", "multiple", "mark", "layer", "slice", "state", "region",
+    "petri", "tokens", "capacity", "duration", "start" ] as const
+
 /*  the badge icon of the objects of an object kind in every diagram:
     a fixed icon, or the icon the value of a property maps onto
     (else the default icon, else none)  */

@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   BUGFIX [code]: Reserved Diagram Property Names
+    A diagram property named like a node attribute Gradia consumes (e.g. `mark` or `layer`) is
+    rejected by the schema configuration check, as it silently altered the node before.
+
 -   IMPROVEMENT [code]: Multiple Diagrams and Matrix Diagrams
     An object kind can configure a list of diagrams, and the new type `matrix` draws a dependency
     structure matrix, used for components, data model entities, requirements, and dialog patterns.

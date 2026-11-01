@@ -9,7 +9,8 @@ import { parseDocument, isNode, LineCounter, type Document } from "yaml"
 import * as v                                                from "valibot"
 import { mergeWith, isPlainObject }                          from "es-toolkit"
 
-import { Schema, type SchemaObject, type SchemaProperty }               from "./specbook-format-schema.js"
+import { Schema, diagramsOf, reservedAttributes,
+    type SchemaObject, type SchemaProperty }                            from "./specbook-format-schema.js"
 import { compileValueExpr, anchored, admitsReferences, type ValueExpr } from "./specbook-parse-value.js"
 import { type Diagnostic }                                              from "./specbook-diagnostic.js"
 
@@ -299,6 +300,20 @@ const checkAutomaton = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) 
                 `"automaton" ${field} property "${automaton[field]}" is not a property of "${automaton.nodes}"`)
 }
 
+/*  check the diagrams of an object (if any): a displayed property must
+    not be named like a node attribute Gradia consumes instead of
+    displaying it (e.g. "mark" or "layer"), as it would silently alter
+    the node instead of annotating it  */
+const checkDiagrams = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) => {
+    diagramsOf(object).forEach((diagram, i) => {
+        const base = Array.isArray(object.diagram) ? [ ...at, "diagram", i ] : [ ...at, "diagram" ]
+        for (const [ j, key ] of (diagram.properties ?? []).entries())
+            if ((reservedAttributes as readonly string[]).includes(key))
+                diagnose([ ...base, "properties", j ],
+                    `diagram property "${key}" collides with the reserved Gradia node attribute "${key}"`)
+    })
+}
+
 /*  check the property-driven badge of an object (if any): it names a
     property of the object kind, and for an "enum" valued one each mapped
     value is a member of it (else the mapping would never apply)  */
@@ -334,7 +349,8 @@ const checkBadge = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) => {
     valid, "referenced" and "coverage" entries have to be reference
     expressions, an "automaton" has to name existing child kinds and
     properties, a "badge" has to name an existing property and its
-    members, and the names of non-artifact objects have to be valid
+    members, a diagram must not display a property named like a reserved
+    Gradia node attribute, and the names of non-artifact objects have to be valid
     patterns (as they are compiled into regular expressions)  */
 const checkConstraints = (
     config:    Schema,
@@ -371,6 +387,7 @@ const checkConstraints = (
             checkProperties(object.props ?? [], at, diagnose)
             checkAutomaton(object, at, diagnose)
             checkBadge(object, at, diagnose)
+            checkDiagrams(object, at, diagnose)
             for (const field of [ "referenced", "coverage" ] as const)
                 for (const [ j, entry ] of (object[field] ?? []).entries()) {
                     /*  a reference coverage entry has to be a single

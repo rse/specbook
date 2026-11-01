@@ -472,7 +472,11 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE a bundle of references into a container reads as one edge onto it
 
 -   `SchemaDiagram.properties?: string[]`:
-    property names attached to the nodes as key/value annotations,
+    property names attached to the nodes as key/value annotations, none
+    of which may be a node attribute Gradia reserves (`url`, `type`,
+    `primary`, `group`, `cluster`, `parent`, `container`, `order`,
+    `badge`, `multiple`, `mark`, `layer`, `slice`, `state`, `region`,
+    `petri`, `tokens`, `capacity`, `duration`, or `start`),
     BECAUSE the node name alone rarely makes the nodes comparable
 
 -   `SchemaDiagram.config?: SchemaGradiaConfig`:
