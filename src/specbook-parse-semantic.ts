@@ -293,12 +293,21 @@ const validateObject = (ctx: ParseContext, object: SpecObject, schema: SchemaObj
 
 /*  resolve a level 1 object onto its configured artifact, deliberately
     leniently by kind and id first and by case-insensitive name second,
-    so deviations of the heading can still be precisely reported  */
+    so deviations of the heading can still be precisely reported, and
+    by kind alone third onto a recurring artifact (one configured with
+    neither name nor id), which every level 1 object of its kind matches  */
 export const resolveArtifact = (config: Schema, object: SpecObject): SchemaObject | undefined =>
     config.find((s) =>
         (s.kind === object.kind && s.id === object.id) || (s.id !== undefined && `${s.kind}-${s.id}` === object.id)) ??
     config.find((s) => s.name !== undefined
-        && s.name.toUpperCase() === plainText(object.name).toUpperCase())
+        && s.name.toUpperCase() === plainText(object.name).toUpperCase()) ??
+    config.find((s) => isRecurring(s) && s.kind === object.kind)
+
+/*  whether a configured artifact is a recurring one: configured with
+    neither name nor id, so any number of level 1 objects of its kind
+    match it (and none at all, as it is optional by definition)  */
+export const isRecurring = (schema: SchemaObject): boolean =>
+    schema.name === undefined && schema.id === undefined
 
 /*  map the specification objects onto their schema configuration
     nodes (the artifact resolution is shared with the validation)  */

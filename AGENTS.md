@@ -430,6 +430,13 @@ maintain: the website merely renders the npm packages discovered through
 the keyword at build time in its "Sharing" section
 (`Section-Sharing.astro`, the table left out while none exists).
 
+A level 1 object kind configured with neither `name` nor `id` is a
+*recurring* artifact (`isRecurring` of `src/specbook-parse-semantic.ts`):
+`resolveArtifact` matches every level 1 object of its kind onto it as a
+last resort, it is optional by definition (`lint` neither demands it
+nor its file), the bare `init` emits no heading for it, and `init
+--sample` names its sample object like a nested one.
+
 Exactly the artifact files referenced by its `file` fields are loaded and parsed,
 resolved against the base directory, in which generated specification
 Markdown files are placed, too. All other Markdown files below the base

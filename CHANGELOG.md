@@ -21,6 +21,10 @@ ChangeLog
     The class boxes of a Mermaid class diagram carry their stereotype and name in a light text
     on a dark accent header (deeper on the dark theme), instead of the grey header of Mermaid.
 
+-   IMPROVEMENT [code]: Recurring Artifacts
+    A level 1 object kind configured with neither `name` nor `id` is matched by any number of
+    level 1 objects of its kind, all in its `file`, so a catalog of equally shaped artifacts works.
+
 -   IMPROVEMENT [code]: List-Valued Diagram Edge Targets
     An `edgeTarget` property carrying a `list(...)` of references yields one edge per target, and
     the new diagram flag `local` restricts the `nodes`/`edges` patterns to the subtree of the object.

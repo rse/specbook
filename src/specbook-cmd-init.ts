@@ -10,7 +10,7 @@ import * as path from "node:path"
 import { literal, type Verbose }           from "./specbook-verbose.js"
 import { type Schema, type SchemaObject }  from "./specbook-format-schema.js"
 import { renderDiagnostic }                from "./specbook-diagnostic.js"
-import { parseSpecification, specStatistics, type SourceFile }
+import { parseSpecification, specStatistics, isRecurring, type SourceFile }
     from "./specbook-parse.js"
 import { formatTimestamp, renderObjectMd } from "./specbook-export-md.js"
 import { titleProperties }                 from "./specbook-export-common.js"
@@ -76,7 +76,9 @@ export const initSpecification = (options: InitOptions): string[] => {
         sampleArtifacts(Array.from(groups.values()).flat()) : undefined
 
     /*  create each absent artifact file with its frontmatter and
-        the level 1 headings of its artifacts (or their sample objects)  */
+        the level 1 headings of its artifacts (or their sample objects),
+        where a recurring artifact receives no heading, as its objects
+        are named by the authors  */
     const sources = new Array<SourceFile>()
     for (const [ file, artifacts ] of groups) {
         const target   = path.join(options.basedir, file)
@@ -84,6 +86,8 @@ export const initSpecification = (options: InitOptions): string[] => {
             const sample = samples?.get(artifact)
             if (sample !== undefined)
                 return `${wrapSample(renderObjectMd(sample, 1))}\n\n`
+            if (isRecurring(artifact))
+                return ""
             const name  = artifact.name ?? ""
             const paren = artifact.id !== undefined ? ` (${artifact.id})` : ""
             return `#   ${artifact.kind}: ${name}${paren}\n\n` + titleList(artifact)

@@ -116,10 +116,12 @@ const countOf = (parent: SchemaObject, child: SchemaObject): number =>
         || (child.props ?? []).some((prop) => prop.symmetric === true || prop.acyclic === true)) ? 2 : 1
 
 /*  instantiate the sample objects of a schema node (recursively) with
-    their names and ids only, as the property values need the whole corpus  */
+    their names and ids only, as the property values need the whole
+    corpus, where a recurring artifact (configured without a name) is
+    named like a nested object  */
 const instantiate = (schema: SchemaObject, ordinal: number, count: number,
     samples: Sample[], parent?: Sample): SpecObject => {
-    const name   = parent === undefined ? (schema.name ?? "") : sampleName(schema, ordinal)
+    const name   = parent === undefined && schema.name !== undefined ? schema.name : sampleName(schema, ordinal)
     const object: SpecObject = { kind: schema.kind, id: schema.id ?? slugify(name), name, properties: [], children: [] }
     if (schema.id !== undefined)
         object.paren = schema.id

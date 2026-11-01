@@ -11,7 +11,7 @@ import { loadConfig, configStatistics }                         from "./specbook
 import { reportOverlaps }                                       from "./specbook-remote.js"
 import { literal, type Verbose }                                from "./specbook-verbose.js"
 import { type Diagnostic }                                      from "./specbook-diagnostic.js"
-import { parseSpecification, specStatistics, resolveArtifact, collectSchemas, type SourceFile }
+import { parseSpecification, specStatistics, resolveArtifact, isRecurring, collectSchemas, type SourceFile }
     from "./specbook-parse.js"
 import { type Spec, type SpecArtifact, type SpecObject }        from "./specbook-format-spec.js"
 import { type Schema, type SchemaObject }                       from "./specbook-format-schema.js"
@@ -44,14 +44,15 @@ export interface LintResult {
 
 /*  collect the distinct artifact files the schema configuration
     references, in their declaration order, each mapped onto whether
-    all of its artifacts are optional and hence the file may be absent  */
+    all of its artifacts are optional (a recurring one by definition)
+    and hence the file may be absent  */
 const schemaFiles = (config: Schema): Map<string, boolean> => {
     const files = new Map<string, boolean>()
     for (const artifact of config) {
         if (artifact.file === undefined)
             continue
         files.set(artifact.file,
-            (files.get(artifact.file) ?? true) && artifact.optional === true)
+            (files.get(artifact.file) ?? true) && (artifact.optional === true || isRecurring(artifact)))
     }
     return files
 }
@@ -160,7 +161,8 @@ export const lint = (options: LintOptions): LintResult => {
 
     /*  report the non-optional artifacts absent from the specification,
         against their loaded artifact file (an absent or unreadable file
-        is already reported above) or else against the configuration  */
+        is already reported above) or else against the configuration,
+        where a recurring artifact is optional by definition  */
     if (config !== undefined) {
         const found = new Set<SchemaObject>()
         for (const artifact of result.specification.artifacts)
@@ -170,7 +172,7 @@ export const lint = (options: LintOptions): LintResult => {
                     found.add(schema)
             }
         for (const schema of config) {
-            if (schema.optional === true || found.has(schema)
+            if (schema.optional === true || isRecurring(schema) || found.has(schema)
                 || (schema.file !== undefined && !present.has(schema.file)))
                 continue
             const file  = schema.file !== undefined ? path.join(options.basedir, schema.file) : options.config[0]

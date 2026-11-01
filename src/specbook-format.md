@@ -207,8 +207,12 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE it discriminates objects and anchors `[[xxx]]` references
 
 -   `SchemaObject.name?: string`:
-    exact artifact name (level 1) or name regex (deeper levels),
-    BECAUSE artifacts are fixed documents, deeper names need a rule only
+    exact artifact name (level 1) or name regex (deeper levels), where a
+    level 1 object kind with neither `name` nor `id` is a *recurring*
+    artifact, which any number (also none) of level 1 objects of its
+    kind match, all in its `file`,
+    BECAUSE artifacts are fixed documents, deeper names need a rule only,
+    while a catalog of equally shaped artifacts knows no fixed names
 
 -   `SchemaObject.id?: string`:
     short locally-unique identifier the object explicitly carries in its heading,
