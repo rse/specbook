@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: Coverage Lapses Marked in Diagrams
+    The new diagram option `markUncovered` draws the objects lacking their `referenced` coverage
+    with a violation border, enabled on the overview diagrams of the standard schema.
+
 -   BUGFIX [code]: Reserved Diagram Property Names
     A diagram property named like a node attribute Gradia consumes (e.g. `mark` or `layer`) is
     rejected by the schema configuration check, as it silently altered the node before.

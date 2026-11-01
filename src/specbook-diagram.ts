@@ -19,6 +19,8 @@ import type { ParseContext }
     from "./specbook-parse-common.js"
 import { collectSchemas, collectParenProps }
     from "./specbook-parse-semantic.js"
+import { referencedCoverage }
+    from "./specbook-coverage.js"
 import type { OmitAspect }
     from "./specbook-export-common.js"
 import { literal, type Verbose }
@@ -130,8 +132,9 @@ type ParenProps = Map<SpecObject, SpecProperty>
 
 /*  the derivation-wide context of the diagrams of a specification:
     the link index, the anchor paths, the index positions, the parent
-    objects, and the object kinds of all objects, plus the synthetic
-    properties  */
+    objects, and the object kinds of all objects, the synthetic
+    properties, and the objects lacking the reference coverage their
+    "referenced" kind demands  */
 interface DiagramContext {
     index:      LinkIndex
     anchors:    Map<SpecObject, string>
@@ -139,6 +142,7 @@ interface DiagramContext {
     parents:    Map<SpecObject, SpecObject | undefined>
     schemas:    Map<SpecObject, SchemaObject>
     parenProps: ParenProps
+    uncovered:  Set<SpecObject>
 }
 
 /*  the properties of an object, the synthetic one included  */
@@ -176,8 +180,9 @@ interface DiagramNesting {
     embedded spec is self-contained: one node statement per object (the
     unique anchor path as the node id, the object name as the displayed
     label, the container node as the parent or layer, the badge icon of its
-    object kind, the pseudo-state kind of a synthetic pseudo-state)
-    and one edge statement per derived edge  */
+    object kind, the "incomplete" mark of an uncovered object, the
+    pseudo-state kind of a synthetic pseudo-state) and one edge
+    statement per derived edge  */
 const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
     centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[], nesting: DiagramNesting,
     pseudo: Map<SpecObject, PseudoState>): string => {
@@ -242,6 +247,8 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
         const badge = badgeOf(ctx, node)
         if (badge !== undefined)
             attrs.push(`badge: ${badge}`)
+        if (diagram.markUncovered === true && ctx.uncovered.has(node))
+            attrs.push("mark: incomplete")
         const state = pseudo.get(node)
         if (state !== undefined)
             attrs.push(`state: ${state}`)
@@ -907,10 +914,17 @@ export const specDiagrams = (specification: Spec,
     })
     const schemas = collectSchemas(specification, config)
 
-    /*  re-derive the synthetic properties of the consumed parenthesized
+    /*  determine the uncovered objects (only where a diagram marks them
+        at all, as resolving all references is not for free) and
+        re-derive the synthetic properties of the consumed parenthesized
         name tokens, as the derivation sees the AST alone, while the
         parsing context holding them is long gone by export time  */
-    const ctx     = { index, anchors, positions, parents, schemas, parenProps: collectParenProps(schemas) }
+    const marking   = Array.from(schemas.values()).some((schema) =>
+        diagramsOf(schema).some((diagram) => diagram.markUncovered === true))
+    const uncovered = new Set(marking ?
+        referencedCoverage(index, schemas).flatMap((result) => result.uncovered) : [])
+    const ctx       = { index, anchors, positions, parents, schemas,
+        parenProps: collectParenProps(schemas), uncovered }
     const results = new Map<SpecObject, DiagramResult[]>()
     for (const [ object, schema ] of schemas) {
         const diagrams = diagramsOf(schema)

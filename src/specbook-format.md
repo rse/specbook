@@ -113,6 +113,13 @@ type SchemaDiagramCenterEdges = {
     labeled?:          string
     via?:              string
 }
+type SchemaDiagramNest = {
+    properties?:       string[]
+    parent?:           boolean
+    kind?:             boolean
+    layout?:           "graph" | "hub" | "grid"
+    crossing?:         "nodes" | "target" | "both"
+}
 type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid" | "state" | "layer" | "matrix"
     nodes?:            string
@@ -131,6 +138,9 @@ type SchemaDiagram = {
     onlyConnected?:    boolean
     collapse?:         boolean
     qualified?:        boolean
+    ordered?:          boolean
+    markUncovered?:    boolean
+    nest?:             SchemaDiagramNest
     properties?:       string[]
     config?:           Partial<GradiaConfig>
 }
@@ -443,6 +453,13 @@ type SchemaGradiaConfig = Partial<{
     of a container lined up left-to-right (default: `false`),
     BECAUSE in a coarse-to-fine specification the references then all
     point backward, i.e. upward
+
+-   `SchemaDiagram.markUncovered?: boolean`:
+    whether the nodes lacking the reference coverage their `referenced`
+    kind demands are marked as incomplete, i.e. drawn with a border in
+    the violation color (default: `false`),
+    BECAUSE a coverage lapse spotted in the overview is fixed sooner
+    than one listed among the lint warnings only
 
 -   `SchemaDiagram.nest?: SchemaDiagramNest`:
     nesting of the nodes into container nodes,
