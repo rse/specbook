@@ -326,9 +326,11 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
 /*  derive the reference edges of a diagram from the "[[...]]" references
     of the node objects (per the "links" selection: all property values,
     also the texts, or the values of the listed properties only, named
-    with the property key when "labeled", and for a "deep" diagram also
-    of their descendants, with the reference count as the arity), with
-    every target lifted to its nearest node  */
+    with the property key when "labeled", for a "deep" diagram also of
+    their descendants, with the reference count as the arity, and also
+    of their descendants of the "descend" kinds, uncounted and named with
+    the descendant kind when "labeled"), with every target lifted to its
+    nearest node  */
 const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes: SpecObject[],
     nodeSet: Set<SpecObject>): DiagramEdge[] => {
     const { index, anchors, parents, parenProps } = ctx
@@ -344,15 +346,23 @@ const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes
     }
     for (const node of nodes) {
         /*  the reference-carrying objects of the node: the node itself
-            and, for a "deep" diagram, its descendants (halting at
-            the descendants which are nodes on their own)  */
-        const objects = new Array<SpecObject>()
+            and, for a "deep" diagram, its descendants, else its
+            descendants of the "descend" kinds (each halting at the
+            descendants which are nodes on their own)  */
+        const objects   = new Array<SpecObject>()
+        const descended = new Set<SpecObject>()
         const walk = (object: SpecObject) => {
             objects.push(object)
-            if (diagram.deep === true)
-                for (const child of object.children)
-                    if (!nodeSet.has(child))
-                        walk(child)
+            for (const child of object.children) {
+                if (nodeSet.has(child))
+                    continue
+                if (diagram.deep === true)
+                    walk(child)
+                else if ((diagram.descend ?? []).includes(child.kind)) {
+                    descended.add(child)
+                    walk(child)
+                }
+            }
         }
         walk(node)
         const counts = new Map<string, { target: SpecObject, name?: string, count: number }>()
@@ -361,7 +371,8 @@ const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes
                 .filter((property) => !Array.isArray(diagram.links) || diagram.links.includes(property.key))
                 .map((property) => ({
                     text: property.value,
-                    name: diagram.labeled === true ? property.key.toLowerCase() : undefined
+                    name: diagram.labeled !== true ? undefined :
+                        descended.has(object) ? object.kind.toLowerCase() : property.key.toLowerCase()
                 }))
             if (diagram.links === "all" && object.description !== undefined) {
                 texts.push({ text: object.description.description })
@@ -514,7 +525,7 @@ const deriveEdges = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramT
         /*  a "sequence" diagram draws the edge objects as its messages
             alone, as references and the object nesting carry no order,
             between any objects unless "nodes" restricts its participants  */
-        for (const field of [ "links", "hierarchy", "deep", "labeled" ] as const)
+        for (const field of [ "links", "hierarchy", "deep", "descend", "labeled" ] as const)
             if (diagram[field] !== undefined && diagram[field] !== false)
                 errors.push({ reason: `"sequence" diagram cannot carry a "${field}" configuration` })
         edges.push(...deriveObjectEdges(ctx, diagram,
@@ -534,7 +545,7 @@ const deriveEdges = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramT
             }
     }
     else {
-        for (const field of [ "edges", "hierarchy", "deep", "labeled", "onlyConnected" ] as const)
+        for (const field of [ "edges", "hierarchy", "deep", "descend", "labeled", "onlyConnected" ] as const)
             if (diagram[field] !== undefined && diagram[field] !== false)
                 errors.push({ reason: "\"grid\" diagram cannot carry " +
                     `${(/^[aeiou]/).test(field) ? "an" : "a"} "${field}" configuration` })

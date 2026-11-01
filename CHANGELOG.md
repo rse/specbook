@@ -9,6 +9,10 @@ ChangeLog
     The new artifact `ARCH: Runtime View` (`26-ARCH-RV`) precedes the moved Concurrency View, so
     rename the files: `28-CO` → `27-CO`, `26-TS` → `28-TS`, `27-DA` → `29-DA`, and `29`–`34` by +1.
 
+-   IMPROVEMENT [code]: Interactions in the Component Hubs
+    The new diagram option `descend` attributes the references of descendants of listed kinds to
+    their node, so a component hub shows the interactions its runtime messages involve it in.
+
 -   IMPROVEMENT [code]: Sequence Diagram Message Validation
     The messages of a `sequence` diagram are validated like Gradia does (participant lifecycle,
     durations on answered calls only), reporting a violation on its edge object at lint time.

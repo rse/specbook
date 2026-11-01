@@ -144,6 +144,7 @@ type SchemaDiagram = {
     edgeTime?:         string
     hierarchy?:        boolean
     deep?:             boolean
+    descend?:          string[]
     onlyConnected?:    boolean
     collapse?:         boolean
     qualified?:        boolean
@@ -474,6 +475,15 @@ type SchemaGradiaConfig = Partial<{
     counted as the arity (default: `false`),
     BECAUSE the relations between coarse objects live in their fine parts
 
+-   `SchemaDiagram.descend?: string[]`:
+    child object kinds whose references (and those of their descendants
+    of the listed kinds) count as the uncounted own references of their
+    node, labeled with the lower-cased kind under `labeled` (e.g.
+    `[ MESSAGE ]`, so an interaction references the components its
+    messages involve),
+    BECAUSE a relation can live in a part of an object without the
+    whole object's references being worth counting
+
 -   `SchemaDiagram.onlyConnected?: boolean`:
     whether a diagram (except a `hub` or `grid`) drops its edge-less
     nodes (default: `false`),
@@ -660,10 +670,13 @@ of a use case yields an edge onto the use case. With `deep: true` the
 references of all descendants of a node object count as its own and the
 number of references behind an edge becomes its arity, so a diagram of
 coarse objects (like the artifacts of a whole specification) shows the
-relations living in their fine-grained parts. With `labeled: true` an
-edge derived from a property value carries the lower-cased property key
-as its label, telling the edges of different properties apart, while
-the edges derived from descriptions stay unlabeled.
+relations living in their fine-grained parts. With `descend` the
+references of the descendants of the listed kinds alone count as the
+node's own, uncounted, so one edge per target remains. With `labeled:
+true` an edge derived from a property value carries the lower-cased
+property key as its label (or, for a `descend` descendant, its
+lower-cased kind), telling the edges of different properties apart,
+while the edges derived from descriptions stay unlabeled.
 
 An object acting as an edge (`edges`) connects its parent object to the
 object its target property references. Where an edge object is a sibling

@@ -140,6 +140,7 @@ export type SchemaDiagram = {
     edgeTime?:         string
     hierarchy?:        boolean
     deep?:             boolean
+    descend?:          string[]
     onlyConnected?:    boolean
     collapse?:         boolean
     qualified?:        boolean
@@ -269,6 +270,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     edgeTime:          v.optional(v.string()),
     hierarchy:         v.optional(v.boolean()),
     deep:              v.optional(v.boolean()),
+    descend:           v.optional(v.array(v.string())),
     onlyConnected:     v.optional(v.boolean()),
     collapse:          v.optional(v.boolean()),
     qualified:         v.optional(v.boolean()),

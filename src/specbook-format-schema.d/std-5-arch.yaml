@@ -405,9 +405,11 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[FV.COMPONENT:*]], [[FR.REQUIREMENT:*]], [[PATTERN:*]], [[INTERFACE:*]],
-                    [[DM.ENTITY:*]], [[UNIT:*]], [[NODE:*]], [[CONCERN:*]], [[TACTIC:*]],
-                    [[DECISION:*]], [[CODE-PATTERN:*]]"
+                nodes: "[[FV.COMPONENT:*]], [[INTERACTION:*]], [[FR.REQUIREMENT:*]], [[PATTERN:*]],
+                    [[INTERFACE:*]], [[DM.ENTITY:*]], [[UNIT:*]], [[NODE:*]], [[CONCERN:*]],
+                    [[TACTIC:*]], [[DECISION:*]], [[CODE-PATTERN:*]]"
+                descend:
+                    -   MESSAGE
                 labeled: true
                 qualified: true
                 properties:

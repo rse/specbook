@@ -106,7 +106,8 @@ API.
         the configured `graph`/`hub`/`grid`/`state`/`layer`/`slice`/`tree`/`matrix`/`sequence`
         diagrams (one or a list of them per object kind) from the object
         model and its references (including the `links` restriction onto
-        listed properties, the `nest` container
+        listed properties, the `descend` attribution of the references of
+        descendants of listed kinds to their node, the `nest` container
         nesting of the nodes, the `local` restriction of the node and
         edge patterns onto the own subtree, and the `list(...)`-valued
         `edgeTarget` yielding one edge per target, the initial/final
