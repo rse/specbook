@@ -13,7 +13,7 @@ import chalk                       from "chalk"
 import { SpecBook, renderDiagnostic, renderDiagnosticVerbose, renderVerbose, literal,
     parseOutputSpec, previewAddr, previewPort, describeFormats, describeParts,
     parseDescribeFormat, parseDescribePart, parseCompressLevel, parseVerbosity, verbosityOf,
-    projectFile, omitAspects, parseFetchMode, version,
+    projectFile, omitAspects, parseFetchMode, version, renderNodes, queryFormats, parseQueryOutput,
     type VerboseSink, type VerboseLevel, type FetchMode } from "./specbook-api.js"
 import { serveMcp }                from "./specbook-mcp.js"
 
@@ -295,6 +295,39 @@ withSchemaOption(withOmitOption(withGitignoreOption(withCommonOptions(program.co
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         await specbook.preview({ config: configOf(opts), basedir: opts.basedir, fetch: fetchOf(opts),
             addr: opts.addr, port, omit: omitOf(opts), gitignore: opts.gitignore, schema: opts.schema })
+    })
+
+/*  the query command loads the specification and writes the
+    nodes an ASTq selector matches as JSON, JSON5, YAML, or TOON  */
+withSchemaOption(withGitignoreOption(withCommonOptions(program.command("query"))))
+    .description("query the specification Markdown files below the base directory " +
+        "(or the schema configuration itself) with an ASTq selector, writing the matched nodes " +
+        "as JSON, JSON5, YAML, or TOON")
+    .argument("<selector>", "the ASTq selector of the nodes to write")
+    .option("-P, --param <name>=<value>", "value of a \"{name}\" parameter of the selector (repeatable)",
+        (value: string, previous: string[]) => previous.concat(value), new Array<string>())
+    .option("-f, --format <format>", `output format (${queryFormats.join(", ")}; ` +
+        "default: inferred from the output file like for \"export\", else json)", envDefault("format"))
+    .option("-o, --output [<format>:]<output-file>", "output file (\"-\" for stdout)",
+        envDefault("output", "-"))
+    .action(async (selector: string, opts: ProcessOptions & { param: string[], schema: boolean,
+        format?: string, output: string }) => {
+        const verbose  = verboseOf(opts)
+        const output   = parseQueryOutput(opts.output, opts.format)
+        const fallback = envDefault("param")
+        const given    = opts.param.length > 0 ? opts.param : (fallback !== undefined ? [ fallback ] : [])
+        const params: Record<string, string> = {}
+        for (const param of given) {
+            const m = (/^([^=]+)=(.*)$/s).exec(param)
+            if (m === null)
+                throw new Error(`invalid query parameter "${param}" (expected "<name>=<value>")`)
+            params[m[1]] = m[2]
+        }
+        const specbook = new SpecBook({ verbose })
+        const document = await specbook.load({ config: configOf(opts), basedir: opts.basedir,
+            fetch: fetchOf(opts), gitignore: opts.gitignore, schema: opts.schema })
+        await writeOutput(output.output, renderNodes(document.query(selector, params), output.format),
+            "query", verbose)
     })
 
 /*  the describe command also describes the generic SpecBook models and

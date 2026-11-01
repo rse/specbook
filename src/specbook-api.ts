@@ -20,6 +20,9 @@ import { exportSpecification, watchSpecification, parseOutputSpec, formats,
     requireBrowser, parseOmit, omitAspects, type ExportFormat, type ExportOptions }
     from "./specbook-cmd-export.js"
 import { lintSchema }                                    from "./specbook-cmd-export-schema.js"
+import { SpecBookDocument, renderNodes, queryFormats, parseQueryOutput,
+    type SpecNode, type SpecQueryFunc, type SpecQueryAdapter, type QueryFormat }
+    from "./specbook-cmd-query.js"
 import { servePreview, previewAddr, previewPort }        from "./specbook-cmd-preview.js"
 import { describeFormat, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
     compressLevels, parseCompressLevel, type DescribeFormat, type DescribePart, type CompressLevel }
@@ -39,6 +42,8 @@ export { compressLevels, parseCompressLevel }
 export { type DescribeFormat, type DescribePart, type CompressLevel }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
 export { type LintResult }
+export { SpecBookDocument, renderNodes, queryFormats, parseQueryOutput,
+    type SpecNode, type SpecQueryFunc, type SpecQueryAdapter, type QueryFormat }
 export { version, standardConfig, metaConfig, pmConfig, cacheDir, fetchModes, parseFetchMode,
     type FetchMode, type SearchHit }
 export type { Spec, SpecArtifact, SpecObject, SpecDescription, SpecProperty } from "./specbook-format-spec.js"
@@ -226,6 +231,29 @@ export class SpecBook {
         const project = this.project(options, verbose)
         return lint({ config: await this.configFiles(project.config, this.remoteOptions(options, verbose)),
             basedir: project.basedir ?? ".", gitignore: options.gitignore === true, verbose })
+    }
+
+    /*  load the specification Markdown files below the base directory (or,
+        under "schema", the effective schema configuration itself, described
+        as a specification of the bundled meta schema configuration) as a
+        document queryable through ASTq selectors, strictly like "export":
+        any error diagnostic prevents the loading, as a partial or invalid
+        specification must never be consumed, while the warnings are just
+        surfaced as unconditional verbose messages  */
+    async load (options: ProjectOptions & { gitignore?: boolean, schema?: boolean }): Promise<SpecBookDocument> {
+        const verbose = this.verboseOf("load")
+        if (options.schema === true && options.basedir !== undefined)
+            throw new Error("the base directory is not applicable to the export of the schema configuration")
+        const project = this.project(options, verbose)
+        const labels  = new Map<string, string>()
+        const config  = await this.configFiles(project.config, this.remoteOptions(options, verbose), labels)
+        const result  = this.parseSource(options, config, labels, project.basedir ?? ".", verbose)
+        if (result.config === undefined || result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
+            throw new Error("invalid specification:\n" +
+                result.diagnostics.map(renderDiagnostic).join("\n"))
+        for (const diagnostic of result.diagnostics)
+            verbose(renderDiagnostic(diagnostic), "none")
+        return new SpecBookDocument(result.specification, result.config, result.diagnostics, result.origins)
     }
 
     /*  search the bundled schema configurations, the npm

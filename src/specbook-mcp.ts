@@ -11,7 +11,8 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z }                    from "zod"
 
 import { SpecBook, renderDiagnostic, renderVerbose, formats, parseOutputSpec, describeFormats,
-    describeParts, compressLevels, projectFile, omitAspects, fetchModes, version,
+    describeParts, compressLevels, projectFile, omitAspects, fetchModes, version, renderNodes,
+    queryFormats, parseQueryOutput,
     type VerboseSink } from "./specbook-api.js"
 
 /*  render an error with its cause chain into a tool error result  */
@@ -153,6 +154,48 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
                 } ] }
             else
                 return { content: [ { type: "text", text: data.toString("utf8") } ] }
+        }
+        catch (err) {
+            return errorResult(err)
+        }
+    })
+
+    server.registerTool("specbook_query", {
+        title:       "Query Specification",
+        description: "Load all specification Markdown files below the base directory (or, with " +
+            "\"schema\", the effective YAML schema configuration itself, described as a SpecBook document " +
+            "through the bundled meta schema configuration), strictly validated, and query its Abstract " +
+            "Syntax Tree (AST) with an XPath-like ASTq selector (like \"// USE-CASE [ @STATUS == 'Done' ]\"). " +
+            "The root node is of type \"specification\", its children are of type \"artifact\" (attributes " +
+            "\"created\", \"modified\", and \"file\"), and the objects below are typed by their kind (attributes " +
+            "\"kind\", \"id\", \"anchor\", \"paren\", \"name\", \"primary\", \"description\", \"rationale\", " +
+            "\"elaboration\", and one per property key), where the query function \"refs()\" yields the objects " +
+            "the references of an object resolve to. The matched nodes are rendered as a JSON (or JSON5, " +
+            "YAML, or TOON) array (their subtrees included, the embedded file contents dropped), written to " +
+            "the output file if an output path is given, else returned directly.",
+        inputSchema: { config, basedir, fetch, gitignore, cwd,
+            schema:   z.boolean().optional().describe("query the effective YAML schema configuration " +
+                "itself as a SpecBook document instead of the specification (the base directory is not " +
+                "applicable then; default: false)"),
+            selector: z.string().describe("the ASTq selector of the nodes to return"),
+            params:   z.record(z.string(), z.string()).optional().describe("the values of the \"{name}\" " +
+                "parameters of the selector (default: none)"),
+            format:   z.enum(queryFormats).optional().describe("output format (default: inferred from the " +
+                "output file like for the export, else json)"),
+            output:   z.string().optional().describe("output file path (\"-\" or omitted returns the result directly)")
+        }
+    }, async (args) => {
+        try {
+            const { selector, params, format, output, ...options } = args
+            const spec     = parseQueryOutput(output ?? "-", format)
+            const document = await specbook.load(options)
+            const text     = renderNodes(document.query(selector, params), spec.format)
+            if (spec.output !== "-") {
+                await fs.promises.writeFile(outputOf(args, spec.output), text)
+                return { content: [ { type: "text", text: `queried specification into "${spec.output}" ` +
+                    `(${Buffer.byteLength(text)} bytes)` } ] }
+            }
+            return { content: [ { type: "text", text } ] }
         }
         catch (err) {
             return errorResult(err)

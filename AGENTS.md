@@ -6,7 +6,8 @@ Ralf S. Engelschall* for a generic, Markdown-based *specification
 format*, which is configured for particular contexts through a YAML
 *schema configuration*. SpecBook allows specifications to be
 *initialized*, *linted*, *exported* (JSON, JSON5, YAML, TOON, HTML, PDF,
-and normalized Markdown), *previewed* (HTML, live in the browser), and
+and normalized Markdown), *previewed* (HTML, live in the browser),
+*queried* (ASTq selectors on the AST), and
 *described* -- through an API class
 `SpecBook`, a CLI `specbook <cmd>`, and an MCP service `specbook mcp`
 with tools `specbook_<cmd>`, where CLI and MCP are based entirely on the
@@ -19,7 +20,7 @@ API.
     -   `src/specbook-cli.ts`: the Commander-based CLI (thin wrapper over the API)
     -   `src/specbook-mcp.ts`: the MCP stdio service (thin wrapper over the API)
     -   `src/specbook-cmd-*.ts`: one module per command
-        (`init`, `lint`, `export`, `preview`, `describe`);
+        (`init`, `lint`, `export`, `preview`, `query`, `describe`);
         `init` delegates its `--sample` scaffolding to
         `src/specbook-cmd-init-sample.ts` (the sample objects derived
         from the schema configuration, rendered through the Markdown
@@ -32,6 +33,9 @@ API.
         the specification files);
         `preview` is the Fastify-based HTTP/WebSocket server of the live
         HTML preview, fed by the watch mechanism of `export`;
+        `query` is the class `SpecBookDocument` of `load` (the
+        custom ASTq adapter over the AST, its parent index, the `refs()`
+        query function, and the `plain()`/`html()` text helpers);
         `describe` emits `src/specbook-format.md`, the static description of
         the SpecBook models and formats
     -   `src/specbook-export-common.ts`: cross-renderer helpers (HTML
@@ -268,7 +272,8 @@ API.
     with its own `sample.yaml` schema configuration), and the project
     management handbook of the Broadcast project (`pm/`, based on the
     bundled `pm` schema configuration, exported into the git-ignored
-    `smp/pm.*` files)
+    `smp/pm.*` files), plus the query sample `query.ts` (a foreign
+    document generated out of `broadcast/` through the API)
 -   `web/`: the project website, a self-contained Astro/Tailwind
     single-page application with its own `package.json`, `etc/stx.conf`,
     and `node_modules/` (see "Website" below)
@@ -301,10 +306,11 @@ npm start build-cmd        # tsc, stylus+postcss, and the asset copies (all into
 npm start lint             # eslint on src/*.ts and src/specbook-format-schema.d/*.yaml, markdownlint-cli2 on src/specbook-format.md and plugin/skills/*/*.md
 npm start build-watch      # nodemon rebuild on src/**/*.{ts,md}
 npm start lint-watch       # nodemon relint on src/**/*.{ts,md}
-npm start sample           # sample-broadcast + sample-sample + sample-pm
+npm start sample           # sample-broadcast + sample-sample + sample-pm + sample-query
 npm start sample-broadcast # lint smp/broadcast/, export it into all formats, and describe it
 npm start sample-sample    # lint smp/sample/ and export it into HTML and PDF
 npm start sample-pm        # lint smp/pm/ (against "pm") and export it into HTML and PDF
+npm start sample-query     # query smp/broadcast/ through the API (smp/query.ts via tsx) and the CLI
 npm start dev              # chokidar rebuild + dev-sample on src/ and smp/broadcast/ changes
 npm start dev-sample       # export smp/broadcast/ into smp/broadcast.html only
 npm start publish          # version bump (-i<part>), commit, tag, push, npm publish, GitHub release
@@ -375,12 +381,13 @@ specbook init     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-s
 specbook lint     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g]
 specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g] [-S] [-w] [-O <aspect>[,...]] [-o [<format>:]<output-file>] [...]
 specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g] [-S] [-O <aspect>[,...]] [-a <ip-addr>] [-p <tcp-port>]
+specbook query    [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g] [-S] [-P <name>=<value>] [...] [-f <format>] [-o [<format>:]<output-file>] <selector>
 specbook describe [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-e] [-z [<level>]] [-f <format>] [-p <part>] [-o <markdown-file>]
 specbook search   [-v [<level>]] [-F <mode>] [<term> ...]
 specbook mcp      [-v [<level>]]
 ```
 
-The YAML schema configuration of `init`, `lint`, `export`, and `preview` falls back
+The YAML schema configuration of `init`, `lint`, `export`, `preview`, and `query` falls back
 onto the bundled standard one (assembled from `src/specbook-format-schema.d/`
 into `dst/` at build time), while `describe` references the given one only
 and falls back onto the standard one by embedding it.
@@ -509,7 +516,7 @@ the registry), while a floating reference (a range, a branch, a tag, a
 URL) expires after five minutes (`floatingTtl`), the TTL
 of the npm packuments. The option `-F`/`--fetch <mode>` (the API/MCP
 option `fetch`, `SPECBOOK_FETCH`, validated by `parseFetchMode`) of
-`init`, `lint`, `export`, `preview`, `describe`, and `search` selects
+`init`, `lint`, `export`, `preview`, `query`, `describe`, and `search` selects
 when `ensure` fetches through the network: `never` resolves out of the
 cache only (pacote in its `only-if-cached` mode via `offline`), an
 uncached reference being an error, `auto` (the default) fetches a
@@ -538,6 +545,39 @@ maintain: the website merely renders the npm packages discovered through
 the keyword at build time in its "Sharing" section
 (`Section-Sharing.astro`, the table left out while none exists).
 
+The `query` command (the API method `load`, the MCP tool
+`specbook_query`) serves third-party scripts generating foreign
+documents out of a specification: `load` parses the specification (or,
+under `schema`, the effective schema configuration) strictly like
+`export` (any error diagnostic fails it, the warnings are `none`
+messages) into a `SpecBookDocument` of `src/specbook-cmd-query.ts`,
+whose `query(selector, params)` runs an XPath-like selector of the NPM
+package ASTq on the *original* AST nodes (`SpecNode`) through a custom,
+forced adapter: the root of type `specification` holds the artifacts of
+type `artifact` (attributes `created` and `modified` as ISO strings and
+the source `file`), which hold the object trees typed by their kind
+(whitespace dashed), an object carrying the attributes `kind`, `id`,
+`anchor`, `paren`, `name`, `primary`, `description`, `rationale`, and
+`elaboration` (where present) plus one per property key (a fixed name
+and a duplicate key never overriding). The pre-registered query
+function `refs()` yields the targets of the references of an object
+(`referenceTargets` of `src/specbook-link.ts`), `func(name, fn)`
+registers a custom one, `parent(node)` walks upwards (the AST carrying
+no parent references), and `plain(text, from?)` resp. `html(text,
+from?)` render a Markdown text into plain text (via the `marked` lexer
+tokens) resp. an HTML fragment (a private `Marked` instance without
+SpecBook styling), both replacing every reference outside code by the
+name of its target. The CLI command (repeatable `-P <name>=<value>`
+parameters) and the MCP tool write the matched nodes as an array in one
+of the AST export formats `json`, `json5`, `yaml`, or `toon`
+(`renderNodes`: subtrees included, the `embedding` fields dropped) to
+the output (`-o`, default `-` for stdout), where an explicit `-f` wins
+and the format is otherwise inferred like for an export output
+(`parseQueryOutput` over `parseOutputSpec`: a `<format>:` prefix, else
+the filename extension, `-` being JSON, a non-AST format an error). The
+sample `smp/query.ts` generates a small foreign Markdown document out of
+`smp/broadcast/`.
+
 A level 1 object kind configured with neither `name` nor `id` is a
 *recurring* artifact (`isRecurring` of `src/specbook-parse-semantic.ts`):
 `resolveArtifact` matches every level 1 object of its kind onto it as a
@@ -563,7 +603,7 @@ specification file on the next run, `export` (and `preview`) refuses an
 (`guardRebase` of `src/specbook-api.ts`, `isBelow` of
 `src/specbook-files.ts`).
 
-The option `-g`/`--gitignore` of `lint`, `export`, and `preview` (the
+The option `-g`/`--gitignore` of `lint`, `export`, `preview`, and `query` (the
 API/MCP option `gitignore`, default `false`) additionally sets aside a
 specification file the Git exclude rules prune out of its project, as
 it is no part of the project -- silently if all of its artifacts are
@@ -578,8 +618,8 @@ working tree root down to the artifact file, where the last matching rule
 wins and an excluded ancestor directory excludes everything below it. A
 base directory outside any Git working tree excludes nothing.
 
-The option `-S`/`--schema` of `export` and `preview` (the API/MCP
-option `schema`, `SPECBOOK_SCHEMA`, default `false`) exports the
+The option `-S`/`--schema` of `export`, `preview`, and `query` (the API/MCP
+option `schema`, `SPECBOOK_SCHEMA`, default `false`) exports (resp. queries) the
 *effective schema configuration itself* (`-c`, merged out of its local,
 bundled, or remote files) as a SpecBook document in every export format,
 instead of the specification below the base directory (an explicit

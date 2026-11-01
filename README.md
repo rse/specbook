@@ -25,7 +25,8 @@ format* which can be configured for the specifications of particular
 contexts through a YAML-based *schema configuration*. SpecBook allows
 specifications to be *initialized*, *linted*, *exported* (JSON, JSON5,
 YAML, TOON, HTML, PDF, and normalized Markdown), *previewed* (HTML, live
-in the browser), and *described* to LLMs.
+in the browser), *queried* (ASTq selectors on the AST), and *described*
+to LLMs.
 
 **SpecBook** ships with an API class with methods `<xxx>()`, a
 CLI with commands `specbook <xxx>`, and an MCP service with tools
@@ -168,10 +169,9 @@ $ specbook export \
   [-F|--fetch <mode>] \
   [-g|--gitignore] \
   [-S|--schema] \
-  [-o|--output [<format>:]<output-file>] \
+  [-o|--output [<format>:]<output-file>] [...] \
   [-w|--watch] \
-  [-O|--omit <aspect>[,...]] \
-  [...]
+  [-O|--omit <aspect>[,...]]
 
 $ specbook preview \
   [-v|--verbose [<level>]] \
@@ -183,6 +183,18 @@ $ specbook preview \
   [-O|--omit <aspect>[,...]] \
   [-a|--addr <ip-addr>] \
   [-p|--port <tcp-port>]
+
+$ specbook query \
+  [-v|--verbose [<level>]] \
+  [-c|--config <schema-yaml-file>] \
+  [-b|--basedir <spec-md-file-basedir>] \
+  [-F|--fetch <mode>] \
+  [-g|--gitignore] \
+  [-S|--schema] \
+  [-P|--param <name>=<value>] [...] \
+  [-f|--format <format>] \
+  [-o|--output [<format>:]<output-file>] \
+  <selector>
 
 $ specbook describe \
   [-v|--verbose [<level>]] \
@@ -266,7 +278,7 @@ Options:
     whenever the download cache lacks a reference or it is no longer
     fresh), or `always` (ignoring the download cache).
 
--   `-g|--gitignore` (`lint`, `export`, and `preview` only):
+-   `-g|--gitignore` (`lint`, `export`, `preview`, and `query` only):
     Set aside every specification file the Git exclude rules (the global
     excludes file, the repository-local `info/exclude`, and the
     `.gitignore` files, with Git's own precedence) exclude from its
@@ -274,8 +286,8 @@ Options:
     artifacts are optional, else as the error `artifact file excluded by
     Git`. A base directory outside any Git working tree excludes nothing.
 
--   `-S|--schema` (`export` and `preview` only):
-    Export (or preview) the *effective schema configuration itself* --
+-   `-S|--schema` (`export`, `preview`, and `query` only):
+    Export (or preview, or query) the *effective schema configuration itself* --
     the one `-c|--config` selects, merged out of its local, bundled, or
     remote files -- as a SpecBook document, instead of the specification
     below the base directory (which is not applicable then, so an
@@ -356,6 +368,28 @@ Options:
     export arrives). A status tab at the bottom of the brand bar shows
     the connection state: its plug icon carries the search highlight
     color while disconnected and blinks for 2s after every update.
+
+-   `-P|--param <name>=<value>`, `<selector>` (`query` only):
+    Query the specification (strictly validated like `export`) with the
+    XPath-like selector of [ASTq](https://github.com/rse/astq) and write
+    the matched nodes as an array (their subtrees included, the embedded
+    file contents dropped), where `-P|--param` (repeatable) gives the
+    value of a `{name}` parameter of the selector.
+    The root node is of type `specification`, its children are of type
+    `artifact` (attributes `created`, `modified`, and `file`), and the
+    objects below are typed by their kind (attributes `kind`, `id`,
+    `anchor`, `paren`, `name`, `primary`, `description`, `rationale`,
+    `elaboration`, and one per property key), e.g.
+    `specbook query "// USE-CASE [ @ACTOR == '[[ROLE:attendee]]' ]"`. The
+    query function `refs()` yields the objects the references of an object
+    resolve to, e.g. `specbook query "// REQUIREMENT [ count(refs()) == 0 ]"`.
+
+-   `-f|--format <format>`, `-o|--output [<format>:]<output-file>` (`query` only):
+    The output file (default: `-` for stdout) receives the matched nodes
+    in the format `json`, `json5`, `yaml`, or `toon`, where an explicit
+    `-f|--format` wins and the format is otherwise inferred exactly like
+    for an `export` output (a `<format>:` prefix, else the filename
+    extension, while plain `-` defaults to JSON).
 
 -   `-o|--output <output-file>` (`describe` only):
     The output file (default: `-` for stdout) receives the described
@@ -440,6 +474,41 @@ is unset, the downloaded Playwright Chromium is used (the equivalent of
 Chrome* (the equivalent of `chrome`). An explicitly configured browser
 failing to launch fails the export instead of falling back onto another
 browser.
+
+### API
+
+Third-party scripts generating foreign documents out of a specification
+load it (strictly validated like `export`) and query its AST through the
+very same ASTq selectors as `specbook query`, retrieving the *original*
+AST nodes:
+
+```ts
+import { SpecBook, type SpecObject } from "@rse/specbook"
+
+const specbook = new SpecBook()
+const document = await specbook.load({ basedir: "docs/spec" })
+
+/*  register a custom query function (beside the built-in "refs()")  */
+document.func("contains", (_adapter, _node, list, item) =>
+    Array.isArray(list) && list.includes(item))
+
+/*  emit the roles with the use cases referencing them as Markdown  */
+for (const role of document.query("// ROLE") as SpecObject[]) {
+    console.log(`## ${document.plain(role.name)}\n`)
+    for (const useCase of document.query("// USE-CASE [ contains(refs(), {role}) ]",
+        { role }) as SpecObject[])
+        console.log(`-   ${document.plain(useCase.name)}`)
+}
+```
+
+The `SpecBookDocument` returned by `load()` (options like `lint`, plus
+`schema`) carries the `specification`, its `config`, and the warning
+`diagnostics`, and provides `query(selector, params?)`, `parent(node)`
+(the AST nodes carrying no parent references), `func(name, fn)`, and the
+text helpers `plain(text, from?)` and `html(text, from?)`, which render
+a Markdown text (a description part or property value) into plain text
+resp. an HTML fragment, replacing every `[[...]]` reference by the name
+of its target object.
 
 Remote References
 -----------------

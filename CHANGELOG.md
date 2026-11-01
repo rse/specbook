@@ -2,6 +2,14 @@
 ChangeLog
 =========
 
+1.6.1 (2026-11-02)
+------------------
+
+-   IMPROVEMENT [code]: Specification Query API and Command
+    The new API method `load()`, CLI command `query`, and MCP tool `specbook_query` query the
+    validated AST with ASTq selectors (plus `refs()` and text helpers), so scripts can generate
+    documents.
+
 1.6.0 (2026-11-01)
 ------------------
 
