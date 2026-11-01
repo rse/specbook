@@ -69,8 +69,8 @@ const escapeDesc = (text: string): string =>
             }).join("\n")
     })
 
-/*  flatten a nested configuration value (an automaton, diagram, or
-    format) into "key=value" pairs, with the nested keys dotted and
+/*  flatten a nested configuration value (an automaton, badge, diagram,
+    or format) into "key=value" pairs, with the nested keys dotted and
     the lists bracketed  */
 const flatten = (value: unknown, prefix = ""): string[] => {
     if (Array.isArray(value))
@@ -396,6 +396,7 @@ const generateSources = (config: Schema, meta: Schema, files: string[],
             [ "REFERENCED", patternsMd(schema.referenced) ],
             [ "COVERAGE",   patternsMd(schema.coverage) ],
             [ "AUTOMATON",  configMd(schema.automaton) ],
+            [ "BADGE",      typeof schema.badge === "string" ? codeMd(schema.badge) : configMd(schema.badge) ],
             [ "DIAGRAM",    configMd(schema.diagram) ],
             [ "FORMAT",     configMd(schema.format) ]
         ])

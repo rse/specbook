@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: Diagram Node Badges
+    The new object kind field `badge` draws a fixed or a property-mapped icon into the diagram
+    nodes, used by the standard schema for roles, personas, entities, interfaces, and components.
+
 -   IMPROVEMENT [code]: State Diagrams
     The new diagram type `state` draws the `automaton` flags as initial/final pseudo-states and
     is used for the lifecycles of the standard schema, plus the edge label option `edgeGuard`.

@@ -49,6 +49,7 @@
                 per-artifact unique name, and described by a 1-sentence description ("what") plus a
                 1-sentence rationale ("why").
             optional: true
+            badge: database
             diagram:
                 type: hub
                 center: self

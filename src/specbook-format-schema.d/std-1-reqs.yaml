@@ -295,6 +295,11 @@
                 maxTableColumns: 5
             referenced:
                 -   "[[*]]"
+            badge:
+                property: TYPE
+                map:
+                    Person: person
+                    System: bot
             diagram:
                 type: hub
                 center: self
@@ -338,6 +343,11 @@
             optional: true
             format:
                 maxTableColumns: 5
+            badge:
+                property: TYPE
+                map:
+                    Stakeholder: team
+                default: person
             props:
                 -   name: TYPE
                     desc: >

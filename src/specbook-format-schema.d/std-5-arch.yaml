@@ -383,6 +383,14 @@
             format:
                 type: compact
                 maxTableColumns: 5
+            badge:
+                property: KIND
+                map:
+                    Component: package
+                    Service: service
+                    Module: code
+                    Connector: communication
+                    Subsystem: network
             diagram:
                 type: hub
                 center: self
@@ -1125,6 +1133,15 @@
                 and the network segments it is attached to as its `TIER`, `AREA`, and `NETWORK`
                 siblings.
             optional: true
+            badge:
+                property: KIND
+                map:
+                    Server: service
+                    Container: package
+                    Cluster: network
+                    Function: function
+                    Device: device
+                    Managed: cloud
             diagram:
                 type: hub
                 center: self

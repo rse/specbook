@@ -289,6 +289,33 @@ const checkAutomaton = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) 
                 `"automaton" ${field} property "${automaton[field]}" is not a property of "${automaton.nodes}"`)
 }
 
+/*  check the property-driven badge of an object (if any): it names a
+    property of the object kind, and for an "enum" valued one each mapped
+    value is a member of it (else the mapping would never apply)  */
+const checkBadge = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) => {
+    const badge = object.badge
+    if (badge === undefined || typeof badge === "string")
+        return
+    const prop = (object.props ?? []).find((p) => p.name === badge.property)
+    if (prop === undefined) {
+        diagnose([ ...at, "badge", "property" ],
+            `"badge" property "${badge.property}" is not a property of "${object.kind}"`)
+        return
+    }
+    let expr: ValueExpr | undefined
+    try {
+        expr = prop.value !== undefined ? compileValueExpr(prop.value) : undefined
+    }
+    catch {
+        /*  an invalid value expression is reported on its own  */
+    }
+    if (expr?.kind === "enum")
+        for (const value of Object.keys(badge.map))
+            if (!expr.members.includes(value))
+                diagnose([ ...at, "badge", "map", value ],
+                    `"badge" map value "${value}" is not a member of "${prop.value}"`)
+}
+
 /*  check the constraints of a structurally valid configuration which
     are beyond its schema: sibling objects have to stay distinctly
     resolvable, "file" fields are allowed on the first (artifact) level
@@ -296,7 +323,8 @@ const checkAutomaton = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) 
     property value and marker expressions have to be syntactically
     valid, "referenced" and "coverage" entries have to be reference
     expressions, an "automaton" has to name existing child kinds and
-    properties, and the names of non-artifact objects have to be valid
+    properties, a "badge" has to name an existing property and its
+    members, and the names of non-artifact objects have to be valid
     patterns (as they are compiled into regular expressions)  */
 const checkConstraints = (
     config:    Schema,
@@ -332,6 +360,7 @@ const checkConstraints = (
                     `"file" field "${object.file}" is not a relative path below the base directory`)
             checkProperties(object.props ?? [], at, diagnose)
             checkAutomaton(object, at, diagnose)
+            checkBadge(object, at, diagnose)
             for (const field of [ "referenced", "coverage" ] as const)
                 for (const [ j, entry ] of (object[field] ?? []).entries()) {
                     /*  a reference coverage entry has to be a single

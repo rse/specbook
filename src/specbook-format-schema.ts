@@ -15,8 +15,9 @@ export type Schema = SchemaObject[]
 /*  an object kind: an artifact (level 1, with its "file" and exact
     "name") or an object nested below it (with a "name" regex), the
     reference coverage every object of the kind has to receive, the
-    reference coverage every object of the kind reports, and the finite
-    state machine its child objects optionally form  */
+    reference coverage every object of the kind reports, the finite
+    state machine its child objects optionally form, and the badge
+    icon of its objects in the diagrams  */
 export type SchemaObject = {
     kind:              string
     name?:             string
@@ -28,10 +29,27 @@ export type SchemaObject = {
     referenced?:       string[]
     coverage?:         string[]
     automaton?:        SchemaAutomaton
+    badge?:            SchemaBadge
     diagram?:          SchemaDiagram
     format?:           SchemaFormat
     props?:            SchemaProperty[]
     children?:         SchemaObject[]
+}
+
+/*  the badge icons Gradia draws inside a node box (mirroring its
+    unexported list, as Gradia silently ignores an unknown icon)  */
+export const badgeIcons = [ "person", "team", "bot", "device", "mobile", "browser", "service",
+    "function", "api", "code", "package", "database", "cache", "queue", "document", "mail",
+    "communication", "clock", "security", "cloud", "network" ] as const
+export type BadgeIcon = typeof badgeIcons[number]
+
+/*  the badge icon of the objects of an object kind in every diagram:
+    a fixed icon, or the icon the value of a property maps onto
+    (else the default icon, else none)  */
+export type SchemaBadge = BadgeIcon | {
+    property:          string
+    map:               Record<string, BadgeIcon>
+    default?:          BadgeIcon
 }
 
 /*  the finite state machine the child objects of an object kind form:
@@ -177,6 +195,15 @@ const SchemaAutomaton: v.GenericSchema<SchemaAutomaton> = v.strictObject({
     initial:           v.string(),
     final:             v.string()
 })
+const SchemaBadgeIcon = v.picklist(badgeIcons)
+const SchemaBadge: v.GenericSchema<SchemaBadge> = v.union([
+    SchemaBadgeIcon,
+    v.strictObject({
+        property:      v.string(),
+        map:           v.record(v.string(), SchemaBadgeIcon),
+        default:       v.optional(SchemaBadgeIcon)
+    })
+])
 const SchemaDiagramCenter: v.GenericSchema<SchemaDiagramCenter> = v.strictObject({
     source:            v.optional(v.string()),
     property:          v.optional(v.string()),
@@ -238,6 +265,7 @@ const SchemaObject: v.GenericSchema<SchemaObject> = v.strictObject({
     referenced:        v.optional(v.pipe(v.array(v.string()), v.minLength(1))),
     coverage:          v.optional(v.pipe(v.array(v.string()), v.minLength(1))),
     automaton:         v.optional(SchemaAutomaton),
+    badge:             v.optional(SchemaBadge),
     diagram:           v.optional(SchemaDiagram),
     format:            v.optional(SchemaFormat),
     props:             v.optional(v.array(SchemaProperty)),

@@ -76,11 +76,21 @@ type SchemaObject = {
     referenced?:       string[]
     coverage?:         string[]
     automaton?:        SchemaAutomaton
+    badge?:            SchemaBadge
     diagram?:          SchemaDiagram
     format?:           SchemaFormat
     props?:            SchemaProperty[]
     children?:         SchemaObject[]
 }
+type SchemaBadge = BadgeIcon | {
+    property:          string
+    map:               Record<string, BadgeIcon>
+    default?:          BadgeIcon
+}
+type BadgeIcon =
+    "person" | "team" | "bot" | "device" | "mobile" | "browser" | "service" |
+    "function" | "api" | "code" | "package" | "database" | "cache" | "queue" |
+    "document" | "mail" | "communication" | "clock" | "security" | "cloud" | "network"
 type SchemaAutomaton = {
     nodes:             string
     edges:             string
@@ -258,6 +268,21 @@ type SchemaGradiaConfig = Partial<{
     finite state machine the child objects of every object of this kind form,
     BECAUSE a lifecycle is only trustworthy when its dead-ends and
     livelocks are ruled out
+
+-   `SchemaObject.badge?: SchemaBadge`:
+    badge icon drawn inside the node box of every object of this kind in
+    every diagram (left out when the configuration is emitted compressed
+    by level 2 or higher),
+    BECAUSE the nature of a node is recognized at a glance from an icon,
+    while its type label has to be read
+
+-   `SchemaBadge`:
+    a fixed icon, or the icon the value of the `property` of an object
+    maps onto through `map` (a mapped value of an `enum(...)` valued
+    property has to be one of its members), else the `default` icon,
+    else none,
+    BECAUSE the kind alone does not always tell the nature of an object
+    -- a `Server` node and a `Function` node deserve different icons
 
 -   `SchemaObject.diagram?: SchemaDiagram`:
     diagram generated for every object of this kind (left out when the

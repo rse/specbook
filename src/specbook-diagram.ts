@@ -9,7 +9,8 @@ import { Gradia }
 
 import type { Spec, SpecObject, SpecProperty }
     from "./specbook-format-spec.js"
-import type { Schema, SchemaAutomaton, SchemaDiagram, SchemaDiagramCenterEdges, SchemaDiagramNest }
+import type { Schema, SchemaObject, SchemaAutomaton, SchemaDiagram, SchemaDiagramCenterEdges,
+    SchemaDiagramNest, BadgeIcon }
     from "./specbook-format-schema.js"
 import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths,
     chainOf, expandReferences, plainText, referenceText, type LinkIndex }
@@ -126,13 +127,15 @@ interface DiagramEdge {
 type ParenProps = Map<SpecObject, SpecProperty>
 
 /*  the derivation-wide context of the diagrams of a specification:
-    the link index, the anchor paths, the index positions, and the
-    parent objects of all objects, plus the synthetic properties  */
+    the link index, the anchor paths, the index positions, the parent
+    objects, and the object kinds of all objects, plus the synthetic
+    properties  */
 interface DiagramContext {
     index:      LinkIndex
     anchors:    Map<SpecObject, string>
     positions:  Map<SpecObject, number>
     parents:    Map<SpecObject, SpecObject | undefined>
+    schemas:    Map<SpecObject, SchemaObject>
     parenProps: ParenProps
 }
 
@@ -145,6 +148,16 @@ const propsOf = (parenProps: ParenProps, object: SpecObject): SpecProperty[] => 
 /*  the value of a single property of an object, by its key  */
 const propValue = (parenProps: ParenProps, object: SpecObject, key: string): string | undefined =>
     propsOf(parenProps, object).find((property) => property.key === key)?.value
+
+/*  the badge icon of an object: the fixed one of its object kind, or the
+    one the value of the configured property maps onto, else the default  */
+const badgeOf = (ctx: DiagramContext, object: SpecObject): BadgeIcon | undefined => {
+    const badge = ctx.schemas.get(object)?.badge
+    if (badge === undefined || typeof badge === "string")
+        return badge
+    const value = plainText(propValue(ctx.parenProps, object, badge.property) ?? "").trim()
+    return Object.hasOwn(badge.map, value) ? badge.map[value] : badge.default
+}
 
 /*  the kind of a synthetic pseudo-state of a "state" diagram  */
 type PseudoState = "initial" | "final"
@@ -160,8 +173,9 @@ interface DiagramNesting {
     "#type" directive and the configured "#config" directives so every
     embedded spec is self-contained: one node statement per object (the
     unique anchor path as the node id, the object name as the displayed
-    label, the container node as the parent, the pseudo-state kind of a
-    synthetic pseudo-state) and one edge statement per derived edge  */
+    label, the container node as the parent, the badge icon of its
+    object kind, the pseudo-state kind of a synthetic pseudo-state)
+    and one edge statement per derived edge  */
 const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
     centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[], nesting: DiagramNesting,
     pseudo: Map<SpecObject, PseudoState>): string => {
@@ -206,6 +220,9 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
             attrs.push(`container: ${diagram.nest.layout}`)
         if (diagram.ordered === true)
             attrs.push(`order: ${orderOf(node)}`)
+        const badge = badgeOf(ctx, node)
+        if (badge !== undefined)
+            attrs.push(`badge: ${badge}`)
         const state = pseudo.get(node)
         if (state !== undefined)
             attrs.push(`state: ${state}`)
@@ -842,7 +859,7 @@ export const specDiagrams = (specification: Spec,
     /*  re-derive the synthetic properties of the consumed parenthesized
         name tokens, as the derivation sees the AST alone, while the
         parsing context holding them is long gone by export time  */
-    const ctx     = { index, anchors, positions, parents, parenProps: collectParenProps(schemas) }
+    const ctx     = { index, anchors, positions, parents, schemas, parenProps: collectParenProps(schemas) }
     const results = new Map<SpecObject, DiagramResult>()
     for (const [ object, schema ] of schemas)
         if (schema.diagram !== undefined)

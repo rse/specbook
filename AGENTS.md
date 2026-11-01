@@ -106,7 +106,9 @@ API.
         model and its references (including the `nest` container
         nesting of the nodes, the `local` restriction of the node and
         edge patterns onto the own subtree, and the `list(...)`-valued
-        `edgeTarget` yielding one edge per target), the compact Gradia
+        `edgeTarget` yielding one edge per target, the initial/final
+        pseudo-states of a `state` diagram drawn from the `automaton`
+        flags, and the object kind `badge` icons of the nodes), the compact Gradia
         geometry presets a diagram `config` overrides, their validation,
         and the in-memory cache of the rendered SVGs
     -   `src/specbook-config.ts`: YAML schema configuration loading,
@@ -501,7 +503,7 @@ of its artifacts and object kinds nested along their `PARENT`
 references), one
 `ARTIFACT` object per artifact (named after its `name`, its `id` as the
 parenthesized token, `FILE`, `OPTIONAL`, `REFERENCED`, `COVERAGE`,
-`AUTOMATON`, `DIAGRAM`, and `FORMAT`, the latter three flattened into
+`AUTOMATON`, `BADGE`, `DIAGRAM`, and `FORMAT`, the latter four flattened into
 `key=value` pairs, a `hub` diagram of its references, and a Mermaid
 `classDiagram` of it and its object kinds at the end of its elaboration
 -- the artifact stereotyped `artifact` and named `<kind>.<id>`, the
@@ -983,8 +985,8 @@ instead of just referencing it, and `-z`/`--compress [<level>]` (default and
 bare flag `1`) emits the YAML schema configuration (embedded into the
 Markdown or as the `raw` file content) compressed instead of verbatim:
 level `1` re-emits it with 2-space indentation, unwrapped lines, and
-without comments, level `2` additionally drops its `refs`, `diagram`, and
-`format` fields, and level `3` additionally drops its `desc` fields of
+without comments, level `2` additionally drops its `refs`, `badge`,
+`diagram`, and `format` fields, and level `3` additionally drops its `desc` fields of
 objects and properties. The MCP tool `specbook_describe` alone defaults to level `2`
 (applied in the MCP layer, the API default staying `1`), as its consumer
 is an LLM.

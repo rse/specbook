@@ -151,6 +151,9 @@
                 -   name: AUTOMATON
                     desc: The finite state machine the child objects form (`automaton`).
                     optional: true
+                -   name: BADGE
+                    desc: The badge icon of the objects of the kind in the diagrams (`badge`).
+                    optional: true
                 -   name: DIAGRAM
                     desc: The diagram derived for every object of the kind (`diagram`).
                     optional: true
@@ -198,6 +201,9 @@
                             optional: true
                         -   name: AUTOMATON
                             desc: The finite state machine the child objects form (`automaton`).
+                            optional: true
+                        -   name: BADGE
+                            desc: The badge icon of the objects of the kind in the diagrams (`badge`).
                             optional: true
                         -   name: DIAGRAM
                             desc: The diagram derived for every object of the kind (`diagram`).

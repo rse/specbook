@@ -48,6 +48,7 @@
                 direction, command) are carried by the `OPERATION` and `LOCATOR` properties of the
                 endpoints only.
             optional: true
+            badge: api
             diagram:
                 type: hub
                 center: self
@@ -304,6 +305,7 @@
                 is expressed by a path-style `LOCATOR` (e.g. `remote add`,
                 `/events/{eventId}/chat`) only.
             optional: true
+            badge: api
             diagram:
                 type: hub
                 center: self
