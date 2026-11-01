@@ -51,6 +51,33 @@ independently of the connection handling and the persistence.
 The database tier holds the authoritative persistent state, BECAUSE durable state must reside on a protected tier
 reachable from the business services alone.
 
+##  NETWORK: Public Internet {{internet}}
+
+-   SCOPE:      Public
+-   PROTOCOLS:  HTTPS 443, WSS 443
+-   ADDRESSING: Public IPv4 and IPv6
+
+The public Internet carries all attendee and operator traffic to the CDN and the edge router over TLS only, BECAUSE the
+audience joins from arbitrary, untrusted networks.
+
+##  NETWORK: Backend Network {{backend}}
+
+-   SCOPE:      Private
+-   PROTOCOLS:  HTTP, WS, WSS
+-   ADDRESSING: Hetzner private vSwitch, per-environment VLAN
+
+The backend network connects the router, the proxies, the relays, and the service containers within the data center,
+BECAUSE the internal hops must stay unreachable from the Internet while remaining cheap to scale per environment.
+
+##  NETWORK: Data Network {{data}}
+
+-   SCOPE:      Isolated
+-   PROTOCOLS:  TCP 5432
+-   ADDRESSING: Hetzner private vSwitch, database subnet
+
+The data network connects the service containers to the database server only, BECAUSE the persistence node must be
+reachable from the business services alone.
+
 ##  NODE: Client Device {{client-device}}
 
 -   KIND:        Device
@@ -137,31 +164,4 @@ containerized services give reproducible, independently scalable business logic.
 
 The database server runs PostgreSQL with filesystem asset storage as the authoritative persistence node, BECAUSE durable
 state must reside on a protected, non-public node.
-
-##  NETWORK: Public Internet {{internet}}
-
--   SCOPE:      Public
--   PROTOCOLS:  HTTPS 443, WSS 443
--   ADDRESSING: Public IPv4 and IPv6
-
-The public Internet carries all attendee and operator traffic to the CDN and the edge router over TLS only, BECAUSE the
-audience joins from arbitrary, untrusted networks.
-
-##  NETWORK: Backend Network {{backend}}
-
--   SCOPE:      Private
--   PROTOCOLS:  HTTP, WS, WSS
--   ADDRESSING: Hetzner private vSwitch, per-environment VLAN
-
-The backend network connects the router, the proxies, the relays, and the service containers within the data center,
-BECAUSE the internal hops must stay unreachable from the Internet while remaining cheap to scale per environment.
-
-##  NETWORK: Data Network {{data}}
-
--   SCOPE:      Isolated
--   PROTOCOLS:  TCP 5432
--   ADDRESSING: Hetzner private vSwitch, database subnet
-
-The data network connects the service containers to the database server only, BECAUSE the persistence node must be
-reachable from the business services alone.
 
