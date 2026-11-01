@@ -18,6 +18,7 @@ import { type Schema, type SchemaObject }                       from "./specbook
 import { buildLinkIndex, chainOf, plainText }                   from "./specbook-link.js"
 import { referencedCoverage, specCoverage, coverageRatio }      from "./specbook-coverage.js"
 import { excluder }                                             from "./specbook-ignore.js"
+import { specFiles }                                            from "./specbook-files.js"
 
 /*  the options of the lint command  */
 export interface LintOptions {
@@ -34,28 +35,19 @@ export interface LintResult {
     config?:       Schema
 
     /*  the resolved paths of all files the specification is made of --
-        the referenced artifact files (an absent one included) plus their
-        embedded assets -- so a watching consumer knows what to observe  */
+        the specification Markdown files plus their embedded assets --
+        and of the base directory itself, so a watching consumer knows
+        what to observe and notices added and removed files, too  */
     files:         string[]
 
     /*  the source file every artifact of the specification stems from  */
     origins:       Map<SpecArtifact, string>
 }
 
-/*  collect the distinct artifact files the schema configuration
-    references, in their declaration order, each mapped onto whether
-    all of its artifacts are optional (a recurring one by definition)
-    and hence the file may be absent  */
-const schemaFiles = (config: Schema): Map<string, boolean> => {
-    const files = new Map<string, boolean>()
-    for (const artifact of config) {
-        if (artifact.file === undefined)
-            continue
-        files.set(artifact.file,
-            (files.get(artifact.file) ?? true) && (artifact.optional === true || isRecurring(artifact)))
-    }
-    return files
-}
+/*  whether a configured artifact is demanded: neither optional nor
+    recurring (the latter being optional by definition)  */
+const isDemanded = (schema: SchemaObject | undefined): boolean =>
+    schema !== undefined && schema.optional !== true && !isRecurring(schema)
 
 /*  report the reference coverage the "referenced"-flagged object kinds
     receive and the "coverage"-configured objects report as additional
@@ -103,45 +95,50 @@ export const lint = (options: LintOptions): LintResult => {
             `and ${literal(stats.links)} link relationship(s)`)
     }
 
-    /*  read the artifact files the configuration references, resolved
-        against the base directory and tolerating an absent file if all
-        its artifacts are optional  */
-    const files = config !== undefined ? schemaFiles(config) : new Map<string, boolean>()
-    if (config !== undefined && files.size === 0)
-        diagnostics.push({ file: options.config[0], line: 1, column: 1, severity: "error",
-            message: "no artifact files configured" })
+    /*  read the specification Markdown files below the base directory
+        (every one of them is taken for a SpecBook one, the "file"
+        fields of the configuration drive "init" only), where the base
+        directory itself heads the observed paths, so a watching
+        consumer notices added and removed files, too  */
+    const files = specFiles(options.basedir)
+    if (files.length === 0)
+        diagnostics.push({ file: options.basedir, line: 1, column: 1, severity: "error",
+            message: "no specification files found" })
 
-    /*  an artifact file Git excludes from its project is treated exactly
-        like an absent one -- it is no part of the project and hence no
-        part of its specification  */
+    /*  a file Git excludes from its project is no part of the project
+        and hence no part of its specification, so it is set aside  */
     const excluded = options.gitignore ? excluder(options.basedir) : () => false
     const sources  = new Array<SourceFile>()
-    const present  = new Set<string>()
-    const watched  = new Array<string>()
-    for (const [ name, optional ] of files) {
-        const file = path.join(options.basedir, name)
+    const pruned   = new Array<SourceFile>()
+    const watched  = [ path.resolve(options.basedir) ]
+    for (const file of files) {
         watched.push(path.resolve(file))
-        if (excluded(file)) {
-            if (optional)
-                options.verbose(`skipping artifact file "${literal(file)}" excluded by Git`)
-            else
-                diagnostics.push({ file, line: 1, column: 1, severity: "error",
-                    message: "artifact file excluded by Git" })
-            continue
-        }
-        if (!fs.existsSync(file)) {
-            if (!optional)
-                diagnostics.push({ file, line: 1, column: 1, severity: "error",
-                    message: "missing artifact file" })
-            continue
-        }
         try {
-            sources.push({ file, text: fs.readFileSync(file, "utf8") })
-            present.add(name)
+            (excluded(file) ? pruned : sources).push({ file, text: fs.readFileSync(file, "utf8") })
         }
         catch (err) {
             diagnostics.push({ file, line: 1, column: 1, severity: "error",
                 message: `unreadable file: ${err instanceof Error ? err.message : String(err)}` })
+        }
+    }
+
+    /*  an excluded file is an error unless all of its artifacts are
+        optional, which only its own (separate, as it is dropped) parsing
+        tells, whose diagnostics are irrelevant for the very same reason  */
+    if (pruned.length > 0) {
+        const demanded = new Set<string>()
+        if (config !== undefined) {
+            const dropped = parseSpecification(pruned, config)
+            for (const artifact of dropped.specification.artifacts)
+                if (artifact.objects.some((object) => isDemanded(resolveArtifact(config, object))))
+                    demanded.add(dropped.origins.get(artifact) ?? "")
+        }
+        for (const { file } of pruned) {
+            if (demanded.has(file))
+                diagnostics.push({ file, line: 1, column: 1, severity: "error",
+                    message: "artifact file excluded by Git" })
+            else
+                options.verbose(`skipping specification file "${literal(file)}" excluded by Git`)
         }
     }
 
@@ -159,10 +156,10 @@ export const lint = (options: LintOptions): LintResult => {
     if (config !== undefined && result.specification.artifacts.length > 0)
         reportCoverage(result.specification, config, options.verbose)
 
-    /*  report the non-optional artifacts absent from the specification,
-        against their loaded artifact file (an absent or unreadable file
-        is already reported above) or else against the configuration,
-        where a recurring artifact is optional by definition  */
+    /*  report the demanded artifacts absent from the specification,
+        against the artifact file configured for them below the base
+        directory (where "init" would create them, present or not) or
+        else against the configuration  */
     if (config !== undefined) {
         const found = new Set<SchemaObject>()
         for (const artifact of result.specification.artifacts)
@@ -172,8 +169,7 @@ export const lint = (options: LintOptions): LintResult => {
                     found.add(schema)
             }
         for (const schema of config) {
-            if (schema.optional === true || isRecurring(schema) || found.has(schema)
-                || (schema.file !== undefined && !present.has(schema.file)))
+            if (!isDemanded(schema) || found.has(schema))
                 continue
             const file  = schema.file !== undefined ? path.join(options.basedir, schema.file) : options.config[0]
             const paren = schema.id !== undefined ? ` (${schema.id})` : ""

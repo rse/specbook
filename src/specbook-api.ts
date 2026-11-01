@@ -15,6 +15,7 @@ import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type Diagno
     from "./specbook-diagnostic.js"
 import { initSpecification }                             from "./specbook-cmd-init.js"
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
+import { isBelow }                                       from "./specbook-files.js"
 import { exportSpecification, watchSpecification, parseOutputSpec, formats,
     requireBrowser, parseOmit, omitAspects, type ExportFormat, type ExportOptions }
     from "./specbook-cmd-export.js"
@@ -271,6 +272,19 @@ export class SpecBook {
             dir !== undefined ? path.resolve(cwd, dir) : dir)
     }
 
+    /*  refuse a normalized Markdown output below the base directory (told
+        by its re-basing directory), as every ".md" file below the base
+        directory is a specification file and hence the output would be
+        parsed as one on the next run  */
+    private guardRebase (formats: ExportFormat[], rebase: (string | undefined)[] | undefined, basedir: string) {
+        for (const [ i, format ] of formats.entries()) {
+            const dir = rebase?.[i]
+            if (format === "md" && dir !== undefined && isBelow(dir, basedir))
+                throw new Error(`the Markdown output directory "${dir}" is at or below the base directory ` +
+                    `"${basedir}", so the output would be parsed as a specification file`)
+        }
+    }
+
     /*  parse the source of an export: the specification Markdown files
         below the base directory, or, under "schema", the specification
         generated out of the effective schema configuration itself (to
@@ -300,6 +314,8 @@ export class SpecBook {
         if (options.schema === true && options.basedir !== undefined)
             throw new Error("the base directory is not applicable to the export of the schema configuration")
         const project   = this.project(options, verbose)
+        if (options.schema !== true)
+            this.guardRebase(requested, this.rebaseOf(options), project.basedir ?? ".")
         const labels    = new Map<string, string>()
         const config    = await this.configFiles(project.config, this.remoteOptions(options, verbose), labels)
 
@@ -328,6 +344,8 @@ export class SpecBook {
         if (options.schema === true && options.basedir !== undefined)
             throw new Error("the base directory is not applicable to the export of the schema configuration")
         const project = this.project(options, verbose)
+        if (options.schema !== true)
+            this.guardRebase(options.formats, this.rebaseOf(options), project.basedir ?? ".")
         const labels  = new Map<string, string>()
         const config  = await this.configFiles(project.config, this.remoteOptions(options, verbose), labels)
 

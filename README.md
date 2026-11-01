@@ -203,12 +203,11 @@ Options:
 -   `-c|--config <schema-yaml-file>`:
     The YAML schema configuration (default: the `config` entry of the
     project configuration file `.specbook.yaml`, else the bundled standard
-    schema configuration `specbook-format.yaml`) determines the specification:
-    exactly the artifact files its `file` fields reference are loaded and
-    parsed; all other Markdown files below the base directory are ignored.
-    A referenced file which is absent is reported, unless all of its
-    artifacts are `optional`, and so is an artifact absent from its present
-    file, unless it is `optional` itself. Both `lint` and `export` report
+    schema configuration `specbook-format.yaml`) determines the artifacts
+    of the specification, while its `file` fields drive `init` only: every
+    `.md` file below the base directory is loaded and parsed, whatever its
+    name. A base directory without any `.md` file is reported, and so is an
+    artifact absent from all of them, unless it is `optional`. Both `lint` and `export` report
     all diagnostics and fail on any error among them (a warning, like a
     lapse of the reference coverage a `referenced` object kind demands,
     is reported only), so a partial or invalid specification is never
@@ -240,9 +239,11 @@ Options:
 
 -   `-b|--basedir <spec-md-file-basedir>`:
     The base directory (default: the `basedir` entry of the project
-    configuration file `.specbook.yaml`, else `.`) is the directory the
-    referenced artifact files are resolved against, and generated
-    specification Markdown files are placed inside it, too.
+    configuration file `.specbook.yaml`, else `.`) is the directory
+    whose `.md` files (recursively, except below `.`-prefixed entries)
+    make up the specification, and generated specification Markdown
+    files are placed inside it, too. A normalized Markdown export written
+    into it is refused, as it would be parsed as a specification file.
 
 -   `-F|--fetch <mode>`:
     When to fetch the remote references of the schema configuration
@@ -287,8 +288,9 @@ Options:
 
 -   `-w|--watch` (`export` only):
     Keep the outputs in sync with their sources: after the regular export,
-    the YAML schema configuration files, the referenced artifact files, and
-    all assets they embed are observed, and every change re-exports the
+    the YAML schema configuration files, the specification files, all
+    assets they embed, and the base directory itself (for added and removed
+    `.md` files) are observed, and every change re-exports the
     specification once the sources stayed silent for one second. A failed
     re-export is reported and leaves the observe loop intact, so a
     transiently invalid specification (or configuration) does not end the

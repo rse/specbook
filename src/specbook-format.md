@@ -255,9 +255,10 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE stable ids keep `[[xxx]]` references free of prose names
 
 -   `SchemaObject.file?: string`:
-    Markdown file the level 1 artifact is generated into and resides in,
+    Markdown file the level 1 artifact is generated into (by `init`),
     optionally shared with the other artifacts carrying the same file,
-    BECAUSE artifacts must map deterministically onto files
+    BECAUSE artifacts must map deterministically onto files when created,
+    while every `.md` file below the base directory is parsed afterwards
 
 -   `SchemaObject.desc?: string`:
     prose description of the object kind,
@@ -1011,7 +1012,7 @@ type SpecProperty = {
     BECAUSE a specification is one corpus of separately authored files
 
 -   `Spec.artifacts: SpecArtifact[]`:
-    all artifacts parsed from the Markdown files the SCHEMA references,
+    all artifacts parsed from the Markdown files below the base directory,
     BECAUSE the corpus is parsed as a whole to resolve references
 
 -   `SpecArtifact`:
@@ -1130,9 +1131,10 @@ SpecBook SPEC Model
 
 ### Artifacts
 
-A specification consists of Markdown *artifact* files, which the SCHEMA
-Model references by their `file` fields and which are resolved against
-a base directory. Every file has to start with
+A specification consists of Markdown *artifact* files: every `.md` file
+below a base directory (recursively, except below `.`-prefixed entries),
+whatever its name, while the `file` fields of the SCHEMA Model only tell
+where the generated files are created. Every file has to start with
 a "frontmatter" block carrying the `Created:` and `Modified:` timestamps
 (format `yyyy-LL-dd HH:mm`):
 
@@ -1145,10 +1147,11 @@ Modified: 2026-06-18 10:18
 
 Every level 1 heading opens a new *artifact*, so usually each file
 carries exactly one. Several artifacts nevertheless reside in one file
-whenever the schema configures the same `file` for them: they then
-follow each other on level 1, below the single frontmatter block of that
-file. Both ATX headings (`# <text/>`, `## <text/>`, ...) and Setext
-headings (`<text/>` underlined with `===` or `---`) are supported.
+whenever the schema configures the same `file` for them (or the author
+places them so): they then follow each other on level 1, below the
+single frontmatter block of that file. Both ATX headings (`# <text/>`,
+`## <text/>`, ...) and Setext headings (`<text/>` underlined with `===`
+or `---`) are supported.
 
 As the timestamps are a property of the *file* and not of the individual
 artifact, the normalized Markdown export -- which merges the entire

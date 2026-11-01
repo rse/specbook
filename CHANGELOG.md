@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   CHANGE [code]: Every Markdown File Below the Base Directory Is Specification
+    `lint`, `export`, and `preview` parse and observe all `.md` files below the base directory
+    (added files included), while the `file` fields of the schema drive `init` only.
+
 -   CHANGE [code, spec]: Runtime View Artifact (BREAKING: File Renumbering)
     The new artifact `ARCH: Runtime View` (`26-ARCH-RV`) precedes the moved Concurrency View, so
     rename the files: `28-CO` → `27-CO`, `26-TS` → `28-TS`, `27-DA` → `29-DA`, and `29`–`34` by +1.

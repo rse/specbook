@@ -149,6 +149,9 @@ API.
         registry and GitHub, the report of the artifacts several
         configuration files define, and the installation constants
         `version`, `standardConfig`, and `metaConfig`
+    -   `src/specbook-files.ts`: the recursive scan of the specification
+        Markdown files below the base directory (`specFiles`) and the
+        below-directory predicate (`isBelow`) of the Markdown output guard
     -   `src/specbook-diagnostic.ts`: the `Diagnostic` type and its
         single-line/verbose renderers, shared by all layers
     -   `src/specbook-verbose.ts`: the marking (`literal`) and rendering
@@ -533,21 +536,35 @@ the keyword at build time in its "Sharing" section
 A level 1 object kind configured with neither `name` nor `id` is a
 *recurring* artifact (`isRecurring` of `src/specbook-parse-semantic.ts`):
 `resolveArtifact` matches every level 1 object of its kind onto it as a
-last resort, it is optional by definition (`lint` neither demands it
-nor its file), the bare `init` emits no heading for it, and `init
---sample` names its sample object like a nested one.
+last resort, it is optional by definition (`lint` never demands it),
+the bare `init` emits no heading for it, and `init --sample` names its
+sample object like a nested one.
 
-Exactly the artifact files referenced by its `file` fields are loaded and parsed,
-resolved against the base directory, in which generated specification
-Markdown files are placed, too. All other Markdown files below the base
-directory are ignored, while a referenced but absent file is reported
-unless all of its artifacts are optional.
+The `file` fields of the artifacts drive `init` only, which places the
+generated specification Markdown files below the base directory. The
+specification itself is *every* `.md` file below the base directory
+(`specFiles` of `src/specbook-files.ts`: recursively, the `.`-prefixed
+entries skipped, sorted by path), as all of them are taken for SpecBook
+ones, whatever their names, and the artifacts are ordered along the
+schema configuration afterwards anyway. A base directory holding no
+`.md` file at all is the error `no specification files found`, and a
+demanded (neither `optional` nor recurring) artifact found in no file is
+the error `missing artifact "..."`, reported against its configured
+`file` below the base directory (where `init` would create it, present
+or not), else against the schema configuration file. As a normalized
+Markdown output below the base directory would be parsed as a
+specification file on the next run, `export` (and `preview`) refuse an
+`md` output whose re-basing directory is at or below the base directory
+(`guardRebase` of `src/specbook-api.ts`, `isBelow` of
+`src/specbook-files.ts`).
 
 The option `-g`/`--gitignore` of `lint`, `export`, and `preview` (the
-API/MCP option `gitignore`, default `false`) additionally makes an
-artifact file the Git exclude rules prune out of its project count as an
-*absent* one -- silently for an artifact which is optional anyway, and as
-the error `artifact file excluded by Git` otherwise. The rule sources and
+API/MCP option `gitignore`, default `false`) additionally sets aside a
+specification file the Git exclude rules prune out of its project, as
+it is no part of the project -- silently if all of its artifacts are
+optional (which its separate parsing tells, as its own diagnostics are
+irrelevant), and as the error `artifact file excluded by Git`
+otherwise. The rule sources and
 their precedence are Git's own: the global excludes file
 (`core.excludesFile`, else the XDG fallback), the repository-local
 `info/exclude` of the Git *common* directory (so a linked worktree shares
@@ -698,13 +715,17 @@ output file -- the CLI rendering the Markdown once per distinct output
 directory.
 
 The export option `-w`/`--watch` performs the regular export and then
-observes the schema configuration files, the referenced artifact files,
-and their embedded assets, re-exporting once a change burst stayed
-silent for one second, where a failed re-export is reported but leaves
-the observe loop intact and where `-` (stdout) and an output which is
-itself an observed source file are rejected as an output. The observed
-set is re-synchronized after every re-export, as an edit can add or drop
-an embedded asset.
+observes the schema configuration files, the specification files, their
+embedded assets, and the base directory as a whole (below which only the
+`.md` files and the observed assets count, so an export output written
+into it never re-triggers the export, and whose `.`-prefixed directories
+are never entered), re-exporting once a change burst stayed silent for
+one second, where a failed re-export is reported but leaves the observe
+loop intact and where `-` (stdout) and an output which is itself an
+observed source file are rejected as an output. The observed set is
+re-synchronized after every re-export, as an edit can add or drop an
+embedded asset, while an added or removed specification file is noticed
+through the base directory.
 
 The HTML export embeds the diagram SVGs at half their coordinate scale
 (the node names at about the document text size) and strips their

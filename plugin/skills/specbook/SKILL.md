@@ -339,10 +339,12 @@ when the <query/> explicitly asks for an ad-hoc change.
     </if>
 
 2.  Resolve the specification Markdown files: they are *exactly* the
-    files the `file` fields of the artifacts in the schema configuration
-    reference, resolved against <basedir/>. Set <artifact-count/> to
-    the number of those files which exist. Do *not* read the files
-    themselves in this item. Do not output anything.
+    `.md` files below <basedir/> (recursively, except below `.`-prefixed
+    entries), as every one of them is a SpecBook one, while the `file`
+    fields of the artifacts in the schema configuration only tell where
+    `init` creates a file. Set <artifact-count/> to the number of those
+    files. Do *not* read the files themselves in this item. Do not
+    output anything.
 
 3.  Only output the following <template/> (an empty <opt-config/>
     rendering as `(default)`):
@@ -376,8 +378,10 @@ explained, or modified *ad-hoc* in plain conversation -- i.e. *outside*
 of the commands of this skill:
 
 -   **Resolution**: You *MUST* resolve the specification Markdown files
-    through the `file` fields of the schema configuration and
-    <basedir/> and *never* guess their file paths.
+    as the `.md` files below <basedir/> (recursively, except below
+    `.`-prefixed entries) and *never* guess their file paths; a new
+    artifact file goes to the path the `file` field of its artifact in
+    the schema configuration names below <basedir/>.
 
 -   **Interpretation**: You *MUST* interpret the specification content
     strictly according to the retrieved SpecBook description: object
@@ -538,9 +542,12 @@ code, documentation, or other files are ever touched.
         </if>
 
     2.  Resolve the specification Markdown files: they are *exactly* the
-        files the `file` fields of the artifacts in the schema
-        configuration reference, resolved against <basedir/>. You
-        *MUST* *NEVER* guess other file paths. Do not output anything.
+        `.md` files below <basedir/> (recursively, except below
+        `.`-prefixed entries), as every one of them is a SpecBook one.
+        You *MUST* *NEVER* guess other file paths, and a new artifact
+        file goes to the path the `file` field of its artifact in the
+        schema configuration names below <basedir/>. Do not output
+        anything.
 
     3.  Read all resolved files which are related to <todo-what/> and
         <todo-how/>, and check the structure of the existing

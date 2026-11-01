@@ -5,6 +5,7 @@
 */
 
 import * as fs                       from "node:fs"
+import * as path                     from "node:path"
 
 /*  Chokidar is aliased in "package.json", as Nunjucks declares the
     (unused) Chokidar 3 as an optional peer dependency and the current
@@ -115,7 +116,16 @@ export const watchSpecification = async (
     const started = Date.now()
     let observed  = await run()
     let times     = snapshot(observed)
-    const watcher = watch(observed, { ignoreInitial: true })
+
+    /*  the observed set carries the base directory as a whole (so the
+        added and removed specification files are noticed, too), below
+        which only the Markdown files and the explicitly observed files
+        count, as any other file written into it (like an export output)
+        would re-trigger the export endlessly, and whose "."-prefixed
+        directories (like ".git") the specification never spans  */
+    const watcher = watch(observed, { ignoreInitial: true,
+        ignored: (file, stats) => stats !== undefined && !observed.includes(file)
+            && (stats.isDirectory() ? path.basename(file).startsWith(".") : !file.endsWith(".md")) })
     verbose(`observing ${literal(observed.length)} specification file(s) for changes`)
 
     /*  report the failures of the observation itself, as an unhandled
@@ -125,13 +135,16 @@ export const watchSpecification = async (
             (err instanceof Error ? err.message : String(err)), "none")
     })
 
-    /*  perform a re-export and re-synchronize the observed files  */
+    /*  perform a re-export and re-synchronize the observed files (the
+        observed set is replaced before the watcher is fed, as its filter
+        above consults it)  */
     const cycle = async () => {
-        const files = await run()
-        watcher.unwatch(observed.filter((file) => !files.includes(file)))
-        watcher.add(files.filter((file) => !observed.includes(file)))
+        const files    = await run()
+        const previous = observed
         observed = files
         times    = snapshot(files)
+        watcher.unwatch(previous.filter((file) => !files.includes(file)))
+        watcher.add(files.filter((file) => !previous.includes(file)))
     }
 
     /*  restart the quiet period on every change, so a burst collapses
