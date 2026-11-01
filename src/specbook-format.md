@@ -146,6 +146,8 @@ type SchemaDiagram = {
     places?:           string
     tokens?:           string
     capacity?:         string
+    duration?:         string
+    start?:            string
     hierarchy?:        boolean
     deep?:             boolean
     descend?:          string[]
@@ -157,7 +159,7 @@ type SchemaDiagram = {
     markUncovered?:    "none" | "referenced" | "coverage" | "all"
     nest?:             SchemaDiagramNest
     properties?:       string[]
-    config?:           Partial<GradiaConfig>
+    config?:           SchemaGradiaConfig
 }
 type SchemaFormat = {
     type?:             "auto" | "complex" | "compact" | "concise"
@@ -191,13 +193,31 @@ type SchemaGradiaConfig = Partial<{
     "color-node-self-name":      string
     "color-node-self-box":       string
     "color-node-self-border":    string
+    "color-node-lifeline":       string
     "color-group-name":          string
     "color-group-box":           string
     "color-group-border":        string
+    "color-container-name":      string
+    "color-container-box":       string
+    "color-container-border":    string
+    "color-composite-border":    string
+    "color-node-pseudo-name":    string
+    "color-node-pseudo-box":     string
+    "color-node-pseudo-border":  string
+    "color-node-place-name":     string
+    "color-node-place-box":      string
+    "color-node-place-border":   string
     "color-edge-line":           string
     "color-edge-name":           string
     "color-edge-arity":          string
     "color-edge-halo":           string
+    "color-mark-violation":      string
+    "color-mark-critical":       string
+    "size-font-node":            number
+    "size-font-type":            number
+    "size-font-prop":            number
+    "size-font-edge":            number
+    "size-font-arity":           number
     "size-canvas-margin":        number
     "size-node-width-min":       number
     "size-node-width-max":       number
@@ -208,6 +228,7 @@ type SchemaGradiaConfig = Partial<{
     "size-edge-port-gap":        number
     "group-box-padding":         number
     "group-box-gap":             number
+    "container-box-padding":     number
     "graph-columns-max":         number
     "graph-channel-width-max":   number
     "graph-channel-width-min":   number
@@ -220,12 +241,28 @@ type SchemaGradiaConfig = Partial<{
     "hub-channel-width-min":     number
     "hub-node-gap":              number
     "hub-node-degree-max":       number
+    "hub-node-count-max":        number
     "grid-columns-max":          number
     "grid-columns-min":          number
     "grid-gap-horizontal":       number
     "grid-gap-vertical":         number
     "grid-node-width-equal":     boolean
     "grid-node-height-equal":    boolean
+    "sequence-column-gap":       number
+    "sequence-message-gap":      number
+    "tree-level-gap":            number
+    "tree-sibling-gap":          number
+    "tree-row-max":              number
+    "tree-stack-min":            number
+    "tree-stack-double":         boolean
+    "tree-node-width-equal":     boolean
+    "tree-horizontal":           boolean
+    "gantt-unit-width":          number
+    "gantt-unit-name":           string
+    "gantt-critical":            boolean
+    "mark-violation":            boolean
+    "layer-numbered":            boolean
+    "slice-numbered":            boolean
 }>
 ```
 
@@ -681,15 +718,24 @@ type SchemaGradiaConfig = Partial<{
 
 -   `SchemaGradiaConfig."color-node-*": string`:
     colors of the node boxes in their regular, primary, ghost, and self
-    role,
+    role, of the pseudo-states of a `state` diagram, of the places of a
+    `petri` diagram, and of the lifelines of a `sequence` diagram,
     BECAUSE the role of a node has to be readable at a glance
 
--   `SchemaGradiaConfig."color-group-*", "color-edge-*": string`:
-    colors of the group boxes and of the edges and their labels,
+-   `SchemaGradiaConfig."color-{group,container,composite,edge}-*": string`:
+    colors of the group, container, and composite boxes and of the
+    edges and their labels,
     BECAUSE both have to stay visible yet recede behind the nodes
 
--   `SchemaGradiaConfig."size-*", "group-box-*": number`:
-    geometry of the canvas, the node boxes, and the edge routing,
+-   `SchemaGradiaConfig."color-mark-*": string`:
+    colors of the violation marks and of the critical path of a `gantt`
+    diagram,
+    BECAUSE a flaw or a bottleneck has to stand out from the regular drawing
+
+-   `SchemaGradiaConfig."size-*", "group-box-*", "container-box-*": number`:
+    font sizes of the node names, types, properties, edge names, and
+    arities, and geometry of the canvas, the node, group, and container
+    boxes, and the edge routing,
     BECAUSE the geometry has to fit both the page and the text lengths
 
 -   `SchemaGradiaConfig."graph-*": number`:
@@ -697,12 +743,35 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE a free network needs room for its edges, not just its nodes
 
 -   `SchemaGradiaConfig."hub-*": number`:
-    layout of a `hub`: channel widths, node gap, and node degree,
+    layout of a `hub`: channel widths, node gap, node degree, and the
+    node count of a column before it wraps into two staggered sub-columns,
     BECAUSE a hub grows sideways and has to be bounded per side
 
 -   `SchemaGradiaConfig."grid-*": number | boolean`:
     layout of a `grid`: column bounds, tile gaps, and tile width,
     BECAUSE a catalog reads best as evenly sized tiles in stable columns
+
+-   `SchemaGradiaConfig."sequence-*": number`:
+    layout of a `sequence`: the gap between the lifelines and between
+    the messages,
+    BECAUSE an interaction reads top-down only with room between its steps
+
+-   `SchemaGradiaConfig."tree-*": number | boolean`:
+    layout of a `tree`: level and sibling gaps, the nodes per row, the
+    stacking of leaf siblings, equal node widths, and a horizontal
+    orientation,
+    BECAUSE a wide or deep hierarchy has to fit the page width
+
+-   `SchemaGradiaConfig."gantt-*": number | string | boolean`:
+    layout of a `gantt`: the width and the name of a time unit and the
+    marking of the critical path,
+    BECAUSE the time scale of a schedule is domain-specific
+
+-   `SchemaGradiaConfig."mark-violation", "layer-numbered", "slice-numbered": boolean`:
+    whether violations are marked at all (e.g. the cycles of a `matrix`
+    or the cross links of a `tree`) and whether the bands of a `layer`
+    or `slice` diagram are numbered,
+    BECAUSE a structure which is legitimate in one domain is a flaw in another
 
 ### Links
 
@@ -837,8 +906,9 @@ backpressure), the places holding a token in a deadlock, and the dead
 and non-live transitions. The net is validated, each violation reported
 on its object: the tokens are an integer of at least 0, the capacity one
 of at least 1 holding them, and an arc connects a place with a
-transition. A `petri` diagram accepts no `nest`, and `tokens` and
-`capacity` require `places`.
+transition. A `petri` diagram accepts no `nest`, `places`, `tokens`,
+and `capacity` apply to it alone, and `tokens` and `capacity` require
+`places`.
 
 A `gantt` diagram draws a Gantt chart: the node objects are its tasks
 (one row each, a task without a `duration` being a milestone), the
@@ -879,6 +949,11 @@ rendering options (e.g. `grid-columns-max: 2`) through to the diagram.
 As the Gradia defaults are dimensioned for a stand-alone canvas,
 SpecBook presets a compact geometry for every diagram, which `config`
 overrides: `size-canvas-margin: 8`, `size-node-height-scale: 2`,
+`size-font-type`, `size-font-edge`, and `size-font-arity: 19` (about
+20% over the Gradia defaults, as the diagrams are embedded at half
+their coordinate scale), `size-edge-track-gap: 20` (the parallel edges
+spread further apart), `graph-channel-width-max: 1000` (a capped
+channel squeezes its many edges into an unreadable bundle),
 `hub-node-gap: 10`, `hub-node-count-max: 6` (a `hub` column of more
 nodes wraps into two staggered sub-columns), `grid-gap-horizontal: 24`,
 `grid-gap-vertical: 12`, and `grid-columns-min: 4` (the square
@@ -957,7 +1032,12 @@ one ignores it), `maxCellHeight`
 the height of every other non-empty cell of its row before the HTML
 export folds its remaining text away, and `withUnusedProps`
 (default: `false`) unconditionally renders the defined but unused
-properties of that kind, as property table lines or table columns. In
+properties of that kind, as property table lines or table columns.
+Within a `concise` table, the name column takes a fixed fifth of the
+width, the description column two shares of the rest, and every property
+column one to two and a half shares by its longest word (its header
+included), so a property name or a reference kind label never breaks
+inside a narrow column. In
 the HTML/PDF export, a property absent from an object shows an "empty
 set" marker in place of its value, which tells it apart from a property
 given with an empty value.
@@ -1124,7 +1204,10 @@ several such files, merged in order into one schema (the later files
 into the earlier ones, where the objects merge deeply and the elements
 of the lists are matched by their identity). If no particular schema is
 given, the standard schema configuration bundled with **SpecBook**
-applies.
+applies. Beside it (named `std`), **SpecBook** bundles the meta schema
+configuration (named `meta`), which describes a schema configuration
+itself, and the project management schema configuration (named `pm`),
+which plans the delivery of the solution a specification describes.
 
 SpecBook SPEC Model
 -------------------
