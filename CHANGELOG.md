@@ -13,6 +13,10 @@ ChangeLog
     An inline code span breaks behind its commas, semicolons, and pipes, and else inside a word,
     so a long space-less span like a value expression no longer overflows its table cell.
 
+-   BUGFIX [code]: No References Inside Inline Code Spans
+    A `[[...]]` inside an inline code span is plain code now, like inside a fenced code block,
+    instead of being expanded into link markup, which the code span then showed as raw HTML.
+
 -   IMPROVEMENT [code]: Remote Schema Configurations
     `-c` accepts the remote references `npm:`, `github:`, and `http[s]:` (cached, per `--fetch`),
     and `specbook search` finds the shareable schema configurations on npm and GitHub.

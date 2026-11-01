@@ -385,6 +385,14 @@ marked.use({ renderer: { code (token) {
     return listing !== undefined && listings !== null ? renderListingBlock(listings, listing) : false
 } } })
 
+/*  render an inline code span with a line break opportunity behind every
+    separator (comma, semicolon, pipe), so an overlong span without any
+    space (like a long value expression) breaks there, ahead of breaking
+    inside a word (the last resort of the stylesheet)  */
+marked.use({ renderer: { codespan (token) {
+    return `<code>${escapeHtml(token.text).replace(/([,;|])(?=.)/g, "$1<wbr>")}</code>`
+} } })
+
 /*  strip the fenced code blocks of a diagram language or a code listing
     off a text  */
 const stripDiagrams = (text: string): string =>

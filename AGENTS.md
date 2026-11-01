@@ -573,7 +573,11 @@ property value stays a `data:` definition), so it round-trips, while
 the AST exports carry the `data:` URL unchanged. All code -- listings,
 plain `pre` blocks, and inline code spans (scaled to `0.89em`, so the
 x-height matches Source Sans 3) -- uses the embedded DejaVu Sans Mono
-faces (regular, bold, italic) of `@fontsource/dejavu-mono`.
+faces (regular, bold, italic) of `@fontsource/dejavu-mono`. An inline
+code span carries a `<wbr>` behind every comma, semicolon, and pipe (the
+`codespan` renderer of `src/specbook-export-html-render.ts`) and, as the
+last resort, breaks inside a word (`overflow-wrap: anywhere`), so a long
+space-less span (like a value expression) never overflows its cell.
 
 An embedded PDF page -- `![alt](file.pdf)` or `![alt](file.pdf#page=<n>)`
 for the 1-based page `<n>` -- is loaded by the parser as a
