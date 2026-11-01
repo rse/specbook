@@ -169,10 +169,13 @@ const badgeOf = (ctx: DiagramContext, object: SpecObject): BadgeIcon | undefined
 type PseudoState = "initial" | "final"
 
 /*  the derived nesting of the nodes of a diagram: the container node
-    of every nested node, plus the set of all container nodes  */
+    of every nested node, plus the set of all container nodes, and (for
+    a "tree" diagram only) the further containers a property carrying
+    several references names beyond the first one  */
 interface DiagramNesting {
     parentOf:   Map<SpecObject, SpecObject>
     containers: Set<SpecObject>
+    furtherOf:  Map<SpecObject, SpecObject[]>
 }
 
 /*  generate the Gradia spec text of a derived diagram, opened by a
@@ -594,27 +597,38 @@ const deriveCenterEdges = (ctx: DiagramContext, cfg: SchemaDiagramCenterEdges, n
 
 /*  derive the nesting of the nodes into container nodes: per node the
     first configured property carrying exactly one resolvable reference
-    names its container (added to the node set when absent, and nested
-    on its own in turn), else its parent object when part of the node
-    set, else a synthetic container per object kind; a node nested into
-    itself or into a cycle stays un-nested and is reported  */
+    (or, with "multiple", at least one, the further ones collected
+    apart) names its container (added to the node set when absent, and
+    nested on its own in turn), else its parent object when part of the
+    node set, else a synthetic container per object kind; a node nested
+    into itself or into a cycle stays un-nested and is reported  */
 const deriveNesting = (ctx: DiagramContext, nest: SchemaDiagramNest, nodes: SpecObject[],
-    nodeSet: Set<SpecObject>, errors: DiagramError[]): DiagramNesting => {
+    nodeSet: Set<SpecObject>, errors: DiagramError[], multiple = false): DiagramNesting => {
     const { index, parents, parenProps } = ctx
-    const parentOf = new Map<SpecObject, SpecObject>()
-    const byKind   = new Map<string, SpecObject>()
+    const parentOf  = new Map<SpecObject, SpecObject>()
+    const furtherOf = new Map<SpecObject, SpecObject[]>()
+    const byKind    = new Map<string, SpecObject>()
+    const include   = (container: SpecObject) => {
+        if (!nodeSet.has(container)) {
+            nodes.push(container)
+            nodeSet.add(container)
+        }
+    }
 
     /*  the iteration also visits the containers appended underway  */
     for (const node of nodes) {
         let container: SpecObject | undefined
+        let further = new Array<SpecObject>()
         for (const key of nest.properties ?? []) {
-            const value = propValue(parenProps, node, key)
-            const refs  = value !== undefined ? Array.from(referenceText(value).matchAll(referenceRegex)) : []
-            if (refs.length !== 1)
-                continue
-            container = resolveUnique(index, refs[0][1].trim(), node).target
-            if (container !== undefined)
+            const value   = propValue(parenProps, node, key)
+            const refs    = value !== undefined ? Array.from(referenceText(value).matchAll(referenceRegex)) : []
+            const targets = (multiple || refs.length === 1 ? refs : [])
+                .map((ref) => resolveUnique(index, ref[1].trim(), node).target)
+                .filter((target): target is SpecObject => target !== undefined)
+            if (targets.length > 0) {
+                [ container, ...further ] = targets
                 break
+            }
         }
         if (container === undefined && nest.parent === true) {
             const parent = parents.get(node)
@@ -641,12 +655,13 @@ const deriveNesting = (ctx: DiagramContext, nest: SchemaDiagramNest, nodes: Spec
             continue
         }
         parentOf.set(node, container)
-        if (!nodeSet.has(container)) {
-            nodes.push(container)
-            nodeSet.add(container)
+        include(container)
+        if (further.length > 0) {
+            furtherOf.set(node, further)
+            further.forEach(include)
         }
     }
-    return { parentOf, containers: new Set(parentOf.values()) }
+    return { parentOf, containers: new Set(parentOf.values()), furtherOf }
 }
 
 /*  lift the edges crossing a container boundary onto the containers:
@@ -798,12 +813,12 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
         state needing an initial state of its own), dropping the edges
         between a container and its own members, which Gradia rejects,
         as the nesting already shows them  */
-    let nesting: DiagramNesting = { parentOf: new Map(), containers: new Set() }
+    let nesting: DiagramNesting = { parentOf: new Map(), containers: new Set(), furtherOf: new Map() }
     if (diagram.nest !== undefined) {
         if (type === "hub" || type === "state")
             errors.push({ reason: `"${type}" diagram cannot carry a "nest" configuration` })
         else {
-            nesting = deriveNesting(ctx, diagram.nest, nodes, nodeSet, errors)
+            nesting = deriveNesting(ctx, diagram.nest, nodes, nodeSet, errors, type === "tree")
             const banded = type === "layer" || type === "slice"
             if ((banded || type === "tree" || type === "matrix") && diagram.nest.layout !== undefined)
                 errors.push({ reason: `"${type}" diagram cannot carry a "nest" layout configuration` })
@@ -830,10 +845,15 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
             /*  a "tree" diagram draws the nesting as its parent-to-child
                 edges (the containers staying nodes), placed first, as the
                 first edge into a node makes its source the parent, while
-                every other edge becomes a dashed cross link  */
+                every other edge (the ones from the further containers of
+                a node included) becomes a dashed cross link  */
             if (type === "tree")
-                edges = [ ...Array.from(nesting.parentOf, ([ member, container ]) =>
-                    ({ source: container, target: member })), ...edges ]
+                edges = [
+                    ...Array.from(nesting.parentOf, ([ member, container ]) => ({ source: container, target: member })),
+                    ...Array.from(nesting.furtherOf).flatMap(([ member, further ]) =>
+                        further.map((container) => ({ source: container, target: member }))),
+                    ...edges
+                ]
         }
     }
     if ((type === "layer" || type === "slice") && diagram.ordered === true)

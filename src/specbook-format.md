@@ -475,7 +475,9 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE a containment drawn as a box beats one drawn as an edge
 
 -   `SchemaDiagramNest.properties?: string[]`:
-    properties whose single referenced object is the container of a node,
+    properties whose single referenced object is the container of a node
+    (in a `tree` diagram the first of several referenced objects, the
+    others becoming further parents),
     BECAUSE a `PART-OF` or `TIER` reference is a containment, not a relation
 
 -   `SchemaDiagramNest.parent?: boolean`:
@@ -686,9 +688,13 @@ band closing a direct cycle is marked as a violation.
 A `tree` diagram draws a tidy tree (or a forest of them): the `nest`
 container of a node becomes its parent, so a child-to-parent reference
 like `BROADER` or `PART-OF`, named by `nest.properties`, yields the
-tree, while the containers stay nodes. Every other edge is drawn as a
-dashed cross link and marked as a violation (unless `config` sets
-`mark-violation: false`), so `links: []` derives a pure tree. With
+tree, while the containers stay nodes. Where such a property carries
+several references (like a multiple `INHERITS`), the first one names
+the parent and the others further parents. Every other edge (the ones
+from the further parents included) is drawn as a dashed cross link and
+marked as a violation (unless `config` sets `mark-violation: false`, as
+for a legitimate multiple inheritance), so `links: []` derives a pure
+tree (plus its further parents). With
 `ordered: true` the children follow the document order. A `tree`
 diagram accepts neither `nest.layout` nor a lifting `nest.crossing`.
 

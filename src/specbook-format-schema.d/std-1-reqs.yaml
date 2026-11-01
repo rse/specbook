@@ -295,6 +295,8 @@
             nest:
                 properties:
                     -   INHERITS
+            config:
+                mark-violation: false
     children:
         -   kind: ROLE
             desc: >
