@@ -353,6 +353,9 @@
         interactions, describing *how* the solution's runtime elements are structured and which
         responsibility each owns, delivering the behaviors the Functional Requirements state.
     optional: true
+    coverage:
+        -   "[[FR.REQUIREMENT:*]]"
+        -   "[[DM.ENTITY:*]]"
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Functional Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/functional/
@@ -597,6 +600,8 @@
         solution runs as a single sequential unit of execution and has no concurrency structure
         worth describing.
     optional: true
+    coverage:
+        -   "[[FV.COMPONENT:*]]"
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Concurrency Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/concurrency/
@@ -1127,6 +1132,8 @@
         The environment into which the solution is deployed, partitioning it into tiers and mapping
         software elements to the runtime platform, hardware, and network topology.
     optional: true
+    coverage:
+        -   "[[UNIT:*]]"
     refs: >
         -   Rozanski/Woods: Software Systems Architecture, 2nd ed.: The Deployment Viewpoint (2011),
             https://www.viewpoints-and-perspectives.info/home/viewpoints/deployment/

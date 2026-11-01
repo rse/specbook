@@ -312,6 +312,8 @@
         -   NN/g: Storyboards Help Visualize UX Ideas (2018),
             https://www.nngroup.com/articles/storyboards-visualize-ideas/
     optional: true
+    coverage:
+        -   "[[USE-CASE:*]]"
     diagram:
         type: grid
         nodes: "[[STORYBOARD:*]]"

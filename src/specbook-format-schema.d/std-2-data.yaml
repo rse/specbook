@@ -353,6 +353,9 @@
         domain rules. The model is closed: an operation not granted to a role is forbidden,
         exactly like a move not listed as a state transition.
     optional: true
+    coverage:
+        -   "[[DM.ENTITY:*]]"
+        -   "[[USE-CASE:*]]"
     refs: >
         -   Ferraiolo/Kuhn: Role-Based Access Controls, 15th National Computer Security Conference (1992),
             https://csrc.nist.gov/publications/detail/conference-paper/1992/10/13/role-based-access-controls

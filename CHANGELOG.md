@@ -9,6 +9,10 @@ ChangeLog
     The new artifact `ARCH: Runtime View` (`26-ARCH-RV`) precedes the moved Concurrency View, so
     rename the files: `28-CO` → `27-CO`, `26-TS` → `28-TS`, `27-DA` → `29-DA`, and `29`–`34` by +1.
 
+-   IMPROVEMENT [spec]: Traceability Coverage Reports
+    The standard schema reports coverage on the Functionality, Runtime, Concurrency, and Deployment
+    Views, the Authorization Model, and the Dialog Storyboard, tracing requirements down to nodes.
+
 -   IMPROVEMENT [code]: Content-Aware Table Column Widths
     The property columns of a concise table take one to two and a half shares by their longest word,
     so a reference kind label or a property name no longer breaks inside a narrow column.

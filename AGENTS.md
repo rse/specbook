@@ -591,7 +591,12 @@ HTML/PDF export renders a coverage table (kinds,
 counts, ratio bar) below the description of the reporting object, and
 the AST exports attach the counts as its `coverage` field. The standard
 schema configuration reports the use case, scenario, requirement, and
-rule coverage on the Test Cases artifact.
+rule coverage on the Test Cases artifact, plus the traceability chain
+of the architecture (the functional requirements and entities on the
+Functionality View, the use cases and scenarios on the Runtime View,
+the components on the Concurrency View, the units on the Deployment
+View), the entities and use cases on the Authorization Model, and the
+use cases on the Dialog Storyboard.
 
 The export output option `-o`/`--output` (`-` for stdout) is required
 (an absent one is an error, unless `SPECBOOK_OUTPUT` provides it) and can
