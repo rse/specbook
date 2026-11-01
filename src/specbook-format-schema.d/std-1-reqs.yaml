@@ -322,7 +322,9 @@
                 type: hub
                 center: self
                 nodes: "[[ROLE:*]], [[TERM:*]], [[PERSONA:*]], [[WORKFLOW:*]], [[ACTIVITY:*]],
-                    [[USE-CASE:*]], [[TRANSITION:*]], [[CV.ENTITY:*]]"
+                    [[USE-CASE:*]], [[TRANSITION:*]], [[CV.ENTITY:*]], [[INTERACTION:*]]"
+                descend:
+                    -   MESSAGE
                 labeled: true
                 qualified: true
                 config:

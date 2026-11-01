@@ -1111,6 +1111,11 @@ table.objects th
     background-color: var(--theme-color-specbook-tint)
     box-sizing: border-box
 
+/*  the kind label of a reference stays in one piece (not broken at
+    a hyphen), as the column widths account for it anyway  */
+table.objects td .object-kind
+    white-space: nowrap
+
 /*  the name column of every compact table at a fixed width, so that the
     columns of the consecutive tables align  */
 table.objects th.object-kind

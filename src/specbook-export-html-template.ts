@@ -265,6 +265,7 @@ const templates = {
                     <td><span{% if row.spec %} data-info-spec="{{ row.spec }}"{% endif %}>{{ row.name }}</span>{% if row.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if row.paren %} <span class="anchor-paren">({{ row.paren }})</span>{% endif %} <a href="#{{ row.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></td>
                     <td class="chunks">
                         <table class="chunks">
+                            <colgroup>{% for width in Table.widths %}<col style="width: {{ width }}%">{% endfor %}</colgroup>
                             {% for chunk in row.chunks %}
                             <tr>{% for cell in chunk %}<th{% if not cell.desc %} class="property-name"{% endif %}{% if cell.span > 1 %} colspan="{{ cell.span }}"{% endif %}><span{% if not cell.desc and Table.info %} data-info="{{ Table.info }}" data-info-path="{{ row.spec }}" data-info-prop="{{ cell.key }}"{% endif %}>{{ cell.key }}</span></th>{% endfor %}</tr>
                             <tr>{% for cell in chunk %}<td{% if cell.span > 1 %} colspan="{{ cell.span }}"{% endif %}>{{ cell.value }}</td>{% endfor %}</tr>

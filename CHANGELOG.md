@@ -9,9 +9,9 @@ ChangeLog
     The new artifact `ARCH: Runtime View` (`26-ARCH-RV`) precedes the moved Concurrency View, so
     rename the files: `28-CO` → `27-CO`, `26-TS` → `28-TS`, `27-DA` → `29-DA`, and `29`–`34` by +1.
 
--   IMPROVEMENT [code]: Interactions in the Component Hubs
+-   IMPROVEMENT [code]: Interactions in the Component, Role, and Context Entity Hubs
     The new diagram option `descend` attributes the references of descendants of listed kinds to
-    their node, so a component hub shows the interactions its runtime messages involve it in.
+    their node, so the hubs show the interactions whose messages involve their center object.
 
 -   IMPROVEMENT [code]: Sequence Diagram Message Validation
     The messages of a `sequence` diagram are validated like Gradia does (participant lifecycle,
@@ -22,8 +22,8 @@ ChangeLog
     Views, the Authorization Model, and the Dialog Storyboard, tracing requirements down to nodes.
 
 -   IMPROVEMENT [code]: Content-Aware Table Column Widths
-    The property columns of a concise table take one to two and a half shares by their longest word,
-    so a reference kind label or a property name no longer breaks inside a narrow column.
+    The property columns of the concise (also split) tables take one to two and a half shares by
+    their longest word, so a reference kind label or a property name no longer breaks inside.
 
 -   IMPROVEMENT [code]: Sequence Diagrams
     The new diagram type `sequence` draws edge objects as messages with the options `edgeKind`

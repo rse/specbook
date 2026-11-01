@@ -264,6 +264,18 @@
             format:
                 type: compact
                 maxTableColumns: 5
+            diagram:
+                type: hub
+                center: self
+                nodes: "[[CV.ENTITY:*]], [[PREMISE:*]], [[TERM:*]], [[ROLE:*]], [[USE-CASE:*]],
+                    [[INTERFACE:*]], [[INTERACTION:*]], [[DECISION:*]]"
+                descend:
+                    -   MESSAGE
+                labeled: true
+                qualified: true
+                config:
+                    size-node-width-max: 440
+                    size-node-height-scale: 1.75
             props:
                 -   name: KIND
                     desc: |
