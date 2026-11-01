@@ -174,7 +174,7 @@
     diagram:
         type: grid
         nodes: "[[TERM:*]]"
-        markUncovered: true
+        markUncovered: referenced
         properties:
             -   TYPE
         config:
@@ -278,7 +278,7 @@
         nodes: "[[ROLE:*]], [[PERSONA:*]]"
         labeled: true
         qualified: true
-        markUncovered: true
+        markUncovered: referenced
         config:
             size-node-width-max: 440
     children:
@@ -512,7 +512,7 @@
     diagram:
         -   type: grid
             nodes: "[[FR.REQUIREMENT:*]]"
-            markUncovered: true
+            markUncovered: referenced
             nest:
                 properties:
                     -   GROUP
@@ -633,7 +633,7 @@
     diagram:
         type: grid
         nodes: "[[NR.REQUIREMENT:*]]"
-        markUncovered: true
+        markUncovered: referenced
         nest:
             properties:
                 -   GROUP
@@ -767,7 +767,7 @@
     diagram:
         type: grid
         nodes: "[[RULE:*]]"
-        markUncovered: true
+        markUncovered: referenced
         properties:
             -   CATEGORY
             -   SOURCE

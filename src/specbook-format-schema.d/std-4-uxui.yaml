@@ -26,7 +26,7 @@
     diagram:
         type: grid
         nodes: "[[IC.PRINCIPLE:*]]"
-        markUncovered: true
+        markUncovered: referenced
         properties:
             -   CATEGORY
         config:

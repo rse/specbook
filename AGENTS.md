@@ -113,8 +113,9 @@ API.
         pseudo-states of a `state` diagram drawn from the `automaton`
         flags, the `nest` containers of a `layer` diagram drawn as its
         bands and clusters and of a `matrix` diagram as its partitions,
-        the `markUncovered` marking of the objects lacking their
-        `referenced` coverage, and the object kind `badge` icons of the
+        the opt-in `markUncovered` marking of the objects lacking their
+        demanded `referenced` or reported `coverage` coverage, and the
+        object kind `badge` icons of the
         nodes), the compact Gradia
         geometry presets a diagram `config` overrides, their validation,
         and the in-memory cache of the rendered SVGs

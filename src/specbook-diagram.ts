@@ -19,7 +19,7 @@ import type { ParseContext }
     from "./specbook-parse-common.js"
 import { collectSchemas, collectParenProps }
     from "./specbook-parse-semantic.js"
-import { referencedCoverage }
+import { referencedCoverage, specCoverage }
     from "./specbook-coverage.js"
 import type { OmitAspect }
     from "./specbook-export-common.js"
@@ -134,7 +134,7 @@ type ParenProps = Map<SpecObject, SpecProperty>
     the link index, the anchor paths, the index positions, the parent
     objects, and the object kinds of all objects, the synthetic
     properties, and the objects lacking the reference coverage their
-    "referenced" kind demands  */
+    "referenced" kind demands or the "coverage" reports count  */
 interface DiagramContext {
     index:      LinkIndex
     anchors:    Map<SpecObject, string>
@@ -142,7 +142,7 @@ interface DiagramContext {
     parents:    Map<SpecObject, SpecObject | undefined>
     schemas:    Map<SpecObject, SchemaObject>
     parenProps: ParenProps
-    uncovered:  Set<SpecObject>
+    uncovered:  { referenced: Set<SpecObject>, coverage: Set<SpecObject> }
 }
 
 /*  the properties of an object, the synthetic one included  */
@@ -247,7 +247,9 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
         const badge = badgeOf(ctx, node)
         if (badge !== undefined)
             attrs.push(`badge: ${badge}`)
-        if (diagram.markUncovered === true && ctx.uncovered.has(node))
+        const marking = diagram.markUncovered ?? "none"
+        if (((marking === "referenced" || marking === "all") && ctx.uncovered.referenced.has(node))
+            || ((marking === "coverage" || marking === "all") && ctx.uncovered.coverage.has(node)))
             attrs.push("mark: incomplete")
         const state = pseudo.get(node)
         if (state !== undefined)
@@ -915,14 +917,27 @@ export const specDiagrams = (specification: Spec,
     const schemas = collectSchemas(specification, config)
 
     /*  determine the uncovered objects (only where a diagram marks them
-        at all, as resolving all references is not for free) and
+        at all, as resolving all references is not for free): the ones
+        lacking their demanded "referenced" coverage, and the ones a
+        "coverage" report counts as unreferenced while no other report
+        counts them as referenced; and
         re-derive the synthetic properties of the consumed parenthesized
         name tokens, as the derivation sees the AST alone, while the
         parsing context holding them is long gone by export time  */
-    const marking   = Array.from(schemas.values()).some((schema) =>
-        diagramsOf(schema).some((diagram) => diagram.markUncovered === true))
-    const uncovered = new Set(marking ?
-        referencedCoverage(index, schemas).flatMap((result) => result.uncovered) : [])
+    const markings  = new Set(Array.from(schemas.values()).flatMap((schema) =>
+        diagramsOf(schema).map((diagram) => diagram.markUncovered ?? "none")))
+    const uncovered = { referenced: new Set<SpecObject>(), coverage: new Set<SpecObject>() }
+    if (markings.has("referenced") || markings.has("all"))
+        for (const result of referencedCoverage(index, schemas))
+            result.uncovered.forEach((object) => uncovered.referenced.add(object))
+    if (markings.has("coverage") || markings.has("all")) {
+        const reports = Array.from(specCoverage(index, schemas).values()).flat()
+        const covered = new Set(reports.flatMap((report) => report.covered))
+        for (const report of reports)
+            for (const object of report.uncovered)
+                if (!covered.has(object))
+                    uncovered.coverage.add(object)
+    }
     const ctx       = { index, anchors, positions, parents, schemas,
         parenProps: collectParenProps(schemas), uncovered }
     const results = new Map<SpecObject, DiagramResult[]>()

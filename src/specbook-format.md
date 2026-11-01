@@ -139,7 +139,7 @@ type SchemaDiagram = {
     collapse?:         boolean
     qualified?:        boolean
     ordered?:          boolean
-    markUncovered?:    boolean
+    markUncovered?:    "none" | "referenced" | "coverage" | "all"
     nest?:             SchemaDiagramNest
     properties?:       string[]
     config?:           Partial<GradiaConfig>
@@ -454,12 +454,16 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE in a coarse-to-fine specification the references then all
     point backward, i.e. upward
 
--   `SchemaDiagram.markUncovered?: boolean`:
-    whether the nodes lacking the reference coverage their `referenced`
-    kind demands are marked as incomplete, i.e. drawn with a border in
-    the violation color (default: `false`),
+-   `SchemaDiagram.markUncovered?: "none" | "referenced" | "coverage" | "all"`:
+    which uncovered nodes are marked as incomplete, i.e. drawn with a
+    border in the violation (signal) color: none (`none`, the default),
+    the ones lacking the reference coverage their `referenced` kind
+    demands (`referenced`), the ones the `coverage` reports count
+    as unreferenced while no report counts them as referenced
+    (`coverage`, e.g. the requirements no test case references), or
+    both (`all`),
     BECAUSE a coverage lapse spotted in the overview is fixed sooner
-    than one listed among the lint warnings only
+    than one listed among the lint warnings or coverage ratios only
 
 -   `SchemaDiagram.nest?: SchemaDiagramNest`:
     nesting of the nodes into container nodes,

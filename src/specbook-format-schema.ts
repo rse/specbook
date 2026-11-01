@@ -131,7 +131,7 @@ export type SchemaDiagram = {
     collapse?:         boolean
     qualified?:        boolean
     ordered?:          boolean
-    markUncovered?:    boolean
+    markUncovered?:    "none" | "referenced" | "coverage" | "all"
     nest?:             SchemaDiagramNest
     properties?:       string[]
     config?:           Partial<GradiaConfig>
@@ -253,7 +253,7 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     collapse:          v.optional(v.boolean()),
     qualified:         v.optional(v.boolean()),
     ordered:           v.optional(v.boolean()),
-    markUncovered:     v.optional(v.boolean()),
+    markUncovered:     v.optional(v.picklist([ "none", "referenced", "coverage", "all" ])),
     nest:              v.optional(SchemaDiagramNest),
     properties:        v.optional(v.array(v.string())),
     config:            v.optional(SchemaDiagramConfig)
