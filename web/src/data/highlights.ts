@@ -113,7 +113,7 @@ export const highlights: Highlight[] = [
         body:    "A single HTML document with a title page, a table of contents (also as a slide-in " +
                  "side panel), a diagram of contents, a fuzzy full-text search, embedded images, " +
                  "PDF pages, Mermaid/D2 diagrams, and syntax-highlighted code listings, the folding " +
-                 "and maximizing of all of them, reference coverage tables,a scroll progress meter, description popups, and a " +
+                 "and maximizing of all of them, reference coverage tables, a scroll progress meter, description popups, and a " +
                  "light/dark theme toggle. It can even be previewed live in the browser, updating " +
                  "in place on every change while the scroll position survives.",
         figure:  "/assets/screenshot-broadcast.png",
