@@ -6,8 +6,8 @@ ChangeLog
 ------------------
 
 -   CHANGE [code, spec]: Runtime View Artifact (BREAKING: File Renumbering)
-    The new artifact `ARCH: Runtime View` (`26-ARCH-RV-Runtime-View.md`) shifts the files of
-    Technology Stack to Test Cases by one (`26-ARCH-TS` → `27-ARCH-TS`, …), so rename them.
+    The new artifact `ARCH: Runtime View` (`26-ARCH-RV`) precedes the moved Concurrency View, so
+    rename the files: `28-CO` → `27-CO`, `26-TS` → `28-TS`, `27-DA` → `29-DA`, and `29`–`34` by +1.
 
 -   IMPROVEMENT [code]: Sequence Diagrams
     The new diagram type `sequence` draws edge objects as messages with the options `edgeKind`
