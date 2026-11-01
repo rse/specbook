@@ -94,7 +94,8 @@ export const highlights: Highlight[] = [
         eyebrow: "Diagram Visualisation",
         title:   "Diagrams derived from the object model itself",
         body:    "Object kinds can declare one or more <code>graph</code>, <code>hub</code>, " +
-                 "<code>grid</code>, <code>state</code>, <code>layer</code>, or <code>matrix</code> " +
+                 "<code>grid</code>, <code>state</code>, <code>layer</code>, <code>slice</code>, " +
+                 "<code>tree</code>, or <code>matrix</code> " +
                  "diagrams in the schema, whose nodes and edges are derived automatically from the " +
                  "object model and its references &mdash; so a diagram can never drift away from the " +
                  "specification it depicts. Badge icons tell the nature of the nodes at a glance. " +

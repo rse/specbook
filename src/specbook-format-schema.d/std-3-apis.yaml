@@ -113,14 +113,21 @@
         -   GraphQL Foundation: GraphQL Specification (2021),
             https://spec.graphql.org/October2021/
     diagram:
-        type: graph
-        nodes: "[[TYPE:*]]"
-        deep: true
-        onlyConnected: true
-        labeled: true
-        qualified: true
-        config:
-            size-node-width-max: 440
+        -   type: graph
+            nodes: "[[TYPE:*]]"
+            deep: true
+            onlyConnected: true
+            labeled: true
+            qualified: true
+            config:
+                size-node-width-max: 440
+        -   type: tree
+            nodes: "[[TYPE:*]]"
+            links: []
+            onlyConnected: true
+            nest:
+                properties:
+                    -   EXTENDS
     children:
         -   kind: TYPE
             name: "[A-Z][A-Za-z0-9_]*"

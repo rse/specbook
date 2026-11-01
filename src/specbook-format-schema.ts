@@ -113,7 +113,7 @@ export type SchemaDiagramNest = {
     and its descendants), the edge property roles, the derivation
     switches, the node nesting, and the node annotations  */
 export type SchemaDiagram = {
-    type?:             "graph" | "hub" | "grid" | "state" | "layer" | "matrix"
+    type?:             "graph" | "hub" | "grid" | "state" | "layer" | "slice" | "tree" | "matrix"
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -234,14 +234,14 @@ const SchemaDiagramNest: v.GenericSchema<SchemaDiagramNest> = v.strictObject({
     crossing:          v.optional(v.picklist([ "nodes", "target", "both" ]))
 })
 const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
-    type:              v.optional(v.picklist([ "graph", "hub", "grid", "state", "layer", "matrix" ])),
+    type:              v.optional(v.picklist([ "graph", "hub", "grid", "state", "layer", "slice", "tree",
+        "matrix" ])),
     nodes:             v.optional(v.string()),
     edges:             v.optional(v.string()),
     local:             v.optional(v.boolean()),
     center:            v.optional(v.union([ v.string(), SchemaDiagramCenter ])),
     centerEdges:       v.optional(SchemaDiagramCenterEdges),
-    links:             v.optional(v.union([ v.picklist([ "props", "all" ]),
-        v.pipe(v.array(v.string()), v.minLength(1)) ])),
+    links:             v.optional(v.union([ v.picklist([ "props", "all" ]), v.array(v.string()) ])),
     labeled:           v.optional(v.boolean()),
     edgeSource:        v.optional(v.string()),
     edgeTarget:        v.optional(v.string()),

@@ -172,14 +172,21 @@
         -   Evans: Domain-Driven Design: Tackling Complexity in the Heart of Software (2003),
             https://www.domainlanguage.com/ddd/
     diagram:
-        type: grid
-        nodes: "[[TERM:*]]"
-        markUncovered: referenced
-        properties:
-            -   TYPE
-        config:
-            size-node-width-max: 440
-            grid-columns-max: 4
+        -   type: grid
+            nodes: "[[TERM:*]]"
+            markUncovered: referenced
+            properties:
+                -   TYPE
+            config:
+                size-node-width-max: 440
+                grid-columns-max: 4
+        -   type: tree
+            nodes: "[[TERM:*]]"
+            links: []
+            onlyConnected: true
+            nest:
+                properties:
+                    -   BROADER
     children:
         -   kind: TERM
             name: "[A-Z][A-Za-z0-9-]*( [A-Z][A-Za-z0-9-]*)*"
@@ -274,13 +281,20 @@
         -   Pruitt/Adlin: The Persona Lifecycle: Keeping People in Mind Throughout Product Design (2006),
             https://www.sciencedirect.com/book/9780125662512/the-persona-lifecycle
     diagram:
-        type: graph
-        nodes: "[[ROLE:*]], [[PERSONA:*]]"
-        labeled: true
-        qualified: true
-        markUncovered: referenced
-        config:
-            size-node-width-max: 440
+        -   type: graph
+            nodes: "[[ROLE:*]], [[PERSONA:*]]"
+            labeled: true
+            qualified: true
+            markUncovered: referenced
+            config:
+                size-node-width-max: 440
+        -   type: tree
+            nodes: "[[ROLE:*]]"
+            links: []
+            onlyConnected: true
+            nest:
+                properties:
+                    -   INHERITS
     children:
         -   kind: ROLE
             desc: >

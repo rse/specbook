@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: Slice and Tree Diagrams
+    The new types `slice` (side-by-side bands) and `tree` (tidy tree, from a `nest` reference like
+    `BROADER`) are added, the latter used for the glossary, roles, datatypes, and deployment.
+
 -   IMPROVEMENT [code]: Coverage Lapses Marked in Diagrams
     The new diagram option `markUncovered` draws objects lacking their demanded (`referenced`) or
     reported (`coverage`) coverage with a violation border, used on the standard overviews.

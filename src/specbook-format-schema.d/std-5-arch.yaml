@@ -1030,20 +1030,28 @@
         -   Brown: The C4 Model: Deployment Diagram (2018),
             https://c4model.com/diagrams/deployment
     diagram:
-        type: graph
-        nodes: "[[NODE:*]]"
-        labeled: true
-        qualified: true
-        nest:
+        -   type: graph
+            nodes: "[[NODE:*]]"
+            labeled: true
+            qualified: true
+            nest:
+                properties:
+                    -   PART-OF
+                    -   TIER
             properties:
-                -   PART-OF
-                -   TIER
-        properties:
-            -   AREA
-            -   KIND
-            -   PLATFORM
-        config:
-            size-node-width-max: 350
+                -   AREA
+                -   KIND
+                -   PLATFORM
+            config:
+                size-node-width-max: 350
+        -   type: tree
+            nodes: "[[NODE:*]]"
+            links: []
+            qualified: true
+            nest:
+                properties:
+                    -   PART-OF
+                    -   TIER
     children:
         -   kind: TIER
             desc: >

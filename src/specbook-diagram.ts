@@ -179,7 +179,7 @@ interface DiagramNesting {
     "#type" directive and the configured "#config" directives so every
     embedded spec is self-contained: one node statement per object (the
     unique anchor path as the node id, the object name as the displayed
-    label, the container node as the parent or layer, the badge icon of its
+    label, the container node as the parent, band, or cluster, the badge icon of its
     object kind, the "incomplete" mark of an uncovered object, the
     pseudo-state kind of a synthetic pseudo-state) and one edge
     statement per derived edge  */
@@ -197,10 +197,10 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
     /*  the explicit top-down order of an "ordered" diagram: the members
         of a container share one row (which Gradia wraps), while the
         top-level nodes stack in document order, a synthetic container
-        taking the position of its first member (a "matrix" knows no
-        container rows, so there every node takes its own position)  */
+        taking the position of its first member (a "matrix" or "tree"
+        knows no container rows, so there every node takes its own position)  */
     const orderOf = (node: SpecObject): number => {
-        if (nesting.parentOf.has(node) && type !== "matrix")
+        if (nesting.parentOf.has(node) && type !== "matrix" && type !== "tree")
             return 0
         let order = positions.get(node) ?? Number.MAX_SAFE_INTEGER
         for (const [ member, container ] of nesting.parentOf)
@@ -222,23 +222,24 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
         if (type === "hub" ? node === center : node.primary === true)
             attrs.push("primary: true")
         const container = nesting.parentOf.get(node)
-        if (type === "layer" || type === "matrix") {
-            /*  a "layer" or "matrix" diagram knows no containers: in a
-                "layer" one the container names the layer band of the
-                node and the containers enclosing it the path of the
-                clusters grouping that band, while in a "matrix" one a
-                container (where a row and column there) and all
-                containers of a node form the path of its partition  */
-            if (type === "layer" && container !== undefined)
-                attrs.push(`layer: ${atom(plainText(container.name))}`)
+        const banded    = type === "layer" || type === "slice"
+        if (banded || type === "matrix") {
+            /*  a "layer", "slice", or "matrix" diagram knows no
+                containers: in a "layer" or "slice" one the container
+                names the band of the node and the containers enclosing
+                it the path of the clusters grouping that band, while in
+                a "matrix" one a container (where a row and column there)
+                and all containers of a node form the path of its partition  */
+            if (banded && container !== undefined)
+                attrs.push(`${type}: ${atom(plainText(container.name))}`)
             const clusters = new Array<string>()
-            for (let p = type === "layer" ? (container !== undefined ? nesting.parentOf.get(container) : undefined) :
+            for (let p = banded ? (container !== undefined ? nesting.parentOf.get(container) : undefined) :
                 nesting.containers.has(node) ? node : container; p !== undefined; p = nesting.parentOf.get(p))
                 clusters.unshift(plainText(p.name))
             if (clusters.length > 0)
                 attrs.push(`cluster: ${atom(clusters.join("/"))}`)
         }
-        else if (container !== undefined)
+        else if (container !== undefined && type !== "tree")
             attrs.push(`parent: ${atom(anchors.get(container) ?? container.id)}`)
         if (diagram.nest?.layout !== undefined && nesting.containers.has(node))
             attrs.push(`container: ${diagram.nest.layout}`)
@@ -803,19 +804,20 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
             errors.push({ reason: `"${type}" diagram cannot carry a "nest" configuration` })
         else {
             nesting = deriveNesting(ctx, diagram.nest, nodes, nodeSet, errors)
-            if ((type === "layer" || type === "matrix") && diagram.nest.layout !== undefined)
+            const banded = type === "layer" || type === "slice"
+            if ((banded || type === "tree" || type === "matrix") && diagram.nest.layout !== undefined)
                 errors.push({ reason: `"${type}" diagram cannot carry a "nest" layout configuration` })
-            if (type === "layer") {
-                /*  a "layer" diagram draws its containers as layer bands
-                    and cluster groups instead of as nodes, so it lifts no
-                    edges onto them and drops the edges ending at one  */
-                if (diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
-                    errors.push({ reason: "\"layer\" diagram cannot carry a \"nest\" crossing configuration" })
+            if ((banded || type === "tree") && diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
+                errors.push({ reason: `"${type}" diagram cannot carry a "nest" crossing configuration` })
+            if (banded) {
+                /*  a "layer" or "slice" diagram draws its containers as
+                    bands and cluster groups instead of as nodes, so it
+                    drops the edges ending at one  */
                 nodes = nodes.filter((node) => !nesting.containers.has(node))
                 edges = edges.filter((edge) => !nesting.containers.has(edge.source)
                     && !nesting.containers.has(edge.target))
             }
-            else if (diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
+            else if (type !== "tree" && diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
                 edges = liftEdges(edges, nesting.parentOf, diagram.nest.crossing, anchors)
 
             /*  a "matrix" diagram keeps its containers as regular rows
@@ -824,16 +826,23 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
             if (type !== "matrix")
                 edges = edges.filter((edge) => nesting.parentOf.get(edge.source) !== edge.target
                     && nesting.parentOf.get(edge.target) !== edge.source)
+
+            /*  a "tree" diagram draws the nesting as its parent-to-child
+                edges (the containers staying nodes), placed first, as the
+                first edge into a node makes its source the parent, while
+                every other edge becomes a dashed cross link  */
+            if (type === "tree")
+                edges = [ ...Array.from(nesting.parentOf, ([ member, container ]) =>
+                    ({ source: container, target: member })), ...edges ]
         }
     }
-    if (type === "layer" && diagram.ordered === true)
-        errors.push({ reason: "\"layer\" diagram cannot carry an \"ordered\" configuration" })
+    if ((type === "layer" || type === "slice") && diagram.ordered === true)
+        errors.push({ reason: `"${type}" diagram cannot carry an "ordered" configuration` })
 
     /*  the "onlyConnected" filtering keeps only the nodes with at
-        least one incident edge (sensible for "graph", "state", "layer",
-        and "matrix" diagrams only), and the containers enclosing such a node  */
-    if (diagram.onlyConnected === true
-        && (type === "graph" || type === "state" || type === "layer" || type === "matrix")) {
+        least one incident edge (sensible for all diagrams except the
+        "hub" and "grid" ones), and the containers enclosing such a node  */
+    if (diagram.onlyConnected === true && type !== "hub" && type !== "grid") {
         const connected = new Set<SpecObject>()
         for (const edge of edges) {
             connected.add(edge.source)

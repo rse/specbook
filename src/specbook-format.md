@@ -121,7 +121,8 @@ type SchemaDiagramNest = {
     crossing?:         "nodes" | "target" | "both"
 }
 type SchemaDiagram = {
-    type?:             "graph" | "hub" | "grid" | "state" | "layer" | "matrix"
+    type?:             "graph" | "hub" | "grid" | "state" |
+                       "layer" | "slice" | "tree" | "matrix"
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -352,12 +353,15 @@ type SchemaGradiaConfig = Partial<{
     diagram derived for every object of an object kind,
     BECAUSE the relations of a specification are graspable only when drawn
 
--   `SchemaDiagram.type?: "graph" | "hub" | "grid" | "state" | "layer" | "matrix"`:
+-   `SchemaDiagram.type?: "graph" | "hub" | "grid" | "state" | "layer" |
+    "slice" | "tree" | "matrix"`:
     diagram shape: `graph` (free), `hub` (centered), `grid` (edge-less),
     `state` (state machine, with the `automaton` flags as pseudo-states),
     `layer` (stacked bands, with the `nest` containers as the layers),
-    `matrix` (dependency structure matrix, with the `nest` containers as
-    the partitions),
+    `slice` (side-by-side bands, with the `nest` containers as the
+    slices), `tree` (tidy tree, with the `nest` containers as the
+    parents), `matrix` (dependency structure matrix, with the `nest`
+    containers as the partitions),
     BECAUSE one object set tells different stories as different shapes
 
 -   `SchemaDiagram.nodes?: string`:
@@ -397,7 +401,8 @@ type SchemaGradiaConfig = Partial<{
 
 -   `SchemaDiagram.links?: "props" | "all" | string[]`:
     edge source: property values (`props`), also texts (`all`), or the
-    values of the listed properties only (e.g. `[ DEPENDS-ON ]`),
+    values of the listed properties only (e.g. `[ DEPENDS-ON ]`, where
+    an empty list derives no reference edges at all),
     BECAUSE prose references are incidental and need an opt-in, and a
     diagram about one relation must not mix in the others
 
@@ -435,7 +440,7 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE the relations between coarse objects live in their fine parts
 
 -   `SchemaDiagram.onlyConnected?: boolean`:
-    whether a `graph`, `state`, `layer`, or `matrix` drops its edge-less
+    whether a diagram (except a `hub` or `grid`) drops its edge-less
     nodes (default: `false`),
     BECAUSE isolated nodes dilute a diagram about relationships
 
@@ -645,7 +650,8 @@ An object kind can additionally carry a `diagram` field, which derives
 a [Gradia](https://github.com/rse/gradia) diagram for every object of
 that kind -- or a list of such diagram configurations, which derives
 all of them, in their order. Its `type` selects the diagram shape
-(`graph`, `hub`, `grid`, `state`, `layer`, or `matrix`), `nodes` and
+(`graph`, `hub`, `grid`, `state`, `layer`, `slice`, `tree`, or
+`matrix`), `nodes` and
 `edges` select the participating objects through
 comma-separated `[[xxx]]` reference patterns (`nodes` defaults to the
 object itself plus all objects below it, and `local: true` restricts the
@@ -671,6 +677,20 @@ container group its band into a cluster column. The containers are no
 nodes there, so the edges ending at a container are dropped, an edge
 pointing upwards against the layering is marked as a violation, and
 neither `nest.layout`, a lifting `nest.crossing`, nor `ordered` apply.
+A `slice` diagram is its side-by-side companion: the bands line up
+left-to-right (numbered only with `config` setting `slice-numbered:
+true`), the nodes of a band stack top-down, the enclosing containers
+group the bands into cluster rows, and an edge pointing back to a left
+band closing a direct cycle is marked as a violation.
+
+A `tree` diagram draws a tidy tree (or a forest of them): the `nest`
+container of a node becomes its parent, so a child-to-parent reference
+like `BROADER` or `PART-OF`, named by `nest.properties`, yields the
+tree, while the containers stay nodes. Every other edge is drawn as a
+dashed cross link and marked as a violation (unless `config` sets
+`mark-violation: false`), so `links: []` derives a pure tree. With
+`ordered: true` the children follow the document order. A `tree`
+diagram accepts neither `nest.layout` nor a lifting `nest.crossing`.
 
 A `matrix` diagram draws a dependency structure matrix: the nodes are
 both its rows and its columns, the cell of a row and a column counts the
