@@ -106,7 +106,7 @@ export type SchemaDiagramNest = {
     and its descendants), the edge property roles, the derivation
     switches, the node nesting, and the node annotations  */
 export type SchemaDiagram = {
-    type?:             "graph" | "hub" | "grid" | "state"
+    type?:             "graph" | "hub" | "grid" | "state" | "layer"
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -226,7 +226,7 @@ const SchemaDiagramNest: v.GenericSchema<SchemaDiagramNest> = v.strictObject({
     crossing:          v.optional(v.picklist([ "nodes", "target", "both" ]))
 })
 const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
-    type:              v.optional(v.picklist([ "graph", "hub", "grid", "state" ])),
+    type:              v.optional(v.picklist([ "graph", "hub", "grid", "state", "layer" ])),
     nodes:             v.optional(v.string()),
     edges:             v.optional(v.string()),
     local:             v.optional(v.boolean()),

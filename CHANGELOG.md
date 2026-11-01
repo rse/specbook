@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: Layer Diagrams
+    The new diagram type `layer` draws the `nest` containers as stacked, numbered bands, and
+    replaces the tile grid of the Technology Stack in the standard schema configuration.
+
 -   IMPROVEMENT [code]: Diagram Node Badges
     The new object kind field `badge` draws a fixed or a property-mapped icon into the diagram
     nodes, used by the standard schema for roles, personas, entities, interfaces, and components.

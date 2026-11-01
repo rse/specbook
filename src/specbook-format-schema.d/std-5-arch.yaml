@@ -492,16 +492,14 @@
         -   Brown: The C4 Model: Container Diagram (2018),
             https://c4model.com/diagrams/container
     diagram:
-        type: grid
+        type: layer
         nodes: "[[TS.TIER:*]], [[TS.TIER:*.COMPONENT:*]]"
         nest:
             parent: true
-            layout: grid
         properties:
             -   PRODUCT
         config:
             size-node-width-max: 440
-            grid-columns-max: 2
     children:
         -   kind: TIER
             desc: |

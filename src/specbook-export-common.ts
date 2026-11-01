@@ -42,7 +42,7 @@ export const fallbackLogo = (theme: typeof embeddingThemes[number]): string =>
     "listing"), the diagrams from an object tree nesting level on, and the
     long texts  */
 export const omitAspects = [ "diagram:graph", "diagram:hub", "diagram:grid", "diagram:state",
-    "diagram:code", "diagram:image", "diagram:listing",
+    "diagram:layer", "diagram:code", "diagram:image", "diagram:listing",
     "diagram:1", "diagram:2", "diagram:3", "text:long" ] as const
 export type OmitAspect = typeof omitAspects[number]
 

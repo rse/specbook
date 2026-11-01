@@ -173,7 +173,7 @@ interface DiagramNesting {
     "#type" directive and the configured "#config" directives so every
     embedded spec is self-contained: one node statement per object (the
     unique anchor path as the node id, the object name as the displayed
-    label, the container node as the parent, the badge icon of its
+    label, the container node as the parent or layer, the badge icon of its
     object kind, the pseudo-state kind of a synthetic pseudo-state)
     and one edge statement per derived edge  */
 const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
@@ -214,7 +214,18 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
         if (type === "hub" ? node === center : node.primary === true)
             attrs.push("primary: true")
         const container = nesting.parentOf.get(node)
-        if (container !== undefined)
+        if (container !== undefined && type === "layer") {
+            /*  a "layer" diagram knows no containers: the container
+                names the layer band of the node, and the containers
+                enclosing it the path of the clusters grouping that band  */
+            attrs.push(`layer: ${atom(plainText(container.name))}`)
+            const clusters = new Array<string>()
+            for (let p = nesting.parentOf.get(container); p !== undefined; p = nesting.parentOf.get(p))
+                clusters.unshift(plainText(p.name))
+            if (clusters.length > 0)
+                attrs.push(`cluster: ${atom(clusters.join("/"))}`)
+        }
+        else if (container !== undefined)
             attrs.push(`parent: ${atom(anchors.get(container) ?? container.id)}`)
         if (diagram.nest?.layout !== undefined && nesting.containers.has(node))
             attrs.push(`container: ${diagram.nest.layout}`)
@@ -772,17 +783,31 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
             errors.push({ reason: `"${type}" diagram cannot carry a "nest" configuration` })
         else {
             nesting = deriveNesting(ctx, diagram.nest, nodes, nodeSet, errors)
-            if (diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
+            if (type === "layer") {
+                /*  a "layer" diagram draws its containers as layer bands
+                    and cluster groups instead of as nodes, so it neither
+                    lays out their members nor lifts edges onto them, and
+                    the edges ending at a container are dropped  */
+                for (const field of [ "layout", "crossing" ] as const)
+                    if (diagram.nest[field] !== undefined && diagram.nest[field] !== "nodes")
+                        errors.push({ reason: `"layer" diagram cannot carry a "nest" ${field} configuration` })
+                nodes = nodes.filter((node) => !nesting.containers.has(node))
+                edges = edges.filter((edge) => !nesting.containers.has(edge.source)
+                    && !nesting.containers.has(edge.target))
+            }
+            else if (diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
                 edges = liftEdges(edges, nesting.parentOf, diagram.nest.crossing, anchors)
             edges = edges.filter((edge) => nesting.parentOf.get(edge.source) !== edge.target
                 && nesting.parentOf.get(edge.target) !== edge.source)
         }
     }
+    if (type === "layer" && diagram.ordered === true)
+        errors.push({ reason: "\"layer\" diagram cannot carry an \"ordered\" configuration" })
 
     /*  the "onlyConnected" filtering keeps only the nodes with at
-        least one incident edge (sensible for "graph" and "state"
-        diagrams only), and the containers enclosing such a node  */
-    if (diagram.onlyConnected === true && (type === "graph" || type === "state")) {
+        least one incident edge (sensible for "graph", "state", and
+        "layer" diagrams only), and the containers enclosing such a node  */
+    if (diagram.onlyConnected === true && (type === "graph" || type === "state" || type === "layer")) {
         const connected = new Set<SpecObject>()
         for (const edge of edges) {
             connected.add(edge.source)

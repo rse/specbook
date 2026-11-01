@@ -102,13 +102,15 @@ API.
         variable block, and the layer-2 semantic mapping the PDF
         decoration needs outside of CSS
     -   `src/specbook-diagram.ts`: the derivation of the Gradia specs of
-        the configured `graph`/`hub`/`grid`/`state` diagrams from the object
+        the configured `graph`/`hub`/`grid`/`state`/`layer` diagrams from the object
         model and its references (including the `nest` container
         nesting of the nodes, the `local` restriction of the node and
         edge patterns onto the own subtree, and the `list(...)`-valued
         `edgeTarget` yielding one edge per target, the initial/final
         pseudo-states of a `state` diagram drawn from the `automaton`
-        flags, and the object kind `badge` icons of the nodes), the compact Gradia
+        flags, the `nest` containers of a `layer` diagram drawn as its
+        bands and clusters, and the object kind `badge` icons of the
+        nodes), the compact Gradia
         geometry presets a diagram `config` overrides, their validation,
         and the in-memory cache of the rendered SVGs
     -   `src/specbook-config.ts`: YAML schema configuration loading,
@@ -882,9 +884,9 @@ color,
 and a running search unfolds
 everything, so no match hides inside. Everything starts out
 unfolded, while the folding tab slides
-out eleven controls (exactly as the search tab slides out its input
+out twelve controls (exactly as the search tab slides out its input
 field), which fold and unfold at once all diagrams of a type (`graph`,
-`hub`, `grid`, `state`, the Mermaid/D2 ones as `code`, the images and PDF
+`hub`, `grid`, `state`, `layer`, the Mermaid/D2 ones as `code`, the images and PDF
 pages as `image`, and the code listings as `listing`, each with an icon
 of its own), all diagrams from an
 object tree nesting level on (`1`, hence all, `2`, and `3`, a nesting
@@ -908,7 +910,7 @@ validated up-front by `parseOmit` of `src/specbook-export-common.ts`)
 omits content aspects at generation time instead of leaving them
 foldable. The aspects match the sets of the folding controls:
 `diagram:graph`, `diagram:hub`, `diagram:grid`, `diagram:state`,
-`diagram:code`, `diagram:image`, `diagram:listing`, `diagram:1` (alias
+`diagram:layer`, `diagram:code`, `diagram:image`, `diagram:listing`, `diagram:1` (alias
 `diagram`, hence all diagrams, the "Diagram of Contents" page included),
 `diagram:2`, `diagram:3`, and `text:long`. An omitted diagram
 (`omittedDiagrams` of `src/specbook-diagram.ts`) is never rendered and
@@ -925,7 +927,7 @@ ends in a grey `[...]` (`span.omit`), unless that hides less than 25% of
 it, and the client-side cell text folding is off. The
 fold controls of the omitted aspects leave the folding tab along with
 the implied ones (`diagram:2` also drops `level3`, no diagrams at all
-drop all ten diagram controls, and everything omitted drops the tab,
+drop all eleven diagram controls, and everything omitted drops the tab,
 the tabs below moving up). The few extra style rules and the two script
 variations are emitted under the option only, so an export without it
 stays byte-identical. The rendering options `realtime` and `omit` travel

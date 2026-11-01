@@ -114,7 +114,7 @@ type SchemaDiagramCenterEdges = {
     via?:              string
 }
 type SchemaDiagram = {
-    type?:             "graph" | "hub" | "grid" | "state"
+    type?:             "graph" | "hub" | "grid" | "state" | "layer"
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -339,9 +339,10 @@ type SchemaGradiaConfig = Partial<{
     diagram derived for every object of an object kind,
     BECAUSE the relations of a specification are graspable only when drawn
 
--   `SchemaDiagram.type?: "graph" | "hub" | "grid" | "state"`:
+-   `SchemaDiagram.type?: "graph" | "hub" | "grid" | "state" | "layer"`:
     diagram shape: `graph` (free), `hub` (centered), `grid` (edge-less),
     `state` (state machine, with the `automaton` flags as pseudo-states),
+    `layer` (stacked bands, with the `nest` containers as the layers),
     BECAUSE one object set tells different stories as different shapes
 
 -   `SchemaDiagram.nodes?: string`:
@@ -417,7 +418,7 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE the relations between coarse objects live in their fine parts
 
 -   `SchemaDiagram.onlyConnected?: boolean`:
-    whether a `graph` or `state` drops its edge-less nodes (default: `false`),
+    whether a `graph`, `state`, or `layer` drops its edge-less nodes (default: `false`),
     BECAUSE isolated nodes dilute a diagram about relationships
 
 -   `SchemaDiagram.collapse?: boolean`:
@@ -609,7 +610,7 @@ This is what turns a parent object into the hub of its own children. A
 An object kind can additionally carry a `diagram` field, which derives
 a [Gradia](https://github.com/rse/gradia) diagram for every object of
 that kind. Its `type` selects the diagram shape (`graph`, `hub`, `grid`,
-or `state`), `nodes` and `edges` select the participating objects through
+`state`, or `layer`), `nodes` and `edges` select the participating objects through
 comma-separated `[[xxx]]` reference patterns (`nodes` defaults to the
 object itself plus all objects below it, and `local: true` restricts the
 matches of both patterns to the object itself plus all objects below it,
@@ -625,6 +626,15 @@ node flagged `final` leads into a single final pseudo-state (a
 bullseye), so a final node may still have outgoing edges. A `state`
 diagram accepts no `nest`, as every container would be a composite
 state needing an initial state of its own.
+
+A `layer` diagram draws a layered architecture: the `nest` container of
+a node names the band it sits in, the bands stack top-down in the
+document order of their first node and are numbered bottom-up (unless
+`config` sets `layer-numbered: false`), and the containers enclosing a
+container group its band into a cluster column. The containers are no
+nodes there, so the edges ending at a container are dropped, an edge
+pointing upwards against the layering is marked as a violation, and
+neither `nest.layout`, a lifting `nest.crossing`, nor `ordered` apply.
 
 Instead of naming an existing object, `center` can also declare a
 *synthetic* center node, which represents something no specification

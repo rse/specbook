@@ -27,7 +27,7 @@ const cellGainMin       = 25
     left corner, folds the text of every table cell towering over the
     other cells of its row behind a chevron mark of its own, and lets
     the controls of the fold tab fold and unfold all diagrams of a type
-    ("graph", "hub", "grid", "state", plus the embedded Mermaid/D2 ones as "code",
+    ("graph", "hub", "grid", "state", "layer", plus the embedded Mermaid/D2 ones as "code",
     the embedded images and PDF pages as "image", and the code listings
     as "listing"), all diagrams from an object tree nesting level on
     (1, 2, 3), and all cell texts at once, with their state
@@ -49,6 +49,7 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
             hub:     tab.querySelector("div.fold-hubs"),
             grid:    tab.querySelector("div.fold-grids"),
             state:   tab.querySelector("div.fold-states"),
+            layer:   tab.querySelector("div.fold-layers"),
             code:    tab.querySelector("div.fold-codes"),
             image:   tab.querySelector("div.fold-images"),
             listing: tab.querySelector("div.fold-listings"),
@@ -103,7 +104,7 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
             control; a diagram joins the set of its type plus the sets
             of all nesting levels up to its own one (3 standing for all
             deeper ones), so the sets of the controls overlap  */
-        const folds = { graph: [], hub: [], grid: [], state: [], code: [], image: [], listing: [],
+        const folds = { graph: [], hub: [], grid: [], state: [], layer: [], code: [], image: [], listing: [],
             level1: [], level2: [], level3: [], text: [] }
         document.querySelectorAll("article div.diagram, nav.doc div.diagram").forEach((el) => {
             const type  = el.getAttribute("data-type") ?? "graph"
@@ -460,13 +461,14 @@ export const omitLong = (omit: Set<OmitAspect> | null,
 export const omittedControls = (omit: Set<OmitAspect>) => {
     const none    = omit.has("diagram:1")
         || (omit.has("diagram:graph") && omit.has("diagram:hub") && omit.has("diagram:grid")
-            && omit.has("diagram:state") && omit.has("diagram:code") && omit.has("diagram:image")
-            && omit.has("diagram:listing"))
+            && omit.has("diagram:state") && omit.has("diagram:layer") && omit.has("diagram:code")
+            && omit.has("diagram:image") && omit.has("diagram:listing"))
     const omitted = {
         graph:   none || omit.has("diagram:graph"),
         hub:     none || omit.has("diagram:hub"),
         grid:    none || omit.has("diagram:grid"),
         state:   none || omit.has("diagram:state"),
+        layer:   none || omit.has("diagram:layer"),
         code:    none || omit.has("diagram:code"),
         image:   none || omit.has("diagram:image"),
         listing: none || omit.has("diagram:listing"),
