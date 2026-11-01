@@ -234,8 +234,8 @@ const templates = {
             <thead>
                 <tr>
                     <th class="object-kind"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}"{% endif %}>{{ Table.head }}</span></th>
-                    {%- for key in Table.keys %}<th class="property-name"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}" data-info-prop="{{ key }}"{% endif %}>{{ key }}</span></th>{% endfor %}
-                    {%- if Table.desc %}<th class="description" style="width: {{ Table.width }}%">Description</th>{% endif %}
+                    {%- for key in Table.keys %}<th class="property-name" style="width: {{ Table.widths[loop.index0] }}%"><span{% if Table.info %} data-info="{{ Table.info }}" data-info-path="{{ Table.infopath }}" data-info-prop="{{ key }}"{% endif %}>{{ key }}</span></th>{% endfor %}
+                    {%- if Table.desc %}<th class="description" style="width: {{ Table.widths[Table.keys.length] }}%">Description</th>{% endif %}
                 </tr>
             </thead>
             <tbody>

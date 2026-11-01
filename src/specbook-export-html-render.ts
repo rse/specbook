@@ -33,7 +33,7 @@ import { safe, render }
     from "./specbook-export-html-template.js"
 import type { InfoEntry, SpecEntry }
     from "./specbook-export-html-widget.js"
-import { omitLong }
+import { omitLong, lineChars }
     from "./specbook-export-html-fold.js"
 
 /*  ==== Rendering ====  */
@@ -686,7 +686,26 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
     const { keys, desc } = tableShape(children)
     const diagrammed = children.some((child) => diagrams?.has(child) === true)
     const fold       = formatOf(children[0])?.maxCellHeight
-    if (!diagrammed && 1 + keys.length + (desc ? 1 : 0) <= maxColumns)
+    if (!diagrammed && 1 + keys.length + (desc ? 1 : 0) <= maxColumns) {
+        /*  under the fixed table layout the name column takes a fixed
+            20% (via CSS), while the property columns and the description
+            column (two shares) split the remaining 80%: a property column
+            takes one share, or up to two and a half where its longest word,
+            its header included, needs more (a capital counting double, as
+            the property names and the bold kind labels of the references
+            are set in capitals), so such a word never breaks inside, while
+            a column of short values (like a kind) yields room  */
+        const values = children.map((child) => scoped(child, () => keys.map((key) =>
+            inlineValue(child.kind, child.properties.find((property) => property.key === key)))))
+        const base   = 0.8 * lineChars / (keys.length + (desc ? 2 : 0))
+        const word   = (html: string) => Math.max(0, ...html.replace(/<[^>]*>/g, " ")
+            .replace(/&[#a-z0-9]+;/gi, "x").split(/\s+/)
+            .map((text) => text.length + (text.match(/[A-Z]/g) ?? []).length))
+        const shares = keys.map((key, k) => Math.min(2.5, Math.max(1,
+            (Math.max(word(key), ...values.map((row) => word(String(row[k])))) + 5) / base)))
+        if (desc)
+            shares.push(2)
+        const total  = shares.reduce((sum, share) => sum + share, 0)
         return render("Table", { Table: {
             head:     children[0].kind !== "" ? children[0].kind : "Name",
             info:     infoKeyOf(children[0]),
@@ -694,17 +713,10 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
             keys,
             desc,
             fold,
-
-            /*  under the fixed table layout the name column takes a fixed
-                20% (via CSS) and the description column claims twice the
-                share of a property column of the remaining 80%  */
-            width:    Math.round(1600 / (keys.length + 2)) / 10,
+            widths:   shares.map((share) => Math.round(800 * share / total) / 10),
             rows:     children.map((child, i) => scoped(child, () => {
-                const values = keys.map((key) =>
-                    inlineValue(child.kind, child.properties.find((property) => property.key === key)))
-                const shares = desc ? [ ...keys.map(() => 1), 2 ] : keys.map(() => 1)
-                const cells  = omitLong(omits, desc ? [ ...values, safe(renderCell(child)) ] : values,
-                    shares.map((share) => 0.8 * share / (keys.length + (desc ? 2 : 0))), fold)
+                const cells = omitLong(omits, desc ? [ ...values[i], safe(renderCell(child)) ] : values[i],
+                    shares.map((share) => 0.8 * share / total), fold)
                 return {
                     id:          anchorOf(child),
                     anchor:      child.anchor,
@@ -718,6 +730,7 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
                 }
             }))
         } })
+    }
 
     /*  the embedded rows hold at most maxColumns - 1 cells (of the
         group-wide union of property keys, plus the trailing description),

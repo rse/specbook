@@ -403,7 +403,7 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
 
 /*  the estimated number of characters a text line spanning the
     entire content width holds (60rem at the document font)  */
-const lineChars = 140
+export const lineChars = 140
 
 /*  omit the long texts of the comparable cells of a table row, the
     server-side heuristic counterpart of the client-side cell text
