@@ -59,9 +59,10 @@ CLI with commands `specbook <xxx>`, and an MCP service with tools
     configuration applies if no particular one is given.
 
 -   **Object Model Diagram Visualisation**:
-    Object kinds can declare "graph", "hub", "grid", "state", or "layer"
-    diagrams in the schema, whose nodes and edges are automatically derived
-    from the object model and its references. The diagrams are rendered with the
+    Object kinds can declare one or more "graph", "hub", "grid", "state",
+    "layer", or "matrix" diagrams in the schema, whose nodes and edges are
+    automatically derived from the object model and its references. The
+    diagrams are rendered with the
     sibling project [Gradia](https://github.com/rse/gradia), which is
     specialized in rendering object models.
 
@@ -299,7 +300,7 @@ Options:
     PDF outputs at generation time, instead of just leaving them foldable
     in the browser. The aspects match the folding controls of the HTML
     export: `diagram:graph`, `diagram:hub`, `diagram:grid`, `diagram:state`,
-    `diagram:layer`, `diagram:code` (Mermaid/D2), and `diagram:image` (images and PDF pages) omit all
+    `diagram:layer`, `diagram:matrix`, `diagram:code` (Mermaid/D2), and `diagram:image` (images and PDF pages) omit all
     diagrams of a type, `diagram:1` (alias: `diagram`), `diagram:2`, and
     `diagram:3` omit all diagrams from an object tree nesting level on
     (level 1 hence all, including the "Diagram of Contents" page), and

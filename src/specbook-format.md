@@ -77,7 +77,7 @@ type SchemaObject = {
     coverage?:         string[]
     automaton?:        SchemaAutomaton
     badge?:            SchemaBadge
-    diagram?:          SchemaDiagram
+    diagram?:          SchemaDiagram | SchemaDiagram[]
     format?:           SchemaFormat
     props?:            SchemaProperty[]
     children?:         SchemaObject[]
@@ -114,13 +114,13 @@ type SchemaDiagramCenterEdges = {
     via?:              string
 }
 type SchemaDiagram = {
-    type?:             "graph" | "hub" | "grid" | "state" | "layer"
+    type?:             "graph" | "hub" | "grid" | "state" | "layer" | "matrix"
     nodes?:            string
     edges?:            string
     local?:            boolean
     center?:           string | SchemaDiagramCenter
     centerEdges?:      SchemaDiagramCenterEdges
-    links?:            "props" | "all"
+    links?:            "props" | "all" | string[]
     labeled?:          boolean
     edgeSource?:       string
     edgeTarget?:       string
@@ -284,10 +284,13 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE the kind alone does not always tell the nature of an object
     -- a `Server` node and a `Function` node deserve different icons
 
--   `SchemaObject.diagram?: SchemaDiagram`:
-    diagram generated for every object of this kind (left out when the
-    configuration is emitted compressed by level 2 or higher),
-    BECAUSE relations buried in references are graspable only when drawn
+-   `SchemaObject.diagram?: SchemaDiagram | SchemaDiagram[]`:
+    diagram, or list of diagrams (rendered in their order), generated for
+    every object of this kind (left out when the configuration is emitted
+    compressed by level 2 or higher), where merged configuration files
+    match the diagrams of a list by their `type`,
+    BECAUSE relations buried in references are graspable only when drawn,
+    and the same relations often tell more than one story
 
 -   `SchemaObject.format?: SchemaFormat`:
     HTML/PDF rendering format of the objects of this kind (left out when
@@ -339,10 +342,12 @@ type SchemaGradiaConfig = Partial<{
     diagram derived for every object of an object kind,
     BECAUSE the relations of a specification are graspable only when drawn
 
--   `SchemaDiagram.type?: "graph" | "hub" | "grid" | "state" | "layer"`:
+-   `SchemaDiagram.type?: "graph" | "hub" | "grid" | "state" | "layer" | "matrix"`:
     diagram shape: `graph` (free), `hub` (centered), `grid` (edge-less),
     `state` (state machine, with the `automaton` flags as pseudo-states),
     `layer` (stacked bands, with the `nest` containers as the layers),
+    `matrix` (dependency structure matrix, with the `nest` containers as
+    the partitions),
     BECAUSE one object set tells different stories as different shapes
 
 -   `SchemaDiagram.nodes?: string`:
@@ -380,9 +385,11 @@ type SchemaGradiaConfig = Partial<{
     synthetic center, so their relation to it lives in a direction
     property instead
 
--   `SchemaDiagram.links?: "props" | "all"`:
-    edge source: property values (`props`) or also texts (`all`),
-    BECAUSE prose references are incidental and need an opt-in
+-   `SchemaDiagram.links?: "props" | "all" | string[]`:
+    edge source: property values (`props`), also texts (`all`), or the
+    values of the listed properties only (e.g. `[ DEPENDS-ON ]`),
+    BECAUSE prose references are incidental and need an opt-in, and a
+    diagram about one relation must not mix in the others
 
 -   `SchemaDiagram.labeled?: boolean`:
     whether the edges derived from property values carry the lower-cased
@@ -418,7 +425,8 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE the relations between coarse objects live in their fine parts
 
 -   `SchemaDiagram.onlyConnected?: boolean`:
-    whether a `graph`, `state`, or `layer` drops its edge-less nodes (default: `false`),
+    whether a `graph`, `state`, `layer`, or `matrix` drops its edge-less
+    nodes (default: `false`),
     BECAUSE isolated nodes dilute a diagram about relationships
 
 -   `SchemaDiagram.collapse?: boolean`:
@@ -578,7 +586,8 @@ type SchemaGradiaConfig = Partial<{
 
 The edges are derived from the `[[xxx]]` references of the node objects
 -- from their property values only, or, with `links: all`, from their
-descriptions as well. Every referenced object is lifted to its nearest
+descriptions as well, or, with a list of property names, from the
+values of these properties only. Every referenced object is lifted to its nearest
 ancestor-or-self within the node set, so a reference onto the scenario
 of a use case yields an edge onto the use case. With `deep: true` the
 references of all descendants of a node object count as its own and the
@@ -609,8 +618,10 @@ This is what turns a parent object into the hub of its own children. A
 
 An object kind can additionally carry a `diagram` field, which derives
 a [Gradia](https://github.com/rse/gradia) diagram for every object of
-that kind. Its `type` selects the diagram shape (`graph`, `hub`, `grid`,
-`state`, or `layer`), `nodes` and `edges` select the participating objects through
+that kind -- or a list of such diagram configurations, which derives
+all of them, in their order. Its `type` selects the diagram shape
+(`graph`, `hub`, `grid`, `state`, `layer`, or `matrix`), `nodes` and
+`edges` select the participating objects through
 comma-separated `[[xxx]]` reference patterns (`nodes` defaults to the
 object itself plus all objects below it, and `local: true` restricts the
 matches of both patterns to the object itself plus all objects below it,
@@ -635,6 +646,19 @@ container group its band into a cluster column. The containers are no
 nodes there, so the edges ending at a container are dropped, an edge
 pointing upwards against the layering is marked as a violation, and
 neither `nest.layout`, a lifting `nest.crossing`, nor `ordered` apply.
+
+A `matrix` diagram draws a dependency structure matrix: the nodes are
+both its rows and its columns, the cell of a row and a column counts the
+edges from the one to the other (a numeric arity counting as its
+number), and the nodes are ordered topologically (with `ordered: true`
+in document order instead), so all entries lie above the diagonal
+except the ones of the cycles, which are outlined and marked as
+violations. A `nest` container stays a row and a column of its own, but
+partitions it together with its members, and the partitions are
+outlined on the diagonal, while `qualified: true` puts the shared
+object kind into the corner. A `matrix` diagram accepts no
+`nest.layout`. It usually restricts the `links` onto the very relation
+it is about, e.g. `links: [ DEPENDS-ON ]`.
 
 Instead of naming an existing object, `center` can also declare a
 *synthetic* center node, which represents something no specification

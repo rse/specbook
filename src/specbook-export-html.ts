@@ -18,7 +18,7 @@ import { stylesheet, searchScript, isTitleObject, titleObject,
     from "./specbook-export-common.js"
 import { collectSchemas }
     from "./specbook-parse-semantic.js"
-import { renderDiagrams }
+import { renderDiagrams, type DiagramType }
     from "./specbook-diagram.js"
 import { optimizeImages, analyzeImages }
     from "./specbook-export-image.js"
@@ -90,36 +90,38 @@ export const titlePageObject = (specification: Spec): SpecObject | undefined => 
     diagrams repeat the very same few rules (which are XML-escaped
     inside an SVG, but plain text inside the HTML <style> element,
     which no unescaped "</" of a configured value may close)  */
-const scaledDiagrams = async (specification: Spec, config: Schema,
-    verbose?: Verbose, omit?: Set<OmitAspect>): Promise<{ svgs: Map<SpecObject, string>, css: string }> => {
+const scaledDiagrams = async (specification: Spec, config: Schema, verbose?: Verbose,
+    omit?: Set<OmitAspect>): Promise<{ svgs: Map<SpecObject, { type: DiagramType, svg: string }[]>, css: string }> => {
     const scale    = 0.5
-    const rendered = new Map<SpecObject, string>()
+    const rendered = new Map<SpecObject, { type: DiagramType, svg: string }[]>()
     const rules    = new Set<string>()
     const entities: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: "\"" }
-    for (const [ object, result ] of await renderDiagrams(specification, config, verbose, omit)) {
-        const svg = result.svg.replace(/<style>([\s\S]*?)<\/style>\s*/g, (_, css: string) => {
-            for (const rule of css.split("\n"))
-                if (rule.trim() !== "")
-                    rules.add(rule.trim()
-                        .replace(/&(amp|lt|gt|quot);/g, (_, name: string) => entities[name])
-                        .replace(/<\//g, "<\\/"))
-            return ""
-        })
+    for (const [ object, results ] of await renderDiagrams(specification, config, verbose, omit)) {
+        rendered.set(object, results.map((result) => {
+            const svg = result.svg.replace(/<style>([\s\S]*?)<\/style>\s*/g, (_, css: string) => {
+                for (const rule of css.split("\n"))
+                    if (rule.trim() !== "")
+                        rules.add(rule.trim()
+                            .replace(/&(amp|lt|gt|quot);/g, (_, name: string) => entities[name])
+                            .replace(/<\//g, "<\\/"))
+                return ""
+            })
 
-        /*  a "hub" diagram is capped to the width share it would
-            occupy on its full three-column canvas (padded by the
-            minimum widths of the absent columns and their channels),
-            so all hub diagrams share the zoom level of the
-            three-column ones, the leftover space splitting evenly, as
-            the stylesheet centers every diagram  */
-        const absent = result.columns !== undefined ? 3 - result.columns : 0
-        const pad    = absent * (
-            (result.config?.["size-node-width-min"]  ?? Gradia.config["size-node-width-min"]) +
-            (result.config?.["hub-channel-width-min"] ?? Gradia.config["hub-channel-width-min"]))
-        rendered.set(object, svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
-            (_, head: string, w: string, h: string) =>
-                `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"` +
-                (absent > 0 ? ` style="max-width: ${(Number(w) / (Number(w) + pad) * 100).toFixed(2)}%"` : "")))
+            /*  a "hub" diagram is capped to the width share it would
+                occupy on its full three-column canvas (padded by the
+                minimum widths of the absent columns and their channels),
+                so all hub diagrams share the zoom level of the
+                three-column ones, the leftover space splitting evenly, as
+                the stylesheet centers every diagram  */
+            const absent = result.columns !== undefined ? 3 - result.columns : 0
+            const pad    = absent * (
+                (result.config?.["size-node-width-min"]  ?? Gradia.config["size-node-width-min"]) +
+                (result.config?.["hub-channel-width-min"] ?? Gradia.config["hub-channel-width-min"]))
+            return { type: result.type, svg: svg.replace(/(<svg[^>]*) width="([0-9.]+)" height="([0-9.]+)"/,
+                (_, head: string, w: string, h: string) =>
+                    `${head} width="${Number(w) * scale}" height="${Number(h) * scale}"` +
+                    (absent > 0 ? ` style="max-width: ${(Number(w) / (Number(w) + pad) * 100).toFixed(2)}%"` : "")) }
+        }))
     }
     return { svgs: rendered, css: Array.from(rules).join("\n") }
 }
@@ -139,16 +141,17 @@ export const renderPlaceholder = (message: string): string =>
         message
     } })
 
-/*  wrap the pre-rendered diagrams into their blocks, carrying the
-    diagram type and the object tree nesting level the folding
-    distinguishes (the top-level objects of an artifact being level 1)  */
-const wrapDiagrams = (svgs: Map<SpecObject, string>,
-    schemas: Map<SpecObject, SchemaObject> | null, levels: Map<SpecObject, number>): Map<SpecObject, string> => {
+/*  wrap the pre-rendered diagrams of every object into their blocks
+    (one per diagram, in their configured order), carrying the diagram
+    type and the object tree nesting level the folding distinguishes
+    (the top-level objects of an artifact being level 1)  */
+const wrapDiagrams = (svgs: Map<SpecObject, { type: DiagramType, svg: string }[]>,
+    levels: Map<SpecObject, number>): Map<SpecObject, string> => {
     const blocks = new Map<SpecObject, string>()
-    for (const [ object, svg ] of svgs) {
+    for (const [ object, diagrams ] of svgs) {
         const level = levels.get(object) ?? 1
-        const type  = schemas?.get(object)?.diagram?.type ?? "graph"
-        blocks.set(object, `<div class="diagram" data-type="${type}" data-level="${level}">${svg}</div>`)
+        blocks.set(object, diagrams.map(({ type, svg }) =>
+            `<div class="diagram" data-type="${type}" data-level="${level}">${svg}</div>`).join(""))
     }
     return blocks
 }
@@ -222,7 +225,7 @@ export const renderHtml = async (specification: Spec, config?: Schema,
 
     /*  wrap the diagrams into their blocks, carrying the diagram type
         and the object tree nesting level the folding distinguishes  */
-    const diagrams = rendered !== null ? wrapDiagrams(rendered.svgs, schemas, levels) : null
+    const diagrams = rendered !== null ? wrapDiagrams(rendered.svgs, levels) : null
 
     /*  the document language selects the smart typography quote style
         and the rendered rationale keyword translation  */

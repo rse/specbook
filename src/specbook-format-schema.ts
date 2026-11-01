@@ -30,7 +30,7 @@ export type SchemaObject = {
     coverage?:         string[]
     automaton?:        SchemaAutomaton
     badge?:            SchemaBadge
-    diagram?:          SchemaDiagram
+    diagram?:          SchemaDiagram | SchemaDiagram[]
     format?:           SchemaFormat
     props?:            SchemaProperty[]
     children?:         SchemaObject[]
@@ -106,13 +106,13 @@ export type SchemaDiagramNest = {
     and its descendants), the edge property roles, the derivation
     switches, the node nesting, and the node annotations  */
 export type SchemaDiagram = {
-    type?:             "graph" | "hub" | "grid" | "state" | "layer"
+    type?:             "graph" | "hub" | "grid" | "state" | "layer" | "matrix"
     nodes?:            string
     edges?:            string
     local?:            boolean
     center?:           string | SchemaDiagramCenter
     centerEdges?:      SchemaDiagramCenterEdges
-    links?:            "props" | "all"
+    links?:            "props" | "all" | string[]
     labeled?:          boolean
     edgeSource?:       string
     edgeTarget?:       string
@@ -226,13 +226,14 @@ const SchemaDiagramNest: v.GenericSchema<SchemaDiagramNest> = v.strictObject({
     crossing:          v.optional(v.picklist([ "nodes", "target", "both" ]))
 })
 const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
-    type:              v.optional(v.picklist([ "graph", "hub", "grid", "state", "layer" ])),
+    type:              v.optional(v.picklist([ "graph", "hub", "grid", "state", "layer", "matrix" ])),
     nodes:             v.optional(v.string()),
     edges:             v.optional(v.string()),
     local:             v.optional(v.boolean()),
     center:            v.optional(v.union([ v.string(), SchemaDiagramCenter ])),
     centerEdges:       v.optional(SchemaDiagramCenterEdges),
-    links:             v.optional(v.picklist([ "props", "all" ])),
+    links:             v.optional(v.union([ v.picklist([ "props", "all" ]),
+        v.pipe(v.array(v.string()), v.minLength(1)) ])),
     labeled:           v.optional(v.boolean()),
     edgeSource:        v.optional(v.string()),
     edgeTarget:        v.optional(v.string()),
@@ -266,11 +267,18 @@ const SchemaObject: v.GenericSchema<SchemaObject> = v.strictObject({
     coverage:          v.optional(v.pipe(v.array(v.string()), v.minLength(1))),
     automaton:         v.optional(SchemaAutomaton),
     badge:             v.optional(SchemaBadge),
-    diagram:           v.optional(SchemaDiagram),
+    diagram:           v.optional(v.union([ SchemaDiagram, v.pipe(v.array(SchemaDiagram), v.minLength(1)) ])),
     format:            v.optional(SchemaFormat),
     props:             v.optional(v.array(SchemaProperty)),
     children:          v.optional(v.array(v.lazy(() => SchemaObject)))
 })
 export const Schema: v.GenericSchema<Schema> =
     v.pipe(v.array(SchemaObject), v.minLength(1))
+
+/*  ==== Helpers ====  */
+
+/*  the diagrams configured on an object kind: none, a single one,
+    or a list of them, normalized into a list  */
+export const diagramsOf = (schema: SchemaObject | undefined): SchemaDiagram[] =>
+    schema?.diagram === undefined ? [] : Array.isArray(schema.diagram) ? schema.diagram : [ schema.diagram ]
 

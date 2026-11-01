@@ -33,14 +33,16 @@ export const lineColOfPath = (doc: Document, lines: LineCounter, path: YamlPath)
 /*  the identity by which the elements of the lists of the configuration
     are matched on merging: the artifacts by their kind plus id or name
     and the nested objects by their kind alone (exactly like the sibling
-    resolution), the properties by their name, and the scalar entries
-    by their value  */
+    resolution), the properties by their name, the diagrams by their
+    type, and the scalar entries by their value  */
 const identityOf = (item: unknown, list?: string): string => {
     if (!isPlainObject(item))
         return String(item)
     const object = item as Record<string, unknown>
     if (list === "props")
         return String(object.name ?? "")
+    else if (list === "diagram")
+        return String(object.type ?? "graph")
     else if (list === "children")
         return String(object.kind ?? "")
     else
@@ -69,8 +71,16 @@ const mergeConfig = (target: unknown, source: unknown, list?: string): unknown =
         return items
     }
     else if (isPlainObject(target) && isPlainObject(source))
-        return mergeWith(target, source, (t: unknown, s: unknown, key: string) =>
-            Array.isArray(t) && Array.isArray(s) ? mergeConfig(t, s, key) : undefined)
+        return mergeWith(target, source, (t: unknown, s: unknown, key: string) => {
+            if (Array.isArray(t) && Array.isArray(s))
+                return mergeConfig(t, s, key)
+
+            /*  a single diagram and a list of diagrams merge as lists  */
+            if (key === "diagram" && (Array.isArray(t) || Array.isArray(s))
+                && t !== undefined && t !== null && s !== undefined && s !== null)
+                return mergeConfig(Array.isArray(t) ? t : [ t ], Array.isArray(s) ? s : [ s ], key)
+            return undefined
+        })
     else
         return source
 }

@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: Multiple Diagrams and Matrix Diagrams
+    An object kind can configure a list of diagrams, and the new type `matrix` draws a dependency
+    structure matrix, used for the `DEPENDS-ON` relation of the Functionality View components.
+
 -   IMPROVEMENT [code]: Layer Diagrams
     The new diagram type `layer` draws the `nest` containers as stacked, numbered bands, and
     replaces the tile grid of the Technology Stack in the standard schema configuration.

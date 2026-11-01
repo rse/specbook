@@ -9,8 +9,8 @@ import { Gradia }
 
 import type { Spec, SpecObject, SpecProperty }
     from "./specbook-format-spec.js"
-import type { Schema, SchemaObject, SchemaAutomaton, SchemaDiagram, SchemaDiagramCenterEdges,
-    SchemaDiagramNest, BadgeIcon }
+import { diagramsOf, type Schema, type SchemaObject, type SchemaAutomaton, type SchemaDiagram,
+    type SchemaDiagramCenterEdges, type SchemaDiagramNest, type BadgeIcon }
     from "./specbook-format-schema.js"
 import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths,
     chainOf, expandReferences, plainText, referenceText, type LinkIndex }
@@ -35,14 +35,16 @@ export interface DiagramError {
     object?: SpecObject
 }
 
-/*  the result of a per-object Gradia spec derivation: either the spec
-    text with the Gradia rendering options (which a rendering has to
-    receive explicitly, as Gradia drops the trust-sensitive font options
-    from the "#config" directives) and, for a "hub" diagram, its number
-    of occupied columns (the center plus the non-empty input and output
-    columns of the three-column layout), or the reasons for omitting
-    the diagram (none for a silently omitted empty or collapsed one)  */
+/*  the result of a single Gradia spec derivation of an object: its
+    diagram type and either the spec text with the Gradia rendering
+    options (which a rendering has to receive explicitly, as Gradia drops
+    the trust-sensitive font options from the "#config" directives) and,
+    for a "hub" diagram, its number of occupied columns (the center plus
+    the non-empty input and output columns of the three-column layout),
+    or the reasons for omitting the diagram (none for a silently omitted
+    empty or collapsed one)  */
 export interface DiagramResult {
+    type:     DiagramType
     spec?:    string
     config?:  SchemaDiagram["config"]
     columns?: number
@@ -83,7 +85,7 @@ const diagramPresets: NonNullable<SchemaDiagram["config"]> = {
 
 /*  the diagram shape, i.e., the "type" of a diagram configuration
     with its default applied  */
-type DiagramType = NonNullable<SchemaDiagram["type"]>
+export type DiagramType = NonNullable<SchemaDiagram["type"]>
 
 /*  render a text as a double-quoted Gradia string, with the
     backslashes and the double quotes escaped  */
@@ -190,9 +192,10 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
     /*  the explicit top-down order of an "ordered" diagram: the members
         of a container share one row (which Gradia wraps), while the
         top-level nodes stack in document order, a synthetic container
-        taking the position of its first member  */
+        taking the position of its first member (a "matrix" knows no
+        container rows, so there every node takes its own position)  */
     const orderOf = (node: SpecObject): number => {
-        if (nesting.parentOf.has(node))
+        if (nesting.parentOf.has(node) && type !== "matrix")
             return 0
         let order = positions.get(node) ?? Number.MAX_SAFE_INTEGER
         for (const [ member, container ] of nesting.parentOf)
@@ -214,13 +217,18 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
         if (type === "hub" ? node === center : node.primary === true)
             attrs.push("primary: true")
         const container = nesting.parentOf.get(node)
-        if (container !== undefined && type === "layer") {
-            /*  a "layer" diagram knows no containers: the container
-                names the layer band of the node, and the containers
-                enclosing it the path of the clusters grouping that band  */
-            attrs.push(`layer: ${atom(plainText(container.name))}`)
+        if (type === "layer" || type === "matrix") {
+            /*  a "layer" or "matrix" diagram knows no containers: in a
+                "layer" one the container names the layer band of the
+                node and the containers enclosing it the path of the
+                clusters grouping that band, while in a "matrix" one a
+                container (itself a row and column there) and all
+                containers of a node form the path of its partition  */
+            if (type === "layer" && container !== undefined)
+                attrs.push(`layer: ${atom(plainText(container.name))}`)
             const clusters = new Array<string>()
-            for (let p = nesting.parentOf.get(container); p !== undefined; p = nesting.parentOf.get(p))
+            for (let p = type === "layer" ? (container !== undefined ? nesting.parentOf.get(container) : undefined) :
+                nesting.containers.has(node) ? node : container; p !== undefined; p = nesting.parentOf.get(p))
                 clusters.unshift(plainText(p.name))
             if (clusters.length > 0)
                 attrs.push(`cluster: ${atom(clusters.join("/"))}`)
@@ -267,10 +275,11 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
 }
 
 /*  derive the reference edges of a diagram from the "[[...]]" references
-    of the node objects (per the "links" selection, named with the
-    property key when "labeled", and for a "deep" diagram also of their
-    descendants, with the reference count as the arity), with every
-    target lifted to its nearest node  */
+    of the node objects (per the "links" selection: all property values,
+    also the texts, or the values of the listed properties only, named
+    with the property key when "labeled", and for a "deep" diagram also
+    of their descendants, with the reference count as the arity), with
+    every target lifted to its nearest node  */
 const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes: SpecObject[],
     nodeSet: Set<SpecObject>): DiagramEdge[] => {
     const { index, anchors, parents, parenProps } = ctx
@@ -299,10 +308,12 @@ const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes
         walk(node)
         const counts = new Map<string, { target: SpecObject, name?: string, count: number }>()
         for (const object of objects) {
-            const texts: { text: string, name?: string }[] = propsOf(parenProps, object).map((property) => ({
-                text: property.value,
-                name: diagram.labeled === true ? property.key.toLowerCase() : undefined
-            }))
+            const texts: { text: string, name?: string }[] = propsOf(parenProps, object)
+                .filter((property) => !Array.isArray(diagram.links) || diagram.links.includes(property.key))
+                .map((property) => ({
+                    text: property.value,
+                    name: diagram.labeled === true ? property.key.toLowerCase() : undefined
+                }))
             if (diagram.links === "all" && object.description !== undefined) {
                 texts.push({ text: object.description.description })
                 if (object.description.rationale !== undefined)
@@ -750,7 +761,7 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
     const derived: DiagramCenter | undefined = type === "hub" ?
         deriveCenter(ctx, object, diagram, nodes, nodeSet, errors) : { center: object }
     if (derived === undefined)
-        return { errors }
+        return { type, errors }
     const { center, centerUrl } = derived
 
     /*  synthesize the center edges of a "hub" diagram, as the nodes
@@ -783,31 +794,37 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
             errors.push({ reason: `"${type}" diagram cannot carry a "nest" configuration` })
         else {
             nesting = deriveNesting(ctx, diagram.nest, nodes, nodeSet, errors)
+            if ((type === "layer" || type === "matrix") && diagram.nest.layout !== undefined)
+                errors.push({ reason: `"${type}" diagram cannot carry a "nest" layout configuration` })
             if (type === "layer") {
                 /*  a "layer" diagram draws its containers as layer bands
-                    and cluster groups instead of as nodes, so it neither
-                    lays out their members nor lifts edges onto them, and
-                    the edges ending at a container are dropped  */
-                for (const field of [ "layout", "crossing" ] as const)
-                    if (diagram.nest[field] !== undefined && diagram.nest[field] !== "nodes")
-                        errors.push({ reason: `"layer" diagram cannot carry a "nest" ${field} configuration` })
+                    and cluster groups instead of as nodes, so it lifts no
+                    edges onto them and drops the edges ending at one  */
+                if (diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
+                    errors.push({ reason: "\"layer\" diagram cannot carry a \"nest\" crossing configuration" })
                 nodes = nodes.filter((node) => !nesting.containers.has(node))
                 edges = edges.filter((edge) => !nesting.containers.has(edge.source)
                     && !nesting.containers.has(edge.target))
             }
             else if (diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
                 edges = liftEdges(edges, nesting.parentOf, diagram.nest.crossing, anchors)
-            edges = edges.filter((edge) => nesting.parentOf.get(edge.source) !== edge.target
-                && nesting.parentOf.get(edge.target) !== edge.source)
+
+            /*  a "matrix" diagram keeps its containers as regular rows
+                and columns (only partitioning their members), so it
+                keeps their edges onto their own members, too  */
+            if (type !== "matrix")
+                edges = edges.filter((edge) => nesting.parentOf.get(edge.source) !== edge.target
+                    && nesting.parentOf.get(edge.target) !== edge.source)
         }
     }
     if (type === "layer" && diagram.ordered === true)
         errors.push({ reason: "\"layer\" diagram cannot carry an \"ordered\" configuration" })
 
     /*  the "onlyConnected" filtering keeps only the nodes with at
-        least one incident edge (sensible for "graph", "state", and
-        "layer" diagrams only), and the containers enclosing such a node  */
-    if (diagram.onlyConnected === true && (type === "graph" || type === "state" || type === "layer")) {
+        least one incident edge (sensible for "graph", "state", "layer",
+        and "matrix" diagrams only), and the containers enclosing such a node  */
+    if (diagram.onlyConnected === true
+        && (type === "graph" || type === "state" || type === "layer" || type === "matrix")) {
         const connected = new Set<SpecObject>()
         for (const edge of edges) {
             connected.add(edge.source)
@@ -819,7 +836,7 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
         nodes = nodes.filter((node) => connected.has(node))
     }
     if (errors.length > 0)
-        return { errors }
+        return { type, errors }
 
     /*  an empty node set silently omits the diagram, as a wildcard
         "nodes" pattern legitimately matches nothing when an optional
@@ -828,7 +845,7 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
         such a diagram carries no information beyond the object itself  */
     if (nodes.length === 0
         || (diagram.collapse !== false && nodes.length === 1 && edges.length === 0))
-        return { errors }
+        return { type, errors }
 
     /*  a "state" diagram of an object kind carrying an "automaton" draws
         its flags as pseudo-states, which Gradia knows instead: a single
@@ -855,19 +872,20 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
         }
     }
 
-    return { spec: renderSpec(ctx, diagram, type, center, centerUrl, nodes, edges, nesting, pseudo),
+    return { type, spec: renderSpec(ctx, diagram, type, center, centerUrl, nodes, edges, nesting, pseudo),
         config: { ...diagramPresets, ...diagram.config }, columns, errors }
 }
 
 /*  the memoized diagram derivations, keyed by specification, as the
     lint validation and every renderer of an export derive the very
     same diagrams of the very same parsed specification again  */
-const derivations = new WeakMap<Spec, { config: Schema, results: Map<SpecObject, DiagramResult> }>()
+const derivations = new WeakMap<Spec, { config: Schema, results: Map<SpecObject, DiagramResult[]> }>()
 
-/*  derive the Gradia specs of all diagram-configured objects
-    of a specification (memoized per specification and schema)  */
+/*  derive the Gradia specs of all diagrams of all diagram-configured
+    objects of a specification, in their configured order (memoized
+    per specification and schema)  */
 export const specDiagrams = (specification: Spec,
-    config: Schema): Map<SpecObject, DiagramResult> => {
+    config: Schema): Map<SpecObject, DiagramResult[]> => {
     const derived = derivations.get(specification)
     if (derived !== undefined && derived.config === config)
         return derived.results
@@ -885,33 +903,33 @@ export const specDiagrams = (specification: Spec,
         name tokens, as the derivation sees the AST alone, while the
         parsing context holding them is long gone by export time  */
     const ctx     = { index, anchors, positions, parents, schemas, parenProps: collectParenProps(schemas) }
-    const results = new Map<SpecObject, DiagramResult>()
-    for (const [ object, schema ] of schemas)
-        if (schema.diagram !== undefined)
-            results.set(object, deriveDiagram(ctx, object, schema.diagram, schema.automaton))
+    const results = new Map<SpecObject, DiagramResult[]>()
+    for (const [ object, schema ] of schemas) {
+        const diagrams = diagramsOf(schema)
+        if (diagrams.length > 0)
+            results.set(object, diagrams.map((diagram) => deriveDiagram(ctx, object, diagram, schema.automaton)))
+    }
     derivations.set(specification, { config, results })
     return results
 }
 
-/*  determine the diagram-configured objects whose diagrams the given
-    aspects omit: the ones of a diagram type and the ones from an object
-    tree nesting level on (the top-level objects being level 1)  */
+/*  determine the diagrams the given aspects omit: the ones of a diagram
+    type and the ones from an object tree nesting level on (the top-level
+    objects being level 1)  */
 export const omittedDiagrams = (specification: Spec, config: Schema,
-    omit: Set<OmitAspect>): Set<SpecObject> => {
-    const omitted = new Set<SpecObject>()
+    omit: Set<OmitAspect>): Set<DiagramResult> => {
+    const omitted = new Set<DiagramResult>()
     if (omit.size === 0)
         return omitted
-    const schemas = collectSchemas(specification, config)
+    const results = specDiagrams(specification, config)
     for (const node of buildLinkIndex(specification)) {
-        const diagram = schemas.get(node.object)?.diagram
-        if (diagram === undefined)
-            continue
         let level = 1
         for (let parent = node.parent; parent !== undefined; parent = parent.parent)
             level++
-        if (omit.has(`diagram:${diagram.type ?? "graph"}`)
-            || ([ 1, 2, 3 ] as const).some((n) => n <= level && omit.has(`diagram:${n}`)))
-            omitted.add(node.object)
+        for (const result of results.get(node.object) ?? [])
+            if (omit.has(`diagram:${result.type}`)
+                || ([ 1, 2, 3 ] as const).some((n) => n <= level && omit.has(`diagram:${n}`)))
+                omitted.add(result)
     }
     return omitted
 }
@@ -923,45 +941,51 @@ export const omittedDiagrams = (specification: Spec, config: Schema,
     over and over again  */
 let svgCache = new Map<string, string>()
 
-/*  render the Gradia specs of all diagram-configured objects of a
-    specification into embeddable SVGs (a runtime rendering failure omits
-    the diagram and is surfaced as a notice only, as the statically
-    detectable invalid situations are already reported as lint
-    diagnostics), served from the cache where possible, which is
-    afterwards swept to the diagrams of this very rendering, so it never
-    grows beyond a single document; the omitted diagrams are skipped  */
+/*  render the Gradia specs of all diagrams of all diagram-configured
+    objects of a specification into embeddable SVGs, in their configured
+    order (a runtime rendering failure omits the diagram and is surfaced
+    as a notice only, as the statically detectable invalid situations are
+    already reported as lint diagnostics), served from the cache where
+    possible, which is afterwards swept to the diagrams of this very
+    rendering, so it never grows beyond a single document; the omitted
+    diagrams are skipped  */
 export const renderDiagrams = async (specification: Spec, config: Schema,
-    verbose?: Verbose, omit = new Set<OmitAspect>()): Promise<Map<SpecObject, DiagramResult & { svg: string }>> => {
+    verbose?: Verbose, omit = new Set<OmitAspect>()): Promise<Map<SpecObject, (DiagramResult & { svg: string })[]>> => {
     const cache    = new Map<string, string>()
-    const rendered = new Map<SpecObject, DiagramResult & { svg: string }>()
+    const rendered = new Map<SpecObject, (DiagramResult & { svg: string })[]>()
     const omitted  = omittedDiagrams(specification, config, omit)
     let   cached   = 0
-    for (const [ object, result ] of specDiagrams(specification, config)) {
-        if (result.spec === undefined || omitted.has(object))
-            continue
-        const key = result.spec + JSON.stringify(result.config ?? {})
-        let   svg = svgCache.get(key) ?? cache.get(key)
-        if (svg !== undefined)
-            cached++
-        else {
-            try {
-                svg = await Gradia.render(result.spec,
-                    { format: "svg:embedded", config: result.config })
-            }
-            catch (err) {
-                verbose?.(`rendering diagram of ${object.kind} "${literal(plainText(object.name))}" failed: ` +
-                    (err instanceof Error ? err.message : String(err)))
+    let   total    = 0
+    for (const [ object, results ] of specDiagrams(specification, config)) {
+        for (const result of results) {
+            if (result.spec === undefined || omitted.has(result))
                 continue
+            const key = result.spec + JSON.stringify(result.config ?? {})
+            let   svg = svgCache.get(key) ?? cache.get(key)
+            if (svg !== undefined)
+                cached++
+            else {
+                try {
+                    svg = await Gradia.render(result.spec,
+                        { format: "svg:embedded", config: result.config })
+                }
+                catch (err) {
+                    verbose?.(`rendering ${result.type} diagram of ${object.kind} ` +
+                        `"${literal(plainText(object.name))}" failed: ` +
+                        (err instanceof Error ? err.message : String(err)))
+                    continue
+                }
             }
+            cache.set(key, svg)
+            rendered.set(object, [ ...(rendered.get(object) ?? []), { ...result, svg } ])
+            total++
         }
-        cache.set(key, svg)
-        rendered.set(object, { ...result, svg })
     }
     svgCache = cache
-    if (cached > 0 && cached === rendered.size)
+    if (cached > 0 && cached === total)
         verbose?.(`reusing ${literal(cached)} cached diagram(s)`)
     else
-        verbose?.(`rendering ${literal(rendered.size)} diagram(s) (${literal(cached)} cached)`)
+        verbose?.(`rendering ${literal(total)} diagram(s) (${literal(cached)} cached)`)
     return rendered
 }
 
@@ -970,8 +994,8 @@ export const renderDiagrams = async (specification: Spec, config: Schema,
 export const validateDiagrams = (ctx: ParseContext, specification: Spec,
     config: Schema) => {
     const seen = new Set<string>()
-    for (const [ object, result ] of specDiagrams(specification, config))
-        for (const error of result.errors) {
+    for (const [ object, results ] of specDiagrams(specification, config))
+        for (const error of results.flatMap((result) => result.errors)) {
             /*  attribute an edge object situation to the offending edge
                 object itself and report it just once, as a wildcard
                 "edges" pattern lets every diagram walk the very same

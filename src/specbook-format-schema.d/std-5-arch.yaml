@@ -361,14 +361,22 @@
         -   Brown: The C4 Model (2018),
             https://c4model.com/
     diagram:
-        type: graph
-        nodes: "[[FV.COMPONENT:*]]"
-        labeled: true
-        nest:
+        -   type: graph
+            nodes: "[[FV.COMPONENT:*]]"
+            labeled: true
+            nest:
+                properties:
+                    -   PART-OF
             properties:
-                -   PART-OF
-        properties:
-            -   KIND
+                -   KIND
+        -   type: matrix
+            nodes: "[[FV.COMPONENT:*]]"
+            links:
+                -   DEPENDS-ON
+            qualified: true
+            nest:
+                properties:
+                    -   PART-OF
     children:
         -   kind: COMPONENT
             desc: >

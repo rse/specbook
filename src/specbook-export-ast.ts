@@ -37,7 +37,7 @@ export type AstFormat = "json" | "json5" | "yaml" | "toon"
 /*  the plain JSON shape of the specification (as far as the diagram
     and coverage attachments below have to navigate it)  */
 interface PlainCoverage      { pattern: string, covered: number, total: number }
-interface PlainObject        { diagram?: string, coverage?: PlainCoverage[], children: PlainObject[] }
+interface PlainObject        { diagram?: string | string[], coverage?: PlainCoverage[], children: PlainObject[] }
 interface PlainSpecification { artifacts: { objects: PlainObject[] }[] }
 
 /*  render the specification AST into a serialization format,
@@ -69,11 +69,12 @@ export const renderAst = async (specification: Spec, format: AstFormat,
     )) as PlainSpecification
 
     /*  attach the Gradia specs of the diagram-configured objects as
-        "diagram" fields onto the corresponding plain object nodes
-        (an invalid diagram situation omits the diagram, as it is
-        already reported as a lint diagnostic, the diagram of the
-        title object is reserved for the HTML/PDF export, and the
-        diagrams of the omitted aspects are left out), and
+        "diagram" fields onto the corresponding plain object nodes (a
+        single spec as a string, several ones as a list of strings; an
+        invalid diagram situation omits the diagram, as it is already
+        reported as a lint diagnostic, the diagram of the title object
+        is reserved for the HTML/PDF export, and the diagrams of the
+        omitted aspects are left out), and
         the reference coverage of the coverage-configured objects as
         "coverage" fields (the counts only, as the export is intended
         for machine consumption)  */
@@ -82,9 +83,11 @@ export const renderAst = async (specification: Spec, format: AstFormat,
         const omitted   = omittedDiagrams(specification, config, omit)
         const coverages = specCoverage(buildLinkIndex(specification), collectSchemas(specification, config))
         const walk = (object: SpecObject, node: PlainObject) => {
-            const result = diagrams.get(object)
-            if (result?.spec !== undefined && !isTitleObject(object) && !omitted.has(object))
-                node.diagram = result.spec
+            const specs = isTitleObject(object) ? [] : (diagrams.get(object) ?? [])
+                .filter((result) => !omitted.has(result))
+                .flatMap((result) => result.spec !== undefined ? [ result.spec ] : [])
+            if (specs.length > 0)
+                node.diagram = specs.length === 1 ? specs[0] : specs
             const coverage = coverages.get(object)
             if (coverage !== undefined)
                 node.coverage = coverage.map(({ pattern, covered, uncovered }) =>

@@ -155,7 +155,7 @@
                     desc: The badge icon of the objects of the kind in the diagrams (`badge`).
                     optional: true
                 -   name: DIAGRAM
-                    desc: The diagram derived for every object of the kind (`diagram`).
+                    desc: The diagram(s) derived for every object of the kind (`diagram`).
                     optional: true
                 -   name: FORMAT
                     desc: The HTML/PDF rendering format of the objects of the kind (`format`).
@@ -206,7 +206,7 @@
                             desc: The badge icon of the objects of the kind in the diagrams (`badge`).
                             optional: true
                         -   name: DIAGRAM
-                            desc: The diagram derived for every object of the kind (`diagram`).
+                            desc: The diagram(s) derived for every object of the kind (`diagram`).
                             optional: true
                         -   name: FORMAT
                             desc: The HTML/PDF rendering format of the objects of the kind (`format`).

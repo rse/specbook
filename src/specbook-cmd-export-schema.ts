@@ -70,10 +70,13 @@ const escapeDesc = (text: string): string =>
     })
 
 /*  flatten a nested configuration value (an automaton, badge, diagram,
-    or format) into "key=value" pairs, with the nested keys dotted and
-    the lists bracketed  */
+    or format) into "key=value" pairs, with the nested keys dotted, the
+    lists of scalars bracketed, and the elements of the lists of objects
+    (the diagrams) indexed  */
 const flatten = (value: unknown, prefix = ""): string[] => {
-    if (Array.isArray(value))
+    if (Array.isArray(value) && value.some((item) => typeof item === "object" && item !== null))
+        return (value as unknown[]).flatMap((item, i) => flatten(item, `${prefix}[${i}]`))
+    else if (Array.isArray(value))
         return [ `${prefix}=[${(value as unknown[]).map((item) => String(item)).join(", ")}]` ]
     else if (typeof value === "object" && value !== null)
         return Object.entries(value as Record<string, unknown>)
