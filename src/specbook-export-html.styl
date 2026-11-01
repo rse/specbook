@@ -1325,6 +1325,13 @@ div.description ul
     padding-left: 1.6rem
 div.description li
     margin: 0.1rem 0
+
+/*  the Markdown bold of the descriptions renders semi-bold (unlike the
+    classed <strong> markup of the hyperlinks), so it stands out from the
+    prose without the weight of the headings and object kinds  */
+p.description strong:not([class]),
+div.description strong:not([class])
+    font-weight: 600
 div.embedding
     margin: 0.5rem 0
 div.embedding img
@@ -1396,6 +1403,12 @@ code
     font-family: "DejaVu Sans Mono", monospace
     font-size: 0.89em
     letter-spacing: -0.030rem
+
+/*  an inline code span breaks inside an overlong word (like a long
+    value expression without any space) instead of overflowing its
+    table cell or text column  */
+:not(pre) > code
+    overflow-wrap: anywhere
 
 /*  the code listings: block-level lines on a transparent background with a
     grey gutter for the line numbers, drawn from a counter (in the

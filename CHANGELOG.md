@@ -5,6 +5,14 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: Semi-Bold Markdown Bold in Descriptions
+    The Markdown bold (`**...**`) of the descriptions renders semi-bold in the HTML/PDF export,
+    so it stands out from the prose without the weight of the headings and object kinds.
+
+-   IMPROVEMENT [code]: Line Breaking of Long Inline Code Spans
+    An inline code span breaks behind its commas, semicolons, and pipes, and else inside a word,
+    so a long space-less span like a value expression no longer overflows its table cell.
+
 -   IMPROVEMENT [code]: Remote Schema Configurations
     `-c` accepts the remote references `npm:`, `github:`, and `http[s]:` (cached, per `--fetch`),
     and `specbook search` finds the shareable schema configurations on npm and GitHub.
