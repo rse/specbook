@@ -29,6 +29,9 @@ ChangeLog
     The HTML/PDF export follows the `BECAUSE` of the rationales with its translation into the `LANG`
     of the title object, like `BECAUSE (weil)` for `de`, through an internal mapping.
 
+-   UPDATE [infr]: Upgrade NPM Dependencies
+    The NPM dependencies were updated.
+
 1.5.2 (2026-10-10)
 ------------------
 
