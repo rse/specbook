@@ -104,7 +104,7 @@ type SchemaDiagramCenterEdges = {
     via?:              string
 }
 type SchemaDiagram = {
-    type?:             "graph" | "hub" | "grid"
+    type?:             "graph" | "hub" | "grid" | "state"
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -115,6 +115,7 @@ type SchemaDiagram = {
     edgeSource?:       string
     edgeTarget?:       string
     edgeArity?:        string
+    edgeGuard?:        string
     hierarchy?:        boolean
     deep?:             boolean
     onlyConnected?:    boolean
@@ -313,8 +314,9 @@ type SchemaGradiaConfig = Partial<{
     diagram derived for every object of an object kind,
     BECAUSE the relations of a specification are graspable only when drawn
 
--   `SchemaDiagram.type?: "graph" | "hub" | "grid"`:
+-   `SchemaDiagram.type?: "graph" | "hub" | "grid" | "state"`:
     diagram shape: `graph` (free), `hub` (centered), `grid` (edge-less),
+    `state` (state machine, with the `automaton` flags as pseudo-states),
     BECAUSE one object set tells different stories as different shapes
 
 -   `SchemaDiagram.nodes?: string`:
@@ -375,6 +377,11 @@ type SchemaGradiaConfig = Partial<{
     edge property carrying the edge arity (default: `ARITY`),
     BECAUSE cardinality labels are named domain-specifically
 
+-   `SchemaDiagram.edgeGuard?: string`:
+    edge property whose value follows the edge name in brackets
+    (e.g. `submit [complete]`), rendered italic in a `state` diagram,
+    BECAUSE a transition is only understood together with its condition
+
 -   `SchemaDiagram.hierarchy?: boolean`:
     whether containment edges derive from the nesting (default: `false`),
     BECAUSE the nesting carries no reference and would stay invisible
@@ -385,7 +392,7 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE the relations between coarse objects live in their fine parts
 
 -   `SchemaDiagram.onlyConnected?: boolean`:
-    whether a `graph` drops its edge-less nodes (default: `false`),
+    whether a `graph` or `state` drops its edge-less nodes (default: `false`),
     BECAUSE isolated nodes dilute a diagram about relationships
 
 -   `SchemaDiagram.collapse?: boolean`:
@@ -561,7 +568,8 @@ object its target property references. Where an edge object is a sibling
 of its own source instead of a child of it, `edgeSource` names the
 property carrying that source, and where the target property named by
 `edgeTarget` carries a `list(...)` of references, the edge object yields
-one edge per resolvable target.
+one edge per resolvable target. With `edgeGuard`, the value of the named
+property follows the name of every such edge in brackets.
 
 As the *nesting* of the objects carries no such reference, `hierarchy:
 true` additionally derives a containment edge from every node object to
@@ -575,8 +583,8 @@ This is what turns a parent object into the hub of its own children. A
 
 An object kind can additionally carry a `diagram` field, which derives
 a [Gradia](https://github.com/rse/gradia) diagram for every object of
-that kind. Its `type` selects the diagram shape (`graph`, `hub`, or
-`grid`), `nodes` and `edges` select the participating objects through
+that kind. Its `type` selects the diagram shape (`graph`, `hub`, `grid`,
+or `state`), `nodes` and `edges` select the participating objects through
 comma-separated `[[xxx]]` reference patterns (`nodes` defaults to the
 object itself plus all objects below it, and `local: true` restricts the
 matches of both patterns to the object itself plus all objects below it,
@@ -584,6 +592,14 @@ as the patterns match corpus-wide), and `center` names the object
 a `hub` is projected onto (default: `self`). An edge object of the
 center targeting the center itself (a self-reference) places the center
 a second time among its outputs, rendered as a dashed "self" node.
+
+A `state` diagram is laid out like a `graph`, but draws a state machine:
+where its object kind carries an `automaton`, a single initial
+pseudo-state (a dot) leads into every node flagged `initial`, and every
+node flagged `final` leads into a single final pseudo-state (a
+bullseye), so a final node may still have outgoing edges. A `state`
+diagram accepts no `nest`, as every container would be a composite
+state needing an initial state of its own.
 
 Instead of naming an existing object, `center` can also declare a
 *synthetic* center node, which represents something no specification

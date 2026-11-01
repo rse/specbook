@@ -9,7 +9,7 @@ import { Gradia }
 
 import type { Spec, SpecObject, SpecProperty }
     from "./specbook-format-spec.js"
-import type { Schema, SchemaDiagram, SchemaDiagramCenterEdges, SchemaDiagramNest }
+import type { Schema, SchemaAutomaton, SchemaDiagram, SchemaDiagramCenterEdges, SchemaDiagramNest }
     from "./specbook-format-schema.js"
 import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths,
     chainOf, expandReferences, plainText, referenceText, type LinkIndex }
@@ -146,6 +146,9 @@ const propsOf = (parenProps: ParenProps, object: SpecObject): SpecProperty[] => 
 const propValue = (parenProps: ParenProps, object: SpecObject, key: string): string | undefined =>
     propsOf(parenProps, object).find((property) => property.key === key)?.value
 
+/*  the kind of a synthetic pseudo-state of a "state" diagram  */
+type PseudoState = "initial" | "final"
+
 /*  the derived nesting of the nodes of a diagram: the container node
     of every nested node, plus the set of all container nodes  */
 interface DiagramNesting {
@@ -157,10 +160,11 @@ interface DiagramNesting {
     "#type" directive and the configured "#config" directives so every
     embedded spec is self-contained: one node statement per object (the
     unique anchor path as the node id, the object name as the displayed
-    label, the container node as the parent) and one edge statement per
-    derived edge  */
+    label, the container node as the parent, the pseudo-state kind of a
+    synthetic pseudo-state) and one edge statement per derived edge  */
 const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
-    centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[], nesting: DiagramNesting): string => {
+    centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[], nesting: DiagramNesting,
+    pseudo: Map<SpecObject, PseudoState>): string => {
     const { index, anchors, positions, parenProps } = ctx
     const lines  = [ `#type ${type}` ]
     const config = { ...diagramPresets, ...diagram.config }
@@ -202,6 +206,9 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
             attrs.push(`container: ${diagram.nest.layout}`)
         if (diagram.ordered === true)
             attrs.push(`order: ${orderOf(node)}`)
+        const state = pseudo.get(node)
+        if (state !== undefined)
+            attrs.push(`state: ${state}`)
 
         /*  attach the values of the configured properties as Gradia
             key/value attributes (a node lacking a property is fine, as
@@ -298,7 +305,8 @@ const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes
     property values, name: object name, arity: "ARITY" property),
     overridable via "edgeSource"/"edgeTarget"/"edgeArity", where a
     configured target property carrying several references (a "list"
-    valued one) yields one edge per resolvable target  */
+    valued one) yields one edge per resolvable target, and where the
+    "edgeGuard" property value follows the name in brackets  */
 const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodeSet: Set<SpecObject>,
     edgeObjects: SpecObject[], errors: DiagramError[]): DiagramEdge[] => {
     const { index, parents, parenProps } = ctx
@@ -335,9 +343,14 @@ const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodeSet:
             continue
         }
         const arity = propValue(parenProps, edgeObject, diagram.edgeArity ?? "ARITY")
+        const guard = diagram.edgeGuard !== undefined ?
+            propValue(parenProps, edgeObject, diagram.edgeGuard) : undefined
+        const name  = plainText(edgeObject.name) + (guard !== undefined ?
+            ` [${plainText(expandReferences(guard, (reference) =>
+                resolveUnique(index, reference, edgeObject).target?.name ?? reference))}]` : "")
         for (const target of targets)
             if (nodeSet.has(source) && nodeSet.has(target))
-                edges.push({ source, target, name: plainText(edgeObject.name),
+                edges.push({ source, target, name,
                     arity: arity !== undefined ? plainText(arity) : undefined })
     }
     return edges
@@ -670,11 +683,13 @@ const projectHub = (nodes: SpecObject[], edges: DiagramEdge[],
 }
 
 /*  derive the Gradia spec of a single object from its "diagram:"
-    schema configuration (the returned spec is absent whenever the
-    configured diagram situation is invalid, the node set is empty,
-    or the diagram collapses onto a single node)  */
-const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaDiagram): DiagramResult => {
-    const { index, anchors } = ctx
+    schema configuration and its optional "automaton:" one (the
+    returned spec is absent whenever the configured diagram situation
+    is invalid, the node set is empty, or the diagram collapses onto a
+    single node)  */
+const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaDiagram,
+    automaton: SchemaAutomaton | undefined): DiagramResult => {
+    const { index, anchors, parenProps } = ctx
     const type   = diagram.type ?? "graph"
     const errors = new Array<DiagramError>()
 
@@ -729,13 +744,15 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
     }
 
     /*  nest the nodes into container nodes (except in a "hub" diagram,
-        where every container would need a primary node of its own),
-        dropping the edges between a container and its own members,
-        which Gradia rejects, as the nesting already shows them  */
+        where every container would need a primary node of its own, and
+        in a "state" diagram, where every container would be a composite
+        state needing an initial state of its own), dropping the edges
+        between a container and its own members, which Gradia rejects,
+        as the nesting already shows them  */
     let nesting: DiagramNesting = { parentOf: new Map(), containers: new Set() }
     if (diagram.nest !== undefined) {
-        if (type === "hub")
-            errors.push({ reason: "\"hub\" diagram cannot carry a \"nest\" configuration" })
+        if (type === "hub" || type === "state")
+            errors.push({ reason: `"${type}" diagram cannot carry a "nest" configuration` })
         else {
             nesting = deriveNesting(ctx, diagram.nest, nodes, nodeSet, errors)
             if (diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
@@ -746,9 +763,9 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
     }
 
     /*  the "onlyConnected" filtering keeps only the nodes with at
-        least one incident edge (sensible for "graph" diagrams only),
-        and the containers enclosing such a node  */
-    if (diagram.onlyConnected === true && type === "graph") {
+        least one incident edge (sensible for "graph" and "state"
+        diagrams only), and the containers enclosing such a node  */
+    if (diagram.onlyConnected === true && (type === "graph" || type === "state")) {
         const connected = new Set<SpecObject>()
         for (const edge of edges) {
             connected.add(edge.source)
@@ -771,7 +788,32 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
         || (diagram.collapse !== false && nodes.length === 1 && edges.length === 0))
         return { errors }
 
-    return { spec: renderSpec(ctx, diagram, type, center, centerUrl, nodes, edges, nesting),
+    /*  a "state" diagram of an object kind carrying an "automaton" draws
+        its flags as pseudo-states, which Gradia knows instead: a single
+        initial one leading into every node flagged initial, and a single
+        final one every node flagged final leads into  */
+    const pseudo = new Map<SpecObject, PseudoState>()
+    if (type === "state" && automaton !== undefined) {
+        for (const role of [ "initial", "final" ] as const) {
+            const states = nodes.filter((node) => node.kind === automaton.nodes
+                && plainText(propValue(parenProps, node, automaton[role]) ?? "").trim() === "true")
+            if (states.length === 0)
+                continue
+            const state: SpecObject = { kind: "", id: `${anchors.get(object) ?? object.id}-@${role}`,
+                name: role, properties: [], children: [] }
+            pseudo.set(state, role)
+            if (role === "initial") {
+                nodes.unshift(state)
+                edges.push(...states.map((target) => ({ source: state, target })))
+            }
+            else {
+                nodes.push(state)
+                edges.push(...states.map((source) => ({ source, target: state })))
+            }
+        }
+    }
+
+    return { spec: renderSpec(ctx, diagram, type, center, centerUrl, nodes, edges, nesting, pseudo),
         config: { ...diagramPresets, ...diagram.config }, columns, errors }
 }
 
@@ -804,7 +846,7 @@ export const specDiagrams = (specification: Spec,
     const results = new Map<SpecObject, DiagramResult>()
     for (const [ object, schema ] of schemas)
         if (schema.diagram !== undefined)
-            results.set(object, deriveDiagram(ctx, object, schema.diagram))
+            results.set(object, deriveDiagram(ctx, object, schema.diagram, schema.automaton))
     derivations.set(specification, { config, results })
     return results
 }

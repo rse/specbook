@@ -225,14 +225,11 @@
                 initial: INITIAL
                 final: FINAL
             diagram:
-                type: graph
+                type: state
                 edges: "[[TRANSITION:*]]"
                 edgeSource: FROM
                 edgeTarget: TO
                 onlyConnected: true
-                properties:
-                    -   INITIAL
-                    -   FINAL
                 config:
                     size-node-width-max: 440
                     size-node-height-scale: 1.75
