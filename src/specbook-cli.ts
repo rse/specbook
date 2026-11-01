@@ -89,14 +89,15 @@ const withVerboseOption = (command: Command): Command => command
 
 /*  provide the repeatable schema configuration option, whose files,
     glob patterns, or remote references are merged in order (with "std"
-    naming the bundled standard one), and determine its value, where an
-    absent one is left to the API, which resolves it through the
+    and "meta" naming the bundled ones), and determine its value, where
+    an absent one is left to the API, which resolves it through the
     environment variable SPECBOOK_CONFIG and the project configuration file  */
 const withConfigOption = (command: Command, fallback: string): Command => command
     .option("-c, --config <yaml-file>", "YAML schema configuration file, glob pattern, or remote reference " +
         "(\"npm:<pkg>[@<range>][/<path>]\", \"github:<user>/<repo>[/<path>][#<ref>]\", " +
         "or an \"http[s]://...\" URL) " +
-        "(repeatable, merged in order, \"std\" for the bundled standard schema configuration; " +
+        "(repeatable, merged in order, \"std\" for the bundled standard schema configuration, " +
+        "\"meta\" for the bundled meta one; " +
         `default: SPECBOOK_CONFIG, else the "config" entry of "${projectFile}", else ${fallback})`,
     (value: string, previous: string[]) => previous.concat(value), new Array<string>())
 const configOf = (opts: { config: string[] }): string[] | undefined =>
@@ -138,6 +139,16 @@ const withGitignoreOption = (command: Command): Command => command
 
 /*  the parsed values of the common options plus the Git exclude one  */
 type ProcessOptions = CommonOptions & { gitignore: boolean }
+
+/*  provide the schema option of the HTML-rendering sub-commands, which
+    exports the effective schema configuration itself (described as a
+    specification of the bundled meta schema configuration) instead of
+    the specification below the base directory  */
+const withSchemaOption = (command: Command): Command => command
+    .option("-S, --schema", "export the schema configuration itself as a SpecBook document " +
+        "(described through the bundled meta schema configuration) instead of the specification " +
+        "(the base directory is not applicable then)",
+    envDefaultFlag("schema", false))
 
 /*  provide the repeatable omit option of the HTML-rendering sub-commands,
     whose aspects are left out of the output instead of being foldable,
@@ -220,16 +231,16 @@ withGitignoreOption(withCommonOptions(program.command("lint")))
     })
 
 /*  the export command parses the input once and writes every output  */
-withOmitOption(withGitignoreOption(withCommonOptions(program.command("export"))))
+withSchemaOption(withOmitOption(withGitignoreOption(withCommonOptions(program.command("export")))))
     .description("export the specification Markdown files below the base directory " +
-        "as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown")
+        "(or the schema configuration itself) as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown")
     .option("-w, --watch", "keep the outputs in sync by re-exporting on every source change",
         envDefaultFlag("watch", false))
     .option("-o, --output [<format>:]<output-file>",
         "output file (\"-\" for stdout, repeatable), with the format inferred " +
         "from the filename extension unless explicitly prefixed",
         (value: string, previous: string[]) => previous.concat(value), new Array<string>())
-    .action(async (opts: ProcessOptions & { output: string[], watch: boolean, omit: string[] }) => {
+    .action(async (opts: ProcessOptions & { output: string[], watch: boolean, omit: string[], schema: boolean }) => {
         const verbose  = verboseOf(opts)
         const specbook = new SpecBook({ verbose })
         const fallback = envDefault("output")
@@ -263,26 +274,27 @@ withOmitOption(withGitignoreOption(withCommonOptions(program.command("export")))
         const rebase   = distinct.map(rebaseOf)
         if (opts.watch)
             await specbook.watch({ config: configOf(opts), basedir: opts.basedir, fetch: fetchOf(opts),
-                formats, rebase, omit: omitOf(opts), gitignore: opts.gitignore,
+                formats, rebase, omit: omitOf(opts), gitignore: opts.gitignore, schema: opts.schema,
                 outputs: outputs.map(({ output }) => output), onExport: write })
         else
             await write(await specbook.export({ config: configOf(opts), basedir: opts.basedir, fetch: fetchOf(opts),
-                formats, rebase, omit: omitOf(opts), gitignore: opts.gitignore }))
+                formats, rebase, omit: omitOf(opts), gitignore: opts.gitignore, schema: opts.schema }))
     })
 
 /*  the preview command serves the HTML export live in the browser  */
-withOmitOption(withGitignoreOption(withCommonOptions(program.command("preview"))))
+withSchemaOption(withOmitOption(withGitignoreOption(withCommonOptions(program.command("preview")))))
     .description("serve the HTML export of the specification Markdown files below the base " +
-        "directory as a live preview, re-exported and reloaded on every source change")
+        "directory (or of the schema configuration itself) as a live preview, re-exported and " +
+        "reloaded on every source change")
     .option("-a, --addr <ip-addr>",  "IP address to listen on", envDefault("addr", previewAddr))
     .option("-p, --port <tcp-port>", "TCP port to listen on",   envDefault("port", String(previewPort)))
-    .action(async (opts: ProcessOptions & { addr: string, port: string, omit: string[] }) => {
+    .action(async (opts: ProcessOptions & { addr: string, port: string, omit: string[], schema: boolean }) => {
         const port = (/^\d+$/).test(opts.port) ? Number(opts.port) : NaN
         if (!Number.isInteger(port) || port < 1 || port > 65535)
             throw new Error(`invalid TCP port "${opts.port}"`)
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
         await specbook.preview({ config: configOf(opts), basedir: opts.basedir, fetch: fetchOf(opts),
-            addr: opts.addr, port, omit: omitOf(opts), gitignore: opts.gitignore })
+            addr: opts.addr, port, omit: omitOf(opts), gitignore: opts.gitignore, schema: opts.schema })
     })
 
 /*  the describe command also describes the generic SpecBook models and
@@ -311,10 +323,10 @@ withFetchOption(withBasedirOption(withConfigOption(withVerboseOption(program.com
         await writeOutput(opts.output, text, "describe", verbose)
     })
 
-/*  the search command finds the bundled standard schema configuration
+/*  the search command finds the bundled schema configurations
     and the shareable ones of the npm registry and GitHub  */
 withFetchOption(withVerboseOption(program.command("search")))
-    .description("search the bundled standard schema configuration, the npm registry, " +
+    .description("search the bundled schema configurations, the npm registry, " +
         "and GitHub for shareable schema configurations")
     .argument("[term...]", "the words a matching schema configuration has to carry")
     .action(async (term: string[], opts: VerboseOption & { fetch: string }) => {

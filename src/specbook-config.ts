@@ -95,6 +95,49 @@ type ConfigDoc = { file: string, doc: Document, lines: LineCounter, raw: unknown
     labeled by its kind plus id (or name)  */
 export interface ConfigOverlap { artifact: string, files: string[] }
 
+/*  the configuration files contributing every node of the merged
+    configuration, keyed by "originKey"  */
+export type ConfigOrigins = Map<string, string[]>
+
+/*  the key of a node of the merged configuration in its origins: the
+    identities of the object kinds along its path (the artifact first),
+    plus the identity of a property of the last one  */
+export const originKey = (chain: SchemaObject[], prop?: SchemaProperty): string =>
+    chain.map((object, i) => identityOf(object, i > 0 ? "children" : undefined)).join("/") +
+        (prop !== undefined ? `#${identityOf(prop, "props")}` : "")
+
+/*  determine the configuration files contributing every object kind
+    and property, by walking the raw documents along the very identities
+    the merge matches the list elements with  */
+const originsOf = (docs: ConfigDoc[]): ConfigOrigins => {
+    const origins = new Map<string, string[]>()
+    const add = (key: string, file: string) => {
+        const files = origins.get(key) ?? []
+        if (!files.includes(file))
+            files.push(file)
+        origins.set(key, files)
+    }
+    const walk = (items: unknown, prefix: string, depth: number, file: string) => {
+        if (!Array.isArray(items))
+            return
+        for (const item of items as unknown[]) {
+            if (!isPlainObject(item))
+                continue
+            const object = item as Record<string, unknown>
+            const key    = (prefix !== "" ? `${prefix}/` : "") + identityOf(item, depth > 1 ? "children" : undefined)
+            add(key, file)
+            if (Array.isArray(object.props))
+                for (const prop of object.props as unknown[])
+                    if (isPlainObject(prop))
+                        add(`${key}#${identityOf(prop, "props")}`, file)
+            walk(object.children, key, depth + 1, file)
+        }
+    }
+    for (const { file, raw } of docs)
+        walk(raw, "", 1, file)
+    return origins
+}
+
 /*  determine the artifacts several configuration files define  */
 const overlapsOf = (docs: ConfigDoc[]): ConfigOverlap[] => {
     const defined = new Map<string, ConfigOverlap>()
@@ -348,8 +391,9 @@ export const configStatistics = (config: Schema): { objects: number, links: numb
     of its files (the later ones into the earlier ones), where every file
     has to be readable and syntactically valid on its own, while the
     merged result alone is validated, and report the artifacts several
-    files define  */
-export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Diagnostic[], overlaps: ConfigOverlap[] } => {
+    files define plus the files contributing every node  */
+export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Diagnostic[],
+    overlaps: ConfigOverlap[], origins: ConfigOrigins } => {
     if (files.length === 0)
         throw new Error("no configuration files given")
     const diagnostics = new Array<Diagnostic>()
@@ -386,8 +430,9 @@ export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Dia
             docs.push({ file, doc, lines, raw: doc.toJS() })
     }
     const overlaps = overlapsOf(docs)
+    const origins  = originsOf(docs)
     if (diagnostics.length > 0)
-        return { diagnostics, overlaps }
+        return { diagnostics, overlaps, origins }
 
     /*  merge the documents in order, out of unshared deep copies of
         the conversions, as the merge mutates its target while the raw
@@ -407,11 +452,11 @@ export const loadConfig = (files: string[]): { config?: Schema, diagnostics: Dia
             diagnostics.push({ file, line, column, severity: "error",
                 message: `invalid configuration: ${where}${issue.message}` })
         }
-        return { diagnostics, overlaps }
+        return { diagnostics, overlaps, origins }
     }
 
     /*  check the constraints beyond the structural schema  */
     diagnostics.push(...checkConstraints(result.output, posOfPath))
 
-    return { config: diagnostics.length === 0 ? result.output : undefined, diagnostics, overlaps }
+    return { config: diagnostics.length === 0 ? result.output : undefined, diagnostics, overlaps, origins }
 }

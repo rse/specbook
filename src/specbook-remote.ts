@@ -37,6 +37,16 @@ export const version = (JSON.parse(
 export const standardConfig =
     fileURLToPath(new URL("specbook-format.yaml", import.meta.url))
 
+/*  the bundled meta YAML schema configuration, which resides alongside
+    the compiled module, too, and describes a schema configuration
+    itself (the one of the generated corpus of the schema export)  */
+export const metaConfig =
+    fileURLToPath(new URL("specbook-format-meta.yaml", import.meta.url))
+
+/*  whether a file is one of the bundled schema configurations  */
+export const isBundled = (file: string): boolean =>
+    file === standardConfig || file === metaConfig
+
 /*  the directory of the download cache: SPECBOOK_CACHE, else the native
     cache location of the platform  */
 export const cacheDir = (() => {
@@ -353,7 +363,8 @@ export const expandPattern = async (pattern: string): Promise<string[]> => {
 }
 
 /*  resolve a remote reference of a schema configuration into its local
-    files: the bundled standard one for "std", the single file of a URL,
+    files: the bundled standard one for "std" (and the bundled meta one
+    for "meta"), the single file of a URL,
     and for a package the file or
     glob pattern its path names inside the package (or the named building
     block of the "specbook.schema" map of its manifest), while a
@@ -364,6 +375,8 @@ export const expandPattern = async (pattern: string): Promise<string[]> => {
 export const resolveConfig = async (ref: string, options: RemoteOptions, chain: string[] = []): Promise<string[]> => {
     if (ref === "std")
         return [ standardConfig ]
+    else if (ref === "meta")
+        return [ metaConfig ]
     const parsed = parseRef(ref)
     if (parsed.kind === "url")
         return [ await fetchUrl(parsed, options) ]
@@ -424,27 +437,35 @@ export interface SearchHit {
 interface NpmSearch    { objects: { package: { name: string, version: string, description?: string, keywords?: string[] } }[] }
 interface GithubSearch { items: { full_name: string, description: string | null, topics?: string[] }[] }
 
-/*  the search hit of the bundled standard schema configuration  */
-const standardHit: SearchHit = {
+/*  the search hits of the bundled standard and meta schema configurations  */
+const bundledHits: SearchHit[] = [ {
     ref:         "std",
     name:        "standard",
     version,
     description: "SpecBook Standard Schema",
     source:      "builtin"
-}
+}, {
+    ref:         "meta",
+    name:        "meta",
+    version,
+    description: "SpecBook Meta Schema (describing a schema configuration itself)",
+    source:      "builtin"
+} ]
 
-/*  search the bundled standard schema configuration (matched locally by
-    all words of the term), the npm registry (the packages carrying the
-    keyword "specbook-schema"), and GitHub (the repositories carrying the
-    same topic) for the shareable schema configurations matching a term,
-    where a failing source is reported but does not fail the search, and
-    the fetch mode "never" searches the bundled one only  */
+/*  search the bundled standard and meta schema configurations (matched
+    locally by all words of the term), the npm registry (the packages
+    carrying the keyword "specbook-schema"), and GitHub (the repositories
+    carrying the same topic) for the shareable schema configurations
+    matching a term, where a failing source is reported but does not fail
+    the search, and the fetch mode "never" searches the bundled ones only  */
 export const search = async (term: string, options: RemoteOptions): Promise<SearchHit[]> => {
     const words = term.toLowerCase().split(/\s+/).filter((word) => word !== "")
-    const text  = `${standardHit.ref} ${standardHit.name} ${standardHit.description}`.toLowerCase()
-    const hits  = words.every((word) => text.includes(word)) ? [ standardHit ] : new Array<SearchHit>()
+    const hits  = bundledHits.filter((hit) => {
+        const text = `${hit.ref} ${hit.name} ${hit.description}`.toLowerCase()
+        return words.every((word) => text.includes(word))
+    })
     if (options.fetch === "never") {
-        options.verbose("searching the bundled standard schema configuration only (fetch mode \"never\")")
+        options.verbose("searching the bundled schema configurations only (fetch mode \"never\")")
         return hits
     }
     const guard = async (source: string, action: () => Promise<void>) => {

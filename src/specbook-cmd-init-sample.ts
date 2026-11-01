@@ -15,7 +15,7 @@ import { compileValueExpr, anchored, type ValueExpr }
     from "./specbook-parse-value.js"
 import { slugify }
     from "./specbook-parse-syntax.js"
-import { buildLinkIndex, resolveSet, resolveUnique, chainOf, type LinkIndex }
+import { buildLinkIndex, resolveSet, referenceTo, chainOf, type LinkIndex }
     from "./specbook-link.js"
 import { titleProperties, isTitleObject }
     from "./specbook-export-common.js"
@@ -139,23 +139,6 @@ const instantiate = (schema: SchemaObject, ordinal: number, count: number,
 const matches = (expr: ValueExpr, text: string): boolean =>
     (expr.kind === "regex" && expr.regex.test(text))
     || (expr.kind === "enum" && expr.members.includes(text))
-
-/*  the shortest reference uniquely resolving onto a target from a
-    referencing object: the kind-qualified name of the target, prefixed
-    by as many of its ancestors (their configured id, else their
-    kind-qualified name) as the resolution needs  */
-const referenceTo = (index: LinkIndex, target: SpecObject, from: SpecObject): string => {
-    const chain    = chainOf(index, target)
-    const segments = chain.map((object, i) =>
-        object.paren !== undefined && i < chain.length - 1 ? object.paren :
-            `${object.kind}:${/[.:]/.test(object.name) ? `"${object.name}"` : object.name}`)
-    for (let i = segments.length - 1; i >= 0; i--) {
-        const reference = segments.slice(i).join(".")
-        if (resolveUnique(index, reference, from).target === target)
-            return reference
-    }
-    return segments.join(".")
-}
 
 /*  the objects a reference pattern matches, the ones nearest to the
     referencing object (sharing the longest ancestor chain with it)

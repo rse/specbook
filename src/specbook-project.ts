@@ -16,11 +16,11 @@ import { renderDiagnostic, type Diagnostic }    from "./specbook-diagnostic.js"
 export const projectFile = ".specbook.yaml"
 
 /*  whether a schema configuration pattern is a remote reference
-    (resolved by the remote module) instead of a local path: the literal
-    "std" (the bundled standard schema configuration), an "npm:" or
-    "github:" reference, or an "http:" or "https:" URL  */
+    (resolved by the remote module) instead of a local path: the literals
+    "std" and "meta" (the bundled standard and meta schema configurations),
+    an "npm:" or "github:" reference, or an "http:" or "https:" URL  */
 export const isRemote = (value: string): boolean =>
-    value === "std" || (/^(?:npm|github):|^https?:\/\//).test(value)
+    value === "std" || value === "meta" || (/^(?:npm|github):|^https?:\/\//).test(value)
 
 /*  the schema of the YAML project configuration: the files or glob
     patterns of the YAML schema configuration and the base directory

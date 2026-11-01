@@ -1,0 +1,389 @@
+##
+##  Specification Book (SpecBook)
+##  Copyright (c) 2026 Dr. Ralf S. Engelschall <rse@engelschall.com>
+##  Licensed under Apache 2.0 <https://spdx.org/licenses/Apache-2.0>
+##
+
+#   This is the "Meta" SpecBook schema.
+#
+#   Modeling Purpose
+#   ----------------
+#
+#   This schema describes a SpecBook schema configuration itself as a SpecBook
+#   specification ("eat your own dogfood"): its artifact kinds, their artifacts,
+#   the object kinds nested below them, and the properties and references of
+#   all of them. The "specbook export --schema" and "specbook preview --schema"
+#   commands generate such a specification in memory out of the effective schema
+#   configuration and render it through this schema, while "-c meta" also allows
+#   a specification to be authored against it directly.
+#
+#   Modeling Decisions
+#   ------------------
+#
+#   -   The artifact kinds are the level 1 objects, so they head the
+#       table of contents: as their number and names depend on the
+#       described schema configuration, ARTIFACT-KIND is a recurring
+#       artifact (configured with neither name nor id), which any
+#       number of level 1 objects of its kind match.
+#
+#   -   The object kinds of an artifact are listed flat below it, as the
+#       nesting of a schema configuration is unbounded, while a schema
+#       bounds it: the PARENT reference of an object kind names the
+#       artifact or object kind it is nested directly below.
+#
+#   -   A reference-valued property is a REFERENCE object, so it acts as
+#       the edge of the diagrams (from its object kind to every TARGET),
+#       while every other property is a PROPERTY object.
+#
+
+-   kind: META
+    name: Title
+    id:   TI
+    file: 00-META-TI-Title.md
+    desc: >
+        The top-level meta information of the schema configuration document.
+        Some of the information is rendered onto the title page.
+    optional: true
+    diagram:
+        type: graph
+        nodes: "[[ARTIFACT-KIND:*]], [[ARTIFACT:*]]"
+        deep: true
+        ordered: true
+        nest:
+            parent: true
+            crossing: target
+        config:
+            graph-columns-max: 2
+    props:
+        -   name: LOGO
+            desc: The logo of the document.
+            optional: true
+        -   name: TITLE
+            desc: The title of the document.
+            optional: true
+        -   name: SUBTITLE
+            desc: The subtitle of the document.
+            optional: true
+        -   name: AUTHOR
+            desc: The author of the document.
+            optional: true
+        -   name: VERSION
+            desc: The version of the document.
+            optional: true
+        -   name: LANG
+            desc: The language of the document texts (ISO 639-1 code).
+            value: /^[a-z]{2}(-[A-Za-z0-9]+)?$/
+            optional: true
+        -   name: CHARSET
+            desc: The character set the embedded fonts are subsetted to.
+            value: enum(US-ASCII,ISO-8859-1,ISO-Latin-1,ISO-8859-15,ISO-Latin-15,UTF-8)
+            optional: true
+        -   name: PAPER-SIZE
+            desc: The paper size the print/PDF rendering is targeted at.
+            value: enum(A4,Letter,Legal)
+            optional: true
+        -   name: THEME-STYLE
+            desc: The theme style.
+            value: enum(Dark,Light)
+            optional: true
+        -   name: THEME-TONE
+            desc: The theme color tone, optionally followed by the complement color tone (else derived).
+            value: /^#[0-9a-fA-F]{6}(\s+#[0-9a-fA-F]{6})?$/
+            optional: true
+
+-   kind: ARTIFACT-KIND
+    file: 10-ARTIFACT-KINDS.md
+    desc: >
+        An artifact kind of the schema configuration, i.e. the
+        `kind` of its level 1 objects (like `REQS`), grouping all
+        artifacts of this kind. The diagram shows the relationships
+        among the object kinds of the artifact kind, with the
+        object kinds nested into their artifacts and parent kinds.
+    diagram:
+        type: graph
+        nodes: "[[ARTIFACT:*]], [[OBJECT-KIND:*]]"
+        edges: "[[REFERENCE:*]]"
+        local: true
+        nest:
+            properties:
+                -   PARENT
+    props:
+        -   name: ORIGIN
+            desc: >
+                The schema configuration file(s) contributing the
+                artifact kind (present when several files are merged).
+            optional: true
+    children:
+        -   kind: ARTIFACT
+            desc: >
+                An artifact of the schema configuration, i.e. one of
+                its level 1 object kinds, named after its `name` and
+                identified by its `id`. The diagram shows the
+                references from and to the artifact itself.
+            optional: true
+            diagram:
+                type: hub
+                nodes: "[[ARTIFACT:*]], [[OBJECT-KIND:*]]"
+                edges: "[[REFERENCE:*]]"
+                labeled: true
+            props:
+                -   name: ORIGIN
+                    desc: >
+                        The schema configuration file(s) contributing
+                        the artifact (present when several files are merged).
+                    optional: true
+                -   name: FILE
+                    desc: The Markdown file the artifact resides in (`file`).
+                    optional: true
+                -   name: OPTIONAL
+                    desc: Whether the artifact may be absent from its file (`optional`).
+                    value: enum(true,false)
+                -   name: REFERENCED
+                    desc: >
+                        The reference patterns matching the objects from which every
+                        object of the kind has to be referenced (`referenced`).
+                    optional: true
+                -   name: COVERAGE
+                    desc: >
+                        The reference patterns matching the objects whose reference
+                        coverage every object of the kind reports (`coverage`).
+                    optional: true
+                -   name: AUTOMATON
+                    desc: The finite state machine the child objects form (`automaton`).
+                    optional: true
+                -   name: DIAGRAM
+                    desc: The diagram derived for every object of the kind (`diagram`).
+                    optional: true
+                -   name: FORMAT
+                    desc: The HTML/PDF rendering format of the objects of the kind (`format`).
+                    optional: true
+            children:
+                -   kind: OBJECT-KIND
+                    desc: >
+                        An object kind nested (directly or deeper, see `PARENT`)
+                        below the artifact. The diagram shows the references
+                        from and to the object kind.
+                    optional: true
+                    diagram:
+                        type: hub
+                        nodes: "[[ARTIFACT:*]], [[OBJECT-KIND:*]]"
+                        edges: "[[REFERENCE:*]]"
+                        labeled: true
+                    props:
+                        -   name: ORIGIN
+                            desc: >
+                                The schema configuration file(s) contributing
+                                the object kind (present when several files are merged).
+                            optional: true
+                        -   name: PARENT
+                            desc: >
+                                The artifact or object kind the object kind is
+                                nested directly below (`children`).
+                            value: list([[ARTIFACT:*]], [[OBJECT-KIND:*]])
+                        -   name: NAME
+                            desc: The regular expression the object names have to match (`name`).
+                            optional: true
+                        -   name: OPTIONAL
+                            desc: Whether the object kind may be absent below its parent (`optional`).
+                            value: enum(true,false)
+                        -   name: REFERENCED
+                            desc: >
+                                The reference patterns matching the objects from which every
+                                object of the kind has to be referenced (`referenced`).
+                            optional: true
+                        -   name: COVERAGE
+                            desc: >
+                                The reference patterns matching the objects whose reference
+                                coverage every object of the kind reports (`coverage`).
+                            optional: true
+                        -   name: AUTOMATON
+                            desc: The finite state machine the child objects form (`automaton`).
+                            optional: true
+                        -   name: DIAGRAM
+                            desc: The diagram derived for every object of the kind (`diagram`).
+                            optional: true
+                        -   name: FORMAT
+                            desc: The HTML/PDF rendering format of the objects of the kind (`format`).
+                            optional: true
+                    children:
+                        -   kind: PROPERTY
+                            desc: >
+                                A property allowed on the objects of the kind, with
+                                its value constraint and its flags.
+                            optional: true
+                            props:
+                                -   name: ORIGIN
+                                    desc: >
+                                        The schema configuration file(s) contributing
+                                        the property (present when several files are merged).
+                                    optional: true
+                                -   name: OPTIONAL
+                                    desc: Whether the property may be absent (`optional`).
+                                    value: enum(true,false)
+                                -   name: VALUE
+                                    desc: The value constraint of the property (`value`).
+                                    optional: true
+                                -   name: UNIQUE
+                                    desc: >
+                                        The uniqueness of the value among the sibling objects
+                                        (`unique`): `true`, or the expression selecting the values.
+                                    optional: true
+                                -   name: PRESENT
+                                    desc: >
+                                        The presence of the value among the sibling objects
+                                        (`present`): `true`, or the expression selecting the values.
+                                    optional: true
+                                -   name: LOCAL
+                                    desc: Whether the referenced objects have to lie below the parent object (`local`).
+                                    value: enum(true)
+                                    optional: true
+                                -   name: SYMMETRIC
+                                    desc: Whether the referenced objects have to reference back (`symmetric`).
+                                    value: enum(true)
+                                    optional: true
+                                -   name: ACYCLIC
+                                    desc: Whether the references must not form a cycle (`acyclic`).
+                                    value: enum(true)
+                                    optional: true
+                        -   kind: REFERENCE
+                            desc: >
+                                A reference-valued property allowed on the objects
+                                of the kind, drawn as an edge from the object kind
+                                to every object kind its `TARGET` names.
+                            optional: true
+                            format:
+                                type: compact
+                            props:
+                                -   name: ORIGIN
+                                    desc: >
+                                        The schema configuration file(s) contributing
+                                        the property (present when several files are merged).
+                                    optional: true
+                                -   name: OPTIONAL
+                                    desc: Whether the property may be absent (`optional`).
+                                    value: enum(true,false)
+                                -   name: VALUE
+                                    desc: The value constraint of the property (`value`).
+                                    optional: true
+                                -   name: TARGET
+                                    desc: The artifacts and object kinds the value constraint references.
+                                    value: list([[ARTIFACT:*]], [[OBJECT-KIND:*]])
+                                -   name: ARITY
+                                    desc: >
+                                        The cardinality of the reference: `1` (a single required
+                                        reference), `0..1` (a single optional one), `1..n` (a
+                                        required list), or `0..n` (an optional list).
+                                    value: enum(1,0..1,1..n,0..n)
+                                -   name: UNIQUE
+                                    desc: >
+                                        The uniqueness of the value among the sibling objects
+                                        (`unique`): `true`, or the expression selecting the values.
+                                    optional: true
+                                -   name: PRESENT
+                                    desc: >
+                                        The presence of the value among the sibling objects
+                                        (`present`): `true`, or the expression selecting the values.
+                                    optional: true
+                                -   name: LOCAL
+                                    desc: Whether the referenced objects have to lie below the parent object (`local`).
+                                    value: enum(true)
+                                    optional: true
+                                -   name: SYMMETRIC
+                                    desc: Whether the referenced objects have to reference back (`symmetric`).
+                                    value: enum(true)
+                                    optional: true
+                                -   name: ACYCLIC
+                                    desc: Whether the references must not form a cycle (`acyclic`).
+                                    value: enum(true)
+                                    optional: true
+                -   kind: PROPERTY
+                    desc: >
+                        A property allowed on the artifact itself, with
+                        its value constraint and its flags.
+                    optional: true
+                    props:
+                        -   name: ORIGIN
+                            desc: >
+                                The schema configuration file(s) contributing
+                                the property (present when several files are merged).
+                            optional: true
+                        -   name: OPTIONAL
+                            desc: Whether the property may be absent (`optional`).
+                            value: enum(true,false)
+                        -   name: VALUE
+                            desc: The value constraint of the property (`value`).
+                            optional: true
+                        -   name: UNIQUE
+                            desc: >
+                                The uniqueness of the value among the sibling objects
+                                (`unique`): `true`, or the expression selecting the values.
+                            optional: true
+                        -   name: PRESENT
+                            desc: >
+                                The presence of the value among the sibling objects
+                                (`present`): `true`, or the expression selecting the values.
+                            optional: true
+                        -   name: LOCAL
+                            desc: Whether the referenced objects have to lie below the parent object (`local`).
+                            value: enum(true)
+                            optional: true
+                        -   name: SYMMETRIC
+                            desc: Whether the referenced objects have to reference back (`symmetric`).
+                            value: enum(true)
+                            optional: true
+                        -   name: ACYCLIC
+                            desc: Whether the references must not form a cycle (`acyclic`).
+                            value: enum(true)
+                            optional: true
+                -   kind: REFERENCE
+                    desc: >
+                        A reference-valued property allowed on the artifact
+                        itself, drawn as an edge from the artifact to every
+                        object kind its `TARGET` names.
+                    optional: true
+                    format:
+                        type: compact
+                    props:
+                        -   name: ORIGIN
+                            desc: >
+                                The schema configuration file(s) contributing
+                                the property (present when several files are merged).
+                            optional: true
+                        -   name: OPTIONAL
+                            desc: Whether the property may be absent (`optional`).
+                            value: enum(true,false)
+                        -   name: VALUE
+                            desc: The value constraint of the property (`value`).
+                            optional: true
+                        -   name: TARGET
+                            desc: The artifacts and object kinds the value constraint references.
+                            value: list([[ARTIFACT:*]], [[OBJECT-KIND:*]])
+                        -   name: ARITY
+                            desc: >
+                                The cardinality of the reference: `1` (a single required
+                                reference), `0..1` (a single optional one), `1..n` (a
+                                required list), or `0..n` (an optional list).
+                            value: enum(1,0..1,1..n,0..n)
+                        -   name: UNIQUE
+                            desc: >
+                                The uniqueness of the value among the sibling objects
+                                (`unique`): `true`, or the expression selecting the values.
+                            optional: true
+                        -   name: PRESENT
+                            desc: >
+                                The presence of the value among the sibling objects
+                                (`present`): `true`, or the expression selecting the values.
+                            optional: true
+                        -   name: LOCAL
+                            desc: Whether the referenced objects have to lie below the parent object (`local`).
+                            value: enum(true)
+                            optional: true
+                        -   name: SYMMETRIC
+                            desc: Whether the referenced objects have to reference back (`symmetric`).
+                            value: enum(true)
+                            optional: true
+                        -   name: ACYCLIC
+                            desc: Whether the references must not form a cycle (`acyclic`).
+                            value: enum(true)
+                            optional: true
+

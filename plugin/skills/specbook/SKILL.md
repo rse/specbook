@@ -180,7 +180,7 @@ Usage
 /specbook init   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-s|--sample]
 /specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-g|--gitignore]
 /specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>] [-g|--gitignore]
-                 [-O|--omit <aspect>[,...]] [-o|--output [<format>:]<output-file>] [...]
+                 [-S|--schema] [-O|--omit <aspect>[,...]] [-o|--output [<format>:]<output-file>] [...]
 /specbook edit   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--grill]
                  [-r|--grill-rounds <n>] [-v|--verify] [-l|--loop] [<query>]
 ```
@@ -236,6 +236,10 @@ Procedure
             (default: `false`),
         -   <opt-gitignore/> to `true` for `-g`|`--gitignore` of `lint`
             and `export` (default: `false`),
+        -   <opt-schema/> to `true` for `-S`|`--schema` of `export`
+            (default: `false`), which exports the effective schema
+            configuration itself as a SpecBook document instead of the
+            specification,
         -   <opt-omit/> to the list of all `-O`|`--omit` values of
             `export` (the option is repeatable; default: empty list),
         -   <opt-output/> to the list of all `-o`|`--output` values of
@@ -438,7 +442,10 @@ Command: export
     `json5`, `yaml`, `toon`, `html`, `pdf`, or `md`, and call the
     `specbook_export(<params/>, gitignore: <opt-gitignore/>, output: <file/>)`
     tool, additionally passing `format: <format/>` only if <format/> is
-    given and `omit: <opt-omit/>` only if <opt-omit/> is not empty. The tool itself infers an absent format from the extension
+    given, `omit: <opt-omit/>` only if <opt-omit/> is not empty, and
+    `schema: true` only if <opt-schema/> is `true` (where <params/> then
+    *MUST NOT* carry a `basedir`, as the schema export has no
+    specification files). The tool itself infers an absent format from the extension
     of <file/> and returns the result directly for the <file/> `-`.
 
 2.  Only output the following <template/>, where <result/> is, per

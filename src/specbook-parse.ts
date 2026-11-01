@@ -10,7 +10,7 @@ import { Spec, type SpecArtifact, type SpecObject }
     from "./specbook-format-spec.js"
 import { type Schema }
     from "./specbook-format-schema.js"
-import { buildLinkIndex, referenceRegex, plainText }
+import { buildLinkIndex, referenceRegex, referenceText }
     from "./specbook-link.js"
 import { ParseContext, type SourceFile, type ParseResult }
     from "./specbook-parse-common.js"
@@ -74,7 +74,7 @@ export const specStatistics = (specification: Spec): { objects: number, links: n
             texts.push(object.description.description, object.description.rationale ?? "",
                 object.description.elaboration ?? "")
         for (const text of texts)
-            links += (plainText(text).match(referenceRegex) ?? []).length
+            links += (referenceText(text).match(referenceRegex) ?? []).length
         object.children.forEach(walk)
     }
     for (const artifact of specification.artifacts)

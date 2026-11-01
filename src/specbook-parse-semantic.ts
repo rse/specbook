@@ -8,7 +8,7 @@ import { type Spec, type SpecArtifact, type SpecObject, type SpecProperty }
     from "./specbook-format-spec.js"
 import { type Schema, type SchemaObject, type SchemaProperty }
     from "./specbook-format-schema.js"
-import { referenceRegex, resolveUnique, resolveSet, chainOf, plainText, assignId }
+import { referenceRegex, resolveUnique, resolveSet, chainOf, plainText, referenceText, assignId }
     from "./specbook-link.js"
 import { compileValueExpr, splitItems, anchored, type ValueExpr }
     from "./specbook-parse-value.js"
@@ -598,7 +598,7 @@ export const validate = (ctx: ParseContext, specification: Spec, config: Schema)
     its carrying object), independent of any configuration  */
 export const validateReferences = (ctx: ParseContext, specification: Spec) => {
     const check = (object: SpecObject, text: string, file: string, line: number) => {
-        for (const m of plainText(text).matchAll(referenceRegex)) {
+        for (const m of referenceText(text).matchAll(referenceRegex)) {
             const ref        = m[1].trim()
             const resolution = resolveUnique(ctx.linkIndex, ref, object)
             if (resolution.ambiguous)

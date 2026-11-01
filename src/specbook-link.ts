@@ -13,16 +13,30 @@ export const referenceRegex = /\[\[([^[\]]+)\]\]/g
     up to the closing fence line, or to the end of an unclosed one)  */
 const fenceRegex = /^[ \t]*(`{3,}|~{3,})[^\n]*(?:\n[\s\S]*?(?:\n[ \t]*\1[`~]*[ \t]*(?=\n|$)|(?![\s\S]))|(?![\s\S]))/gm
 
+/*  the inline code spans of a Markdown text (a backtick run up to the
+    next backtick run of the same length)  */
+const spanRegex = /(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g
+
 /*  apply a transformation to the parts of a text outside of its fenced
-    code blocks, which stay verbatim, as code carries no references  */
-const outsideFences = (text: string, apply: (part: string) => string): string => {
+    code blocks and inline code spans, which stay verbatim, as code
+    carries no references  */
+export const outsideCode = (text: string, apply: (part: string) => string): string => {
+    const outsideSpans = (part: string): string => {
+        let result = ""
+        let last   = 0
+        for (const m of part.matchAll(spanRegex)) {
+            result += apply(part.slice(last, m.index)) + m[0]
+            last = m.index + m[0].length
+        }
+        return result + apply(part.slice(last))
+    }
     let result = ""
     let last   = 0
     for (const m of text.matchAll(fenceRegex)) {
-        result += apply(text.slice(last, m.index)) + m[0]
+        result += outsideSpans(text.slice(last, m.index)) + m[0]
         last = m.index + m[0].length
     }
-    return result + apply(text.slice(last))
+    return result + outsideSpans(text.slice(last))
 }
 
 /*  strip the fenced code blocks of a description and the inline code
@@ -30,6 +44,12 @@ const outsideFences = (text: string, apply: (part: string) => string): string =>
     AST for rendering) for matching and labeling  */
 export const plainText = (text: string): string =>
     text.replace(fenceRegex, "").replace(/`/g, "")
+
+/*  strip the fenced code blocks and the inline code spans (with their
+    contents) of a text for scanning its references, as code carries no
+    references  */
+export const referenceText = (text: string): string =>
+    text.replace(fenceRegex, "").replace(spanRegex, "")
 
 /*  a single indexed object with its direct parent (undefined for
     the top-level objects of an artifact), its index position, and
@@ -254,6 +274,29 @@ export const resolveUnique = (index: LinkIndex, reference: string, from?: SpecOb
     return { target: matches.length === 1 ? matches[0] : undefined, ambiguous: matches.length > 1 }
 }
 
+/*  the shortest reference uniquely resolving onto a target from a
+    referencing object: the kind-qualified name of the target, prefixed
+    by as many of its ancestors (their parenthesized id, else their
+    kind-qualified name) as the resolution needs, and as a last resort
+    the kind-qualified id of the target (unique among its siblings),
+    should its name be shared by a sibling of its kind  */
+export const referenceTo = (index: LinkIndex, target: SpecObject, from: SpecObject): string => {
+    const chain   = chainOf(index, target)
+    const quote   = (text: string) => /[.:]/.test(text) ? `"${text}"` : text
+    const parents = chain.slice(0, -1).map((object) =>
+        object.paren !== undefined ? object.paren : `${object.kind}:${quote(object.name)}`)
+    const lasts   = [ `${target.kind}:${quote(target.name)}`, `${target.kind}:${quote(target.id)}` ]
+    for (const last of lasts) {
+        const segments = [ ...parents, last ]
+        for (let i = segments.length - 1; i >= 0; i--) {
+            const reference = segments.slice(i).join(".")
+            if (resolveUnique(index, reference, from).target === target)
+                return reference
+        }
+    }
+    return [ ...parents, lasts[0] ].join(".")
+}
+
 /*  resolve the references of the own texts of an object (its name,
     property values, description, rationale, and elaboration) into
     their distinct targets, in order of occurrence, leniently skipping
@@ -265,7 +308,7 @@ export const referenceTargets = (index: LinkIndex, object: SpecObject): SpecObje
             object.description.elaboration ?? "")
     const targets = new Set<SpecObject>()
     for (const text of texts)
-        for (const m of plainText(text).matchAll(referenceRegex)) {
+        for (const m of referenceText(text).matchAll(referenceRegex)) {
             const target = resolveUnique(index, m[1].trim(), object).target
             if (target !== undefined && target !== object)
                 targets.add(target)
@@ -288,7 +331,7 @@ export const anchorPaths = (index: LinkIndex): Map<SpecObject, string> => {
 }
 
 /*  expand all references of a text via a per-reference replacer
-    (except inside its fenced code blocks)  */
+    (except inside its fenced code blocks and inline code spans)  */
 export const expandReferences = (text: string, replace: (reference: string) => string): string =>
-    outsideFences(text, (part) =>
+    outsideCode(text, (part) =>
         part.replace(referenceRegex, (_, reference: string) => replace(reference.trim())))

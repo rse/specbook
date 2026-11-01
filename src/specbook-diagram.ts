@@ -12,7 +12,7 @@ import type { Spec, SpecObject, SpecProperty }
 import type { Schema, SchemaDiagram, SchemaDiagramCenterEdges, SchemaDiagramNest }
     from "./specbook-format-schema.js"
 import { referenceRegex, buildLinkIndex, resolveUnique, resolveSet, anchorPaths,
-    chainOf, expandReferences, plainText, type LinkIndex }
+    chainOf, expandReferences, plainText, referenceText, type LinkIndex }
     from "./specbook-link.js"
 import type { ParseContext }
     from "./specbook-parse-common.js"
@@ -276,7 +276,7 @@ const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes
                     texts.push({ text: object.description.elaboration })
             }
             for (const { text, name } of texts)
-                for (const m of plainText(text).matchAll(referenceRegex)) {
+                for (const m of referenceText(text).matchAll(referenceRegex)) {
                     const target = lift(resolveUnique(index, m[1].trim(), object).target)
                     if (target !== undefined && target !== node) {
                         const key   = `${anchors.get(target) ?? target.id}\u0000${name ?? ""}`
@@ -312,10 +312,10 @@ const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodeSet:
         const value = key !== undefined ?
             propValue(parenProps, edgeObject, key) :
             propsOf(parenProps, edgeObject).filter((property) => property.key !== diagram.edgeSource)
-                .map((property) => property.value).find((v) => referenceOnce.test(v))
+                .map((property) => property.value).find((v) => referenceOnce.test(referenceText(v)))
         if (value === undefined)
             return []
-        const references = Array.from(plainText(value).matchAll(referenceRegex), (m) => m[1].trim())
+        const references = Array.from(referenceText(value).matchAll(referenceRegex), (m) => m[1].trim())
         return (key !== undefined ? references : references.slice(0, 1))
             .map((reference) => resolveUnique(index, reference, edgeObject).target)
             .filter((target): target is SpecObject => target !== undefined)
@@ -547,7 +547,7 @@ const deriveNesting = (ctx: DiagramContext, nest: SchemaDiagramNest, nodes: Spec
         let container: SpecObject | undefined
         for (const key of nest.properties ?? []) {
             const value = propValue(parenProps, node, key)
-            const refs  = value !== undefined ? Array.from(plainText(value).matchAll(referenceRegex)) : []
+            const refs  = value !== undefined ? Array.from(referenceText(value).matchAll(referenceRegex)) : []
             if (refs.length !== 1)
                 continue
             container = resolveUnique(index, refs[0][1].trim(), node).target

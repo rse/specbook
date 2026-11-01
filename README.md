@@ -154,6 +154,7 @@ $ specbook export \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
   [-F|--fetch <mode>] \
+  [-S|--schema] \
   [-o|--output [<format>:]<output-file>] \
   [-w|--watch] \
   [-O|--omit <aspect>[,...]] \
@@ -164,6 +165,7 @@ $ specbook preview \
   [-c|--config <schema-yaml-file>] \
   [-b|--basedir <spec-md-file-basedir>] \
   [-F|--fetch <mode>] \
+  [-S|--schema] \
   [-O|--omit <aspect>[,...]] \
   [-a|--addr <ip-addr>] \
   [-p|--port <tcp-port>]
@@ -216,7 +218,9 @@ Options:
     The option accepts glob patterns and can be given multiple times: the
     matching files (in the order of the patterns and alphabetically within
     a pattern, where the literal `std` names the bundled standard schema
-    configuration, and where a pattern matching no file is an error) are
+    configuration and the literal `meta` the bundled meta one, which
+    describes a schema configuration itself, and where a pattern matching
+    no file is an error) are
     merged in order into one effective schema configuration, the later
     files into the earlier ones. The objects merge deeply, while the
     elements of the lists are matched by identity (artifacts by `kind`
@@ -243,6 +247,32 @@ Options:
     reference which is not cached is an error), `auto` (the default:
     whenever the download cache lacks a reference or it is no longer
     fresh), or `always` (ignoring the download cache).
+
+-   `-S|--schema` (`export` and `preview` only):
+    Export (or preview) the *effective schema configuration itself* --
+    the one `-c|--config` selects, merged out of its local, bundled, or
+    remote files -- as a SpecBook document, instead of the specification
+    below the base directory (which is not applicable then, so an
+    explicit `-b|--basedir` is an error, and `--watch` and `preview`
+    observe the configuration files only). The document is generated in
+    memory against the bundled meta schema configuration (`meta`) and
+    rendered like any other specification, in every export format: a
+    title page with the configuration references, the SpecBook version,
+    and the counts of the artifact kinds, artifacts, object kinds, and
+    reference relationships, an artifact-level overview graph as the
+    "Diagram of Contents", and one top-level `ARTIFACT-KIND` artifact per
+    artifact kind (with a graph of its artifacts and object kinds),
+    every artifact and object kind
+    (with its file, name pattern, optionality, `referenced`/`coverage`
+    patterns, `automaton`, `diagram`, and `format` configuration, its
+    description and literature references, and a hub diagram of its
+    references, every artifact also with a Mermaid UML class diagram of
+    it and its object kinds, omittable via `-O diagram:code` and left out
+    without relationships), and every property (with its value constraint and
+    flags, a reference-valued one additionally naming its target
+    artifacts and object kinds and its cardinality, and acting as an edge
+    of the diagrams). When several configuration files are merged, every
+    object also names the files contributing it.
 
 -   `-o|--output [<format>:]<output-file>` (`export` only):
     The output file (`-` for stdout) is required and can be given multiple times.
@@ -341,8 +371,8 @@ basedir: docs/spec
 ```
 
 The entry `config` is a single file or glob pattern or a list of them
-(exactly like the repeatable `-c|--config`, including the literal
-`std`), and the entry `basedir` is a directory. Relative paths resolve
+(exactly like the repeatable `-c|--config`, including the literals
+`std` and `meta`), and the entry `basedir` is a directory. Relative paths resolve
 against the directory of the `.specbook.yaml` itself, the file is
 validated (an unknown entry or a wrongly typed value fails the command),
 and both an explicitly supplied option and its environment variable
@@ -432,8 +462,8 @@ To share a schema configuration of your own, publish it as a plain npm
 package carrying the keyword `specbook-schema` (or push it to a GitHub
 repository carrying the same topic), so `specbook search [<term> ...]`
 (and the MCP tool `specbook_search`) finds it, right after the bundled
-standard schema configuration `std`, which it always lists first (and
-which is all it lists under `--fetch never`).
+standard and meta schema configurations `std` and `meta`, which it always
+lists first (and which are all it lists under `--fetch never`).
 
 Agent Skill
 -----------

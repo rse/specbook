@@ -1066,8 +1066,9 @@ BECAUSE an event needs a private setup phase.
 ### Wiki-Style References
 
 A `[[<reference/>]]` anywhere in a name, property value, description, or
-rationale (except inside a fenced code block, whose code stays verbatim,
-so e.g. a shell test `[[ -f x ]]` is no reference) is a Wiki-style
+rationale (except inside a fenced code block or an inline code span,
+whose code stays verbatim, so e.g. a shell test `[[ -f x ]]` is no
+reference) is a Wiki-style
 reference to another object, which is checked
 for unique resolvability and rendered as a hyperlink in the HTML/PDF
 exports. A reference is a `.`-separated path of segments, where each

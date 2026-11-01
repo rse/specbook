@@ -8,7 +8,7 @@ import { type SpecObject }
     from "./specbook-format-spec.js"
 import { type SchemaObject }
     from "./specbook-format-schema.js"
-import { type LinkIndex, referenceRegex, resolveUnique, resolveSet, chainOf, plainText }
+import { type LinkIndex, referenceRegex, resolveUnique, resolveSet, chainOf, referenceText }
     from "./specbook-link.js"
 import { compileValueExpr }
     from "./specbook-parse-value.js"
@@ -28,7 +28,7 @@ const referrerIndex = (index: LinkIndex): Map<SpecObject, Set<SpecObject>> => {
             texts.push(object.description.description, object.description.rationale ?? "",
                 object.description.elaboration ?? "")
         for (const text of texts)
-            for (const m of plainText(text).matchAll(referenceRegex)) {
+            for (const m of referenceText(text).matchAll(referenceRegex)) {
                 const target = resolveUnique(index, m[1].trim(), object).target
                 if (target !== undefined && !chain.includes(target))
                     referrers.set(target, (referrers.get(target) ?? new Set<SpecObject>()).add(object))

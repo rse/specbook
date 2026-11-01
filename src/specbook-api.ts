@@ -8,8 +8,8 @@ import * as path                                         from "node:path"
 
 import { loadConfig, configStatistics }                  from "./specbook-config.js"
 import { loadProject, writeProject, projectFile, isRemote } from "./specbook-project.js"
-import { version, standardConfig, cacheDir, isCached, expandPattern, resolveConfig,
-    reportOverlaps, search, fetchModes, parseFetchMode,
+import { version, standardConfig, metaConfig, isBundled, cacheDir, isCached, expandPattern,
+    resolveConfig, reportOverlaps, search, fetchModes, parseFetchMode,
     type RemoteOptions, type SearchHit, type FetchMode } from "./specbook-remote.js"
 import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
     from "./specbook-diagnostic.js"
@@ -18,6 +18,7 @@ import { lint, type LintResult }                         from "./specbook-cmd-li
 import { exportSpecification, watchSpecification, parseOutputSpec, formats,
     requireBrowser, parseOmit, omitAspects, type ExportFormat, type ExportOptions }
     from "./specbook-cmd-export.js"
+import { lintSchema }                                    from "./specbook-cmd-export-schema.js"
 import { servePreview, previewAddr, previewPort }        from "./specbook-cmd-preview.js"
 import { describeFormat, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
     compressLevels, parseCompressLevel, type DescribeFormat, type DescribePart, type CompressLevel }
@@ -37,7 +38,7 @@ export { compressLevels, parseCompressLevel }
 export { type DescribeFormat, type DescribePart, type CompressLevel }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
 export { type LintResult }
-export { version, standardConfig, cacheDir, fetchModes, parseFetchMode, type FetchMode, type SearchHit }
+export { version, standardConfig, metaConfig, cacheDir, fetchModes, parseFetchMode, type FetchMode, type SearchHit }
 export type { Spec, SpecArtifact, SpecObject, SpecDescription, SpecProperty } from "./specbook-format-spec.js"
 export type { Schema, SchemaObject, SchemaProperty }                          from "./specbook-format-schema.js"
 
@@ -81,12 +82,14 @@ export interface SearchRequest {
 
 /*  the options of "export": the project ones plus the requested formats,
     the live preview script, the omitted aspects, the Git exclude
-    handling, and the per-format re-basing directories  */
+    handling, the export of the schema configuration itself (instead of
+    the specification), and the per-format re-basing directories  */
 export interface ExportRequest extends ProjectOptions {
     formats?:   ExportFormat[]
     realtime?:  boolean
     omit?:      string[]
     gitignore?: boolean
+    schema?:    boolean
     rebase?:    (string | undefined)[]
 }
 
@@ -150,16 +153,27 @@ export class SpecBook {
 
     /*  determine the files of the YAML schema configuration out of the
         patterns, in the order of the patterns and alphabetically within
-        a pattern, where a remote reference (the literal "std" included,
-        naming the bundled standard schema configuration, which is also
-        the fallback if no pattern is given at all) is resolved into the
-        files of the download cache  */
-    private async configFiles (patterns: string[] | undefined, access: RemoteOptions): Promise<string[]> {
-        if (patterns === undefined || patterns.length === 0)
+        a pattern, where a remote reference (the literals "std" and "meta"
+        included, naming the bundled schema configurations, the standard
+        one being also the fallback if no pattern is given at all) is
+        resolved into the files of the download cache, and optionally
+        collect the display label of every file: the remote reference it
+        stems from (plus its base name, if the reference yields several
+        files), or its local path  */
+    private async configFiles (patterns: string[] | undefined, access: RemoteOptions,
+        labels?: Map<string, string>): Promise<string[]> {
+        if (patterns === undefined || patterns.length === 0) {
+            labels?.set(standardConfig, "std")
             return [ standardConfig ]
+        }
         const files = new Array<string>()
-        for (const pattern of patterns)
-            files.push(...(isRemote(pattern) ? await resolveConfig(pattern, access) : await expandPattern(pattern)))
+        for (const pattern of patterns) {
+            const matches = isRemote(pattern) ? await resolveConfig(pattern, access) : await expandPattern(pattern)
+            for (const file of matches)
+                labels?.set(file, !isRemote(pattern) ? file :
+                    matches.length === 1 ? pattern : `${pattern} (${path.basename(file)})`)
+            files.push(...matches)
+        }
         return files
     }
 
@@ -256,28 +270,44 @@ export class SpecBook {
             dir !== undefined ? path.resolve(cwd, dir) : dir)
     }
 
+    /*  parse the source of an export: the specification Markdown files
+        below the base directory, or, under "schema", the specification
+        generated out of the effective schema configuration itself (to
+        which no base directory applies)  */
+    private parseSource (options: ExportRequest, config: string[], labels: Map<string, string>,
+        basedir: string, verbose: Verbose): LintResult {
+        if (options.schema === true)
+            return lintSchema({ config, labels, verbose })
+        return lint({ config, basedir, gitignore: options.gitignore === true, verbose })
+    }
+
     /*  export the specification Markdown files below the base directory
-        as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown,
-        parsing the input just once and returning one buffer per
-        requested format, where "rebase" names, per requested format, the
-        directory of the output file, onto which the image references of
-        the normalized Markdown are re-based (an absent one keeps them),
-        and "omit" names the (comma-separated) aspects the HTML, the PDF,
-        and (the diagrams) the AST leave out (see "omitAspects")  */
+        (or, under "schema", the effective schema configuration itself,
+        described as a specification of the bundled meta schema
+        configuration) as JSON, JSON5, YAML, TOON, HTML, PDF, or
+        normalized Markdown, parsing the input just once and returning
+        one buffer per requested format, where "rebase" names, per
+        requested format, the directory of the output file, onto which
+        the image references of the normalized Markdown are re-based (an
+        absent one keeps them), and "omit" names the (comma-separated)
+        aspects the HTML, the PDF, and (the diagrams) the AST leave out
+        (see "omitAspects")  */
     async export (options: ExportRequest): Promise<Buffer[]> {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
         const omit      = parseOmit(options.omit)
+        if (options.schema === true && options.basedir !== undefined)
+            throw new Error("the base directory is not applicable to the export of the schema configuration")
         const project   = this.project(options, verbose)
-        const config    = await this.configFiles(project.config, this.remoteOptions(options, verbose))
+        const labels    = new Map<string, string>()
+        const config    = await this.configFiles(project.config, this.remoteOptions(options, verbose), labels)
 
         /*  a missing browser is an environment problem, so let the PDF
             export fail before the specification is even parsed  */
         if (requested.includes("pdf"))
             await requireBrowser(verbose)
 
-        const result = lint({ config,
-            basedir: project.basedir ?? ".", gitignore: options.gitignore === true, verbose })
+        const result = this.parseSource(options, config, labels, project.basedir ?? ".", verbose)
         return this.renderFormats(result, requested, verbose,
             { realtime: options.realtime === true, omit }, this.rebaseOf(options))
     }
@@ -294,8 +324,11 @@ export class SpecBook {
     private async observe (options: WatchRequest & { formats: ExportFormat[], realtime: boolean },
         verbose: Verbose): Promise<void> {
         const omit    = parseOmit(options.omit)
+        if (options.schema === true && options.basedir !== undefined)
+            throw new Error("the base directory is not applicable to the export of the schema configuration")
         const project = this.project(options, verbose)
-        const config  = await this.configFiles(project.config, this.remoteOptions(options, verbose))
+        const labels  = new Map<string, string>()
+        const config  = await this.configFiles(project.config, this.remoteOptions(options, verbose), labels)
 
         /*  a missing browser is an environment problem, so let the PDF
             export fail before the specification is even parsed, but
@@ -305,11 +338,11 @@ export class SpecBook {
         return watchSpecification(async () => {
             /*  the lint result carries the files to observe even for an
                 invalid specification, and the configuration files are
-                observed, too, so a failing export (even one due to an
-                invalid configuration) still keeps the observe loop fed,
-                while the files of the download cache never change  */
-            const result = lint({ config, basedir: project.basedir ?? ".",
-                gitignore: options.gitignore === true, verbose })
+                observed, too (the only sources of the schema export), so
+                a failing export (even one due to an invalid configuration)
+                still keeps the observe loop fed, while the files of the
+                download cache never change  */
+            const result = this.parseSource(options, config, labels, project.basedir ?? ".", verbose)
             const files  = [ ...config.map((file) => path.resolve(file)), ...result.files ]
                 .filter((file) => !isCached(file))
 
@@ -348,9 +381,9 @@ export class SpecBook {
         sources (see "observe") and every fresh export is pushed to the
         connected browsers as an in-place document update, through the
         client-side script the "realtime" export injects into the HTML,
-        where "omit" is the one of "export"  */
+        where "omit" and "schema" are the ones of "export"  */
     async preview (options: ProjectOptions & { addr?: string,
-        port?: number, omit?: string[], gitignore?: boolean }): Promise<void> {
+        port?: number, omit?: string[], gitignore?: boolean, schema?: boolean }): Promise<void> {
         const verbose = this.verboseOf("preview")
 
         /*  an invalid omit aspect is a usage problem, so let the preview
@@ -365,7 +398,7 @@ export class SpecBook {
         try {
             return await this.observe({ config: options.config, basedir: options.basedir, cwd: options.cwd,
                 formats: [ "html" ], realtime: true, omit: options.omit, gitignore: options.gitignore,
-                onExport: ([ html ]) => server.update(html) }, verbose)
+                schema: options.schema, onExport: ([ html ]) => server.update(html) }, verbose)
         }
         catch (err) {
             /*  a failing release must not mask the primary error  */
@@ -388,13 +421,14 @@ export class SpecBook {
 
         /*  the schema-bearing parts require a schema configuration, so
             they fall back onto the bundled standard one, which is always
-            embedded (also when named explicitly through "std"), as its
-            bundled file is no meaningful reference, and so is a remote
-            one, as its download cache file is none either  */
+            embedded (also when named explicitly through "std", and so is
+            the bundled meta one named through "meta"), as its bundled
+            file is no meaningful reference, and so is a remote one, as
+            its download cache file is none either  */
         const given    = project.config !== undefined
         const config   = given || part === "all" || part === "schema" ?
             await this.configFiles(project.config, this.remoteOptions(options, verbose)) : undefined
-        const standard = config !== undefined && config.every((file) => file === standardConfig)
+        const standard = config !== undefined && config.every(isBundled)
         const embed    = options.embed === true || standard || (config?.some(isCached) ?? false)
         const basedir  = project.basedir ?? (part === "spec" ? "." : undefined)
         const schema   = config !== undefined ? this.requireConfig(config, verbose) : undefined

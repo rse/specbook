@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: Schema Configuration Export
+    The new option `-S`/`--schema` of `export` and `preview` renders the effective schema
+    configuration itself as a SpecBook document, generated against the bundled meta schema (`-c meta`).
+
 -   IMPROVEMENT [code]: Semi-Bold Markdown Bold in Descriptions
     The Markdown bold (`**...**`) of the descriptions renders semi-bold in the HTML/PDF export,
     so it stands out from the prose without the weight of the headings and object kinds.

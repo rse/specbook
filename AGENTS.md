@@ -24,7 +24,12 @@ API.
         `src/specbook-cmd-init-sample.ts` (the sample objects derived
         from the schema configuration, rendered through the Markdown
         renderer);
-        `export` dispatches onto the format renderers in `src/specbook-export-*.ts`;
+        `export` dispatches onto the format renderers in `src/specbook-export-*.ts`
+        and delegates its `--schema` mode to
+        `src/specbook-cmd-export-schema.ts` (the specification describing
+        the effective schema configuration itself, generated in memory
+        against the bundled meta schema configuration and parsed like
+        the specification files);
         `preview` is the Fastify-based HTTP/WebSocket server of the live
         HTML preview, fed by the watch mechanism of `export`;
         `describe` emits `src/specbook-format.md`, the static description of
@@ -104,7 +109,9 @@ API.
         `edgeTarget` yielding one edge per target), the compact Gradia
         geometry presets a diagram `config` overrides, their validation,
         and the in-memory cache of the rendered SVGs
-    -   `src/specbook-config.ts`: YAML schema configuration loading, merging, and validation (Valibot)
+    -   `src/specbook-config.ts`: YAML schema configuration loading,
+        merging, and validation (Valibot), plus the `origins` telling
+        the files contributing every object kind and property
     -   `src/specbook-project.ts`: the upward search, loading, and
         validation (Valibot) of the YAML project configuration file
         `.specbook.yaml` with its `config` and `basedir` entries,
@@ -118,7 +125,7 @@ API.
         configuration files (`resolveConfig`), the `search` of the npm
         registry and GitHub, the report of the artifacts several
         configuration files define, and the installation constants
-        `version` and `standardConfig`
+        `version`, `standardConfig`, and `metaConfig`
     -   `src/specbook-diagnostic.ts`: the `Diagnostic` type and its
         single-line/verbose renderers, shared by all layers
     -   `src/specbook-verbose.ts`: the marking (`literal`) and rendering
@@ -154,6 +161,13 @@ API.
         standard YAML schema configuration (`std-0-meta` through
         `std-6-test`), assembled into one file at build time and used
         whenever no particular one is given
+    -   `src/specbook-format-schema.d/meta.yaml`: the bundled meta YAML
+        schema configuration (copied to `dst/specbook-format-meta.yaml`
+        at build time, never assembled into the standard one),
+        describing a schema configuration itself: the `META: Title`
+        artifact and the recurring `ARTIFACT-KIND` artifact holding
+        the `ARTIFACT`, `OBJECT-KIND`, `PROPERTY`, and `REFERENCE`
+        object kinds
 -   `etc/`: the tool configurations (`eslint.mjs`, `eslint-yaml.mjs`, `markdownlint.yaml`,
     `markdownlint-skill.yaml`, `tsconfig.json`, `postcss.config.mjs`, `stx.conf`), the assembler of
     the standard schema configuration (`specbook-format-assemble.mjs`),
@@ -210,8 +224,9 @@ npm start distclean        # also remove node_modules and package-lock.json
 Beyond `tsc`, the `build-cmd` target compiles `src/specbook-export-html.styl`
 to `dst/specbook-export-html.css` (Stylus, then PostCSS inlining the font
 faces as base64 `data:` URIs), copies the client-side search script and
-`src/specbook-format.md`, assembles `src/specbook-format-schema.d/*.yaml`
-into `dst/specbook-format.yaml`, and copies the two theme variants of the
+`src/specbook-format.md`, assembles `src/specbook-format-schema.d/std-*.yaml`
+into `dst/specbook-format.yaml`, copies `src/specbook-format-schema.d/meta.yaml`
+to `dst/specbook-format-meta.yaml`, and copies the two theme variants of the
 logo.
 
 No test target is defined.
@@ -266,8 +281,8 @@ blue hero flag).
 ```
 specbook init     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-s]
 specbook lint     [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g]
-specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g] [-w] [-O <aspect>[,...]] [-o [<format>:]<output-file>] [...]
-specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g] [-O <aspect>[,...]] [-a <ip-addr>] [-p <tcp-port>]
+specbook export   [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g] [-S] [-w] [-O <aspect>[,...]] [-o [<format>:]<output-file>] [...]
+specbook preview  [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-g] [-S] [-O <aspect>[,...]] [-a <ip-addr>] [-p <tcp-port>]
 specbook describe [-v [<level>]] [-c <yaml-file>] [-b <basedir>] [-F <mode>] [-e] [-z [<level>]] [-f <format>] [-p <part>] [-o <markdown-file>]
 specbook search   [-v [<level>]] [-F <mode>] [<term> ...]
 specbook mcp      [-v [<level>]]
@@ -282,7 +297,8 @@ The option `-c`/`--config` accepts glob patterns (expanded via `glob`
 through `expandPattern` of `src/specbook-remote.ts`) and remote references
 (see below) and can occur multiple times: the matching files (in pattern order,
 alphabetically within a pattern, with the literal `std` naming the
-bundled standard one, and a pattern matching no file being an error) are
+bundled standard one and the literal `meta` the bundled meta one, and
+a pattern matching no file being an error) are
 merged in order into one effective schema configuration (the later files
 into the earlier ones, via `mergeWith` of `es-toolkit`), where the
 objects merge deeply and the list elements are matched by identity
@@ -367,7 +383,7 @@ Wherever a schema configuration pattern is expected (`-c`,
 option `config`), a *remote reference*
 is accepted, too, which `src/specbook-remote.ts` resolves into the files of
 the download cache (`isRemote` of `src/specbook-project.ts` telling them
-apart from the local paths, the literal `std` counting as one):
+apart from the local paths, the literals `std` and `meta` counting as ones):
 `npm:<pkg>[@<range>][/<path>]` (the package perhaps scoped, the range
 resolved through `pacote.manifest` against the registry, default
 `latest`, the tarball extracted through `pacote.extract` without ever
@@ -416,10 +432,10 @@ result carries them as `overlaps`): at verbose level `detail`, or at
 `none` if two cached files collide, as such a merge is hardly intended.
 
 The `search` command (the API method `search`, the MCP tool
-`specbook_search`) lists the bundled standard schema configuration first
-(reference `std`, our version, source `builtin`, matched locally by all
-words of the term against its reference, name, and description, and the
-only source `--fetch never` searches), then queries the npm registry (`/-/v1/search` through
+`specbook_search`) lists the bundled standard and meta schema configurations first
+(references `std` and `meta`, our version, source `builtin`, matched locally by all
+words of the term against their reference, name, and description, and the
+only sources `--fetch never` searches), then queries the npm registry (`/-/v1/search` through
 `npm-registry-fetch` for the keyword `specbook-schema`) and GitHub (the
 repository search for the same topic, a `User-Agent` being mandatory
 there), where a failing source is reported at level `none` but does not
@@ -455,6 +471,80 @@ the one of its main working tree), and the `.gitignore` files from the
 working tree root down to the artifact file, where the last matching rule
 wins and an excluded ancestor directory excludes everything below it. A
 base directory outside any Git working tree excludes nothing.
+
+The option `-S`/`--schema` of `export` and `preview` (the API/MCP
+option `schema`, `SPECBOOK_SCHEMA`, default `false`) exports the
+*effective schema configuration itself* (`-c`, merged out of its local,
+bundled, or remote files) as a SpecBook document in every export format,
+instead of the specification below the base directory (an explicit
+`basedir` is a usage error then, while `--watch` and `preview` observe
+the non-cached configuration files only): `lintSchema` of
+`src/specbook-cmd-export-schema.ts` generates the specification in
+memory and parses it with `parseSpecification` against the bundled meta
+schema configuration (`src/specbook-format-schema.d/meta.yaml`, the
+`metaConfig` of `src/specbook-remote.ts`), returning the very
+`LintResult` the renderers consume. The generated corpus consists of a
+`META: Title` artifact (`TITLE: Schema Configuration`, the given
+configuration references or paths as `SUBTITLE`, `SpecBook <version>`
+as `VERSION`, the counts of the artifact kinds, artifacts, object kinds,
+and reference relationships as the abstract, followed by the
+explanation of the meta model and the class diagram notation (once,
+while every artifact states just its own figures: object kinds,
+associations, and the other artifacts they reach into), and
+the artifact-level overview graph --
+`deep`, the artifacts nested into their artifact kind boxes, the edges
+lifted onto the boxes -- as the "Diagram of Contents") and one level 1
+`ARTIFACT-KIND` object per artifact kind, all matching the recurring
+`ARTIFACT-KIND` artifact of the meta schema configuration and residing
+in its one file (its artifacts and a `local` graph
+of its artifacts and object kinds nested along their `PARENT`
+references), one
+`ARTIFACT` object per artifact (named after its `name`, its `id` as the
+parenthesized token, `FILE`, `OPTIONAL`, `REFERENCED`, `COVERAGE`,
+`AUTOMATON`, `DIAGRAM`, and `FORMAT`, the latter three flattened into
+`key=value` pairs, a `hub` diagram of its references, and a Mermaid
+`classDiagram` of it and its object kinds at the end of its elaboration
+-- the artifact stereotyped `artifact` and named `<kind>.<id>`, the
+object kinds named by their kind (qualified as `<artifact-id>.<kind>`
+only where the name collides among the classes of the diagram, like the
+references do), the non-reference properties as attributes typed
+`<kind>[<multiplicity>]`, the nesting as compositions, and the
+reference-valued properties as associations labeled with the property
+and its arity, omittable like every embedded diagram via `-O
+diagram:code` and left out when it would carry no relationship at all),
+the `OBJECT-KIND`
+objects flat below their artifact in pre-order (named after their kind,
+qualified by the parent kind on a collision, the `PARENT` reference
+naming the artifact or object kind they are nested directly below, the
+`NAME` regex, and the same fields as an artifact), and the `PROPERTY`
+and `REFERENCE` objects below the artifacts and object kinds (`OPTIONAL`,
+`VALUE`, `UNIQUE`, `PRESENT`, `LOCAL`, `SYMMETRIC`, `ACYCLIC`, and for a
+`REFERENCE` -- a property whose value constraint references at least
+one kind -- the `TARGET` list of the referenced artifacts and object
+kinds plus its `ARITY`, so it acts as the edge object of the diagrams,
+one edge per target). The `desc` of a node is its description (split
+at `, BECAUSE ` like any other), followed by the prose of its
+`referenced`, `coverage`, and `automaton` relations (with references
+onto the involved kinds) and its `refs` as an ordered list, and when
+several configuration files are merged, every object carries its
+`ORIGIN` (the contributing files, labeled by the reference or path they
+were given as, `std` and `meta` included), taken from the `origins`
+`loadConfig` reports per object kind and property. The reference
+patterns of the configuration are resolved at the kind level through
+the regular `resolveSet` against a skeleton corpus holding one object
+per schema node (the artifacts with their ids and names, every name
+part of a pattern generalized to the wildcard, a pattern matching every
+node naming no target), the verbatim values (value expressions, name
+patterns, file names, patterns, configurations, and origins) become
+inline code spans, in which a `[[` is plain code, the description texts
+are escaped outside their code (a `[[` as `\[\[`, an `![` and a
+line-leading `#` likewise, an inline code span carrying an `![`
+flattened into escaped text, as the parser loads an embedding even
+there, and the unordered list items turned into ordered ones, as they
+would parse as properties), and the objects are rendered through `renderObjectMd`
+with a frontmatter carrying the oldest and the latest modification time
+of the configuration files. The meta schema configuration is also
+directly usable through the literal `meta` wherever `std` is accepted.
 
 Parsing runs in two phases: the syntactic one turns the Markdown into
 the `Spec` AST, the semantic one validates it against the schema
@@ -578,9 +668,13 @@ fragment parameters `lines=<a>[-<b>]` (the excerpt, applied at parse
 time) and `mark`, all validated by the parser (`fenceInfo` and
 `fragmentParams` of `src/specbook-parse-common.ts`). A fence of no or an
 unknown language stays a plain `pre` block. The `[[...]]` inside a
-fenced code block is plain code: `plainText` and `expandReferences` of
-`src/specbook-link.ts` skip the fenced code blocks, so it is neither
-expanded, nor validated, nor counted by the coverage. The Markdown
+fenced code block or an inline code span is plain code: `referenceText`
+and `expandReferences` (through `outsideCode`) of `src/specbook-link.ts`
+skip both, so it is neither expanded, nor validated, nor counted by the
+coverage, nor drawn as a diagram edge, nor followed by the artifact
+filter (while `plainText`, which strips just the backticks, keeps
+serving the matching of names and the constraint checks of property
+values). The Markdown
 export turns an embedded file of a description into a fenced block with
 its `start`/`mark` parameters at the end of the elaboration (one of a
 property value stays a `data:` definition), so it round-trips, while

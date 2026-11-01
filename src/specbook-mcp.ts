@@ -36,7 +36,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
     const remote    = "\"npm:<pkg>[@<range>][/<path>]\" or \"github:<user>/<repo>[/<path>][#<ref>]\""
     const config    = z.array(z.string()).optional().describe("YAML schema configuration files, glob " +
         `patterns, or remote references (${remote}, or an "http[s]://..." URL), merged in order ` +
-        "(\"std\" for the bundled standard schema configuration; " +
+        "(\"std\" for the bundled standard schema configuration, \"meta\" for the bundled meta one; " +
         "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
         "of the project configuration file, else the bundled standard " +
         "schema configuration)")
@@ -107,7 +107,9 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
     server.registerTool("specbook_export", {
         title:       "Export Specification",
         description: "Export the specification Markdown files the YAML schema configuration references " +
-            "below the base directory as JSON, JSON5, " +
+            "below the base directory (or, with \"schema\", the effective YAML schema configuration " +
+            "itself, described as a SpecBook document through the bundled meta schema configuration) " +
+            "as JSON, JSON5, " +
             "YAML, TOON, HTML, PDF, or normalized Markdown. The result is written to the output file " +
             "if an output path is given, else it is returned directly (PDF as a base64-encoded resource). " +
             "The normalized Markdown embeds its images as \"data:\" URL definitions (so it is large), and " +
@@ -119,7 +121,10 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             output:    z.string().optional().describe("output file path (\"-\" or omitted returns the result directly)"),
             omit:      z.array(z.string()).optional().describe("content aspects to omit from the HTML, " +
                 "the PDF, and (the diagrams) the AST output, instead of leaving them foldable: \"diagram\" " +
-                `(all diagrams) or "${omitAspects.join("\", \"")}" (default: none)`)
+                `(all diagrams) or "${omitAspects.join("\", \"")}" (default: none)`),
+            schema:    z.boolean().optional().describe("export the effective YAML schema configuration " +
+                "itself as a SpecBook document instead of the specification (the base directory is not " +
+                "applicable then; default: false)")
         }
     }, async (args) => {
         try {
@@ -135,7 +140,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
                 path.dirname(spec.output) : undefined
             const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
                 cwd: args.cwd, fetch: args.fetch, formats: [ spec.format ], rebase: [ rebase ],
-                omit: args.omit, gitignore: args.gitignore })
+                omit: args.omit, gitignore: args.gitignore, schema: args.schema })
             if (spec.output !== undefined && spec.output !== "-") {
                 await fs.promises.writeFile(outputOf(args, spec.output), data)
                 return { content: [ { type: "text", text: `exported specification into "${spec.output}" (${data.length} bytes)` } ] }
@@ -204,7 +209,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     server.registerTool("specbook_search", {
         title:       "Search Schema Configurations",
-        description: "Search the bundled standard schema configuration (reference \"std\"), the npm " +
+        description: "Search the bundled standard and meta schema configurations (references \"std\" and " +
+            "\"meta\"), the npm " +
             "registry (the packages carrying the keyword \"specbook-schema\"), and GitHub (the repositories " +
             "carrying the same topic) for the shareable schema configurations (reusable building blocks for " +
             "the \"config\" option) matching a term, and return the hits as a JSON array of objects with the " +
