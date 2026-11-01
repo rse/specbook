@@ -480,8 +480,10 @@
                     desc: >
                         Comma-separated references to the INTERFACE-MODEL objects the component
                         provides, i.e. through which other components and external entities
-                        interact with it; omitted when the component provides no modeled interface
-                        (e.g. a user interface or an internal module).
+                        interact with it, which are always `Provided` ones, as a `Required`
+                        interface is offered by an external entity instead; omitted when the
+                        component provides no modeled interface (e.g. a user interface or an
+                        internal module).
                     value: list([[INTERFACE:*]])
                     optional: true
                 -   name: CONSUMES
