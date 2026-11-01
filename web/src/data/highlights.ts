@@ -93,10 +93,12 @@ export const highlights: Highlight[] = [
         icon:    Workflow,
         eyebrow: "Diagram Visualisation",
         title:   "Diagrams derived from the object model itself",
-        body:    "Object kinds can declare <code>graph</code>, <code>hub</code>, or <code>grid</code> " +
+        body:    "Object kinds can declare one or more <code>graph</code>, <code>hub</code>, " +
+                 "<code>grid</code>, <code>state</code>, <code>layer</code>, or <code>matrix</code> " +
                  "diagrams in the schema, whose nodes and edges are derived automatically from the " +
                  "object model and its references &mdash; so a diagram can never drift away from the " +
-                 "specification it depicts. The rendering is done by the sibling project " +
+                 "specification it depicts. Badge icons tell the nature of the nodes at a glance. " +
+                 "The rendering is done by the sibling project " +
                  "<a href=\"https://github.com/rse/gradia\">Gradia</a>, which is specialized in " +
                  "rendering object models. Hand-written Mermaid and D2 diagrams can be embedded in " +
                  "addition and are rendered in the very same theme colors.",
