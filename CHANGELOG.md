@@ -2,7 +2,7 @@
 ChangeLog
 =========
 
-1.6.0 (2026-10-25)
+1.6.0 (2026-11-01)
 ------------------
 
 -   CHANGE [code]: Every Markdown File Below the Base Directory Is Specification
