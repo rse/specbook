@@ -492,9 +492,15 @@ export const omittedControls = (omit: Set<OmitAspect>) => {
         text:    omit.has("text:long"),
         all:     none && omit.has("text:long")
     }
+
+    /*  the first row of the fold panel (the Gradia diagram types) is
+        dropped once all of its controls are  */
+    const gradia = omitted.graph && omitted.hub && omitted.grid && omitted.state
+        && omitted.layer && omitted.slice && omitted.tree && omitted.matrix
+        && omitted.sequence && omitted.petri
     const css =
         (omitted.text ? "\nspan.omit { color: var(--theme-color-specbook-muted) }" : "") +
         (omitted.all  ? "\nnav.toc-panel div.toc-tab { top: 13.89rem }" +
             "\ndiv.realtime-status { top: 17.12rem }" : "")
-    return { omitted, css }
+    return { omitted: { ...omitted, gradia }, css }
 }

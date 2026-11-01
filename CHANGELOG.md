@@ -17,6 +17,10 @@ ChangeLog
     The new type `petri` (options `places`, `tokens`, `capacity`, `reverse`) draws and analyzes the
     new Concurrency View resources as places between the units consuming and producing them.
 
+-   IMPROVEMENT [code]: Two-Row Folding Panel
+    The folding tab of the HTML export slides out a panel like the artifact filter tab, holding the
+    Gradia diagram types in its first row and the controls from the diagrams as code on in a second.
+
 -   IMPROVEMENT [code]: Interactions in the Component, Role, and Context Entity Hubs
     The new diagram option `descend` attributes the references of descendants of listed kinds to
     their node, so the hubs show the interactions whose messages involve their center object.

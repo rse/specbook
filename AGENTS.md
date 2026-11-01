@@ -904,14 +904,15 @@ color,
 and a running search unfolds
 everything, so no match hides inside. Everything starts out
 unfolded, while the folding tab slides
-out seventeen controls (exactly as the search tab slides out its input
-field), which fold and unfold at once all diagrams of a type (`graph`,
-`hub`, `grid`, `state`, `layer`, `slice`, `tree`, `matrix`, `sequence`, `petri`, the Mermaid/D2 ones as `code`, the images and PDF
+out a panel of seventeen controls in two rows (exactly as the artifact
+filter tab slides out its grid), which fold and unfold at once all
+diagrams of a type (the first row: `graph`,
+`hub`, `grid`, `state`, `layer`, `slice`, `tree`, `matrix`, `sequence`, and `petri`; the second row: the Mermaid/D2 ones as `code`, the images and PDF
 pages as `image`, and the code listings as `listing`, each with an icon
 of its own), all diagrams from an
 object tree nesting level on (`1`, hence all, `2`, and `3`, a nesting
 glyph carrying the small digit at its bottom right), and all cell
-texts. The HTML renderer therefore emits the type and the nesting level
+texts (the second row, too). The HTML renderer therefore emits the type and the nesting level
 (the top-level objects of an artifact and the "Diagram of Contents"
 being level 1) as the `data-type` and `data-level` attributes of every
 diagram block. The state persists across page loads, a stored state
@@ -949,8 +950,9 @@ is cut back onto the whole lines of that limit at a word boundary and
 ends in a grey `[...]` (`span.omit`), unless that hides less than 25% of
 it, and the client-side cell text folding is off. The
 fold controls of the omitted aspects leave the folding tab along with
-the implied ones (`diagram:2` also drops `level3`, no diagrams at all
-drop all sixteen diagram controls, and everything omitted drops the tab,
+the implied ones (`diagram:2` also drops `level3`, all Gradia diagram
+types omitted drop the first row of the panel, no diagrams at all drop
+all sixteen diagram controls, and everything omitted drops the tab,
 the tabs below moving up). The few extra style rules and the two script
 variations are emitted under the option only, so an export without it
 stays byte-identical. The rendering options `realtime` and `omit` travel

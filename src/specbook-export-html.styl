@@ -516,17 +516,37 @@ div.filter-switch div.filter-kind.some
 /*  the folding tab (screen-only): the tab riding right of the brand
     bar between the artifact filter tab and the table of contents tab
     (as wide as those, fixed independent of the content scrolling),
-    showing a fold icon (drawn like the search icon), which slides the
-    controls out to the right (and back in), where the tab follows the
-    bar when the table of contents panel shifts it aside; the controls
-    fold and unfold all diagrams of a type, all diagrams from a nesting
-    level on, and all over-long cell texts of the content at once and
-    carry, like the fold icon itself, the mark colors in a rounded box
-    while anything of their kind is folded  */
+    showing a fold icon (drawn like the search icon), which slides a
+    panel out to the right (and back in), hanging from the top of the
+    tab beside the tabs below exactly like the artifact filter grid
+    (the same gap, bridged beside the tab itself); the panel holds the
+    controls in two rows -- the Gradia diagram types first (the row
+    centered on the tab), then the diagrams as code, the images, the
+    listings, the nesting levels, and the cell texts -- which fold and
+    unfold all diagrams of a type, all diagrams from a nesting level
+    on, and all over-long cell texts of the content at once and carry,
+    like the fold icon itself, the mark colors in a rounded box while
+    anything of their kind is folded  */
 div.fold-switch
     tab(13.89rem)
     display: flex
     align-items: center
+div.fold-switch.open,
+div.fold-switch.open div.fold-toggle
+    border-radius: 0
+div.fold-switch::after
+    content: ""
+    position: absolute
+    top: 0
+    bottom: 0
+    left: 100%
+    width: 0.4rem
+    background-color: var(--theme-color-specbook-accent)
+    visibility: hidden
+    transition: visibility 0s 0.3s
+div.fold-switch.open::after
+    visibility: visible
+    transition-delay: 0s
 div.fold-switch div.fold-toggle
     padding: 0.65rem 0.1rem
     line-height: 0
@@ -543,30 +563,42 @@ div.fold-switch svg.fold-icon
 div.fold-switch.folded svg.fold-icon
     color: var(--theme-color-specbook-mark-text)
     background-color: var(--theme-color-specbook-mark-back)
-div.fold-switch div.fold-controls
+div.fold-switch div.fold-panel
+    position: absolute
+    top: 0
+    left: calc(100% + 0.4rem)
+    width: max-content
+    overflow: hidden
+    max-width: 0
+    border-radius: 0 0.3rem 0.3rem 0.3rem
+    background-color: var(--theme-color-specbook-accent)
+    transition: max-width 0.3s ease
+    body:has(nav.toc-panel.open) &
+        box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
+div.fold-switch.open div.fold-panel
+    max-width: 24rem
+div.fold-switch div.fold-rows
+    display: flex
+    flex-direction: column
+    gap: 0.3rem
+    padding: 0.65rem 0.5rem
+div.fold-switch div.fold-row
     display: flex
     align-items: center
     gap: 0.3rem
-    overflow: hidden
-    max-width: 0
-    padding: 0
-    transition: max-width 0.3s ease, padding 0.3s ease
-div.fold-switch.open div.fold-controls
-    max-width: 36rem
-    padding: 0 0.5rem 0 0.2rem
-div.fold-switch div.fold-controls > div
+div.fold-switch div.fold-row > div
     padding: 0.25rem
     line-height: 0
     border-radius: 0.3rem
     cursor: pointer
     -webkit-user-select: none
     user-select: none
-div.fold-switch div.fold-controls > div:hover
+div.fold-switch div.fold-row > div:hover
     background-color: var(--theme-color-specbook-accent-soft)
-div.fold-switch div.fold-controls > div.folded
+div.fold-switch div.fold-row > div.folded
     color: var(--theme-color-specbook-mark-text)
     background-color: var(--theme-color-specbook-mark-back)
-div.fold-switch div.fold-controls svg
+div.fold-switch div.fold-row svg
     width: 1.1rem
     height: 1.1rem
 @media print
