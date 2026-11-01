@@ -653,12 +653,15 @@ edges from the one to the other (a numeric arity counting as its
 number), and the nodes are ordered topologically (with `ordered: true`
 in document order instead), so all entries lie above the diagonal
 except the ones of the cycles, which are outlined and marked as
-violations. A `nest` container stays a row and a column of its own, but
-partitions it together with its members, and the partitions are
-outlined on the diagonal, while `qualified: true` puts the shared
-object kind into the corner. A `matrix` diagram accepts no
-`nest.layout`. It usually restricts the `links` onto the very relation
-it is about, e.g. `links: [ DEPENDS-ON ]`.
+violations (unless `config` sets `mark-violation: false`, as for
+relations where mutual references are regular). A `nest` container
+partitions its members, and the partitions are outlined on the
+diagonal: a container taking part in the relation itself stays a row
+and a column of its own, heading its partition, while a mere grouping
+object (without any edge) names the partition only. `qualified: true`
+puts the shared object kind into the corner. A `matrix` diagram accepts
+no `nest.layout`. It usually restricts the `links` onto the very
+relation it is about, e.g. `links: [ DEPENDS-ON ]`.
 
 Instead of naming an existing object, `center` can also declare a
 *synthetic* center node, which represents something no specification

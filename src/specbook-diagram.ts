@@ -222,7 +222,7 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
                 "layer" one the container names the layer band of the
                 node and the containers enclosing it the path of the
                 clusters grouping that band, while in a "matrix" one a
-                container (itself a row and column there) and all
+                container (where a row and column there) and all
                 containers of a node form the path of its partition  */
             if (type === "layer" && container !== undefined)
                 attrs.push(`layer: ${atom(plainText(container.name))}`)
@@ -835,6 +835,14 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
                 connected.add(p)
         nodes = nodes.filter((node) => connected.has(node))
     }
+
+    /*  a "matrix" diagram keeps a container as a row and column only
+        where it takes part in the relation itself, as a mere grouping
+        object (like a requirement group) would yield an empty row and
+        column, while it still names the partition of its members  */
+    if (type === "matrix")
+        nodes = nodes.filter((node) => !nesting.containers.has(node)
+            || edges.some((edge) => edge.source === node || edge.target === node))
     if (errors.length > 0)
         return { type, errors }
 

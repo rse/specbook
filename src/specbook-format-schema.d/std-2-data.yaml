@@ -18,14 +18,23 @@
         -   OMG UML 2.5.1: Unified Modeling Language (2017),
             https://www.omg.org/spec/UML/2.5.1
     diagram:
-        type: graph
-        nodes: "[[DM.ENTITY:*]]"
-        edges: "[[RELATION:*]]"
-        nest:
-            properties:
-                -   GROUP
-        config:
-            graph-columns-max: 2
+        -   type: graph
+            nodes: "[[DM.ENTITY:*]]"
+            edges: "[[RELATION:*]]"
+            nest:
+                properties:
+                    -   GROUP
+            config:
+                graph-columns-max: 2
+        -   type: matrix
+            nodes: "[[DM.ENTITY:*]]"
+            edges: "[[RELATION:*]]"
+            qualified: true
+            nest:
+                properties:
+                    -   GROUP
+            config:
+                mark-violation: false
     children:
         -   kind: GROUP
             name: "[A-Z][a-zA-Z0-9]*"

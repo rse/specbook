@@ -211,14 +211,20 @@
             https://www.oreilly.com/library/view/designing-interfaces-3rd/9781492051954/
     optional: true
     diagram:
-        type: grid
-        nodes: "[[DIALOG-PATTERN:*]]"
-        properties:
-            -   CATEGORY
-        config:
-            size-node-width-max: 440
-            size-node-height-scale: 2
-            grid-columns-max: 4
+        -   type: grid
+            nodes: "[[DIALOG-PATTERN:*]]"
+            properties:
+                -   CATEGORY
+            config:
+                size-node-width-max: 440
+                size-node-height-scale: 2
+                grid-columns-max: 4
+        -   type: matrix
+            nodes: "[[DIALOG-PATTERN:*]]"
+            links:
+                -   USES
+            onlyConnected: true
+            qualified: true
     children:
         -   kind: DIALOG-PATTERN
             desc: >

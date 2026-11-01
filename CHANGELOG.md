@@ -7,7 +7,7 @@ ChangeLog
 
 -   IMPROVEMENT [code]: Multiple Diagrams and Matrix Diagrams
     An object kind can configure a list of diagrams, and the new type `matrix` draws a dependency
-    structure matrix, used for the `DEPENDS-ON` relation of the Functionality View components.
+    structure matrix, used for components, data model entities, requirements, and dialog patterns.
 
 -   IMPROVEMENT [code]: Layer Diagrams
     The new diagram type `layer` draws the `nest` containers as stacked, numbered bands, and

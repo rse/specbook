@@ -508,16 +508,25 @@
         -   DSDM: MoSCoW Prioritisation, DSDM Agile Project Framework (2014),
             https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html
     diagram:
-        type: grid
-        nodes: "[[FR.REQUIREMENT:*]]"
-        nest:
+        -   type: grid
+            nodes: "[[FR.REQUIREMENT:*]]"
+            nest:
+                properties:
+                    -   GROUP
             properties:
-                -   GROUP
-        properties:
-            -   PRIORITY
-        config:
-            size-node-width-max: 440
-            grid-columns-max: 2
+                -   PRIORITY
+            config:
+                size-node-width-max: 440
+                grid-columns-max: 2
+        -   type: matrix
+            nodes: "[[FR.REQUIREMENT:*]]"
+            links:
+                -   DEPENDS-ON
+            onlyConnected: true
+            qualified: true
+            nest:
+                properties:
+                    -   GROUP
     children:
         -   kind: GROUP
             desc: >
