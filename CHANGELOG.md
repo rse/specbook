@@ -9,6 +9,10 @@ ChangeLog
     The new artifact `ARCH: Runtime View` (`26-ARCH-RV`) precedes the moved Concurrency View, so
     rename the files: `28-CO` → `27-CO`, `26-TS` → `28-TS`, `27-DA` → `29-DA`, and `29`–`34` by +1.
 
+-   IMPROVEMENT [code]: Sequence Diagram Message Validation
+    The messages of a `sequence` diagram are validated like Gradia does (participant lifecycle,
+    durations on answered calls only), reporting a violation on its edge object at lint time.
+
 -   IMPROVEMENT [spec]: Traceability Coverage Reports
     The standard schema reports coverage on the Functionality, Runtime, Concurrency, and Deployment
     Views, the Authorization Model, and the Dialog Storyboard, tracing requirements down to nodes.

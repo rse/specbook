@@ -126,6 +126,7 @@ interface DiagramEdge {
     kind?:     MessageKind
     duration?: string
     time?:     string
+    object?:   SpecObject
 }
 
 /*  the message kinds of a "sequence" diagram, and the (case-insensitive)
@@ -452,9 +453,52 @@ const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, admits: 
             if (admits(source) && admits(target))
                 edges.push({ source, target, name,
                     arity: arity !== undefined ? plainText(arity) : undefined,
-                    kind, duration: text(diagram.edgeDuration), time: text(diagram.edgeTime) })
+                    kind, duration: text(diagram.edgeDuration), time: text(diagram.edgeTime), object: edgeObject })
     }
     return edges
+}
+
+/*  validate the messages of a "sequence" diagram exactly like Gradia
+    does, so an invalid message becomes a diagnostic on its edge object
+    instead of failing the rendering: a participant is created at most
+    once, and only by the first message it takes part in, takes part in
+    no further message once destroyed, and a duration constraint needs
+    a call answered by a return (the next return from its callee to its
+    caller, answering the innermost such call still open on the callee)  */
+const validateMessages = (edges: DiagramEdge[], errors: DiagramError[]) => {
+    const seen      = new Set<SpecObject>()
+    const destroyed = new Set<SpecObject>()
+    const pending   = new Map<SpecObject, number[]>()
+    const answered  = new Set<number>()
+    edges.forEach((edge, i) => {
+        const kind = edge.kind ?? "sync"
+        for (const party of [ edge.source, edge.target ])
+            if (destroyed.has(party))
+                errors.push({ object: edge.object,
+                    reason: `involves participant "${party.name}" after its destruction` })
+        if (kind === "create" && (edge.source === edge.target || seen.has(edge.target)))
+            errors.push({ object: edge.object, reason: `cannot create participant "${edge.target.name}", ` +
+                "as only the first message a participant takes part in can create it" })
+        seen.add(edge.source)
+        seen.add(edge.target)
+        if (kind === "destroy")
+            destroyed.add(edge.target)
+        if (kind === "sync" || kind === "create")
+            pending.set(edge.target, [ ...(pending.get(edge.target) ?? []), i ])
+        else if (kind === "return") {
+            const calls = pending.get(edge.source) ?? []
+            const k     = calls.findLastIndex((call) => edges[call].source === edge.target)
+            if (k >= 0) {
+                answered.add(calls[k])
+                calls.length = k
+            }
+        }
+    })
+    edges.forEach((edge, i) => {
+        if (edge.duration !== undefined && edge.duration !== "" && !answered.has(i))
+            errors.push({ object: edge.object,
+                reason: "carries a duration, but is not a call answered by a return" })
+    })
 }
 
 /*  derive the edges of a diagram: the reference edges of the node
@@ -878,6 +922,7 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
         nodes = Array.from(involved)
         if (diagram.ordered === true)
             errors.push({ reason: "\"sequence\" diagram cannot carry an \"ordered\" configuration" })
+        validateMessages(edges, errors)
     }
 
     /*  project a "hub" diagram onto its center object, which has

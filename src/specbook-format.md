@@ -761,7 +761,11 @@ them (unless `nodes` restricts them), so `local: true` usually
 restricts the messages onto the own subtree. A `sequence` diagram
 derives no reference edges and hence accepts neither `links`,
 `hierarchy`, `deep`, `labeled`, `nest`, nor `ordered`, while `edgeKind`,
-`edgeDuration`, and `edgeTime` apply to it alone.
+`edgeDuration`, and `edgeTime` apply to it alone. Its messages are
+validated, each violation reported on its edge object: a participant is
+created only by the first message it takes part in, takes part in no
+message after its destruction, and a duration constraint belongs to a
+call answered by a return.
 
 Instead of naming an existing object, `center` can also declare a
 *synthetic* center node, which represents something no specification

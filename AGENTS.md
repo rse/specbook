@@ -114,8 +114,10 @@ API.
         flags, the `nest` containers of a `layer`/`slice` diagram drawn as
         its bands and clusters, of a `tree` diagram as the parents, and of
         a `matrix` diagram as its partitions, the messages of a
-        `sequence` diagram with their kinds and timing constraints and
-        its participants in the order of their first involvement,
+        `sequence` diagram with their kinds and timing constraints, their
+        validation (participant lifecycle, durations on answered calls
+        only, mirroring Gradia), and its participants in the order of
+        their first involvement,
         the opt-in `markUncovered` marking of the objects lacking their
         demanded `referenced` or reported `coverage` coverage, and the
         object kind `badge` icons and `multiple` stacks of the
