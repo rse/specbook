@@ -495,6 +495,9 @@
         components, and Context View entities -- exchange, describing *how* the components
         collaborate at runtime to deliver the behaviors their static structure merely enables.
     optional: true
+    coverage:
+        -   "[[USE-CASE:*]]"
+        -   "[[SCENARIO:*]]"
     refs: >
         -   Starke/Hruschka: arc42 Template: Runtime View (2005),
             https://docs.arc42.org/section-6/
