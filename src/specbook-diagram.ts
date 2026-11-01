@@ -94,7 +94,7 @@ const quoted = (text: string): string =>
     string otherwise  */
 const atom = (text: string): string => {
     const plain = text.replace(/\s+/g, " ").trim()
-    return /^[^\s[\]():,">#]+$/.test(plain) && !plain.includes("--") ? plain : quoted(plain)
+    return /^[^\s[\]{}():,">#]+$/.test(plain) && !plain.includes("--") ? plain : quoted(plain)
 }
 
 /*  render a text as a Gradia edge name or edge arity token
