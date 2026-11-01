@@ -127,7 +127,7 @@ type SchemaDiagramNest = {
 }
 type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid" | "state" | "layer" |
-                       "slice" | "tree" | "matrix" | "sequence"
+                       "slice" | "tree" | "matrix" | "sequence" | "petri"
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -142,9 +142,13 @@ type SchemaDiagram = {
     edgeKind?:         string
     edgeDuration?:     string
     edgeTime?:         string
+    places?:           string
+    tokens?:           string
+    capacity?:         string
     hierarchy?:        boolean
     deep?:             boolean
     descend?:          string[]
+    reverse?:          string[]
     onlyConnected?:    boolean
     collapse?:         boolean
     qualified?:        boolean
@@ -373,7 +377,7 @@ type SchemaGradiaConfig = Partial<{
     BECAUSE the relations of a specification are graspable only when drawn
 
 -   `SchemaDiagram.type?: "graph" | "hub" | "grid" | "state" | "layer" |
-    "slice" | "tree" | "matrix" | "sequence"`:
+    "slice" | "tree" | "matrix" | "sequence" | "petri"`:
     diagram shape: `graph` (free), `hub` (centered), `grid` (edge-less),
     `state` (state machine, with the `automaton` flags as pseudo-states),
     `layer` (stacked bands, with the `nest` containers as the layers),
@@ -381,7 +385,8 @@ type SchemaGradiaConfig = Partial<{
     slices), `tree` (tidy tree, with the `nest` containers as the
     parents), `matrix` (dependency structure matrix, with the `nest`
     containers as the partitions), `sequence` (sequence diagram, with
-    the edge objects as the messages),
+    the edge objects as the messages), `petri` (Petri net, with the
+    `places` objects as the places and all other nodes as the transitions),
     BECAUSE one object set tells different stories as different shapes
 
 -   `SchemaDiagram.nodes?: string`:
@@ -483,6 +488,30 @@ type SchemaGradiaConfig = Partial<{
     messages involve),
     BECAUSE a relation can live in a part of an object without the
     whole object's references being worth counting
+
+-   `SchemaDiagram.reverse?: string[]`:
+    properties whose reference edges point back from the referenced
+    object onto the referencing node (e.g. `[ CONSUMES ]`, so a unit
+    consuming a resource yields the arc from the resource to the unit),
+    BECAUSE a relation drawn against the direction of its reference
+    keeps the references of the specification pointing backward
+
+-   `SchemaDiagram.places?: string`:
+    comma-separated `[[xxx]]` patterns of the node objects acting as the
+    places of a `petri` diagram, all other nodes acting as its
+    transitions (without it, Gradia infers them from the arcs),
+    BECAUSE the kind of an object, not its position in the net, tells
+    whether it holds items or does work
+
+-   `SchemaDiagram.tokens?: string`:
+    property of a place carrying its initial tokens (an integer of at
+    least 0) in a `petri` diagram,
+    BECAUSE the analysis of the net starts from its initial marking
+
+-   `SchemaDiagram.capacity?: string`:
+    property of a place carrying its capacity (an integer of at least 1)
+    in a `petri` diagram, an absent one leaving the place unbounded,
+    BECAUSE a bound decides whether a producer has to wait
 
 -   `SchemaDiagram.onlyConnected?: boolean`:
     whether a diagram (except a `hub` or `grid`) drops its edge-less
@@ -701,7 +730,7 @@ a [Gradia](https://github.com/rse/gradia) diagram for every object of
 that kind -- or a list of such diagram configurations, which derives
 all of them, in their order. Its `type` selects the diagram shape
 (`graph`, `hub`, `grid`, `state`, `layer`, `slice`, `tree`,
-`matrix`, or `sequence`), `nodes` and
+`matrix`, `sequence`, or `petri`), `nodes` and
 `edges` select the participating objects through
 comma-separated `[[xxx]]` reference patterns (`nodes` defaults to the
 object itself plus all objects below it, and `local: true` restricts the
@@ -779,6 +808,21 @@ validated, each violation reported on its edge object: a participant is
 created only by the first message it takes part in, takes part in no
 message after its destruction, and a duration constraint belongs to a
 call answered by a return.
+
+A `petri` diagram draws a Petri net from the reference edges: the node
+objects matching `places` are its places (drawn as circles holding their
+`tokens` and showing their `capacity`), all other nodes its
+transitions, and every edge an arc, where `reverse` turns the edges of
+a consuming property into the arcs from the place to the transition, so
+both arc directions stem from references of the transitions. Gradia
+analyzes the net from its initial marking (within a bounded
+exploration budget) and marks the unbounded places (missing
+backpressure), the places holding a token in a deadlock, and the dead
+and non-live transitions. The net is validated, each violation reported
+on its object: the tokens are an integer of at least 0, the capacity one
+of at least 1 holding them, and an arc connects a place with a
+transition. A `petri` diagram accepts no `nest`, and `tokens` and
+`capacity` require `places`.
 
 Instead of naming an existing object, `center` can also declare a
 *synthetic* center node, which represents something no specification

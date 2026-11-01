@@ -624,12 +624,59 @@
         -   Schmidt et al.: Pattern-Oriented Software Architecture, Volume 2: Patterns for Concurrent and Networked Objects (2000),
             https://www.wiley.com/en-us/Pattern+Oriented+Software+Architecture,+Volume+2,+Patterns+for+Concurrent+and+Networked+Objects-p-9781118725177
     diagram:
-        type: graph
-        nodes: "[[UNIT:*]]"
-        labeled: true
-        properties:
-            -   KIND
+        -   type: graph
+            nodes: "[[UNIT:*]]"
+            labeled: true
+            properties:
+                -   KIND
+        -   type: petri
+            nodes: "[[RESOURCE:*]], [[UNIT:*]]"
+            places: "[[RESOURCE:*]]"
+            links:
+                -   CONSUMES
+                -   PRODUCES
+            reverse:
+                -   CONSUMES
+            tokens: TOKENS
+            capacity: CAPACITY
+            onlyConnected: true
     children:
+        -   kind: RESOURCE
+            desc: >
+                A single coordination resource the concurrency units share, named with a short (2-5
+                word) summary (e.g. `Ingest Queue`, `Database Connections`, `Render Lock`) and
+                described in a concise (1-3 sentence) paragraph by what its items are and how full
+                it may get, plus a 1-sentence rationale ("why") for its bound.
+
+                The resources and the units form a Petri net: a resource is a place holding items
+                (tokens), a unit a transition taking items out of the resources it names in
+                `CONSUMES` and putting items into the resources it names in `PRODUCES`, so the
+                analysis of the net reveals unbounded resources (missing backpressure), deadlocks,
+                and units never or no longer able to work.
+            optional: true
+            props:
+                -   name: KIND
+                    desc: |
+                        The kind of the coordination resource, one of:
+
+                        -   `Queue`:     A buffer of work items between producers and consumers.
+                        -   `Topic`:     A publish/subscribe channel delivering messages.
+                        -   `Pool`:      A bounded set of reusable instances (e.g. connections).
+                        -   `Mutex`:     An exclusive lock (a single token).
+                        -   `Semaphore`: A counting lock (several tokens).
+                    value: enum(Queue,Topic,Pool,Mutex,Semaphore)
+                -   name: CAPACITY
+                    desc: >
+                        The maximum number of items the resource holds (e.g. a queue limit or the
+                        size of a pool), omitted for an unbounded resource.
+                    value: /^[1-9][0-9]*$/
+                    optional: true
+                -   name: TOKENS
+                    desc: >
+                        The number of items the resource initially holds (e.g. the free
+                        connections of a pool or the `1` of a free mutex), omitted for none.
+                    value: /^(?:0|[1-9][0-9]*)$/
+                    optional: true
         -   kind: UNIT
             desc: >
                 A single concurrency unit, named with a short (2-5 word) summary (e.g. `Web Worker
@@ -651,7 +698,7 @@
             diagram:
                 type: hub
                 center: self
-                nodes: "[[UNIT:*]], [[FV.COMPONENT:*]], [[NODE:*]], [[TACTIC:*]], [[DECISION:*]]"
+                nodes: "[[UNIT:*]], [[RESOURCE:*]], [[FV.COMPONENT:*]], [[NODE:*]], [[TACTIC:*]], [[DECISION:*]]"
                 labeled: true
                 qualified: true
                 properties:
@@ -703,6 +750,21 @@
                         The mechanism by which the unit coordinates or communicates with other
                         units, usually those referenced in `COORDINATES-WITH` (e.g. `shared
                         queue`, `mutex`, `message passing`, `optimistic locking`).
+                -   name: CONSUMES
+                    desc: >
+                        Comma-separated references to the CONCURRENCY-VIEW resources the unit takes
+                        work items or instances out of (e.g. the queue it drains, the pool it takes
+                        a connection from), modeling the unit as a transition of the Petri net its
+                        resources form; omitted when it consumes from none.
+                    value: list([[RESOURCE:*]])
+                    optional: true
+                -   name: PRODUCES
+                    desc: >
+                        Comma-separated references to the CONCURRENCY-VIEW resources the unit puts
+                        work items or freed instances into (e.g. the queue it feeds, the pool it
+                        returns a connection to); omitted when it produces into none.
+                    value: list([[RESOURCE:*]])
+                    optional: true
 
 -   kind: ARCH
     name: Technology Stack

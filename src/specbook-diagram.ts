@@ -209,12 +209,12 @@ interface DiagramNesting {
     unique anchor path as the node id, the object name as the displayed
     label, the container node as the parent, band, or cluster, the badge icon
     and the multiplicity of its object kind, the "incomplete" mark of an
-    uncovered object, the
-    pseudo-state kind of a synthetic pseudo-state) and one edge
+    uncovered object, the pseudo-state kind of a synthetic pseudo-state,
+    the place or transition kind of a Petri net node) and one edge
     statement per derived edge  */
 const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
     centerUrl: string | undefined, nodes: SpecObject[], edges: DiagramEdge[], nesting: DiagramNesting,
-    pseudo: Map<SpecObject, PseudoState>): string => {
+    pseudo: Map<SpecObject, PseudoState>, places: Set<SpecObject> | undefined): string => {
     const { index, anchors, positions, parenProps } = ctx
     const lines  = [ `#type ${type}` ]
     const config = { ...diagramPresets, ...diagram.config }
@@ -287,6 +287,18 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
         if (state !== undefined)
             attrs.push(`state: ${state}`)
 
+        /*  the kind of a node of a "petri" diagram, plus the initial
+            tokens and the capacity of a place  */
+        if (places !== undefined) {
+            attrs.push(`petri: ${places.has(node) ? "place" : "transition"}`)
+            if (places.has(node))
+                for (const key of [ "tokens", "capacity" ] as const) {
+                    const value = petriValue(ctx, diagram, node, key)
+                    if (value !== undefined)
+                        attrs.push(`${key}: ${value}`)
+                }
+        }
+
         /*  attach the values of the configured properties as Gradia
             key/value attributes (a node lacking a property is fine, as
             the node set can mix objects of different kinds), with every
@@ -330,7 +342,8 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
     their descendants, with the reference count as the arity, and also
     of their descendants of the "descend" kinds, uncounted and named with
     the descendant kind when "labeled"), with every target lifted to its
-    nearest node  */
+    nearest node, and with the edges of the "reverse" properties pointing
+    back onto the node  */
 const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes: SpecObject[],
     nodeSet: Set<SpecObject>): DiagramEdge[] => {
     const { index, anchors, parents, parenProps } = ctx
@@ -365,14 +378,15 @@ const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes
             }
         }
         walk(node)
-        const counts = new Map<string, { target: SpecObject, name?: string, count: number }>()
+        const counts = new Map<string, { target: SpecObject, name?: string, reversed: boolean, count: number }>()
         for (const object of objects) {
-            const texts: { text: string, name?: string }[] = propsOf(parenProps, object)
+            const texts: { text: string, name?: string, reversed?: boolean }[] = propsOf(parenProps, object)
                 .filter((property) => !Array.isArray(diagram.links) || diagram.links.includes(property.key))
                 .map((property) => ({
                     text: property.value,
                     name: diagram.labeled !== true ? undefined :
-                        descended.has(object) ? object.kind.toLowerCase() : property.key.toLowerCase()
+                        descended.has(object) ? object.kind.toLowerCase() : property.key.toLowerCase(),
+                    reversed: (diagram.reverse ?? []).includes(property.key)
                 }))
             if (diagram.links === "all" && object.description !== undefined) {
                 texts.push({ text: object.description.description })
@@ -381,19 +395,21 @@ const deriveReferenceEdges = (ctx: DiagramContext, diagram: SchemaDiagram, nodes
                 if (object.description.elaboration !== undefined)
                     texts.push({ text: object.description.elaboration })
             }
-            for (const { text, name } of texts)
+            for (const { text, name, reversed = false } of texts)
                 for (const m of referenceText(text).matchAll(referenceRegex)) {
                     const target = lift(resolveUnique(index, m[1].trim(), object).target)
                     if (target !== undefined && target !== node) {
-                        const key   = `${anchors.get(target) ?? target.id}\u0000${name ?? ""}`
-                        const entry = counts.get(key) ?? { target, name, count: 0 }
+                        const key   = `${anchors.get(target) ?? target.id}\u0000${name ?? ""}\u0000${reversed}`
+                        const entry = counts.get(key) ?? { target, name, reversed, count: 0 }
                         entry.count++
                         counts.set(key, entry)
                     }
                 }
         }
-        for (const { target, name, count } of counts.values())
-            edges.push({ source: node, target, name,
+
+        /*  an edge of a "reverse" property points back onto the node  */
+        for (const { target, name, reversed, count } of counts.values())
+            edges.push({ source: reversed ? target : node, target: reversed ? node : target, name,
                 arity: diagram.deep === true ? String(count) : undefined })
     }
     return edges
@@ -512,6 +528,48 @@ const validateMessages = (edges: DiagramEdge[], errors: DiagramError[]) => {
     })
 }
 
+/*  the initial tokens or the capacity of a place of a "petri" diagram:
+    the trimmed value of the property the "tokens" or "capacity"
+    option names (if any)  */
+const petriValue = (ctx: DiagramContext, diagram: SchemaDiagram, node: SpecObject,
+    key: "tokens" | "capacity"): string | undefined => {
+    const name  = diagram[key]
+    const value = name !== undefined ? propValue(ctx.parenProps, node, name) : undefined
+    return value !== undefined ? plainText(value).trim() : undefined
+}
+
+/*  validate the net of a "petri" diagram exactly like Gradia does, so
+    an invalid net becomes a diagnostic on the offending object instead
+    of failing the rendering: the initial tokens of a place are an
+    integer of at least 0 and its capacity one of at least 1, holding
+    them, and every arc connects a place with a transition  */
+const validatePetri = (ctx: DiagramContext, diagram: SchemaDiagram, nodes: SpecObject[],
+    edges: DiagramEdge[], places: Set<SpecObject>, errors: DiagramError[]) => {
+    for (const node of nodes) {
+        if (!places.has(node))
+            continue
+        const numbers: { tokens?: number, capacity?: number } = {}
+        for (const [ key, min ] of [ [ "tokens", 0 ], [ "capacity", 1 ] ] as const) {
+            const value = petriValue(ctx, diagram, node, key)
+            if (value === undefined)
+                continue
+            if (!(/^\d+$/).test(value) || Number(value) < min)
+                errors.push({ object: node, reason: `carries the invalid ${key} "${value}" ` +
+                    `(expected an integer of at least ${min})` })
+            else
+                numbers[key] = Number(value)
+        }
+        if (numbers.tokens !== undefined && numbers.capacity !== undefined && numbers.tokens > numbers.capacity)
+            errors.push({ object: node, reason: "carries more tokens than its capacity" })
+    }
+    for (const edge of edges)
+        if (places.has(edge.source) === places.has(edge.target))
+            errors.push({ object: edge.object ?? edge.source,
+                reason: `connects ${places.has(edge.source) ? "place" : "transition"} "${edge.source.name}" ` +
+                    `with ${places.has(edge.target) ? "place" : "transition"} "${edge.target.name}", ` +
+                    "but an arc connects a place with a transition only" })
+}
+
 /*  derive the edges of a diagram: the reference edges of the node
     objects, the object edges of the edge objects, and the containment
     edges of the object hierarchy (a "grid" diagram is edge-less by
@@ -525,7 +583,7 @@ const deriveEdges = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramT
         /*  a "sequence" diagram draws the edge objects as its messages
             alone, as references and the object nesting carry no order,
             between any objects unless "nodes" restricts its participants  */
-        for (const field of [ "links", "hierarchy", "deep", "descend", "labeled" ] as const)
+        for (const field of [ "links", "hierarchy", "deep", "descend", "reverse", "labeled" ] as const)
             if (diagram[field] !== undefined && diagram[field] !== false)
                 errors.push({ reason: `"sequence" diagram cannot carry a "${field}" configuration` })
         edges.push(...deriveObjectEdges(ctx, diagram,
@@ -545,7 +603,7 @@ const deriveEdges = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramT
             }
     }
     else {
-        for (const field of [ "edges", "hierarchy", "deep", "descend", "labeled", "onlyConnected" ] as const)
+        for (const field of [ "edges", "hierarchy", "deep", "descend", "reverse", "labeled", "onlyConnected" ] as const)
             if (diagram[field] !== undefined && diagram[field] !== false)
                 errors.push({ reason: "\"grid\" diagram cannot carry " +
                     `${(/^[aeiou]/).test(field) ? "an" : "a"} "${field}" configuration` })
@@ -949,13 +1007,13 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
     /*  nest the nodes into container nodes (except in a "hub" diagram,
         where every container would need a primary node of its own, in a
         "state" diagram, where every container would be a composite state
-        needing an initial state of its own, and in a "sequence" diagram,
-        whose participants nest not at all), dropping the edges between
+        needing an initial state of its own, and in a "sequence" or "petri"
+        diagram, whose nodes nest not at all), dropping the edges between
         a container and its own members, which Gradia rejects, as the
         nesting already shows them  */
     let nesting: DiagramNesting = { parentOf: new Map(), containers: new Set(), furtherOf: new Map() }
     if (diagram.nest !== undefined) {
-        if (type === "hub" || type === "state" || type === "sequence")
+        if (type === "hub" || type === "state" || type === "sequence" || type === "petri")
             errors.push({ reason: `"${type}" diagram cannot carry a "nest" configuration` })
         else {
             nesting = deriveNesting(ctx, diagram.nest, nodes, nodeSet, errors, type === "tree")
@@ -1021,6 +1079,22 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
     if (type === "matrix")
         nodes = nodes.filter((node) => !nesting.containers.has(node)
             || edges.some((edge) => edge.source === node || edge.target === node))
+
+    /*  a "petri" diagram takes the objects matching its "places" patterns
+        as its places and all other nodes as its transitions (without
+        "places", Gradia infers them from the arcs), where the "tokens"
+        and "capacity" options name properties of the places  */
+    let places: Set<SpecObject> | undefined
+    if (type === "petri" && diagram.places !== undefined) {
+        places = new Set(resolvePatterns(index, errors, diagram.places, "places"))
+        validatePetri(ctx, diagram, nodes, edges, places, errors)
+    }
+    else
+        for (const field of [ "places", "tokens", "capacity" ] as const)
+            if (diagram[field] !== undefined)
+                errors.push({ reason: type === "petri" ?
+                    `"petri" diagram cannot carry a "${field}" configuration without a "places" one` :
+                    `"${type}" diagram cannot carry a "${field}" configuration` })
     if (errors.length > 0)
         return { type, errors }
 
@@ -1058,7 +1132,7 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
         }
     }
 
-    return { type, spec: renderSpec(ctx, diagram, type, center, centerUrl, nodes, edges, nesting, pseudo),
+    return { type, spec: renderSpec(ctx, diagram, type, center, centerUrl, nodes, edges, nesting, pseudo, places),
         config: { ...diagramPresets, ...diagram.config }, columns, errors }
 }
 

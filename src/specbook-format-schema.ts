@@ -124,6 +124,7 @@ export type SchemaDiagramNest = {
     switches, the node nesting, and the node annotations  */
 export type SchemaDiagram = {
     type?:             "graph" | "hub" | "grid" | "state" | "layer" | "slice" | "tree" | "matrix" | "sequence"
+                       | "petri"
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -138,9 +139,13 @@ export type SchemaDiagram = {
     edgeKind?:         string
     edgeDuration?:     string
     edgeTime?:         string
+    places?:           string
+    tokens?:           string
+    capacity?:         string
     hierarchy?:        boolean
     deep?:             boolean
     descend?:          string[]
+    reverse?:          string[]
     onlyConnected?:    boolean
     collapse?:         boolean
     qualified?:        boolean
@@ -253,7 +258,7 @@ const SchemaDiagramNest: v.GenericSchema<SchemaDiagramNest> = v.strictObject({
 })
 const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     type:              v.optional(v.picklist([ "graph", "hub", "grid", "state", "layer", "slice", "tree",
-        "matrix", "sequence" ])),
+        "matrix", "sequence", "petri" ])),
     nodes:             v.optional(v.string()),
     edges:             v.optional(v.string()),
     local:             v.optional(v.boolean()),
@@ -268,9 +273,13 @@ const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
     edgeKind:          v.optional(v.string()),
     edgeDuration:      v.optional(v.string()),
     edgeTime:          v.optional(v.string()),
+    places:            v.optional(v.string()),
+    tokens:            v.optional(v.string()),
+    capacity:          v.optional(v.string()),
     hierarchy:         v.optional(v.boolean()),
     deep:              v.optional(v.boolean()),
     descend:           v.optional(v.array(v.string())),
+    reverse:           v.optional(v.array(v.string())),
     onlyConnected:     v.optional(v.boolean()),
     collapse:          v.optional(v.boolean()),
     qualified:         v.optional(v.boolean()),

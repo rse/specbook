@@ -9,6 +9,10 @@ ChangeLog
     The new artifact `ARCH: Runtime View` (`26-ARCH-RV`) precedes the moved Concurrency View, so
     rename the files: `28-CO` → `27-CO`, `26-TS` → `28-TS`, `27-DA` → `29-DA`, and `29`–`34` by +1.
 
+-   IMPROVEMENT [code, spec]: Petri Net Diagrams of the Concurrency View
+    The new type `petri` (options `places`, `tokens`, `capacity`, `reverse`) draws and analyzes the
+    new Concurrency View resources as places between the units consuming and producing them.
+
 -   IMPROVEMENT [code]: Interactions in the Component, Role, and Context Entity Hubs
     The new diagram option `descend` attributes the references of descendants of listed kinds to
     their node, so the hubs show the interactions whose messages involve their center object.
