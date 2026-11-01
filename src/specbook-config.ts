@@ -314,6 +314,25 @@ const checkDiagrams = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) =
     })
 }
 
+/*  check the multiplicity of an object (if any): it names a property
+    of the object kind and a valid regular expression  */
+const checkMultiple = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) => {
+    const multiple = object.multiple
+    if (multiple === undefined)
+        return
+    if (!(object.props ?? []).some((p) => p.name === multiple.property))
+        diagnose([ ...at, "multiple", "property" ],
+            `"multiple" property "${multiple.property}" is not a property of "${object.kind}"`)
+    try {
+        RegExp(multiple.pattern)
+    }
+    catch (err) {
+        diagnose([ ...at, "multiple", "pattern" ],
+            `invalid "multiple" pattern "${multiple.pattern}": ` +
+                (err instanceof Error ? err.message : String(err)))
+    }
+}
+
 /*  check the property-driven badge of an object (if any): it names a
     property of the object kind, and for an "enum" valued one each mapped
     value is a member of it (else the mapping would never apply)  */
@@ -349,7 +368,8 @@ const checkBadge = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) => {
     valid, "referenced" and "coverage" entries have to be reference
     expressions, an "automaton" has to name existing child kinds and
     properties, a "badge" has to name an existing property and its
-    members, a diagram must not display a property named like a reserved
+    members, a "multiple" an existing property and a valid regular
+    expression, a diagram must not display a property named like a reserved
     Gradia node attribute, and the names of non-artifact objects have to be valid
     patterns (as they are compiled into regular expressions)  */
 const checkConstraints = (
@@ -387,6 +407,7 @@ const checkConstraints = (
             checkProperties(object.props ?? [], at, diagnose)
             checkAutomaton(object, at, diagnose)
             checkBadge(object, at, diagnose)
+            checkMultiple(object, at, diagnose)
             checkDiagrams(object, at, diagnose)
             for (const field of [ "referenced", "coverage" ] as const)
                 for (const [ j, entry ] of (object[field] ?? []).entries()) {

@@ -165,6 +165,16 @@ const badgeOf = (ctx: DiagramContext, object: SpecObject): BadgeIcon | undefined
     return Object.hasOwn(badge.map, value) ? badge.map[value] : badge.default
 }
 
+/*  whether an object stands for several instances: the value of the
+    configured property of its object kind matches the configured pattern  */
+const isMultiple = (ctx: DiagramContext, object: SpecObject): boolean => {
+    const multiple = ctx.schemas.get(object)?.multiple
+    if (multiple === undefined)
+        return false
+    const value = propValue(ctx.parenProps, object, multiple.property)
+    return value !== undefined && new RegExp(multiple.pattern).test(plainText(value))
+}
+
 /*  the kind of a synthetic pseudo-state of a "state" diagram  */
 type PseudoState = "initial" | "final"
 
@@ -182,8 +192,9 @@ interface DiagramNesting {
     "#type" directive and the configured "#config" directives so every
     embedded spec is self-contained: one node statement per object (the
     unique anchor path as the node id, the object name as the displayed
-    label, the container node as the parent, band, or cluster, the badge icon of its
-    object kind, the "incomplete" mark of an uncovered object, the
+    label, the container node as the parent, band, or cluster, the badge icon
+    and the multiplicity of its object kind, the "incomplete" mark of an
+    uncovered object, the
     pseudo-state kind of a synthetic pseudo-state) and one edge
     statement per derived edge  */
 const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramType, center: SpecObject,
@@ -251,6 +262,8 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
         const badge = badgeOf(ctx, node)
         if (badge !== undefined)
             attrs.push(`badge: ${badge}`)
+        if (isMultiple(ctx, node))
+            attrs.push("multiple: true")
         const marking = diagram.markUncovered ?? "none"
         if (((marking === "referenced" || marking === "all") && ctx.uncovered.referenced.has(node))
             || ((marking === "coverage" || marking === "all") && ctx.uncovered.coverage.has(node)))

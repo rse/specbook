@@ -5,6 +5,10 @@ ChangeLog
 1.6.0 (2026-10-25)
 ------------------
 
+-   IMPROVEMENT [code]: Multiple Instances in Diagrams
+    The new object kind field `multiple` draws an object whose instance count property matches a
+    pattern (like `0..n`) as a stack of node boxes, used for deployment nodes and runtime units.
+
 -   IMPROVEMENT [code]: Slice and Tree Diagrams
     The new types `slice` (side-by-side bands) and `tree` (tidy tree, from a `nest` reference like
     `BROADER`) are added, the latter used for the glossary, roles, datatypes, and deployment.

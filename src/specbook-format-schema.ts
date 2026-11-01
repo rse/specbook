@@ -17,7 +17,7 @@ export type Schema = SchemaObject[]
     reference coverage every object of the kind has to receive, the
     reference coverage every object of the kind reports, the finite
     state machine its child objects optionally form, and the badge
-    icon of its objects in the diagrams  */
+    icon and the multiplicity of its objects in the diagrams  */
 export type SchemaObject = {
     kind:              string
     name?:             string
@@ -30,6 +30,7 @@ export type SchemaObject = {
     coverage?:         string[]
     automaton?:        SchemaAutomaton
     badge?:            SchemaBadge
+    multiple?:         SchemaMultiple
     diagram?:          SchemaDiagram | SchemaDiagram[]
     format?:           SchemaFormat
     props?:            SchemaProperty[]
@@ -42,6 +43,15 @@ export const badgeIcons = [ "person", "team", "bot", "device", "mobile", "browse
     "function", "api", "code", "package", "database", "cache", "queue", "document", "mail",
     "communication", "clock", "security", "cloud", "network" ] as const
 export type BadgeIcon = typeof badgeIcons[number]
+
+/*  the several instances an object of an object kind stands for in
+    every diagram (drawn as a stack of node boxes): the property telling
+    the number of instances and the (unanchored) regular expression its
+    value has to match for several of them  */
+export type SchemaMultiple = {
+    property:          string
+    pattern:           string
+}
 
 /*  the node attribute keys Gradia consumes instead of displaying them
     (generally, or for one of its diagram types), which hence cannot
@@ -212,6 +222,10 @@ const SchemaBadge: v.GenericSchema<SchemaBadge> = v.union([
         default:       v.optional(SchemaBadgeIcon)
     })
 ])
+const SchemaMultiple: v.GenericSchema<SchemaMultiple> = v.strictObject({
+    property:          v.string(),
+    pattern:           v.string()
+})
 const SchemaDiagramCenter: v.GenericSchema<SchemaDiagramCenter> = v.strictObject({
     source:            v.optional(v.string()),
     property:          v.optional(v.string()),
@@ -276,6 +290,7 @@ const SchemaObject: v.GenericSchema<SchemaObject> = v.strictObject({
     coverage:          v.optional(v.pipe(v.array(v.string()), v.minLength(1))),
     automaton:         v.optional(SchemaAutomaton),
     badge:             v.optional(SchemaBadge),
+    multiple:          v.optional(SchemaMultiple),
     diagram:           v.optional(v.union([ SchemaDiagram, v.pipe(v.array(SchemaDiagram), v.minLength(1)) ])),
     format:            v.optional(SchemaFormat),
     props:             v.optional(v.array(SchemaProperty)),

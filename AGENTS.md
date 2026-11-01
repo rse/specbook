@@ -116,7 +116,7 @@ API.
         a `matrix` diagram as its partitions,
         the opt-in `markUncovered` marking of the objects lacking their
         demanded `referenced` or reported `coverage` coverage, and the
-        object kind `badge` icons of the
+        object kind `badge` icons and `multiple` stacks of the
         nodes), the compact Gradia
         geometry presets a diagram `config` overrides, their validation,
         and the in-memory cache of the rendered SVGs
@@ -512,7 +512,7 @@ of its artifacts and object kinds nested along their `PARENT`
 references), one
 `ARTIFACT` object per artifact (named after its `name`, its `id` as the
 parenthesized token, `FILE`, `OPTIONAL`, `REFERENCED`, `COVERAGE`,
-`AUTOMATON`, `BADGE`, `DIAGRAM`, and `FORMAT`, the latter four flattened into
+`AUTOMATON`, `BADGE`, `MULTIPLE`, `DIAGRAM`, and `FORMAT`, the latter five flattened into
 `key=value` pairs, a `hub` diagram of its references, and a Mermaid
 `classDiagram` of it and its object kinds at the end of its elaboration
 -- the artifact stereotyped `artifact` and named `<kind>.<id>`, the
@@ -998,7 +998,7 @@ bare flag `1`) emits the YAML schema configuration (embedded into the
 Markdown or as the `raw` file content) compressed instead of verbatim:
 level `1` re-emits it with 2-space indentation, unwrapped lines, and
 without comments, level `2` additionally drops its `refs`, `badge`,
-`diagram`, and `format` fields, and level `3` additionally drops its `desc` fields of
+`multiple`, `diagram`, and `format` fields, and level `3` additionally drops its `desc` fields of
 objects and properties. The MCP tool `specbook_describe` alone defaults to level `2`
 (applied in the MCP layer, the API default staying `1`), as its consumer
 is an LLM.

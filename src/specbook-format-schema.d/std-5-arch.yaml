@@ -958,6 +958,9 @@
                 hosting a managed broker a Deployment View `Managed` node -- only the executing
                 structure itself belongs to the Concurrency View.
             optional: true
+            multiple:
+                property: MULTIPLICITY
+                pattern: ^\s*(?:\d*\.\.\s*(?:n|\*|[2-9]|\d{2,})|[2-9]|\d{2,}|n\b)
             diagram:
                 type: hub
                 center: self
@@ -1156,6 +1159,9 @@
                     Function: function
                     Device: device
                     Managed: cloud
+            multiple:
+                property: INSTANCES
+                pattern: ^\s*(?:\d*\.\.\s*(?:n|\*|[2-9]|\d{2,})|[2-9]|\d{2,}|n\b)
             diagram:
                 type: hub
                 center: self

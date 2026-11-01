@@ -77,6 +77,7 @@ type SchemaObject = {
     coverage?:         string[]
     automaton?:        SchemaAutomaton
     badge?:            SchemaBadge
+    multiple?:         SchemaMultiple
     diagram?:          SchemaDiagram | SchemaDiagram[]
     format?:           SchemaFormat
     props?:            SchemaProperty[]
@@ -86,6 +87,10 @@ type SchemaBadge = BadgeIcon | {
     property:          string
     map:               Record<string, BadgeIcon>
     default?:          BadgeIcon
+}
+type SchemaMultiple = {
+    property:          string
+    pattern:           string
 }
 type BadgeIcon =
     "person" | "team" | "bot" | "device" | "mobile" | "browser" | "service" |
@@ -294,6 +299,16 @@ type SchemaGradiaConfig = Partial<{
     else none,
     BECAUSE the kind alone does not always tell the nature of an object
     -- a `Server` node and a `Function` node deserve different icons
+
+-   `SchemaObject.multiple?: SchemaMultiple`:
+    the several instances an object of this kind stands for, drawn as a
+    stack of node boxes in every diagram: whenever the value of the
+    `property` matches the (unanchored) regular expression `pattern`,
+    e.g. `0..n per environment` matched by a pattern for a range with an
+    upper bound beyond 1 (left out when the configuration is emitted
+    compressed by level 2 or higher),
+    BECAUSE a replicated node is a different operational beast than a
+    single one, yet both are specified by one object
 
 -   `SchemaObject.diagram?: SchemaDiagram | SchemaDiagram[]`:
     diagram, or list of diagrams (rendered in their order), generated for

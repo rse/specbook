@@ -154,6 +154,9 @@
                 -   name: BADGE
                     desc: The badge icon of the objects of the kind in the diagrams (`badge`).
                     optional: true
+                -   name: MULTIPLE
+                    desc: The multiplicity of the objects of the kind in the diagrams (`multiple`).
+                    optional: true
                 -   name: DIAGRAM
                     desc: The diagram(s) derived for every object of the kind (`diagram`).
                     optional: true
@@ -204,6 +207,9 @@
                             optional: true
                         -   name: BADGE
                             desc: The badge icon of the objects of the kind in the diagrams (`badge`).
+                            optional: true
+                        -   name: MULTIPLE
+                            desc: The multiplicity of the objects of the kind in the diagrams (`multiple`).
                             optional: true
                         -   name: DIAGRAM
                             desc: The diagram(s) derived for every object of the kind (`diagram`).
