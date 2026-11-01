@@ -192,10 +192,10 @@ const candidates = (prop: SchemaProperty, expr: ValueExpr | undefined,
     ones matching its expression), or none if no candidate exists  */
 const valueOf = (sample: Sample, prop: SchemaProperty, index: LinkIndex): string | undefined => {
     const expr    = prop.value !== undefined ? compileValueExpr(prop.value) : undefined
-    const filter  = (flag: boolean | string | undefined) =>
+    const compile = (flag: boolean | string | undefined) =>
         typeof flag === "string" ? compileValueExpr(flag) : undefined
-    const present = filter(prop.present)
-    const unique  = filter(prop.unique)
+    const present = compile(prop.present)
+    const unique  = compile(prop.unique)
     const list    = candidates(prop, expr, index, sample.object, sample.ordinal)
     if (sample.ordinal === 0 && present !== undefined)
         list.sort((a, b) => Number(matches(present, b)) - Number(matches(present, a)))

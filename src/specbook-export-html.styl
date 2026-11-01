@@ -437,12 +437,17 @@ div.info-popup.spec a.link-compact::before
     filter icon itself while any artifact is  */
 div.filter-switch
     tab(10.66rem)
+div.filter-switch,
+div.fold-switch
     display: flex
     align-items: center
 div.filter-switch.open,
-div.filter-switch.open div.filter-toggle
+div.filter-switch.open div.filter-toggle,
+div.fold-switch.open,
+div.fold-switch.open div.fold-toggle
     border-radius: 0
-div.filter-switch::after
+div.filter-switch::after,
+div.fold-switch::after
     content: ""
     position: absolute
     top: 0
@@ -452,17 +457,21 @@ div.filter-switch::after
     background-color: var(--theme-color-specbook-accent)
     visibility: hidden
     transition: visibility 0s 0.3s
-div.filter-switch.open::after
+div.filter-switch.open::after,
+div.fold-switch.open::after
     visibility: visible
     transition-delay: 0s
-div.filter-switch div.filter-toggle
+div.filter-switch div.filter-toggle,
+div.fold-switch div.fold-toggle
     padding: 0.65rem 0.1rem
     line-height: 0
     border-radius: 0 0.3rem 0.3rem 0
     cursor: pointer
-div.filter-switch div.filter-toggle:hover
+div.filter-switch div.filter-toggle:hover,
+div.fold-switch div.fold-toggle:hover
     background-color: var(--theme-color-specbook-accent-soft)
-div.filter-switch svg.filter-icon
+div.filter-switch svg.filter-icon,
+div.fold-switch svg.fold-icon
     width: 1.1rem
     height: 1.1rem
     padding: 0.25rem
@@ -471,7 +480,8 @@ div.filter-switch svg.filter-icon
 body.filtering div.filter-switch svg.filter-icon
     color: var(--theme-color-specbook-mark-text)
     background-color: var(--theme-color-specbook-mark-back)
-div.filter-switch div.filter-panel
+div.filter-switch div.filter-panel,
+div.fold-switch div.fold-panel
     position: absolute
     top: 0
     left: calc(100% + 0.4rem)
@@ -531,52 +541,9 @@ div.filter-switch div.filter-kind.some
     anything of their kind is folded  */
 div.fold-switch
     tab(13.89rem)
-    display: flex
-    align-items: center
-div.fold-switch.open,
-div.fold-switch.open div.fold-toggle
-    border-radius: 0
-div.fold-switch::after
-    content: ""
-    position: absolute
-    top: 0
-    bottom: 0
-    left: 100%
-    width: 0.4rem
-    background-color: var(--theme-color-specbook-accent)
-    visibility: hidden
-    transition: visibility 0s 0.3s
-div.fold-switch.open::after
-    visibility: visible
-    transition-delay: 0s
-div.fold-switch div.fold-toggle
-    padding: 0.65rem 0.1rem
-    line-height: 0
-    border-radius: 0 0.3rem 0.3rem 0
-    cursor: pointer
-div.fold-switch div.fold-toggle:hover
-    background-color: var(--theme-color-specbook-accent-soft)
-div.fold-switch svg.fold-icon
-    width: 1.1rem
-    height: 1.1rem
-    padding: 0.25rem
-    border-radius: 0.3rem
-    margin-right: 0.15rem
 div.fold-switch.folded svg.fold-icon
     color: var(--theme-color-specbook-mark-text)
     background-color: var(--theme-color-specbook-mark-back)
-div.fold-switch div.fold-panel
-    position: absolute
-    top: 0
-    left: calc(100% + 0.4rem)
-    width: max-content
-    overflow: hidden
-    max-width: 0
-    border-radius: 0 0.3rem 0.3rem 0.3rem
-    background-color: var(--theme-color-specbook-accent)
-    transition: max-width 0.3s ease
-    body:has(nav.toc-panel.open) &
-        box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 div.fold-switch.open div.fold-panel
     max-width: 24rem
 div.fold-switch div.fold-rows
@@ -1351,7 +1318,9 @@ table.coverage span.bar > span
     table.props td
         border-left: 0
         --table-line-right: 0.75px
-        box-shadow: inset calc(-1 * var(--table-line-right)) 0 0 0 var(--theme-color-specbook-border), inset 0 var(--table-line-top) 0 0 var(--theme-color-specbook-border), inset 0 calc(-1 * var(--table-line-bottom)) 0 0 var(--theme-color-specbook-border)
+        box-shadow: inset calc(-1 * var(--table-line-right)) 0 0 0 var(--theme-color-specbook-border), \
+            inset 0 var(--table-line-top) 0 0 var(--theme-color-specbook-border), \
+            inset 0 calc(-1 * var(--table-line-bottom)) 0 0 var(--theme-color-specbook-border)
     table.objects th:last-child,
     table.objects td:last-child,
     table.coverage th:last-child,
@@ -1585,14 +1554,14 @@ div.titlepage div.description p + p:not(.rationale)
     margin-top: 0.4rem
     text-indent: 3.0rem
 
-/*  the fuzzy search tab (screen-only): the middle tab riding right of
-    the brand bar between the info tab and the folding
-    tab (as wide as those, fixed independent of the content
-    scrolling), showing the search icon, which slides the input field
-    and its clear symbol out to the right (and back in), where the tab
-    follows the bar when the table of contents panel shifts it aside
-    and the icon carries the mark colors in a rounded box while a
-    search filter is active, signalling the filtered content  */
+/*  the fuzzy search tab (screen-only): the tab riding right of the
+    brand bar between the info tab and the artifact filter tab (as
+    wide as those, fixed independent of the content scrolling),
+    showing the search icon, which slides the input field and its clear
+    symbol out to the right (and back in), where the tab follows the bar
+    when the table of contents panel shifts it aside and the icon
+    carries the mark colors in a rounded box while a search filter is
+    active, signalling the filtered content  */
 div.search
     tab(7.43rem)
     display: flex

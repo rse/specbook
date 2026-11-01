@@ -25,12 +25,12 @@
     /*  let the search icon slide the input field out of the tab (and
         back in again), remembering the choice across page loads  */
     const slide = (open) => {
-        tab.classList.toggle("open", open)
-        if (tab.classList.contains("open"))
+        const opened = tab.classList.toggle("open", open)
+        if (opened)
             input.focus()
         else
             input.blur()
-        try { localStorage.setItem("specbook-search", tab.classList.contains("open") ? "open" : "closed") }
+        try { localStorage.setItem("specbook-search", opened ? "open" : "closed") }
         catch { /*  an inaccessible storage just loses the state  */ }
     }
     try { if (localStorage.getItem("specbook-search") === "open") tab.classList.add("open") }
@@ -81,23 +81,6 @@
                 const words = new Set(text.split(/[^\p{L}\p{N}]+/u).filter((w) => w !== ""))
                 words.forEach((w) => { vocab.add(w) })
                 units.push({ el, id, text, words, keep: false })
-            })
-        })
-
-        /*  let a hyperlink whose target the filtering hid leave the
-            search mode (like the Escape key) before it jumps: the click
-            is intercepted, the document revealed again, and the click
-            re-issued, so the browser performs the regular jump  */
-        document.querySelectorAll("a[href^='#']").forEach((link) => {
-            link.addEventListener("click", (event) => {
-                const target = document.getElementById(
-                    decodeURIComponent((link.getAttribute("href") ?? "").slice(1)))
-                if (target === null || target.closest(".search-hide") === null)
-                    return
-                event.preventDefault()
-                reset()
-                slide(false)
-                link.click()
             })
         })
     }
@@ -398,5 +381,20 @@
     clear.addEventListener("click", () => {
         reset()
         input.focus()
+    })
+
+    /*  let a hyperlink whose target the filtering hid leave the search
+        mode (like the Escape key) before it jumps, so the browser
+        performs the regular jump onto the revealed target  */
+    document.body.addEventListener("click", (event) => {
+        const link = event.target.closest("a[href^='#']")
+        if (link === null || !document.body.classList.contains("searching"))
+            return
+        const target = document.getElementById(
+            decodeURIComponent((link.getAttribute("href") ?? "").slice(1)))
+        if (target === null || target.closest(".search-hide") === null)
+            return
+        reset()
+        slide(false)
     })
 })()

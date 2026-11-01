@@ -46,24 +46,24 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
         if (tab === null)
             return
         const controls = {
-            graph:   tab.querySelector("div.fold-graphs"),
-            hub:     tab.querySelector("div.fold-hubs"),
-            grid:    tab.querySelector("div.fold-grids"),
-            state:   tab.querySelector("div.fold-states"),
-            layer:   tab.querySelector("div.fold-layers"),
-            slice:   tab.querySelector("div.fold-slices"),
-            tree:    tab.querySelector("div.fold-trees"),
-            matrix:  tab.querySelector("div.fold-matrices"),
+            graph:    tab.querySelector("div.fold-graphs"),
+            hub:      tab.querySelector("div.fold-hubs"),
+            grid:     tab.querySelector("div.fold-grids"),
+            state:    tab.querySelector("div.fold-states"),
+            layer:    tab.querySelector("div.fold-layers"),
+            slice:    tab.querySelector("div.fold-slices"),
+            tree:     tab.querySelector("div.fold-trees"),
+            matrix:   tab.querySelector("div.fold-matrices"),
             sequence: tab.querySelector("div.fold-sequences"),
-            petri:   tab.querySelector("div.fold-petris"),
-            gantt:   tab.querySelector("div.fold-gantts"),
-            code:    tab.querySelector("div.fold-codes"),
-            image:   tab.querySelector("div.fold-images"),
-            listing: tab.querySelector("div.fold-listings"),
-            level1:  tab.querySelector("div.fold-level1"),
-            level2:  tab.querySelector("div.fold-level2"),
-            level3:  tab.querySelector("div.fold-level3"),
-            text:    tab.querySelector("div.fold-texts")
+            petri:    tab.querySelector("div.fold-petris"),
+            gantt:    tab.querySelector("div.fold-gantts"),
+            code:     tab.querySelector("div.fold-codes"),
+            image:    tab.querySelector("div.fold-images"),
+            listing:  tab.querySelector("div.fold-listings"),
+            level1:   tab.querySelector("div.fold-level1"),
+            level2:   tab.querySelector("div.fold-level2"),
+            level3:   tab.querySelector("div.fold-level3"),
+            text:     tab.querySelector("div.fold-texts")
         }${standins ? `
         for (const kind of Object.keys(controls))
             controls[kind] ??= document.createElement("div")` : ""}
@@ -325,8 +325,9 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
 
         /*  fold exactly the diagrams at least one active control covers  */
         const apply = () => {
+            const covered = new Set(Array.from(active).flatMap((kind) => folds[kind]))
             folds.level1.forEach((fold) => {
-                fold.classList.toggle("folded", Array.from(active).some((kind) => folds[kind].includes(fold)))
+                fold.classList.toggle("folded", covered.has(fold))
             })
         }
 
@@ -423,14 +424,14 @@ export const omitLong = (omit: Set<OmitAspect> | null,
     if (omit?.has("text:long") !== true)
         return cells
     const htmls   = cells.map(String)
-    const plain   = (html: string) => html.replace(/<[^>]*>/g, "").trim().length
-    const lengths = htmls.map((html) => (/<td[\s>]|<div class="diagram"/).test(html) ? 0 : plain(html))
+    const textLen = (html: string) => html.replace(/<[^>]*>/g, "").trim().length
+    const lengths = htmls.map((html) => (/<td[\s>]|<div class="diagram"/).test(html) ? 0 : textLen(html))
     if (lengths.filter((length) => length > 0).length < 2)
         return cells
     const chars = shares.map((share) => Math.max(1, Math.floor(lineChars * share)))
     const lines = htmls.map((html, i) => lengths[i] === 0 ? 0 :
         html.split(/<\/(?:p|li|div|pre)>|<br\s*\/?>/)
-            .reduce((sum, block) => sum + Math.ceil(plain(block) / chars[i]), 0))
+            .reduce((sum, block) => sum + Math.ceil(textLen(block) / chars[i]), 0))
     return htmls.map((html, i) => {
         const other = Math.max(...lines.filter((_, j) => j !== i)) *
             (1 + (percent > 0 ? percent : cellHeightDefault) / 100)
@@ -460,6 +461,11 @@ export const omitLong = (omit: Set<OmitAspect> | null,
     })
 }
 
+/*  the diagram types of the fold controls, the Gradia ones first  */
+const gradiaTypes  = [ "graph", "hub", "grid", "state", "layer", "slice",
+    "tree", "matrix", "sequence", "petri", "gantt" ] as const
+const diagramTypes = [ ...gradiaTypes, "code", "image", "listing" ] as const
+
 /*  the fold controls the omitted aspects drop, along with the implied
     ones (no type control without diagrams of that type, no level
     control without diagrams from that level on, no fold tab without
@@ -467,27 +473,11 @@ export const omitLong = (omit: Set<OmitAspect> | null,
     style rules the omission brings (the "[...]" mark of the omitted
     long texts and the moved-up tabs of a dropped fold tab)  */
 export const omittedControls = (omit: Set<OmitAspect>) => {
-    const none    = omit.has("diagram:1")
-        || (omit.has("diagram:graph") && omit.has("diagram:hub") && omit.has("diagram:grid")
-            && omit.has("diagram:state") && omit.has("diagram:layer") && omit.has("diagram:slice")
-            && omit.has("diagram:tree") && omit.has("diagram:matrix") && omit.has("diagram:sequence")
-            && omit.has("diagram:petri") && omit.has("diagram:gantt") && omit.has("diagram:code")
-            && omit.has("diagram:image") && omit.has("diagram:listing"))
+    const none    = omit.has("diagram:1") || diagramTypes.every((type) => omit.has(`diagram:${type}` as const))
+    const types   = Object.fromEntries(diagramTypes.map((type) =>
+        [ type, none || omit.has(`diagram:${type}` as const) ])) as Record<typeof diagramTypes[number], boolean>
     const omitted = {
-        graph:   none || omit.has("diagram:graph"),
-        hub:     none || omit.has("diagram:hub"),
-        grid:    none || omit.has("diagram:grid"),
-        state:   none || omit.has("diagram:state"),
-        layer:   none || omit.has("diagram:layer"),
-        slice:   none || omit.has("diagram:slice"),
-        tree:    none || omit.has("diagram:tree"),
-        matrix:  none || omit.has("diagram:matrix"),
-        sequence: none || omit.has("diagram:sequence"),
-        petri:   none || omit.has("diagram:petri"),
-        gantt:   none || omit.has("diagram:gantt"),
-        code:    none || omit.has("diagram:code"),
-        image:   none || omit.has("diagram:image"),
-        listing: none || omit.has("diagram:listing"),
+        ...types,
         level1:  none,
         level2:  none || omit.has("diagram:2"),
         level3:  none || omit.has("diagram:2") || omit.has("diagram:3"),
@@ -497,9 +487,7 @@ export const omittedControls = (omit: Set<OmitAspect>) => {
 
     /*  the first row of the fold panel (the Gradia diagram types) is
         dropped once all of its controls are  */
-    const gradia = omitted.graph && omitted.hub && omitted.grid && omitted.state
-        && omitted.layer && omitted.slice && omitted.tree && omitted.matrix
-        && omitted.sequence && omitted.petri && omitted.gantt
+    const gradia = gradiaTypes.every((type) => omitted[type])
     const css =
         (omitted.text ? "\nspan.omit { color: var(--theme-color-specbook-muted) }" : "") +
         (omitted.all  ? "\nnav.toc-panel div.toc-tab { top: 13.89rem }" +

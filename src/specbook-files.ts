@@ -20,6 +20,7 @@ export const specFiles = (basedir: string): string[] => {
             entries = fs.readdirSync(dir, { withFileTypes: true })
         }
         catch {
+            /*  an unreadable directory contributes no files  */
             return
         }
         for (const entry of entries) {

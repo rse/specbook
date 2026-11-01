@@ -178,8 +178,8 @@ export const excluder = (dir: string): Excluder => {
     }
 
     return (file: string): boolean => {
-        const rel = path.relative(root, path.resolve(file)).replace(/\\/g, "/")
-        if (rel === "" || rel.startsWith("../"))
+        const rel = path.relative(root, path.resolve(file)).split(path.sep).join("/")
+        if (rel === "" || rel === ".." || rel.startsWith("../") || path.isAbsolute(rel))
             return false
         const segments = rel.split("/")
 

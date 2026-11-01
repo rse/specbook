@@ -77,19 +77,13 @@ export const titlePageObject = (specification: Spec): SpecObject | undefined => 
     return title !== undefined && title.value.trim() !== "" ? object : undefined
 }
 
-/*  pre-render the configured diagrams as embeddable SVGs, displayed
-    at a reduced coordinate scale, as the Gradia geometry (node
-    boxes, font sizes) is dimensioned for a stand-alone canvas and
-    would dwarf the document text at 1:1: the scale renders the node
-    names (30 units) at 15px, about the size of the document text, so a
-    diagram narrower than its container is no longer blown up beyond
-    the zoom level of the diagrams the container width caps anyway. The
-    <style> elements are stripped off the diagrams and the union of
-    their CSS rules is returned for the document stylesheet instead, as
-    Gradia names a class after its declarations and hence hundreds of
-    diagrams repeat the very same few rules (which are XML-escaped
-    inside an SVG, but plain text inside the HTML <style> element,
-    which no unescaped "</" of a configured value may close)  */
+/*  pre-render the configured diagrams as embeddable SVGs at half their
+    coordinate scale (the node names of 30 units at about the 15px of the
+    document text), and strip their <style> elements, returning the union
+    of their CSS rules for the document stylesheet instead, as Gradia
+    names a class after its declarations (the rules XML-unescaped, but
+    with every "</" escaped, as they become plain text of the HTML <style>
+    element)  */
 const scaledDiagrams = async (specification: Spec, config: Schema, verbose?: Verbose,
     omit?: Set<OmitAspect>): Promise<{ svgs: Map<SpecObject, { type: DiagramType, svg: string }[]>, css: string }> => {
     const scale    = 0.5

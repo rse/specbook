@@ -22,9 +22,8 @@ import { extract as extractTar } from "tar"
 
 import { loadProjectFile, isRemote, projectFile, type Project } from "./specbook-project.js"
 import { type ConfigOverlap }                                    from "./specbook-config.js"
+import { isBelow }                                               from "./specbook-files.js"
 import { literal, type Verbose }                                 from "./specbook-verbose.js"
-
-export { isRemote }
 
 /*  our own version, taken from the package manifest, which resides one
     level above both the source and the compiled module directory  */
@@ -125,7 +124,8 @@ const parseRef = (ref: string): Ref => {
     let m: RegExpExecArray | null
     if ((m = (/^npm:((?:@[^/@]+\/)?[^/@]+)(?:@([^/]+))?(?:\/(.+))?$/).exec(ref)) !== null)
         return { kind: "npm", name: m[1], range: m[2], path: safePath(ref, m[3]) }
-    else if ((m = (/^github:([^/#]+)\/([^/#]+)(?:\/([^#]+))?(?:#(.+))?$/).exec(ref)) !== null)
+    else if ((m = (/^github:([^/#]+)\/([^/#]+)(?:\/([^#]+))?(?:#(.+))?$/).exec(ref)) !== null
+        && ![ m[1], m[2], m[4] ].some((segment) => segment === "." || segment === ".."))
         return { kind: "github", user: m[1], repo: m[2], path: safePath(ref, m[3]), ref: m[4] ?? "HEAD" }
     else if ((/^https?:\/\/[^/]/).test(ref) && URL.canParse(ref))
         return { kind: "url", url: ref }
@@ -166,9 +166,14 @@ const materialize = async (target: string, fill: (tmp: string) => Promise<void>)
 /*  provide a cache entry: an existing one is taken as long as it is
     fresh (an immutable one always, a floating one within its TTL) or the
     fetch mode is "never", but never under "always", else it is fetched
-    (again), which under "never" is an error  */
+    (again), which under "never" is an error, while a concurrent request
+    for an entry being fetched just awaits that very fetch  */
+const pending = new Map<string, Promise<void>>()
 const ensure = async (target: string, floating: boolean, label: string,
     options: RemoteOptions, fill: (tmp: string) => Promise<void>): Promise<void> => {
+    const running = pending.get(target)
+    if (running !== undefined)
+        return running
     const stat  = fs.statSync(target, { throwIfNoEntry: false })
     const fresh = !floating || Date.now() - (stat?.mtimeMs ?? 0) < floatingTtl
     if (stat !== undefined && (options.fetch === "never" || (options.fetch === "auto" && fresh)))
@@ -176,7 +181,9 @@ const ensure = async (target: string, floating: boolean, label: string,
     if (options.fetch === "never")
         throw new Error(`"${label}" is not cached (fetch mode "never")`)
     options.verbose(`fetching "${literal(label)}"`)
-    await materialize(target, fill)
+    const job = materialize(target, fill).finally(() => pending.delete(target))
+    pending.set(target, job)
+    await job
 }
 
 /*  download a URL, failing on any HTTP error (with the message of a
@@ -205,7 +212,7 @@ const download = async (url: string, headers: Record<string, string> = {}): Prom
     "npm_config_*" environment variables, with the "${VAR}" references
     of the values expanded like npm does  */
 const npmConfig = (cwd: string): Record<string, string | boolean> => {
-    const config = {} as Record<string, string | boolean>
+    const config: Record<string, string | boolean> = {}
     const files  = [ process.env.NPM_CONFIG_USERCONFIG || path.join(os.homedir(), ".npmrc"), path.join(cwd, ".npmrc") ]
     for (const file of files) {
         let text: string
@@ -253,13 +260,13 @@ interface Package {
     immutable and hence stays forever (an already extracted one not even
     consulting the registry again, unless the fetch mode is "always")  */
 const fetchNpm = async (ref: Ref & { kind: "npm" }, options: RemoteOptions): Promise<Package> => {
-    const opts    = npmOptions(options)
-    const dirOf   = (version: string) => path.join(cacheDir, "npm", ref.name, version)
-    let   version = ref.range !== undefined && valid(ref.range) !== null ? ref.range : undefined
-    if (version === undefined || !fs.existsSync(dirOf(version)) || options.fetch === "always")
-        version = (await pacote.manifest(`${ref.name}@${ref.range ?? "latest"}`, opts)).version
-    const spec = `${ref.name}@${version}`
-    const root = dirOf(version)
+    const opts  = npmOptions(options)
+    const dirOf = (v: string) => path.join(cacheDir, "npm", ref.name, v)
+    let   exact = ref.range !== undefined && valid(ref.range) !== null ? ref.range : undefined
+    if (exact === undefined || !fs.existsSync(dirOf(exact)) || options.fetch === "always")
+        exact = (await pacote.manifest(`${ref.name}@${ref.range ?? "latest"}`, opts)).version
+    const spec = `${ref.name}@${exact}`
+    const root = dirOf(exact)
     await ensure(root, false, `npm:${spec}`, options, async (tmp) => {
         await pacote.extract(spec, tmp, opts)
     })
@@ -371,14 +378,13 @@ export const expandPattern = async (pattern: string): Promise<string[]> => {
 /*  resolve a remote reference of a schema configuration into its local
     files: the bundled standard one for "std" (the bundled meta one for
     "meta", and the bundled project management one for "pm"), the single
-    file of a URL,
-    and for a package the file or
-    glob pattern its path names inside the package (or the named building
-    block of the "specbook.schema" map of its manifest), while a
-    directory (the package itself, or a nested one) offers its schema
-    configuration through the "specbook.schema" file of its manifest, the
-    "config" entries of its own project configuration file (its remote
-    ones resolved recursively, a cycle being an error), or its "index.yaml"  */
+    file of a URL, and for a package the file or glob pattern its path
+    names inside the package (or the named building block of the
+    "specbook.schema" map of its manifest), while a directory (the
+    package itself, or a nested one) offers its schema configuration
+    through the "specbook.schema" file of its manifest, the "config"
+    entries of its own project configuration file (its remote ones
+    resolved recursively, a cycle being an error), or its "index.yaml"  */
 export const resolveConfig = async (ref: string, options: RemoteOptions, chain: string[] = []): Promise<string[]> => {
     if (ref === "std")
         return [ standardConfig ]
@@ -395,7 +401,8 @@ export const resolveConfig = async (ref: string, options: RemoteOptions, chain: 
 
     /*  the path names a building block of the manifest, or a glob pattern inside the package  */
     const blocks = pkg.manifest?.specbook?.schema
-    const block  = typeof blocks === "object" && parsed.path !== undefined ? blocks[parsed.path] : undefined
+    const block  = typeof blocks === "object" && parsed.path !== undefined && Object.hasOwn(blocks, parsed.path) ?
+        blocks[parsed.path] : undefined
     if (block !== undefined)
         return [ path.join(pkg.root, ...safeSegments(ref, block)) ]
     else if (parsed.path !== undefined && (/[*?[{]/).test(parsed.path))
@@ -418,10 +425,13 @@ export const resolveConfig = async (ref: string, options: RemoteOptions, chain: 
     const project = projectOf(dir)
     if (project?.config !== undefined) {
         const files = new Array<string>()
-        for (const pattern of project.config)
+        for (const pattern of project.config) {
+            if (!isRemote(pattern) && !isBelow(pattern, pkg.root))
+                throw new Error(`"${projectFile}" of "${ref}" references "${pattern}" outside of its package`)
             files.push(...(isRemote(pattern) ?
                 await resolveConfig(pattern, options, [ ...chain, pkg.resolved ]) :
                 await expandPattern(pattern)))
+        }
         return files
     }
 
@@ -467,8 +477,8 @@ const bundledHits: SearchHit[] = [ {
     source:      "builtin"
 } ]
 
-/*  search the bundled schema configurations (matched
-    locally by all words of the term), the npm registry (the packages
+/*  search the bundled schema configurations (matched locally by all
+    words of the term), the npm registry (the packages
     carrying the keyword "specbook-schema"), and GitHub (the repositories
     carrying the same topic) for the shareable schema configurations
     matching a term, where a failing source is reported but does not fail

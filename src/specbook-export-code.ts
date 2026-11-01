@@ -129,7 +129,7 @@ const renderListing = (shiki: HighlighterCore | null, listing: Listing): string 
     descendants: the fenced code blocks of a known language inside its
     description statement and elaboration and the source code files
     embedded into its description and property values  */
-const collect = (object: SpecObject, langs: Set<string>) => {
+const collectLanguages = (object: SpecObject, langs: Set<string>) => {
     for (const text of [ object.description?.description ?? "", object.description?.elaboration ?? "" ])
         marked.walkTokens(marked.lexer(text), (token) => {
             const listing = token.type === "code" ? fencedListing(token as Tokens.Code) : undefined
@@ -144,7 +144,7 @@ const collect = (object: SpecObject, langs: Set<string>) => {
             langs.add(listing.lang)
     }
     for (const child of object.children)
-        collect(child, langs)
+        collectLanguages(child, langs)
 }
 
 /*  prepare the rendering of the code listings of a specification: the
@@ -156,7 +156,7 @@ export const prepareListings = async (specification: Spec, verbose?: Verbose): P
     const langs = new Set<string>()
     for (const artifact of specification.artifacts)
         for (const object of artifact.objects)
-            collect(object, langs)
+            collectLanguages(object, langs)
     if (langs.size === 0)
         return (listing) => renderListing(null, listing)
     let shiki: HighlighterCore | null = null

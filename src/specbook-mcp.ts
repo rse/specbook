@@ -89,8 +89,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     server.registerTool("specbook_lint", {
         title:       "Lint Specification",
-        description: "Lint the specification Markdown files the YAML schema configuration references " +
-            "below the base directory against this configuration and return all diagnostics.",
+        description: "Lint all specification Markdown files below the base directory against the " +
+            "YAML schema configuration and return all diagnostics.",
         inputSchema: { config, basedir, fetch, gitignore, cwd }
     }, async (args) => {
         try {
@@ -107,8 +107,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     server.registerTool("specbook_export", {
         title:       "Export Specification",
-        description: "Export the specification Markdown files the YAML schema configuration references " +
-            "below the base directory (or, with \"schema\", the effective YAML schema configuration " +
+        description: "Export all specification Markdown files below the base directory (or, with " +
+            "\"schema\", the effective YAML schema configuration " +
             "itself, described as a SpecBook document through the bundled meta schema configuration) " +
             "as JSON, JSON5, " +
             "YAML, TOON, HTML, PDF, or normalized Markdown. The result is written to the output file " +
@@ -182,8 +182,9 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
                 "always embedded)"),
             compress: z.literal(compressLevels).optional().describe("compression level of the emitted " +
                 "YAML schema configuration (embedded or raw): 0 for verbatim, 1 for re-emitted with 2-space " +
-                "indentation and without comments, 2 for additionally without its \"refs\", \"diagram\", and " +
-                "\"format\" fields, or 3 for additionally without its \"desc\" fields (default: 2)"),
+                "indentation and without comments, 2 for additionally without its \"refs\", \"badge\", " +
+                "\"multiple\", \"diagram\", and \"format\" fields, or 3 for additionally without its " +
+                "\"desc\" fields (default: 2)"),
             format:   z.enum(describeFormats).optional().describe("output format: \"md\" for Markdown or " +
                 "\"raw\" for the raw original file content of the part (default: \"md\")"),
             part:     z.enum(describeParts).optional().describe("document part: \"all\" for the entire " +
@@ -210,8 +211,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     server.registerTool("specbook_search", {
         title:       "Search Schema Configurations",
-        description: "Search the bundled standard and meta schema configurations (references \"std\" and " +
-            "\"meta\"), the npm " +
+        description: "Search the bundled standard, meta, and project management schema configurations " +
+            "(references \"std\", \"meta\", and \"pm\"), the npm " +
             "registry (the packages carrying the keyword \"specbook-schema\"), and GitHub (the repositories " +
             "carrying the same topic) for the shareable schema configurations (reusable building blocks for " +
             "the \"config\" option) matching a term, and return the hits as a JSON array of objects with the " +

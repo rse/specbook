@@ -894,7 +894,7 @@ export const renderTitlePage = (object: SpecObject, created: string, modified: s
         return value !== undefined && value.trim() !== "" ? inline(value) : ""
     }
     const rest = object.properties.filter((property) =>
-        !titleProperties.some((prop) => prop.name === property.key))
+        !titleProperties.some((entry) => entry.name === property.key))
 
     /*  the logo is rendered above the title, from the embedded image content
         of the LOGO property or, for a non-embeddable reference, as its inline
@@ -903,12 +903,13 @@ export const renderTitlePage = (object: SpecObject, created: string, modified: s
     const logo  = object.properties.find((property) =>
         property.key === "LOGO" && property.value.trim() !== "")
     const image = logo !== undefined ? renderEmbeddings(logo.value, logo.embedding ?? [], false) : []
+    const title = prop("TITLE")?.trim()
     return scoped(object, () => render("TitlePage", { TitlePage: {
         logo:        logo === undefined ?
             safe(renderThemed(embeddingThemes.map((theme) =>
                 `<img src="${fallbackLogo(theme)}" alt="SpecBook"/>`))) :
             (image.length > 0 ? safe(image.join("")) : inline(logo.value)),
-        title:       inline(prop("TITLE") ?? object.name),
+        title:       inline(title !== undefined && title !== "" ? title : "Specification"),
         subtitle:    inlineProp("SUBTITLE"),
         author:      inlineProp("AUTHOR"),
         version:     inlineProp("VERSION"),

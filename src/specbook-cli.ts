@@ -306,7 +306,7 @@ withFetchOption(withBasedirOption(withConfigOption(withVerboseOption(program.com
         envDefaultFlag("embed", false))
     .option("-z, --compress [level]", "compression level of the emitted YAML schema configuration " +
         "(0: verbatim, 1: re-emitted with 2-space indentation and without comments, " +
-        "2: also without \"refs\", \"diagram\", and \"format\" fields, " +
+        "2: also without \"refs\", \"badge\", \"multiple\", \"diagram\", and \"format\" fields, " +
         "3: also without \"desc\" fields; default and bare flag: 1)", envDefault("compress", "1"))
     .option("-f, --format <format>", `output format (${describeFormats.join(", ")})`,
         envDefault("format", "md"))
@@ -336,8 +336,8 @@ withFetchOption(withVerboseOption(program.command("search")))
             await writeStdout("no matching schema configurations found\n")
         const width = Math.max(0, ...hits.map((hit) => hit.ref.length))
         for (const hit of hits)
-            await writeStdout(`${hit.ref.padEnd(width)}  ` +
-                `${(hit.version ?? "").padEnd(8)}  ${hit.description ?? ""}`.trimEnd() + "\n")
+            await writeStdout((`${hit.ref.padEnd(width)}  ` +
+                `${(hit.version ?? "").padEnd(8)}  ${hit.description ?? ""}`).trimEnd() + "\n")
     })
 
 /*  run the command line program  */

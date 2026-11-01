@@ -42,9 +42,8 @@ const titleList = (artifact: SchemaObject): string => {
 /*  initialize the configured specification artifact files below the
     base directory with their frontmatter and artifact headings (plus
     the title properties), or, under "sample", with a sample object per
-    allowed object kind, where
-    all artifacts configured onto the same file reside in it side by
-    side, following each other on level 1  */
+    allowed object kind, where all artifacts configured onto the same
+    file reside in it side by side, following each other on level 1  */
 export const initSpecification = (options: InitOptions): string[] => {
     fs.mkdirSync(options.basedir, { recursive: true })
     const now     = formatTimestamp(new Date())

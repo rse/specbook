@@ -228,7 +228,7 @@ export class SpecBook {
             basedir: project.basedir ?? ".", gitignore: options.gitignore === true, verbose })
     }
 
-    /*  search the bundled standard schema configuration, the npm
+    /*  search the bundled schema configurations, the npm
         registry, and GitHub for the shareable schema configurations
         matching a term  */
     async search (options: SearchRequest): Promise<SearchHit[]> {
@@ -442,9 +442,9 @@ export class SpecBook {
             they fall back onto the bundled standard one, which is always
             embedded (also when named explicitly through "std", and so are
             the bundled meta and project management ones named through
-            "meta" and "pm"), as its bundled
-            file is no meaningful reference, and so is a remote one, as
-            its download cache file is none either  */
+            "meta" and "pm"), as its bundled file is no meaningful
+            reference, and so is a remote one, as its download cache file
+            is none either  */
         const given    = project.config !== undefined
         const config   = given || part === "all" || part === "schema" ?
             await this.configFiles(project.config, this.remoteOptions(options, verbose)) : undefined

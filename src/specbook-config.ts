@@ -305,13 +305,13 @@ const checkAutomaton = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) 
     displaying it (e.g. "mark" or "layer"), as it would silently alter
     the node instead of annotating it  */
 const checkDiagrams = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) => {
-    diagramsOf(object).forEach((diagram, i) => {
+    for (const [ i, diagram ] of diagramsOf(object).entries()) {
         const base = Array.isArray(object.diagram) ? [ ...at, "diagram", i ] : [ ...at, "diagram" ]
         for (const [ j, key ] of (diagram.properties ?? []).entries())
             if ((reservedAttributes as readonly string[]).includes(key))
                 diagnose([ ...base, "properties", j ],
                     `diagram property "${key}" collides with the reserved Gradia node attribute "${key}"`)
-    })
+    }
 }
 
 /*  check the multiplicity of an object (if any): it names a property
@@ -369,9 +369,10 @@ const checkBadge = (object: SchemaObject, at: YamlPath, diagnose: Diagnose) => {
     expressions, an "automaton" has to name existing child kinds and
     properties, a "badge" has to name an existing property and its
     members, a "multiple" an existing property and a valid regular
-    expression, a diagram must not display a property named like a reserved
-    Gradia node attribute, and the names of non-artifact objects have to be valid
-    patterns (as they are compiled into regular expressions)  */
+    expression, a diagram must not display a property named like a
+    reserved Gradia node attribute, and the names of non-artifact
+    objects have to be valid patterns (as they are compiled into
+    regular expressions)  */
 const checkConstraints = (
     config:    Schema,
     posOfPath: (path: YamlPath) => { file: string, line: number, column: number }

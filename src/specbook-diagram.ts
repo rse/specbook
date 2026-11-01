@@ -203,6 +203,17 @@ interface DiagramNesting {
     furtherOf:  Map<SpecObject, SpecObject[]>
 }
 
+/*  the initial tokens or the capacity of a place of a "petri" diagram,
+    or the duration or earliest start of a task of a "gantt" diagram:
+    the trimmed value of the property the option of the same name
+    names (if any)  */
+const optionValue = (ctx: DiagramContext, diagram: SchemaDiagram, node: SpecObject,
+    key: "tokens" | "capacity" | "duration" | "start"): string | undefined => {
+    const name  = diagram[key]
+    const value = name !== undefined ? propValue(ctx.parenProps, node, name) : undefined
+    return value !== undefined ? plainText(value).trim() : undefined
+}
+
 /*  generate the Gradia spec text of a derived diagram, opened by a
     "#type" directive and the configured "#config" directives so every
     embedded spec is self-contained: one node statement per object (the
@@ -257,7 +268,7 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
                 containers: in a "layer" or "slice" one the container
                 names the band of the node and the containers enclosing
                 it the path of the clusters grouping that band, while in
-                a "matrix" one a container (where a row and column there)
+                a "matrix" one a container (itself a row and column there)
                 and all containers of a node form the path of its partition
                 (in a "gantt" one just the containers of a task, as a
                 container is no task)  */
@@ -479,8 +490,8 @@ const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, admits: 
             return value !== undefined ? plainText(value).trim() : undefined
         }
         const label = text(diagram.edgeKind)
-        const kind  = label !== undefined ?
-            (Object.hasOwn(messageKinds, label.toLowerCase()) ? messageKinds[label.toLowerCase()] : undefined) : undefined
+        const kind  = label !== undefined && Object.hasOwn(messageKinds, label.toLowerCase()) ?
+            messageKinds[label.toLowerCase()] : undefined
         if (label !== undefined && kind === undefined) {
             errors.push({ object: edgeObject, reason: `carries the unknown message kind "${label}"` })
             continue
@@ -535,17 +546,6 @@ const validateMessages = (edges: DiagramEdge[], errors: DiagramError[]) => {
             errors.push({ object: edge.object,
                 reason: "carries a duration, but is not a call answered by a return" })
     })
-}
-
-/*  the initial tokens or the capacity of a place of a "petri" diagram,
-    or the duration or earliest start of a task of a "gantt" diagram:
-    the trimmed value of the property the option of the same name
-    names (if any)  */
-const optionValue = (ctx: DiagramContext, diagram: SchemaDiagram, node: SpecObject,
-    key: "tokens" | "capacity" | "duration" | "start"): string | undefined => {
-    const name  = diagram[key]
-    const value = name !== undefined ? propValue(ctx.parenProps, node, name) : undefined
-    return value !== undefined ? plainText(value).trim() : undefined
 }
 
 /*  validate the net of a "petri" diagram exactly like Gradia does, so
@@ -945,6 +945,10 @@ const deriveNodes = (index: LinkIndex, object: SpecObject, diagram: SchemaDiagra
     return nodes
 }
 
+/*  the end objects of a list of edges, in the order of their first occurrence  */
+const endsOf = (edges: DiagramEdge[]): Set<SpecObject> =>
+    new Set(edges.flatMap((edge) => [ edge.source, edge.target ]))
+
 /*  project a "hub" diagram onto its center object: only the edges
     incident to the center and only the nodes connected through them
     remain, as Gradia requires exactly this constrained topology, and
@@ -955,11 +959,7 @@ const deriveNodes = (index: LinkIndex, object: SpecObject, diagram: SchemaDiagra
 const projectHub = (nodes: SpecObject[], edges: DiagramEdge[],
     center: SpecObject): { nodes: SpecObject[], edges: DiagramEdge[], columns: number } => {
     const incident  = edges.filter((edge) => edge.source === center || edge.target === center)
-    const connected = new Set<SpecObject>([ center ])
-    for (const edge of incident) {
-        connected.add(edge.source)
-        connected.add(edge.target)
-    }
+    const connected = endsOf(incident).add(center)
     const columns = 1 +
         (incident.some((edge) => edge.target === center && edge.source !== center) ? 1 : 0) +
         (incident.some((edge) => edge.source === center) ? 1 : 0)
@@ -991,8 +991,8 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
         nodes       = nodes.filter(below)
         edgeObjects = edgeObjects.filter(below)
     }
-    const edgeSet     = new Set<SpecObject>(edgeObjects)
-    nodes = nodes.filter((node) => !edgeSet.has(node))
+    const edgeSet = new Set<SpecObject>(edgeObjects)
+    nodes         = nodes.filter((node) => !edgeSet.has(node))
     const nodeSet = new Set<SpecObject>(nodes)
 
     /*  derive the edges of the diagram, with the message kinds and the
@@ -1030,12 +1030,7 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
     /*  the participants of a "sequence" diagram line up in the order
         their messages first involve them, the uninvolved ones dropped  */
     if (type === "sequence") {
-        const involved = new Set<SpecObject>()
-        for (const edge of edges) {
-            involved.add(edge.source)
-            involved.add(edge.target)
-        }
-        nodes = Array.from(involved)
+        nodes = Array.from(endsOf(edges))
         if (diagram.ordered === true)
             errors.push({ reason: "\"sequence\" diagram cannot carry an \"ordered\" configuration" })
         validateMessages(edges, errors)
@@ -1109,11 +1104,7 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
         least one incident edge (sensible for all diagrams except the
         "hub" and "grid" ones), and the containers enclosing such a node  */
     if (diagram.onlyConnected === true && type !== "hub" && type !== "grid") {
-        const connected = new Set<SpecObject>()
-        for (const edge of edges) {
-            connected.add(edge.source)
-            connected.add(edge.target)
-        }
+        const connected = endsOf(edges)
         for (const node of Array.from(connected))
             for (let p = nesting.parentOf.get(node); p !== undefined; p = nesting.parentOf.get(p))
                 connected.add(p)
@@ -1239,7 +1230,7 @@ export const specDiagrams = (specification: Spec,
                 if (!covered.has(object))
                     uncovered.coverage.add(object)
     }
-    const ctx       = { index, anchors, positions, parents, schemas,
+    const ctx     = { index, anchors, positions, parents, schemas,
         parenProps: collectParenProps(schemas), uncovered }
     const results = new Map<SpecObject, DiagramResult[]>()
     for (const [ object, schema ] of schemas) {

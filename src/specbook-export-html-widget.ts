@@ -242,10 +242,10 @@ export const maximizeScript = textframe`
                 .find((el) => el.getClientRects().length > 0)
             if (shown === undefined)
                 return
-            const svg = shown.cloneNode(true)
-            if (svg.tagName !== "PRE")
-                svg.removeAttribute("style")
-            content.replaceChildren(svg)
+            const clone = shown.cloneNode(true)
+            if (clone.tagName !== "PRE")
+                clone.removeAttribute("style")
+            content.replaceChildren(clone)
             overlay.classList.add("open")
             document.documentElement.classList.add("maximized")
             if (fullscreen)
@@ -331,7 +331,7 @@ export const tocPanelScript = textframe`
             }
             let current = null
             for (let i = 0; i < targets.length; i++) {
-                if (targets[i] === null)
+                if (targets[i] === null || targets[i].getClientRects().length === 0)
                     continue
                 const top = targets[i].getBoundingClientRect().top
                 if (top >= -1 && top < window.innerHeight) {
@@ -367,8 +367,8 @@ export const tocPanelScript = textframe`
                 anchored.classList.add("anchored")
         }
         const toggle = (open) => {
-            panel.classList.toggle("open", open)
-            try { localStorage.setItem("specbook-toc", panel.classList.contains("open") ? "open" : "closed") }
+            const opened = panel.classList.toggle("open", open)
+            try { localStorage.setItem("specbook-toc", opened ? "open" : "closed") }
             catch { /*  an inaccessible storage just loses the state  */ }
         }
         try { if (localStorage.getItem("specbook-toc") === "open") panel.classList.add("open") }
@@ -455,12 +455,11 @@ const infoPopupScript = textframe`
             id trailing an instance popup, and the property name trailing
             a property popup  */
         const titleOf = (source, spec, prop) => {
-            /*  compose the title path segments of an object  */
+            /*  compose the title path segments of an object, each a pair
+                of its kind and its name (empty for a kind-only segment)  */
             const pathOf = (n, named) => {
                 const [ , up, kind, title ] = SPEC[n]
-                const name = named ? title : ""
-                return [ ...(up >= 0 ? pathOf(up, true) : []),
-                    name !== "" && kind !== "" ? kind + ": " + name : (name !== "" ? name : kind) ]
+                return [ ...(up >= 0 ? pathOf(up, true) : []), [ kind, named ? title : "" ] ]
             }
             const title = document.createElement("div")
             title.className = "info-title"
@@ -475,7 +474,7 @@ const infoPopupScript = textframe`
             const ref      = spec ?? source.getAttribute("data-info-path") ?? ""
             const index    = parseInt(ref, 10)
             const segments = SPEC[index] !== undefined ? pathOf(index, !ref.endsWith("^")) : []
-            for (const [ i, segment ] of segments.entries()) {
+            for (const [ i, [ kindText, nameText ] ] of segments.entries()) {
                 if (i > 0)
                     title.appendChild(pointer())
                 const path = document.createElement("span")
@@ -486,22 +485,21 @@ const infoPopupScript = textframe`
                     description color), where a segment without a kind
                     prefix is the kind-only ending of a kind popup or the
                     name of a kind-less object  */
-                const m    = /^([^\\s:]+): (.*)$/.exec(segment)
                 const bare = i === segments.length - 1 && spec === null && prop === null
                 const name = document.createElement("span")
                 name.className = "info-name"
-                if (m !== null || bare) {
+                if (kindText !== "" && (nameText !== "" || bare)) {
                     const kind = document.createElement("span")
                     kind.className = "info-kind"
-                    kind.textContent = m !== null ? m[1] + ":" : segment
+                    kind.textContent = nameText !== "" ? kindText + ":" : kindText
                     path.appendChild(kind)
-                    if (m !== null) {
-                        name.textContent = m[2]
+                    if (nameText !== "") {
+                        name.textContent = nameText
                         path.append(" ", name)
                     }
                 }
                 else {
-                    name.textContent = segment
+                    name.textContent = nameText !== "" ? nameText : kindText
                     path.appendChild(name)
                 }
                 title.appendChild(path)
@@ -593,7 +591,10 @@ const infoPopupScript = textframe`
                 return
             cancel()
             pending   = el
-            pendingId = setTimeout(() => { pending = null; show(el) }, 400)
+            pendingId = setTimeout(() => {
+                pending = null
+                show(el)
+            }, 400)
         })
         document.body.addEventListener("mouseout", (event) => {
             const el = event.target.closest(targets)
@@ -638,8 +639,8 @@ const artifactFilterScript = textframe`
         try { if (localStorage.getItem("specbook-filter") === "open") tab.classList.add("open") }
         catch { /*  an inaccessible storage just means no stored state  */ }
         tab.querySelector("div.filter-toggle").addEventListener("click", () => {
-            tab.classList.toggle("open")
-            try { localStorage.setItem("specbook-filter", tab.classList.contains("open") ? "open" : "closed") }
+            const opened = tab.classList.toggle("open")
+            try { localStorage.setItem("specbook-filter", opened ? "open" : "closed") }
             catch { /*  an inaccessible storage just loses the state  */ }
         })
 

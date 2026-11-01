@@ -118,13 +118,17 @@ export type SchemaDiagramNest = {
     crossing?:         "nodes" | "target" | "both"
 }
 
+/*  the types of the diagrams derived from the object model  */
+export const diagramTypes = [ "graph", "hub", "grid", "state", "layer", "slice", "tree", "matrix",
+    "sequence", "petri", "gantt" ] as const
+export type DiagramType = typeof diagramTypes[number]
+
 /*  the diagram derived for every object of an object kind: its shape,
     its node/edge selection (optionally restricted to the object itself
     and its descendants), the edge property roles, the derivation
     switches, the node nesting, and the node annotations  */
 export type SchemaDiagram = {
-    type?:             "graph" | "hub" | "grid" | "state" | "layer" | "slice" | "tree" | "matrix" | "sequence"
-                       | "petri" | "gantt"
+    type?:             DiagramType
     nodes?:            string
     edges?:            string
     local?:            boolean
@@ -259,8 +263,7 @@ const SchemaDiagramNest: v.GenericSchema<SchemaDiagramNest> = v.strictObject({
     crossing:          v.optional(v.picklist([ "nodes", "target", "both" ]))
 })
 const SchemaDiagram: v.GenericSchema<SchemaDiagram> = v.strictObject({
-    type:              v.optional(v.picklist([ "graph", "hub", "grid", "state", "layer", "slice", "tree",
-        "matrix", "sequence", "petri", "gantt" ])),
+    type:              v.optional(v.picklist(diagramTypes)),
     nodes:             v.optional(v.string()),
     edges:             v.optional(v.string()),
     local:             v.optional(v.boolean()),

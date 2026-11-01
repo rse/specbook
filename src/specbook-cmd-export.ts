@@ -27,6 +27,7 @@ import { renderHtml, htmlOutline, titlePageObject }
     from "./specbook-export-html.js"
 import { htmlToPdf, requireBrowser } from "./specbook-export-pdf.js"
 import { literal, type Verbose }     from "./specbook-verbose.js"
+import { specFiles }                 from "./specbook-files.js"
 
 /*  re-export the browser pre-check of the PDF renderer, so the API
     facade reaches the renderers through this command module only  */
@@ -86,12 +87,16 @@ const scanDelay = 30 * 1000
 
 /*  take the modification time snapshot of the observed files, where an
     absent file (a still missing artifact) is remembered as absent, too,
-    so its creation and removal are noticed like a modification  */
+    so its creation and removal are noticed like a modification, while a
+    directory is represented by the number of its specification files,
+    as its own modification time also changes with every unrelated file
+    created in it (like an editor swap file)  */
 const snapshot = (files: string[]): Map<string, number> => {
     const times = new Map<string, number>()
     for (const file of files) {
         try {
-            times.set(file, fs.statSync(file).mtimeMs)
+            const stats = fs.statSync(file)
+            times.set(file, stats.isDirectory() ? specFiles(file).length : stats.mtimeMs)
         }
         catch {
             times.set(file, 0)

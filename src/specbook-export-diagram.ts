@@ -252,7 +252,8 @@ export const renderEmbeddedDiagrams = async (specification: Spec,
         const key = diagramKey(language, source)
         if (rendered.has(key) || failed.has(key) || omittedDiagram(language, level, omit))
             continue
-        let variants = diagramCache.get(`${tone}\u0000${key}`) ?? cache.get(`${tone}\u0000${key}`)
+        const toned  = `${tone}\u0000${key}`
+        let variants = diagramCache.get(toned)
         if (variants !== undefined)
             cached++
         else {
@@ -273,7 +274,7 @@ export const renderEmbeddedDiagrams = async (specification: Spec,
                 continue
             }
         }
-        cache.set(`${tone}\u0000${key}`, variants)
+        cache.set(toned, variants)
         rendered.set(key, variants)
     }
     diagramCache = cache
