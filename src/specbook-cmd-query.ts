@@ -25,6 +25,14 @@ import { parseOutputSpec }
     one of its artifacts, or an object of an artifact tree  */
 export type SpecNode = Spec | SpecArtifact | SpecObject
 
+/*  a type guard narrowing a node onto one of the node types  */
+export type SpecNodeGuard<T extends SpecNode> = (node: SpecNode) => node is T
+
+/*  tell whether a node is the specification root, an artifact, resp. an object  */
+export const isSpecification: SpecNodeGuard<Spec>         = (node): node is Spec         => "artifacts" in node
+export const isArtifact:      SpecNodeGuard<SpecArtifact> = (node): node is SpecArtifact => "objects"   in node
+export const isObject:        SpecNodeGuard<SpecObject>   = (node): node is SpecObject   => "kind"      in node
+
 /*  the tree access a custom query function receives  */
 export type SpecQueryAdapter = ASTQ.Adapter<SpecNode>
 
@@ -131,12 +139,12 @@ export class SpecBookDocument {
             let attrs = this.attrs.get(node)
             if (attrs === undefined) {
                 attrs = new Map<string, unknown>()
-                if ("objects" in node) {
+                if (isArtifact(node)) {
                     attrs.set("created",  node.created.toISOString())
                     attrs.set("modified", node.modified.toISOString())
                     attrs.set("file",     origins.get(node))
                 }
-                else if ("kind" in node) {
+                else if (isObject(node)) {
                     const fields = { kind: node.kind, id: node.id, anchor: node.anchor, paren: node.paren,
                         name: node.name, primary: node.primary, description: node.description?.description,
                         rationale: node.description?.rationale, elaboration: node.description?.elaboration }
@@ -157,27 +165,39 @@ export class SpecBookDocument {
         const adapter: SpecQueryAdapter = {
             taste:            (node) => node === specification || this.parents.has(node as SpecNode),
             getParentNode:    (node) => this.parents.get(node) ?? null,
-            getChildNodes:    (node) => "artifacts" in node ? node.artifacts :
-                "objects" in node ? node.objects : node.children,
-            getNodeType:      (node) => "artifacts" in node ? "specification" :
-                "objects" in node ? "artifact" : node.kind.replace(/\s+/g, "-"),
+            getChildNodes:    (node) => isSpecification(node) ? node.artifacts :
+                isArtifact(node) ? node.objects : node.children,
+            getNodeType:      (node) => isSpecification(node) ? "specification" :
+                isArtifact(node) ? "artifact" : node.kind.replace(/\s+/g, "-"),
             getNodeAttrNames: (node) => Array.from(attributesOf(node).keys()),
             getNodeAttrValue: (node, attr) => attributesOf(node).get(attr)
         }
         this.astq.adapter(adapter, true)
         this.astq.func("refs", (_adapter: SpecQueryAdapter, node: SpecNode) =>
-            "kind" in node ? referenceTargets(this.index, node) : [])
+            isObject(node) ? referenceTargets(this.index, node) : [])
     }
 
     /*  query the nodes an ASTq selector matches, starting at the root,
-        with the values of the "{name}" parameters of the selector  */
-    query (selector: string, params?: Record<string, unknown>): SpecNode[] {
-        return this.astq.query<SpecNode>(this.specification, selector, params)
+        with the values of the "{name}" parameters of the selector,
+        optionally narrowed onto the nodes a type guard accepts  */
+    query (selector: string, params?: Record<string, unknown>): SpecNode[]
+    query<T extends SpecNode> (selector: string, guard: SpecNodeGuard<T>): T[]
+    query<T extends SpecNode> (selector: string, params: Record<string, unknown> | undefined,
+        guard: SpecNodeGuard<T>): T[]
+    query (selector: string, params?: Record<string, unknown> | SpecNodeGuard<SpecNode>,
+        guard?: SpecNodeGuard<SpecNode>): SpecNode[] {
+        const values = typeof params === "function" ? undefined : params
+        const filter = typeof params === "function" ? params    : guard
+        const nodes  = this.astq.query<SpecNode>(this.specification, selector, values)
+        return filter !== undefined ? nodes.filter(filter) : nodes
     }
 
-    /*  the parent of a node (undefined for the root)  */
-    parent (node: SpecNode): SpecNode | undefined {
-        return this.parents.get(node)
+    /*  the parent of a node (undefined for the root or one the type guard rejects)  */
+    parent (node: SpecNode): SpecNode | undefined
+    parent<T extends SpecNode> (node: SpecNode, guard: SpecNodeGuard<T>): T | undefined
+    parent (node: SpecNode, guard?: SpecNodeGuard<SpecNode>): SpecNode | undefined {
+        const parent = this.parents.get(node)
+        return parent !== undefined && (guard === undefined || guard(parent)) ? parent : undefined
     }
 
     /*  register a custom query function (or replace a registered one)  */

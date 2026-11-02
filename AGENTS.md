@@ -551,23 +551,27 @@ documents out of a specification: `load` parses the specification (or,
 under `schema`, the effective schema configuration) strictly like
 `export` (any error diagnostic fails it, the warnings are `none`
 messages) into a `SpecBookDocument` of `src/specbook-cmd-query.ts`,
-whose `query(selector, params)` runs an XPath-like selector of the NPM
-package ASTq on the *original* AST nodes (`SpecNode`) through a custom,
-forced adapter: the root of type `specification` holds the artifacts of
-type `artifact` (attributes `created` and `modified` as ISO strings and
-the source `file`), which hold the object trees typed by their kind
-(whitespace dashed), an object carrying the attributes `kind`, `id`,
-`anchor`, `paren`, `name`, `primary`, `description`, `rationale`, and
-`elaboration` (where present) plus one per property key (a fixed name
-and a duplicate key never overriding). The pre-registered query
-function `refs()` yields the targets of the references of an object
-(`referenceTargets` of `src/specbook-link.ts`), `func(name, fn)`
-registers a custom one, `parent(node)` walks upwards (the AST carrying
-no parent references), and `plain(text, from?)` resp. `html(text,
-from?)` render a Markdown text into plain text (via the `marked` lexer
-tokens) resp. an HTML fragment (a private `Marked` instance without
-SpecBook styling), both replacing every reference outside code by the
-name of its target. The CLI command (repeatable `-P <name>=<value>`
+whose `query(selector, params?, guard?)` runs an XPath-like selector of
+the NPM package ASTq on the *original* AST nodes (`SpecNode`) through a
+custom, forced adapter: the root of type `specification` holds the
+artifacts of type `artifact` (attributes `created` and `modified` as ISO
+strings and the source `file`), which hold the object trees typed by
+their kind (whitespace dashed), an object carrying the attributes
+`kind`, `id`, `anchor`, `paren`, `name`, `primary`, `description`,
+`rationale`, and `elaboration` (where present) plus one per property key
+(a fixed name and a duplicate key never overriding). The pre-registered
+query function `refs()` yields the targets of the references of an
+object (`referenceTargets` of `src/specbook-link.ts`), `func(name, fn)`
+registers a custom one, `parent(node, guard?)` walks upwards (the AST
+carrying no parent references), the type guards (`SpecNodeGuard`)
+`isSpecification`, `isArtifact`, and `isObject` (which the adapter
+discriminates the nodes by, too) narrowing the results of both onto the
+nodes they accept (`query(selector, guard)` omitting the parameters),
+so no caller casts a `SpecNode`, and `plain(text, from?)` resp.
+`html(text, from?)` render a Markdown text into plain text (via the
+`marked` lexer tokens) resp. an HTML fragment (a private `Marked`
+instance without SpecBook styling), both replacing every reference
+outside code by the name of its target. The CLI command (repeatable `-P <name>=<value>`
 parameters) and the MCP tool write the matched nodes as an array in one
 of the AST export formats `json`, `json5`, `yaml`, or `toon`
 (`renderNodes`: subtrees included, the `embedding` fields dropped) to

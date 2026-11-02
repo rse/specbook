@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.6.2 (2026-11-02)
+------------------
+
+-   IMPROVEMENT [code]: Type Guards for Query Results
+    The API type guards `isSpecification`, `isArtifact`, and `isObject` narrow the results of
+    `query()` and `parent()`, so scripts no longer cast the generic `SpecNode` results.
+
 1.6.1 (2026-11-02)
 ------------------
 

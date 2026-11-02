@@ -20,8 +20,8 @@ import { exportSpecification, watchSpecification, parseOutputSpec, formats,
     requireBrowser, parseOmit, omitAspects, type ExportFormat, type ExportOptions }
     from "./specbook-cmd-export.js"
 import { lintSchema }                                    from "./specbook-cmd-export-schema.js"
-import { SpecBookDocument, renderNodes, queryFormats, parseQueryOutput,
-    type SpecNode, type SpecQueryFunc, type SpecQueryAdapter, type QueryFormat }
+import { SpecBookDocument, renderNodes, queryFormats, parseQueryOutput, isSpecification, isArtifact, isObject,
+    type SpecNode, type SpecNodeGuard, type SpecQueryFunc, type SpecQueryAdapter, type QueryFormat }
     from "./specbook-cmd-query.js"
 import { servePreview, previewAddr, previewPort }        from "./specbook-cmd-preview.js"
 import { describeFormat, describeFormats, describeParts, parseDescribeFormat, parseDescribePart,
@@ -42,8 +42,8 @@ export { compressLevels, parseCompressLevel }
 export { type DescribeFormat, type DescribePart, type CompressLevel }
 export { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type DiagnosticSeverity }
 export { type LintResult }
-export { SpecBookDocument, renderNodes, queryFormats, parseQueryOutput,
-    type SpecNode, type SpecQueryFunc, type SpecQueryAdapter, type QueryFormat }
+export { SpecBookDocument, renderNodes, queryFormats, parseQueryOutput, isSpecification, isArtifact, isObject,
+    type SpecNode, type SpecNodeGuard, type SpecQueryFunc, type SpecQueryAdapter, type QueryFormat }
 export { version, standardConfig, metaConfig, pmConfig, cacheDir, fetchModes, parseFetchMode,
     type FetchMode, type SearchHit }
 export type { Spec, SpecArtifact, SpecObject, SpecDescription, SpecProperty } from "./specbook-format-spec.js"

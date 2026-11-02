@@ -483,7 +483,7 @@ very same ASTq selectors as `specbook query`, retrieving the *original*
 AST nodes:
 
 ```ts
-import { SpecBook, type SpecObject } from "@rse/specbook"
+import { SpecBook, isObject } from "@rse/specbook"
 
 const specbook = new SpecBook()
 const document = await specbook.load({ basedir: "docs/spec" })
@@ -493,22 +493,25 @@ document.func("contains", (_adapter, _node, list, item) =>
     Array.isArray(list) && list.includes(item))
 
 /*  emit the roles with the use cases referencing them as Markdown  */
-for (const role of document.query("// ROLE") as SpecObject[]) {
+for (const role of document.query("// ROLE", isObject)) {
     console.log(`## ${document.plain(role.name)}\n`)
     for (const useCase of document.query("// USE-CASE [ contains(refs(), {role}) ]",
-        { role }) as SpecObject[])
+        { role }, isObject))
         console.log(`-   ${document.plain(useCase.name)}`)
 }
 ```
 
 The `SpecBookDocument` returned by `load()` (options like `lint`, plus
 `schema`) carries the `specification`, its `config`, and the warning
-`diagnostics`, and provides `query(selector, params?)`, `parent(node)`
-(the AST nodes carrying no parent references), `func(name, fn)`, and the
-text helpers `plain(text, from?)` and `html(text, from?)`, which render
-a Markdown text (a description part or property value) into plain text
-resp. an HTML fragment, replacing every `[[...]]` reference by the name
-of its target object.
+`diagnostics`, and provides `query(selector, params?, guard?)`,
+`parent(node, guard?)` (the AST nodes carrying no parent references),
+`func(name, fn)`, and the text helpers `plain(text, from?)` and
+`html(text, from?)`, which render a Markdown text (a description part or
+property value) into plain text resp. an HTML fragment, replacing every
+`[[...]]` reference by the name of its target object. The optional type
+guards `isSpecification`, `isArtifact`, and `isObject` narrow the nodes
+`query()` (also as `query(selector, guard)`) and `parent()` return onto
+the nodes they accept, so no `SpecNode` has to be cast.
 
 Remote References
 -----------------
