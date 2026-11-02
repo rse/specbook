@@ -5,9 +5,20 @@ ChangeLog
 1.6.2 (2026-11-02)
 ------------------
 
--   IMPROVEMENT [code]: Type Guards for Query Results
+-   IMPROVEMENT [code, infr, othr]: Type Guards for Query Results
     The API type guards `isSpecification`, `isArtifact`, and `isObject` narrow the results of
     `query()` and `parent()`, so scripts no longer cast the generic `SpecNode` results.
+
+-   UPDATE [infr]: Upgrade NPM Dependency Shiki
+    The code listing highlighter `shiki` is upgraded from version 4.5.0 to 4.6.0.
+
+-   CLEANUP [code]: Proofread Schema Configuration Descriptions
+    Fixes spelling, punctuation, and hyphenation in the `desc` texts of the bundled `pm` and `std`
+    schema configurations.
+
+-   REFACTOR [code]: Various Code Cleanups
+    Simplifies the code of the parser, the diagrams, the coverage, the HTML/PDF/Markdown exports,
+    and the query module, without changing their behavior.
 
 1.6.1 (2026-11-02)
 ------------------
