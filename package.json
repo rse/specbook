@@ -29,7 +29,7 @@
         "@rse/gradia":                     "2.0.1",
         "beautiful-mermaid":               "1.1.3",
         "@d2lang/d2":                      "0.1.34",
-        "shiki":                           "4.5.0",
+        "shiki":                           "4.6.0",
         "pdfjs-dist":                      "6.5.438",
         "@napi-rs/canvas":                 "1.1.0",
         "@toon-format/toon":               "4.4.0",
