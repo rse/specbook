@@ -162,7 +162,7 @@
     desc: >
         The ubiquitous language of the domain, defining the meaning of each domain term in business
         language, together with its synonyms, its place in the hierarchy of terms, and the terms it
-        has to be kept apart from, shared consistently across all Artifacts.
+        has to be kept apart from, shared consistently across all artifacts.
     optional: true
     refs: >
         -   ISO 704:2022: Terminology work -- Principles and methods (2022),
@@ -1174,7 +1174,7 @@
                 -   name: TRIGGER
                     desc: >
                         The event that starts the use case, stated as a 1-sentence occurrence (e.g.
-                        `The attendee opens the event URL.`), as opposed to the `PRE-CONDITION`
+                        `The attendee opens the event URL.`), as opposed to the `PRE-CONDITION`,
                         which is a state that has to hold, and matching the `When <trigger>` of the
                         event-driven Functional Requirements the use case exercises.
                     optional: true

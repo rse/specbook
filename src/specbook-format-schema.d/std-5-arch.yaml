@@ -103,7 +103,7 @@
                         Comma-separated references to the MAXIM objects the principle
                         concretizes (e.g. a `Stateless Services` principle concretizing a
                         `Scale Out over Scale Up` maxim), so that the principles form a hierarchy
-                        below the maxims rather than a flat catalogue; omitted for a principle
+                        below the maxims rather than a flat catalog; omitted for a principle
                         standing on its own forces alone.
                     value: list([[MAXIM:*]])
                     optional: true
@@ -207,7 +207,7 @@
                         Comma-separated references to the smaller ARCHITECTURE-PATTERNS objects
                         the pattern is composed of (e.g. a `Saga` using a `Transactional Outbox`
                         for its steps), so that the patterns form a language of related structures
-                        rather than a flat catalogue.
+                        rather than a flat catalog.
                     value: list([[PATTERN:*]])
                     optional: true
                     acyclic: true
@@ -828,8 +828,8 @@
                         alternatives.
 
                         A component states one product in one role on one tier: the product used
-                        by several tiers alike belongs to the `Common` tier once, the lock-in
-                        carrying trade-off behind the choice is a Design Decisions decision
+                        by several tiers alike belongs to the `Common` tier once, the
+                        lock-in-carrying trade-off behind the choice is a Design Decisions decision
                         referencing the component through `DECIDES`, and the functional components
                         depending on the product reference it through `USED-BY`.
                     format:
@@ -2099,7 +2099,7 @@
                         Comma-separated references to the smaller CODE-PATTERNS objects the pattern
                         is composed of (e.g. an `Endpoint Authorization` using the `Error
                         Propagation` for its rejections), so that the patterns form a language of
-                        related shapes rather than a flat catalogue.
+                        related shapes rather than a flat catalog.
                     value: list([[CODE-PATTERN:*]])
                     optional: true
                     acyclic: true

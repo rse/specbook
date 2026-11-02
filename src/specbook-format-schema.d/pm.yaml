@@ -1228,7 +1228,7 @@
                     desc: >
                         Reference to the GOVERNANCE-MODEL ceremony taking the decision on the
                         issue, omitted while the decision is pending or where the `OWNER` decides
-                        within the own authority.
+                        within their own authority.
                     value: "[[CEREMONY:*]]"
                     optional: true
                 -   name: DECISION

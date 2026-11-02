@@ -143,7 +143,7 @@
                     desc: >
                         The mandatory, concrete, observable response of the solution to the `INPUT`
                         (a message shown, a session issued, a submission rejected) that defines a
-                        passing test, as opposed to the `POST-CONDITION` which is the state left
+                        passing test, as opposed to the `POST-CONDITION`, which is the state left
                         behind. When the test case verifies a NON-FUNCTIONAL-REQUIREMENTS object,
                         the expected response restates the `METRIC` threshold of that requirement
                         as the pass criterion (e.g. `p95 latency < 200 ms`) rather than a
@@ -152,7 +152,7 @@
                     desc: >
                         The persisted state that must hold after the test completes (e.g. `the
                         authorization token is in state used`), including the state that must not
-                        have changed (e.g. `no session token exists`), as opposed to the `EXPECTED`
+                        have changed (e.g. `no session token exists`), as opposed to the `EXPECTED`,
                         which is the immediate response, and omitted for a test whose input leaves
                         no state behind.
                     optional: true

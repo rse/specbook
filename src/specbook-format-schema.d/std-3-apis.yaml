@@ -63,7 +63,7 @@
                         The kind of the interface, one of:
                         -   `REST`:      HTTP resources addressed by URL paths and HTTP methods.
                         -   `GraphQL`:   A GraphQL schema of queries, mutations, and subscriptions.
-                        -   `gRPC`:      Protocol Buffers based remote procedure calls.
+                        -   `gRPC`:      Protocol Buffers-based remote procedure calls.
                         -   `WebSocket`: Messages exchanged over a WebSocket connection.
                         -   `MQTT`:      Messages published to and subscribed from MQTT topics.
                         -   `MCP`:       Tools, resources, and prompts of a Model Context Protocol server.
