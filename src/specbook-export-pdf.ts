@@ -28,7 +28,7 @@ type Heading = { title: string, subtitle?: string, logo: string }
     which records the internal link targets as named PDF destinations  */
 const anchorPages = async (pdf: Uint8Array): Promise<Map<string, number>> => {
     const { PDFDocument, PDFName, PDFDict, PDFArray, PDFRef } = await import("pdf-lib")
-    const doc = await PDFDocument.load(pdf)
+    const doc     = await PDFDocument.load(pdf)
     const indexes = new Map<string, number>()
     doc.getPages().forEach((page, index) => indexes.set(page.ref.toString(), index + 1))
 

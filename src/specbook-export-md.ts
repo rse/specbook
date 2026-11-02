@@ -160,20 +160,12 @@ export const renderMarkdown = async (specification: Spec,
                 diagrams.set(object, results.flatMap((result) => result.spec !== undefined ? [ result.spec ] : []))
 
     /*  embed the images of a text, optimized like the ones of the HTML
-        export: an embeddable "![alt](file)" becomes the reference-style
-        "![alt][img-N]", whose "[img-N]: data:..." definition ends the
-        document (a "{theme}" one takes its light variant, as Markdown
-        knows no themes), an embedded diagram source file becomes its
-        rendered SVG (the light variant, too, marked as inverted on the
-        dark theme where the diagram is), where every emitted SVG is marked
-        with its resolved treatment on the dark theme (an adapting diagram
-        flattened onto its light variant as the "auto" detection judges
-        it), so a re-parse keeps it, even where the "auto" detection would
-        judge a re-optimized SVG differently, an embedded source code file
-        of a description leaves its markup for a fenced code block collected
-        into "fences" (and one of a property value becomes a "data:"
-        definition, too), and only the remaining ones (including a failed
-        diagram) are re-based  */
+        export, as reference-style "![alt][img-N]" with a closing
+        "[img-N]: data:..." definition (the light variant of a "{theme}"
+        image or a rendered diagram, every SVG marked with its resolved
+        dark theme treatment, so a re-parse keeps it), turn an embedded
+        source code file of a description into a fenced code block
+        collected into "fences", and re-base only the remaining ones  */
     const optimized = await optimizeImages(specification, false, verbose)
     const rasters   = await analyzeImages(specification, verbose)
     const sources   = await renderEmbeddedDiagrams(specification, verbose)

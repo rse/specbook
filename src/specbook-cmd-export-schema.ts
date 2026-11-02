@@ -169,8 +169,8 @@ const generateSources = (config: Schema, meta: Schema, files: string[],
     const targetsOfAll = (patterns: string[]): SchemaObject[] =>
         Array.from(new Set(patterns.flatMap(targetsOf)))
 
-    /*  the meta objects: the title, the schema, the artifact kinds, the
-        artifacts, the object kinds, and the properties, where a property
+    /*  the meta objects: the title, the artifact kinds, the artifacts,
+        the object kinds, and the properties, where a property
         whose value constraint references at least one kind is a REFERENCE  */
     const metaObject = (kind: string, name: string, paren?: string): SpecObject => {
         const o: SpecObject = { kind, id: paren ?? slugify(name), name, properties: [], children: [] }

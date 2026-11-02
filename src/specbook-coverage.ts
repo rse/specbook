@@ -8,31 +8,24 @@ import { type SpecObject }
     from "./specbook-format-spec.js"
 import { type SchemaObject }
     from "./specbook-format-schema.js"
-import { type LinkIndex, referenceRegex, resolveUnique, resolveSet, chainOf, referenceText }
+import { type LinkIndex, resolveSet, chainOf, referenceTargets }
     from "./specbook-link.js"
 import { compileValueExpr }
     from "./specbook-parse-value.js"
 
 /*  the referencing objects of every referenced object, resolved from
-    the names, property values, descriptions, and rationales of all
-    objects, where the references from within the subtree of the
-    referenced object itself do not count (an object cannot cover
-    itself), leniently skipping the unresolvable references, as those
-    are already reported by the reference pass  */
+    the names, property values, descriptions, rationales, and
+    elaborations of all objects, where the references from within the
+    subtree of the referenced object itself do not count (an object
+    cannot cover itself), leniently skipping the unresolvable
+    references, as those are already reported by the reference pass  */
 const referrerIndex = (index: LinkIndex): Map<SpecObject, Set<SpecObject>> => {
     const referrers = new Map<SpecObject, Set<SpecObject>>()
     for (const { object } of index) {
         const chain = chainOf(index, object)
-        const texts = [ object.name, ...object.properties.map((p) => p.value) ]
-        if (object.description !== undefined)
-            texts.push(object.description.description, object.description.rationale ?? "",
-                object.description.elaboration ?? "")
-        for (const text of texts)
-            for (const m of referenceText(text).matchAll(referenceRegex)) {
-                const target = resolveUnique(index, m[1].trim(), object).target
-                if (target !== undefined && !chain.includes(target))
-                    referrers.set(target, (referrers.get(target) ?? new Set<SpecObject>()).add(object))
-            }
+        for (const target of referenceTargets(index, object))
+            if (!chain.includes(target))
+                referrers.set(target, (referrers.get(target) ?? new Set<SpecObject>()).add(object))
     }
     return referrers
 }

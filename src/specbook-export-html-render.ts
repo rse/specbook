@@ -753,10 +753,9 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
         const chunks = new Array<typeof cells>()
         for (let pos = 0; pos < cells.length; pos += size)
             chunks.push(cells.slice(pos, pos + size))
-        if (chunks.length > 0) {
-            const last = chunks[chunks.length - 1]
+        const last = chunks.at(-1)
+        if (last !== undefined)
             last[last.length - 1].span = size - last.length + 1
-        }
         return chunks
     }))
 

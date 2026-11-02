@@ -27,11 +27,11 @@ const cellGainMin       = 25
     left corner, folds the text of every table cell towering over the
     other cells of its row behind a chevron mark of its own, and lets
     the controls of the fold tab fold and unfold all diagrams of a type
-    ("graph", "hub", "grid", "state", "layer", "slice", "tree", "matrix", "sequence", "petri", "gantt",
-    plus the embedded Mermaid/D2 ones as "code",
-    the embedded images and PDF pages as "image", and the code listings
-    as "listing"), all diagrams from an object tree nesting level on
-    (1, 2, 3), and all cell texts at once, with their state
+    ("graph", "hub", "grid", "state", "layer", "slice", "tree", "matrix",
+    "sequence", "petri", "gantt", plus the embedded Mermaid/D2 ones as
+    "code", the embedded images and PDF pages as "image", and the code
+    listings as "listing"), all diagrams from an object tree nesting
+    level on (1, 2, 3), and all cell texts at once, with their state
     persisted across page loads and their icons marked while they are
     active (the diagram ones, OR-combined) or any cell text is folded
     (the tab icon while anything at all is). The script runs at
@@ -111,9 +111,7 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
             control; a diagram joins the set of its type plus the sets
             of all nesting levels up to its own one (3 standing for all
             deeper ones), so the sets of the controls overlap  */
-        const folds = { graph: [], hub: [], grid: [], state: [], layer: [], slice: [], tree: [], matrix: [], sequence: [],
-            petri: [], gantt: [], code: [], image: [], listing: [],
-            level1: [], level2: [], level3: [], text: [] }
+        const folds = Object.fromEntries(Object.keys(controls).map((kind) => [ kind, [] ]))
         document.querySelectorAll("article div.diagram, nav.doc div.diagram").forEach((el) => {
             const type  = el.getAttribute("data-type") ?? "graph"
             const level = Math.min(Number(el.getAttribute("data-level")) || 1, 3)
@@ -436,7 +434,7 @@ export const omitLong = (omit: Set<OmitAspect> | null,
         const other = Math.max(...lines.filter((_, j) => j !== i)) *
             (1 + (percent > 0 ? percent : cellHeightDefault) / 100)
         const limit = Math.floor(other) * chars[i] - " [...]".length
-        if (lines[i] === 0 || lines[i] <= other || limit > lengths[i] * (1 - cellGainMin / 100))
+        if (lines[i] === 0 || lines[i] <= other || limit <= 0 || limit > lengths[i] * (1 - cellGainMin / 100))
             return cells[i]
         const open  = new Array<string>()
         let   out   = ""

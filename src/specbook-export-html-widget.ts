@@ -55,7 +55,8 @@ export const placeholderStylesheet = textframe`
     The update fetches the fresh page and replaces the document in place
     -- instead of reloading the page -- so the scroll position and the
     theme choice survive: the title, the stylesheet (if changed), and
-    the body are swapped, and the scripts of the fresh body re-executed
+    the body are swapped (announced through a "specbook-swap" event for
+    the outliving listeners), and the scripts of the fresh body re-executed
     through clones (as parsed scripts never execute), except this
     realtime script itself, whose connection stays alive. The status
     icon (re-created by every body swap) reflects the connection state
@@ -98,6 +99,7 @@ export const realtimeScript = textframe`
             const fresh = doc.head.querySelector("style")
             if (style !== null && fresh !== null && style.textContent !== fresh.textContent)
                 style.replaceWith(fresh)
+            document.dispatchEvent(new Event("specbook-swap"))
             document.body.replaceWith(doc.body)
 
             /*  a swapped-out maximization overlay can no longer unlock the scrolling  */
@@ -196,7 +198,7 @@ export const scrollProgressScript = textframe`
     at the end of the body, as the diagrams it decorates have to exist
     already, and a live preview body swap replaces the overlay and the
     body-bound listeners along with the body, while the document-bound
-    fullscreen listener retires itself  */
+    fullscreen listener is removed on the announcing "specbook-swap" event  */
 export const maximizeScript = textframe`
     (function () {
         /*  an icon control drawn like the tab icons  */
@@ -271,12 +273,13 @@ export const maximizeScript = textframe`
                 shut()
         })
         const left = () => {
-            if (!overlay.isConnected)
-                document.removeEventListener("fullscreenchange", left)
-            else if (document.fullscreenElement === null && overlay.classList.contains("open"))
+            if (document.fullscreenElement === null && overlay.classList.contains("open"))
                 shut()
         }
         document.addEventListener("fullscreenchange", left)
+        document.addEventListener("specbook-swap", () => {
+            document.removeEventListener("fullscreenchange", left)
+        }, { once: true })
 
         /*  attach the two controls to every diagram  */
         document.querySelectorAll("article div.diagram, nav.doc div.diagram").forEach((diagram) => {
@@ -310,8 +313,8 @@ export const maximizeScript = textframe`
     have to exist already, and a live preview body swap replaces the
     body-bound listeners along with the panel, while the document- and
     window-bound ones (the outside click, as the body does not span
-    the viewport margins, plus scroll and hash change) retire
-    themselves  */
+    the viewport margins, plus scroll) retire themselves, and the hash
+    change one is removed on the announcing "specbook-swap" event  */
 export const tocPanelScript = textframe`
     (function () {
         const panel   = document.querySelector("nav.toc-panel")
@@ -338,8 +341,9 @@ export const tocPanelScript = textframe`
                     current = links[i]
                     break
                 }
-                if (top < -1)
-                    current = links[i]
+                if (top >= window.innerHeight)
+                    break
+                current = links[i]
             }
             if (current === active)
                 return
@@ -353,10 +357,6 @@ export const tocPanelScript = textframe`
         }
         let anchored = null
         const anchor = () => {
-            if (!panel.isConnected) {
-                window.removeEventListener("hashchange", anchor)
-                return
-            }
             const current = links.find((a) => a.hash === window.location.hash) ?? null
             if (current === anchored)
                 return
@@ -391,6 +391,9 @@ export const tocPanelScript = textframe`
         document.addEventListener("click", outside)
         window.addEventListener("scroll", spy, { passive: true })
         window.addEventListener("hashchange", anchor)
+        document.addEventListener("specbook-swap", () => {
+            window.removeEventListener("hashchange", anchor)
+        }, { once: true })
         spy()
         anchor()
     })()
@@ -677,11 +680,11 @@ const artifactFilterScript = textframe`
             persisted across page loads as the list of their anchor paths  */
         const active = new Set()
         const store = () => {
-            try { localStorage.setItem("specbook-filter-origins", Array.from(active).map((n) => paths[n]).join(",")) }
+            try { localStorage.setItem("specbook-filter-origins", JSON.stringify(Array.from(active, (n) => paths[n]))) }
             catch { /*  an inaccessible storage just loses the state  */ }
         }
         try {
-            for (const path of (localStorage.getItem("specbook-filter-origins") ?? "").split(",")) {
+            for (const path of JSON.parse(localStorage.getItem("specbook-filter-origins") ?? "[]")) {
                 const n = byPath.get(path)
                 if (n !== undefined && cells.has(n))
                     active.add(n)

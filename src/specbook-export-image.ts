@@ -151,12 +151,13 @@ const optimizeRaster = async (content: string, print: boolean): Promise<string> 
     return `data:${type};base64,${data.toString("base64")}`
 }
 
-/*  collect the embedded image contents of an object and its descendants
-    (the empty entries of the unreadable files, the embedded diagram
-    sources, which are rendered instead, and the embedded source code
-    files, which are listed instead, left out)  */
+/*  whether an embedded content is an image, i.e. neither the empty entry
+    of an unreadable file, nor an embedded diagram source (rendered
+    instead), nor an embedded source code file (listed instead)  */
 const isImage = (content: string): boolean =>
     content !== "" && embeddedSource(content) === undefined && embeddedListing(content) === undefined
+
+/*  collect the embedded image contents of an object and its descendants  */
 const collect = (object: SpecObject, contents: Set<string>) => {
     for (const content of object.description?.embedding ?? [])
         if (isImage(content))

@@ -88,6 +88,7 @@ html.theme-light
     --theme-color-specbook-mark-text:         var(--theme-color-signal-32)
     --theme-color-specbook-mark-back:         var(--theme-color-signal-16)
     --theme-color-specbook-field:             var(--theme-color-accent-8)
+    --theme-color-specbook-field-text:        #ffffff
     --theme-color-specbook-error:             #cc0000
     --theme-color-specbook-popup-schema-path: var(--theme-color-accent-30)
     --theme-color-specbook-popup-schema-desc: var(--theme-color-base-32)
@@ -166,6 +167,7 @@ html.theme-light
         --theme-color-specbook-mark-text:         var(--theme-color-signal-32)
         --theme-color-specbook-mark-back:         var(--theme-color-signal-4)
         --theme-color-specbook-field:             var(--theme-color-accent-16)
+        --theme-color-specbook-field-text:        #ffffff
         --theme-color-specbook-error:             #cc0000
         --theme-color-specbook-popup-schema-path: var(--theme-color-accent-4)
         --theme-color-specbook-popup-schema-desc: var(--theme-color-base-7)
@@ -215,6 +217,7 @@ html.theme-light
         --gradia-color-edge-arity:                var(--theme-color-base-29)
         --gradia-color-edge-halo:                 var(--theme-color-specbook-background)
 
+/*  the base font size of the document, reduced for print  */
 html, body
     font-size: 12pt
 
@@ -222,6 +225,7 @@ html, body
     html, body
         font-size: 9pt
 
+/*  the centered content column in the theme colors  */
 body
     font-family: "Source Sans 3", sans-serif
     max-width: 60rem
@@ -263,12 +267,10 @@ tab(offset, inset = 1px)
         left: "calc(31rem - %s)" % inset
         box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 
-/*  the theme-switching tab (screen-only): the topmost tab riding right
-    of the brand bar above the info tab (sized like the table of
-    contents tab, fixed independent of the content scrolling), showing
-    a half-filled circle icon (drawn like the search icon, mimicking
-    the U+25D0 glyph), which switches the color theme, where the tab
-    follows the bar when the table of contents panel shifts it aside  */
+/*  the theme-switching tab (screen-only): the topmost tab above the
+    info tab (sized like the table of contents tab), showing a
+    half-filled circle icon (drawn like the search icon, mimicking the
+    U+25D0 glyph), which switches the color theme  */
 div.theme-switch
     tab(0.97rem)
     padding: 0.9rem 0.35rem
@@ -286,14 +288,11 @@ div.theme-switch svg.theme-icon
     div.theme-switch
         display: none
 
-/*  the description popup tab (screen-only): the tab riding right of
-    the brand bar between the theme-switching tab and the search tab
-    (sized like the search tab, fixed independent of the content
-    scrolling), showing an "info" icon (drawn like the search icon),
-    which toggles the description popups on and off (default), where
-    the tab follows the bar when the table of contents panel shifts it
-    aside and the icon carries the mark colors in a rounded box while
-    the popups are enabled, signalling the active toggle  */
+/*  the description popup tab (screen-only): the tab between the
+    theme-switching tab and the search tab (sized like the search tab),
+    showing an "info" icon (drawn like the search icon), which toggles
+    the description popups on and off (default), where the icon carries
+    the mark colors in a rounded box while the popups are enabled  */
 div.info-switch
     tab(4.20rem)
     padding: 0.65rem 0.1rem
@@ -420,15 +419,13 @@ div.info-popup.spec a.link-compact::before
     div.info-popup
         display: none
 
-/*  the artifact filter tab (screen-only): the tab riding right of the
-    brand bar between the search tab and the folding tab (as wide as
-    those, fixed independent of the content scrolling), showing a
-    layers icon (drawn like the search icon), which slides a grid out
-    to the right (and back in), hanging from the top of the tab beside
-    the tabs below, where the tab follows the bar when the table of
-    contents panel shifts it aside (a small gap keeping the grid off
-    the tabs below, bridged beside the tab itself, as the panel clips
-    everything outside of it); the grid holds one row per artifact
+/*  the artifact filter tab (screen-only): the tab between the search
+    tab and the folding tab (as wide as those), showing a layers icon
+    (drawn like the search icon), which slides a grid out to the right
+    (and back in), hanging from the top of the tab beside the tabs
+    below (a small gap keeping the grid off the tabs below, bridged
+    beside the tab itself, as the panel clips everything outside of
+    it); the grid holds one row per artifact
     kind -- the kind cell first, toggling the whole row, then one cell
     per top-level artifact of the kind, labeled by its id -- whose
     cells are sticky checkboxes, bordered lighter than the panel in
@@ -525,10 +522,9 @@ div.filter-switch div.filter-kind.some
     div.filter-switch
         display: none
 
-/*  the folding tab (screen-only): the tab riding right of the brand
-    bar between the artifact filter tab and the table of contents tab
-    (as wide as those, fixed independent of the content scrolling),
-    showing a fold icon (drawn like the search icon), which slides a
+/*  the folding tab (screen-only): the tab between the artifact filter
+    tab and the table of contents tab (as wide as those), showing a
+    fold icon (drawn like the search icon), which slides a
     panel out to the right (and back in), hanging from the top of the
     tab beside the tabs below exactly like the artifact filter grid
     (the same gap, bridged beside the tab itself); the panel holds the
@@ -727,14 +723,12 @@ html.maximized
         display: none
 
 /*  the connection status tab of the live preview (screen-only): the
-    bottommost tab riding right of the brand bar below the table of
-    contents tab (sized like the search tab, fixed independent of the
-    content scrolling), showing a plug icon (drawn like the search
-    icon), where the tab follows the bar when the
-    table of contents panel shifts it aside and the icon carries the
-    mark colors in a rounded box (like the search icon while a filter
-    is active) while disconnected, plus blinking in a soft accent box
-    for 2s (toggling every 250ms) after a content reload  */
+    bottommost tab below the table of contents tab (sized like the
+    search tab), showing a plug icon (drawn like the search icon), where
+    the icon carries the mark colors in a rounded box (like the search
+    icon while a filter is active) while disconnected, plus blinking in
+    a soft accent box for 2s (toggling every 250ms) after a content
+    reload  */
 div.realtime-status
     tab(20.35rem, 2px)
     padding: 0.65rem 0.1rem
@@ -937,9 +931,11 @@ nav.toc-panel ul.extra a
     nav.toc-panel
         display: none
 
+/*  the spacing of the sections  */
 section
     margin: 0.5rem 0
 
+/*  the object headings, the top-level ones underlined  */
 h1
     margin: 3.0rem 0 2.0rem 0
     border-bottom: 1px solid var(--theme-color-specbook-border)
@@ -964,31 +960,30 @@ article h2
     counter-reset: sec3
 article h3
     counter-increment: sec3
+article h1::before,
+article h2::before,
+article h3::before
+    color: var(--theme-color-specbook-muted)
+    margin-right: 0.4rem
+    font-weight: normal
 article h1::before
     content: counter(sec1, decimal-leading-zero) " "
-    color: var(--theme-color-specbook-muted)
-    margin-right: 0.4rem
-    font-weight: normal
 article h2::before
     content: counter(sec1, decimal-leading-zero) "." counter(sec2, decimal-leading-zero) " "
-    color: var(--theme-color-specbook-muted)
-    margin-right: 0.4rem
-    font-weight: normal
 article h3::before
     content: counter(sec1, decimal-leading-zero) "." counter(sec2, decimal-leading-zero) "." \
         counter(sec3, decimal-leading-zero) " "
-    color: var(--theme-color-specbook-muted)
-    margin-right: 0.4rem
-    font-weight: normal
 
 a
     color: var(--theme-color-specbook-accent)
     text-decoration: none
 
+/*  the object kinds and property names in the accent color  */
 .object-kind,
 .property-name
     color: var(--theme-color-specbook-accent)
 
+/*  the icons of the object kinds and property names, and the broken links  */
 .object-kind::before
     icon("\25CF")
     color: var(--theme-color-specbook-accent)
@@ -1554,14 +1549,11 @@ div.titlepage div.description p + p:not(.rationale)
     margin-top: 0.4rem
     text-indent: 3.0rem
 
-/*  the fuzzy search tab (screen-only): the tab riding right of the
-    brand bar between the info tab and the artifact filter tab (as
-    wide as those, fixed independent of the content scrolling),
-    showing the search icon, which slides the input field and its clear
-    symbol out to the right (and back in), where the tab follows the bar
-    when the table of contents panel shifts it aside and the icon
-    carries the mark colors in a rounded box while a search filter is
-    active, signalling the filtered content  */
+/*  the fuzzy search tab (screen-only): the tab between the info tab
+    and the artifact filter tab (as wide as those), showing the search
+    icon, which slides the input field and its clear symbol out to the
+    right (and back in), where the icon carries the mark colors in a
+    rounded box while a search filter is active  */
 div.search
     tab(7.43rem)
     display: flex
@@ -1600,10 +1592,10 @@ div.search input
     padding: 0.3rem 2.0rem 0.3rem 0.6rem
     border: 1px solid var(--theme-color-specbook-field)
     border-radius: 0.25rem
-    color: #ffffff
+    color: var(--theme-color-specbook-field-text)
     background-color: var(--theme-color-specbook-field)
 div.search input::placeholder
-    color: #ffffff
+    color: var(--theme-color-specbook-field-text)
     opacity: 0.7
 div.search input:focus
     outline: none
@@ -1612,7 +1604,7 @@ div.search span.search-clear
     right: 1.2rem
     top: 50%
     transform: translateY(-50%)
-    color: #ffffff
+    color: var(--theme-color-specbook-field-text)
     cursor: pointer
     -webkit-user-select: none
     user-select: none

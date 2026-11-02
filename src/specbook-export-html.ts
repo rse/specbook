@@ -152,7 +152,7 @@ const wrapDiagrams = (svgs: Map<SpecObject, { type: DiagramType, svg: string }[]
 
 /*  derive a short label out of a name: the upper-cased initials of its
     words, or the first two letters of a single-word name  */
-const idify = (name: string): string => {
+const initials = (name: string): string => {
     const words = name.split(/[^\p{L}\p{N}]+/u).filter((word) => word !== "")
     return (words.length === 1 ? words[0].slice(0, 2) : words.map((word) => word[0]).join("")).toUpperCase()
 }
@@ -172,7 +172,7 @@ const filterRows = (artifacts: SpecArtifact[], paths: Map<SpecObject, string>) =
             rows.set(object.kind, row)
         }
         row.cells.push({ id: paths.get(object) ?? object.id,
-            label: object.anchor ?? object.paren ?? idify(plainText(object.name)),
+            label: object.anchor ?? object.paren ?? initials(plainText(object.name)),
             title: (object.kind !== "" ? `${object.kind}: ` : "") + plainText(object.name) })
     }
     return Array.from(rows.values())

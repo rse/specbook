@@ -213,7 +213,7 @@
                 return
             if (last < value.length)
                 frag.appendChild(document.createTextNode(value.slice(last)))
-            parent.replaceChild(frag, text)
+            text.replaceWith(frag)
         })
 
         /*  underlay every <tspan> with a rounded <rect> (placed below
@@ -233,7 +233,7 @@
             rect.setAttribute("width",  String(box.width + 2 * pad))
             rect.setAttribute("height", String(box.height))
             rect.setAttribute("rx",     String(box.height * 0.2))
-            label.parentNode.insertBefore(rect, label)
+            label.before(rect)
         })
     }
 
@@ -243,9 +243,7 @@
     const unmark = () => {
         document.querySelectorAll(".search-hit").forEach((mark) => {
             const parent = mark.parentNode
-            while (mark.firstChild !== null)
-                parent.insertBefore(mark.firstChild, mark)
-            parent.removeChild(mark)
+            mark.replaceWith(...mark.childNodes)
             parent.normalize()
         })
         document.querySelectorAll(".search-keep").forEach((el) => { el.classList.remove("search-keep") })
@@ -329,9 +327,8 @@
                 return
             const mark = document.createElement("mark")
             mark.classList.add("search-hit")
-            while (symbol.firstChild !== null)
-                mark.appendChild(symbol.firstChild)
-            symbol.appendChild(mark)
+            mark.append(...symbol.childNodes)
+            symbol.append(mark)
         })
 
         /*  filter the table of contents (its page rows and its side

@@ -63,7 +63,8 @@ export const parseSpecification = (sources: SourceFile[], config?: Schema): Pars
 
 /*  the statistics of a specification: the number of defined objects
     (recursively) and of relationships, i.e. the Wiki-style references
-    in the names, property values, descriptions, and rationales  */
+    in the names, property values, descriptions, rationales, and
+    elaborations  */
 export const specStatistics = (specification: Spec): { objects: number, links: number } => {
     let objects = 0
     let links   = 0

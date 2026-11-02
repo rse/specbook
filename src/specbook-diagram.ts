@@ -134,9 +134,9 @@ interface DiagramEdge {
     vocabulary plus the Gradia one  */
 type MessageKind = "sync" | "async" | "return" | "create" | "destroy"
 const messageKinds: Record<string, MessageKind> = {
-    call:   "sync",   sync:    "sync",
-    signal: "async",  async:   "async",
-    return: "return", create:  "create",
+    call:    "sync",   sync:    "sync",
+    signal:  "async",  async:   "async",
+    return:  "return", create:  "create",
     destroy: "destroy"
 }
 
@@ -650,7 +650,8 @@ const deriveEdges = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramT
             }
     }
     else {
-        for (const field of [ "edges", "hierarchy", "deep", "descend", "reverse", "labeled", "onlyConnected" ] as const)
+        for (const field of [ "links", "edges", "hierarchy", "deep", "descend", "reverse", "labeled",
+            "onlyConnected" ] as const)
             if (diagram[field] !== undefined && diagram[field] !== false)
                 errors.push({ reason: "\"grid\" diagram cannot carry " +
                     `${(/^[aeiou]/).test(field) ? "an" : "a"} "${field}" configuration` })
@@ -1115,9 +1116,10 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
         where it takes part in the relation itself, as a mere grouping
         object (like a requirement group) would yield an empty row and
         column, while it still names the partition of its members  */
-    if (type === "matrix")
-        nodes = nodes.filter((node) => !nesting.containers.has(node)
-            || edges.some((edge) => edge.source === node || edge.target === node))
+    if (type === "matrix") {
+        const ends = endsOf(edges)
+        nodes = nodes.filter((node) => !nesting.containers.has(node) || ends.has(node))
+    }
 
     /*  a "petri" diagram takes the objects matching its "places" patterns
         as its places and all other nodes as its transitions (without

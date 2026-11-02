@@ -32,11 +32,6 @@ export type SpecQueryAdapter = ASTQ.Adapter<SpecNode>
     the current node, and the arguments of its call  */
 export type SpecQueryFunc = (adapter: SpecQueryAdapter, node: SpecNode, ...args: unknown[]) => unknown
 
-/*  the fixed attributes of an object node, which win over
-    the same-named property keys  */
-const objectFields = [ "kind", "id", "anchor", "paren", "name", "primary",
-    "description", "rationale", "elaboration" ]
-
 /*  the private Markdown renderer of the text helpers, as the
     "marked" singleton is shared with the application  */
 const marked = new Marked()
@@ -130,7 +125,8 @@ export class SpecBookDocument {
 
         /*  determine the attributes of a node once: the timestamps and
             source file of an artifact, and the fixed fields of an object
-            followed by its properties (the first of duplicate keys winning)  */
+            followed by its properties (a fixed field and the first of
+            duplicate keys winning)  */
         const attributesOf = (node: SpecNode): Map<string, unknown> => {
             let attrs = this.attrs.get(node)
             if (attrs === undefined) {
@@ -141,13 +137,14 @@ export class SpecBookDocument {
                     attrs.set("file",     origins.get(node))
                 }
                 else if ("kind" in node) {
-                    const fields = [ node.kind, node.id, node.anchor, node.paren, node.name, node.primary,
-                        node.description?.description, node.description?.rationale, node.description?.elaboration ]
-                    for (const [ i, value ] of fields.entries())
+                    const fields = { kind: node.kind, id: node.id, anchor: node.anchor, paren: node.paren,
+                        name: node.name, primary: node.primary, description: node.description?.description,
+                        rationale: node.description?.rationale, elaboration: node.description?.elaboration }
+                    for (const [ key, value ] of Object.entries(fields))
                         if (value !== undefined)
-                            attrs.set(objectFields[i], value)
+                            attrs.set(key, value)
                     for (const property of node.properties)
-                        if (!objectFields.includes(property.key) && !attrs.has(property.key))
+                        if (!Object.hasOwn(fields, property.key) && !attrs.has(property.key))
                             attrs.set(property.key, property.value)
                 }
                 this.attrs.set(node, attrs)

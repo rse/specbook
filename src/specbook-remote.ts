@@ -124,7 +124,7 @@ const parseRef = (ref: string): Ref => {
     let m: RegExpExecArray | null
     if ((m = (/^npm:((?:@[^/@]+\/)?[^/@]+)(?:@([^/]+))?(?:\/(.+))?$/).exec(ref)) !== null)
         return { kind: "npm", name: m[1], range: m[2], path: safePath(ref, m[3]) }
-    else if ((m = (/^github:([^/#]+)\/([^/#]+)(?:\/([^#]+))?(?:#(.+))?$/).exec(ref)) !== null
+    else if ((m = (/^github:([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)(?:\/([^#]+))?(?:#(.+))?$/).exec(ref)) !== null
         && ![ m[1], m[2], m[4] ].some((segment) => segment === "." || segment === ".."))
         return { kind: "github", user: m[1], repo: m[2], path: safePath(ref, m[3]), ref: m[4] ?? "HEAD" }
     else if ((/^https?:\/\/[^/]/).test(ref) && URL.canParse(ref))
@@ -136,7 +136,7 @@ const parseRef = (ref: string): Ref => {
     absolute path, no parent directory segments), as its segments  */
 const safeSegments = (ref: string, p: string): string[] => {
     const segments = p.replace(/\/+$/, "").split("/")
-    if (segments.some((segment) => segment === "" || segment === ".."))
+    if (segments.some((segment) => segment === "" || segment === ".." || segment.includes("\\")))
         throw new Error(`invalid path in remote reference "${ref}"`)
     return segments
 }
@@ -229,8 +229,10 @@ const npmConfig = (cwd: string): Record<string, string | boolean> => {
                 config[key] = value
     }
     for (const [ name, value ] of Object.entries(process.env))
-        if (name.startsWith("npm_config_") && value !== undefined)
-            config[name.slice("npm_config_".length).replace(/_/g, "-")] = value
+        if (/^npm_config_/i.test(name) && value !== undefined && value !== "") {
+            const key = name.slice("npm_config_".length)
+            config[key.startsWith("//") ? key : key.replace(/(?!^)_/g, "-").toLowerCase()] = value
+        }
     return config
 }
 
@@ -274,8 +276,9 @@ const fetchNpm = async (ref: Ref & { kind: "npm" }, options: RemoteOptions): Pro
 }
 
 /*  the request headers of the GitHub requests (which GitHub refuses
-    without a user agent), authenticated through GITHUB_TOKEN (for the
-    private repositories and a higher rate limit)  */
+    without a user agent), authenticated through SPECBOOK_GITHUB_TOKEN,
+    else GITHUB_TOKEN (for the private repositories and a higher rate
+    limit)  */
 const githubHeaders = (): Record<string, string> => {
     const token = process.env.SPECBOOK_GITHUB_TOKEN || process.env.GITHUB_TOKEN
     return { "User-Agent": `specbook/${version}`,

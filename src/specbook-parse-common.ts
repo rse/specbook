@@ -79,7 +79,7 @@ export const embeddingThemes = [ "light", "dark" ] as const
     while every other reference stays its own single variant  */
 export const embeddingVariants = (reference: string): string[] =>
     reference.includes("{theme}") ?
-        embeddingThemes.map((theme) => reference.replace(/\{theme\}/g, theme)) :
+        embeddingThemes.map((theme) => reference.replaceAll("{theme}", theme)) :
         [ reference ]
 
 /*  the MIME type of a PDF document  */
@@ -142,14 +142,14 @@ export const markedLines = (mark: string): { has: (line: number) => boolean } =>
 /*  split the info string of a fenced code block into its language and its
     whitespace-separated listing parameters ("start" and "mark"), plus an
     error message for an unknown or repeated key or an invalid value  */
-const fenceParams: Record<string, RegExp | undefined> = { start: ordinal, mark: lineHunks }
+const fenceParams: Record<string, RegExp> = { start: ordinal, mark: lineHunks }
 type FenceInfo = { lang: string, params: Record<string, string>, error?: string }
 export const fenceInfo = (info: string | undefined): FenceInfo => {
     const [ lang = "", ...pairs ] = (info ?? "").trim().split(/\s+/)
     const params: Record<string, string> = {}
     for (const pair of pairs) {
         const m = pair.match(/^([a-z]+)=(.*)$/s)
-        if (m === null || params[m[1]] !== undefined || !(fenceParams[m[1]]?.test(m[2]) ?? false))
+        if (m === null || Object.hasOwn(params, m[1]) || !Object.hasOwn(fenceParams, m[1]) || !fenceParams[m[1]].test(m[2]))
             return { lang, params, error: `invalid parameter "${pair}" of fenced code block` }
         params[m[1]] = m[2]
     }

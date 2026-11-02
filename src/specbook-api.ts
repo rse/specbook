@@ -304,8 +304,8 @@ export class SpecBook {
         by its re-basing directory), as every ".md" file below the base
         directory is a specification file and hence the output would be
         parsed as one on the next run  */
-    private guardRebase (formats: ExportFormat[], rebase: (string | undefined)[] | undefined, basedir: string) {
-        for (const [ i, format ] of formats.entries()) {
+    private guardRebase (requested: ExportFormat[], rebase: (string | undefined)[] | undefined, basedir: string) {
+        for (const [ i, format ] of requested.entries()) {
             const dir = rebase?.[i]
             if (format === "md" && dir !== undefined && isBelow(dir, basedir))
                 throw new Error(`the Markdown output directory "${dir}" is at or below the base directory ` +
@@ -445,7 +445,7 @@ export class SpecBook {
         try {
             return await this.observe({ config: options.config, basedir: options.basedir, cwd: options.cwd,
                 formats: [ "html" ], realtime: true, omit: options.omit, gitignore: options.gitignore,
-                schema: options.schema, onExport: ([ html ]) => server.update(html) }, verbose)
+                schema: options.schema, fetch: options.fetch, onExport: ([ html ]) => server.update(html) }, verbose)
         }
         catch (err) {
             /*  a failing release must not mask the primary error  */
