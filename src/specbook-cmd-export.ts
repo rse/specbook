@@ -23,7 +23,7 @@ import { themeColors, themeToneDefault, themeStylesheet, themeMapping }
 import { renderAst, type AstFormat } from "./specbook-export-ast.js"
 import { renderMarkdown, type MarkdownRebase }
     from "./specbook-export-md.js"
-import { renderHtml, htmlOutline, titlePageObject }
+import { renderHtml, renderPrintHtml, htmlOutline, titlePageObject }
     from "./specbook-export-html.js"
 import { htmlToPdf, requireBrowser } from "./specbook-export-pdf.js"
 import { literal, type Verbose }     from "./specbook-verbose.js"
@@ -236,7 +236,7 @@ const renderFormat = async (
     const css    = themeStylesheet(colors) + await subsetStylesheet(charset) + paperStylesheet(paper)
     if (format === "html") {
         /*  compress the rendered HTML (whitespace, comments, and inline CSS/JS)  */
-        const html     = await renderHtml(specification, config, undefined, css, options, verbose)
+        const html     = await renderHtml(specification, config, css, options, verbose)
         const minified = await minify(Buffer.from(html, "utf8"), {
             collapseWhitespaces: "smart",
             removeComments:      true,
@@ -248,9 +248,8 @@ const renderFormat = async (
     else {
         /*  the PDF export (like print in general) always uses the light
             theme, so its decoration colors are the light mapping, too  */
-        const pass = (tocPages?: Map<string, number>) =>
-            renderHtml(specification, config, tocPages, css, { omit: options.omit }, verbose, true)
-        return htmlToPdf(pass,
+        const print = await renderPrintHtml(specification, config, css, { omit: options.omit }, verbose)
+        return htmlToPdf(print,
             { ...documentTitle(specification), logo: documentLogo(specification) },
             htmlOutline(specification, config), titlePageObject(specification) !== undefined,
             verbose, css, themeMapping(colors, "light"), paper)
