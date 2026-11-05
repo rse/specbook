@@ -336,13 +336,17 @@
             target still is, which covers the front matter entries of
             the panel, too, as their targets are suppressed by the
             search mode anyway, where the entries are hidden only after
-            all targets got measured, as each hiding would force a layout again  */
+            all targets got measured, as each hiding would force a layout
+            again, and where a target is checked without its layout (if the
+            browser supports it), as the browser skips the rendering of the
+            sections far outside the viewport, and measuring a target there
+            would force their layout  */
         const hidden = []
         document.querySelectorAll("nav.toc table tr, nav.toc-panel div.toc-list li").forEach((entry) => {
             const link   = entry.querySelector(":scope > a, :scope > td > a")
             const target = link !== null ?
                 document.getElementById(decodeURIComponent(link.hash.slice(1))) : null
-            if (target === null || target.getClientRects().length === 0)
+            if (target === null || !(target.checkVisibility?.() ?? target.getClientRects().length > 0))
                 hidden.push(entry)
         })
         hidden.forEach((entry) => { entry.classList.add("search-hide") })
