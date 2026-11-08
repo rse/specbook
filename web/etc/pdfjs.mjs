@@ -11,7 +11,7 @@ import fs                from "node:fs"
 import path              from "node:path"
 import { unzipSync }     from "fflate"
 
-const version = "6.3.289"
+const version = "6.5.438"
 const url     = `https://github.com/mozilla/pdf.js/releases/download/v${version}/pdfjs-${version}-dist.zip`
 const target  = path.join(import.meta.dirname, "..", "public", "pdfjs")
 const stamp   = path.join(target, ".version")
