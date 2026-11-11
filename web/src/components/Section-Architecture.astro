@@ -16,9 +16,10 @@ import Layers      from "@lucide/astro/icons/layers"
 /*  the two parsing phases the corpus passes through before any export  */
 const phases = [
     { name: "Syntactic Phase",
-      body: "The Markdown of every referenced artifact file is turned into the <code>Spec</code> " +
-            "Abstract Syntax Tree: headings become objects, property lists become properties, " +
-            "and the prose becomes descriptions." },
+      body: "The Markdown of every <code>.md</code> file below the base directory is turned into " +
+            "the <code>Spec</code> Abstract Syntax Tree: headings become objects, property lists " +
+            "become properties, and the prose becomes descriptions, split into statement, " +
+            "rationale, and elaboration." },
     { name: "Semantic Phase",
       body: "The AST is validated against the schema configuration: property values against the " +
             "expression language, the uniqueness and presence flags among the siblings, the shape " +

@@ -78,9 +78,20 @@ const checks = [
                         Objects reference each other through Wiki-style{" "}
                         <code>[[xxx]]</code> links, resolved against the
                         locally-unique ids and names of all objects across the whole
-                        corpus. Exactly the artifact files the schema's{" "}
-                        <code>file</code> fields reference are loaded — every other
-                        Markdown file below the base directory is left alone.
+                        corpus. Every <code>.md</code> file below the base
+                        directory is part of the specification, whatever its name
+                        and nesting: the schema's <code>file</code> fields only
+                        tell <code>init</code> where to create the artifacts, and
+                        the artifacts are ordered along the schema anyway.
+                    </p>
+                    <p class="text-foreground-secondary sb-indent-p sb-justify">
+                        A description carries its own justification: its first{" "}
+                        <code>, BECAUSE </code> splits it into the
+                        <i>statement</i> and the <i>rationale</i>, which ends with
+                        its paragraph, while all following blocks form the{" "}
+                        <i>elaboration</i>. The exports render the keyword in bold,
+                        followed by its translation into a non-English document
+                        language.
                     </p>
                 </div>
             </div>
@@ -111,8 +122,12 @@ const checks = [
                     <p class="text-foreground-secondary sb-indent-p sb-justify">
                         Several configurations can be merged into one effective
                         schema (objects deeply, list elements by identity), and a
-                        bundled <i>standard</i> configuration applies whenever none
-                        is given at all. Violations are reported as file- and
+                        bundled <i>standard</i> configuration (<code>std</code>)
+                        applies whenever none is given at all. Two more are
+                        bundled: <code>meta</code>, describing a schema
+                        configuration itself, and <code>pm</code>, for the project
+                        management handbook written beside the specification of
+                        the solution it delivers. Violations are reported as file- and
                         line-precise diagnostics, and both <code>lint</code> and{" "}
                         <code>export</code> fail on any error among them — so a
                         partial or invalid specification is never exported.

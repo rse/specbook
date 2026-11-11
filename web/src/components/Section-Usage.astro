@@ -13,11 +13,11 @@ import SectionGlow from "./Section-Glow.astro"
 import Terminal    from "./Widget-Terminal.astro"
 import Compass     from "@lucide/astro/icons/compass"
 
-/*  the seven CLI commands, each with its one-line purpose and its distinctive
+/*  the eight CLI commands, each with its one-line purpose and its distinctive
     options; the very same commands the MCP service exposes as
-    `specbook_<cmd>` tools and the API class as `SpecBook` methods (except
-    `preview`, which is a long-running server, and `mcp`, which *is* the
-    service).  */
+    `specbook_<cmd>` tools and the API class as `SpecBook` methods (`query`
+    as `load`, except `preview`, which is a long-running server, and `mcp`,
+    which *is* the service).  */
 const commands = [
     { name: "init",     purpose: "Generate the initial specification Markdown files from the schema configuration.",
       options: [ "-v", "-c", "-b", "-F", "-s" ] },
@@ -27,9 +27,11 @@ const commands = [
       options: [ "-v", "-c", "-b", "-F", "-g", "-S", "-o", "-w", "-O" ] },
     { name: "preview",  purpose: "Serve the HTML export live in the browser, updating it in place on every change.",
       options: [ "-v", "-c", "-b", "-F", "-g", "-S", "-O", "-a", "-p" ] },
+    { name: "query",    purpose: "Select nodes of the specification (or the schema configuration) with an ASTq selector, writing them as JSON, JSON5, YAML, or TOON.",
+      options: [ "-v", "-c", "-b", "-F", "-g", "-S", "-P", "-f", "-o" ] },
     { name: "describe", purpose: "Emit the description of the SpecBook models, formats, and the effective schema.",
       options: [ "-v", "-c", "-b", "-F", "-e", "-z", "-f", "-p", "-o" ] },
-    { name: "search",   purpose: "Find shareable schema configurations: the bundled standard one, npm packages, and GitHub repositories.",
+    { name: "search",   purpose: "Find shareable schema configurations: the bundled std, meta, and pm ones, npm packages, and GitHub repositories.",
       options: [ "-v", "-F" ] },
     { name: "mcp",      purpose: "Run the Model-Context-Protocol service over stdio for an Agentic AI Coding tool.",
       options: [ "-v" ] }
@@ -38,12 +40,13 @@ const commands = [
 /*  the CLI options, each with the environment variable overriding its default  */
 const options = [
     [ "-v, --verbose [<level>]",           "SPECBOOK_VERBOSE", "verbosity: 0 notices, 1 processing, 2 ratios, 3 details" ],
-    [ "-c, --config <yaml-file>",          "SPECBOOK_CONFIG",  "schema configuration (glob patterns or remote references, repeatable, merged)" ],
-    [ "-b, --basedir <dir>",               "SPECBOOK_BASEDIR", "base directory the artifact files resolve against" ],
+    [ "-c, --config <yaml-file>",          "SPECBOOK_CONFIG",  "schema configuration (glob patterns, the bundled std, meta, or pm, or remote references, repeatable, merged)" ],
+    [ "-b, --basedir <dir>",               "SPECBOOK_BASEDIR", "base directory, every .md file below which is part of the specification" ],
     [ "-F, --fetch <mode>",                "SPECBOOK_FETCH",   "network access for remote references: never, auto (default), or always" ],
     [ "-s, --sample",                      "SPECBOOK_SAMPLE",  "scaffold a sample object per object kind instead of bare headings" ],
-    [ "-g, --gitignore",                   "SPECBOOK_GITIGNORE", "treat artifact files excluded by the Git exclude rules as absent" ],
-    [ "-S, --schema",                      "SPECBOOK_SCHEMA",  "export the schema configuration itself as a SpecBook document (no -b then)" ],
+    [ "-g, --gitignore",                   "SPECBOOK_GITIGNORE", "set aside the specification files excluded by the Git exclude rules" ],
+    [ "-S, --schema",                      "SPECBOOK_SCHEMA",  "export or query the schema configuration itself as a SpecBook document (no -b then)" ],
+    [ "-P, --param <name>=<value>",        "SPECBOOK_PARAM",   "value of a {name} parameter of the query selector (repeatable)" ],
     [ "-o, --output [<format>:]<file>",    "SPECBOOK_OUTPUT",  "output file, format inferred from its extension" ],
     [ "-w, --watch",                       "SPECBOOK_WATCH",   "re-export on every change of a source or an asset" ],
     [ "-O, --omit <aspect>[,...]",         "SPECBOOK_OMIT",    "omit diagrams (by type or nesting level) and long cell texts" ],
@@ -51,7 +54,7 @@ const options = [
     [ "-p, --port <tcp-port>",             "SPECBOOK_PORT",    "TCP port of the live preview (default 12345)" ],
     [ "-e, --embed",                       "SPECBOOK_EMBED",   "embed the schema configuration instead of referencing it" ],
     [ "-z, --compress [<level>]",          "SPECBOOK_COMPRESS", "compress the emitted schema configuration (levels 1-3)" ],
-    [ "-f, --format <format>",             "SPECBOOK_FORMAT",  "rendered Markdown (md) or raw file content (raw)" ],
+    [ "-f, --format <format>",             "SPECBOOK_FORMAT",  "query: json, json5, yaml, or toon; describe: rendered Markdown (md) or raw file content (raw)" ],
     [ "-p, --part <part>",                 "SPECBOOK_PART",    "document part: all, meta, schema, or spec" ]
 ]
 ---
@@ -61,7 +64,7 @@ const options = [
             Quickly <span class="text-accent">Get Started</span>
         </h2>
         <p class="sb-lead sb-justify">
-            <b>SpecBook</b> is a small, sharp command-line tool with exactly seven
+            <b>SpecBook</b> is a small, sharp command-line tool with exactly eight
             commands and no hidden workflow. You author Markdown, it lints and
             renders. The following gives you a few hints on how to quickly get
             started.
@@ -74,7 +77,7 @@ const options = [
                 <p class="sb-eyebrow">From Zero to Document</p>
                 <h3 class="sb-h3 flex items-start gap-2">
                     <Compass class="mt-1 h-6 w-6 shrink-0 sm:h-7 sm:w-7" stroke-width={0.75}/>
-                    <span>The Four Steps</span>
+                    <span>The Five Steps</span>
                 </h3>
                 <p class="mt-4 text-foreground-secondary sb-justify">
                     Start with <b><code>specbook init</code></b>, which generates
@@ -83,7 +86,10 @@ const options = [
                     sample object per kind, so the format is learnable from the
                     files alone). Without a <code>-c</code> option, the
                     bundled <i>standard</i> schema configuration applies, so you
-                    can start writing immediately.
+                    can start writing immediately. Unless a{" "}
+                    <code>.specbook.yaml</code> applies already, it records the
+                    effective <code>-c</code> and <code>-b</code> in a new one,
+                    so all later commands can omit them.
                 </p>
                 <p class="sb-indent-p text-foreground-secondary sb-justify">
                     While writing, keep <b><code>specbook preview</code></b>{" "}
@@ -93,7 +99,9 @@ const options = [
                     and your theme choice survive. Then let{" "}
                     <b><code>specbook lint</code></b> guard your Continuous
                     Integration, and let <b><code>specbook export</code></b>{" "}
-                    produce the deliverables.
+                    produce the deliverables. Finally, let{" "}
+                    <b><code>specbook query</code></b> pick out the nodes
+                    your own scripts and tools want to consume.
                 </p>
             </div>
             <div class="lg:order-2 relative">
@@ -120,6 +128,16 @@ const options = [
                             "**specbook** export -b docs/spec/ -w -o spec.html",
                             "**specbook** export -b docs/spec/\n-O diagram:2,text:long -o brief.pdf",
                             "**specbook** export -S -c pm -o schema.html"
+                        ]}
+                    />
+                    <Terminal
+                        class="mt-8"
+                        prefix="Shell"
+                        copy={true}
+                        title="Querying"
+                        commands={[
+                            "**specbook** query -b docs/spec/ -f yaml\n\"// ROLE\"",
+                            "**specbook** query -b docs/spec/ -P id=admin\n\"// ROLE [ @id == {id} ]\""
                         ]}
                     />
                 </div>
@@ -176,7 +194,11 @@ const options = [
             As <code>-c</code> is repeatable, <code>SPECBOOK_CONFIG</code> carries a list of patterns separated
             by the path delimiter of the platform. An entirely absent <code>-c</code> or <code>-b</code> falls
             back onto the <code>config</code> and <code>basedir</code> entries of the closest{" "}
-            <code>.specbook.yaml</code>, searched from the current directory upwards.
+            <code>.specbook.yaml</code>, searched from the current directory upwards (and written
+            by <code>specbook init</code> when none applies yet). Besides the files and glob patterns,{" "}
+            <code>-c</code> takes the bundled schema configurations <code>std</code> (the standard
+            one), <code>meta</code> (describing a schema configuration itself), and <code>pm</code>{" "}
+            (a project management handbook).
             The option <code>-c</code> also takes remote references (<code>npm:</code>,{" "}
             <code>github:</code>, and <code>https:</code>): <code>specbook search</code> finds the
             shareable ones, and <code>-F</code> controls when they are fetched.

@@ -43,8 +43,9 @@ catch (err) {
             hence also takes a <i>remote reference</i>: hand one to{" "}
             <code>-c</code>, and it is fetched, cached, versioned, and then
             merged exactly like a local file. To find one, ask{" "}
-            <code>specbook search</code>, which lists the bundled standard
-            schema configuration and queries the npm registry and GitHub.
+            <code>specbook search</code>, which lists the bundled schema
+            configurations (<code>std</code>, <code>meta</code>, and{" "}
+            <code>pm</code>) and queries the npm registry and GitHub.
         </p>
     </header>
 
@@ -96,7 +97,7 @@ catch (err) {
                     npm registry, honoring your <code>.npmrc</code>),{" "}
                     <code>github:&lt;user&gt;/&lt;repo&gt;[/&lt;path&gt;][#&lt;ref&gt;]</code> (a
                     repository at a branch, tag, or commit, honoring{" "}
-                    <code>GITHUB_TOKEN</code>), and a plain{" "}
+                    <code>SPECBOOK_GITHUB_TOKEN</code> or <code>GITHUB_TOKEN</code>), and a plain{" "}
                     <code>http://</code> or <code>https://</code> URL of a single file.
                 </p>
 
@@ -105,7 +106,9 @@ catch (err) {
                     one resolves through the <code>specbook.schema</code> entry of
                     its <code>package.json</code>, its own <code>.specbook.yaml</code>{" "}
                     (whose remote entries resolve transitively), or its{" "}
-                    <code>index.yaml</code>. Exact versions and commits are cached
+                    <code>index.yaml</code>. The download cache lives below{" "}
+                    <code>SPECBOOK_CACHE</code>, else the native cache directory
+                    of the platform. Exact versions and commits are cached
                     forever, floating ones for five minutes, and{" "}
                     <code>--fetch never</code> never touches the network at all,
                     while <code>--fetch always</code> fetches everything again.

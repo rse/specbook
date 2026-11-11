@@ -5,8 +5,9 @@ ChangeLog
 1.6.3 (2026-11-11)
 ------------------
 
--   BUGFIX [othr]: Document Schema Export Option on Website
-    The website now lists the option `-S`/`--schema` of `export` and `preview` in its usage section.
+-   BUGFIX [othr]: Bring Website in Sync with Tool
+    Documents `query`, `-S`, `-P`, `std`/`meta`/`pm`, the rationale syntax, and more, and corrects
+    the outdated claim that only the schema's `file` entries are loaded as specification files.
 
 1.6.2 (2026-11-02)
 ------------------

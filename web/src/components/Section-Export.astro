@@ -93,10 +93,21 @@ import { formats, interfaces }  from "../data/formats.ts"
 
                 <p class="text-foreground-secondary sb-indent-p sb-justify">
                     With <code>-w</code>, the schema configuration files, the
-                    referenced artifact files, and all embedded assets are
+                    base directory with all of its <code>.md</code> files (an
+                    added or removed one included), and all embedded assets are
                     observed, and every change re-exports once the sources stayed
                     silent for one second. A failed re-export is reported but
                     leaves the observe loop intact.
+                </p>
+
+                <p class="text-foreground-secondary sb-indent-p sb-justify">
+                    With <code>-S</code>, the effective schema configuration
+                    itself is exported instead of the specification: as a
+                    SpecBook document against the bundled <code>meta</code>{" "}
+                    schema configuration, with one object per artifact kind,
+                    artifact, object kind, property, and reference, their derived
+                    graphs, and a class diagram per artifact &mdash; in every
+                    export format, and live through <code>preview</code>, too.
                 </p>
 
                 <p class="text-foreground-secondary sb-indent-p sb-justify">
@@ -130,14 +141,27 @@ import { formats, interfaces }  from "../data/formats.ts"
                     implementation, so a command behaves identically no matter
                     which of them invoked it. The MCP service exposes the tools{" "}
                     <code>specbook_init</code>, <code>specbook_lint</code>,{" "}
-                    <code>specbook_export</code>, <code>specbook_describe</code>, and{" "}
-                    <code>specbook_search</code>.
+                    <code>specbook_export</code>, <code>specbook_query</code>,{" "}
+                    <code>specbook_describe</code>, and <code>specbook_search</code>.
                 </p>
 
                 <p class="text-foreground-secondary sb-indent-p sb-justify">
                     <code>preview</code> intentionally has no MCP tool, as it is
                     a long-running server rather than a one-shot command. Use{" "}
                     <code>specbook preview</code> from your own shell instead.
+                </p>
+
+                <p class="text-foreground-secondary sb-indent-p sb-justify">
+                    A script generating a foreign document out of a
+                    specification calls the API method <code>load()</code>: its{" "}
+                    <code>SpecBookDocument</code> runs XPath-like{" "}
+                    <a href="https://github.com/rse/astq">ASTq</a> selectors on
+                    the AST (with <code>refs()</code> following the references
+                    of an object), narrows the results through type guards, and
+                    renders texts through <code>plain()</code> and{" "}
+                    <code>html()</code>. The <code>query</code> command and the{" "}
+                    <code>specbook_query</code> tool write the matched nodes as
+                    JSON, JSON5, YAML, or TOON.
                 </p>
             </blockquote>
         </div>

@@ -114,7 +114,8 @@ export const highlights: Highlight[] = [
         body:    "A single HTML document with a title page, a table of contents (also as a slide-in " +
                  "side panel), a diagram of contents, a fuzzy full-text search, embedded images, " +
                  "PDF pages, Mermaid/D2 diagrams, and syntax-highlighted code listings, the folding " +
-                 "and maximizing of all of them, reference coverage tables, a scroll progress meter, description popups, and a " +
+                 "and maximizing of all of them, an artifact filter following the references, " +
+                 "reference coverage tables, a scroll progress meter, description popups, and a " +
                  "light/dark theme toggle. It can even be previewed live in the browser, updating " +
                  "in place on every change while the scroll position survives.",
         figure:  "/assets/screenshot-broadcast.png",
@@ -127,7 +128,10 @@ export const highlights: Highlight[] = [
         body:    "The specification can define its own base accent color (default is RGB #336699), " +
                  "plus optionally also the signal color, for coloring the specification's texts, " +
                  "tables and diagram boxes. In the HTML rendering you can even ad-hoc toggle between " +
-                 "a light and a dark variant of this theme.",
+                 "a light and a dark variant of this theme. Further document properties preset the " +
+                 "theme variant (<code>THEME-STYLE</code>), select the language of the typographic " +
+                 "quotes and the rationale keyword (<code>LANG</code>), and subset the embedded fonts " +
+                 "onto a character set (<code>CHARSET</code>).",
         figure:  "/assets/screenshot-theme.png",
         label:   "SpecBook Theming"
     },
