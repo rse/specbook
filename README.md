@@ -26,7 +26,8 @@ contexts through a YAML-based *schema configuration*. SpecBook allows
 specifications to be *initialized*, *linted*, *exported* (JSON, JSON5,
 YAML, TOON, HTML, PDF, and normalized Markdown), *previewed* (HTML, live
 in the browser), *queried* (ASTq selectors on the AST), and *described*
-to LLMs.
+to LLMs, while shareable schema configurations can be *searched* on npm
+and GitHub.
 
 **SpecBook** ships with an API class with methods `<xxx>()`, a
 CLI with commands `specbook <xxx>`, and an MCP service with tools
@@ -588,7 +589,7 @@ $ claude plugin install specbook@specbook
 /specbook lint   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>]
                  [-g|--gitignore]
 /specbook export [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-F|--fetch <mode>]
-                 [-g|--gitignore] [-O|--omit <aspect>[,...]]
+                 [-g|--gitignore] [-S|--schema] [-O|--omit <aspect>[,...]]
                  [-o|--output [<format>:]<output-file>] [...]
 /specbook edit   [-c|--config <yaml-file>] [-b|--basedir <basedir>] [-g|--grill]
                  [-r|--grill-rounds <n>] [-v|--verify] [-l|--loop] [<query>]
@@ -629,6 +630,7 @@ example data model:
 
 ```bash
 $ specbook export -v \
+    -c smp/sample/sample.yaml \
     -b smp/sample \
     -o smp/sample/sample.html \
     -o smp/sample/sample.pdf
@@ -655,8 +657,8 @@ application, based on **SpecBook**'s built-in "standard" schema:
 ```bash
 $ specbook export -v \
     -b smp/broadcast \
-    -o smp/broadcast/broadcast.html \
-    -o smp/broadcast/broadcast.pdf
+    -o smp/broadcast.html \
+    -o smp/broadcast.pdf
 ```
 
 ### HTML Rendering
@@ -682,7 +684,7 @@ handbook of its own beside the specification:
 ### Sources
 
 -   [Specification](smp/pm/)
--   [Schema](src/specbook-format-schema.d/)
+-   [Schema](src/specbook-format-schema.d/pm.yaml)
 
 ### Generation
 

@@ -9,6 +9,18 @@ ChangeLog
     Documents `query`, `-S`, `-P`, `std`/`meta`/`pm`, the rationale syntax, and more, and corrects
     the outdated claim that only the schema's `file` entries are loaded as specification files.
 
+-   UPDATE [infr]: Upgrade NPM Dependencies
+    Upgrades the NPM dependencies of the tool and the website (like `marked`, `playwright`,
+    `commander`, `astro`, and `tailwindcss`) and the website's PDF.js viewer.
+
+-   UPDATE [othr]: Refresh Website Samples and Contributors
+    Refreshes the Broadcast sample exports of the website and thanks Carol Gutzeit, Zoltan Ruzman,
+    and Michael Schäfer as contributors.
+
+-   CLEANUP [infr, othr]: Bring README and AGENTS in Sync with Implementation
+    Fixes the sample commands, the skill usage, and the stale `build-watch`/`lint-watch` targets,
+    and documents `describe -z 0`, the website PDF.js viewer, and its GitHub Pages deployment.
+
 1.6.2 (2026-11-02)
 ------------------
 

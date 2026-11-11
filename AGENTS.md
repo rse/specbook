@@ -8,7 +8,8 @@ format*, which is configured for particular contexts through a YAML
 *initialized*, *linted*, *exported* (JSON, JSON5, YAML, TOON, HTML, PDF,
 and normalized Markdown), *previewed* (HTML, live in the browser),
 *queried* (ASTq selectors on the AST), and
-*described* -- through an API class
+*described*, while shareable schema configurations are *searched* --
+through an API class
 `SpecBook`, a CLI `specbook <cmd>`, and an MCP service `specbook mcp`
 with tools `specbook_<cmd>`, where CLI and MCP are based entirely on the
 API.
@@ -272,8 +273,11 @@ API.
     with its own `sample.yaml` schema configuration), and the project
     management handbook of the Broadcast project (`pm/`, based on the
     bundled `pm` schema configuration, exported into the git-ignored
-    `smp/pm.*` files), plus the query sample `query.ts` (a foreign
-    document generated out of `broadcast/` through the API)
+    `smp/pm.*` files), each sample directory carrying its own
+    `.specbook.yaml` (which applies only when working inside it, so the
+    `sample-sample` and `sample-pm` targets pass `-c` explicitly), plus the query sample
+    `query.ts` (a foreign document generated out of `broadcast/` through
+    the API)
 -   `web/`: the project website, a self-contained Astro/Tailwind
     single-page application with its own `package.json`, `etc/stx.conf`,
     and `node_modules/` (see "Website" below)
@@ -292,6 +296,10 @@ API.
     frontmatter `description` forces the model to invoke it before any
     reading or changing of a specification); it never enters the npm
     package either
+-   `.github/workflows/static.yml`: the GitHub Actions workflow building
+    the website (`npm start build` in `web/`, with `SITE_URL` set) and
+    deploying `web/dst/` to GitHub Pages on every push to `master`
+    touching `web/`
 -   `dst/`: the compiled output (`main` is `dst/specbook-api.js`,
     `bin` `specbook` is `dst/specbook-cli.js`) -- never edit it; it is regenerated
 
@@ -304,8 +312,6 @@ script is `npm start`, which invokes stx with `etc/stx.conf`:
 npm start build            # lint + build-cmd
 npm start build-cmd        # tsc, stylus+postcss, and the asset copies (all into dst/)
 npm start lint             # eslint on src/*.ts and src/specbook-format-schema.d/*.yaml, markdownlint-cli2 on src/specbook-format.md and plugin/skills/*/*.md
-npm start build-watch      # nodemon rebuild on src/**/*.{ts,md}
-npm start lint-watch       # nodemon relint on src/**/*.{ts,md}
 npm start sample           # sample-broadcast + sample-sample + sample-pm + sample-query
 npm start sample-broadcast # lint smp/broadcast/, export it into all formats, and describe it
 npm start sample-sample    # lint smp/sample/ and export it into HTML and PDF
@@ -314,6 +320,8 @@ npm start sample-query     # query smp/broadcast/ through the API (smp/query.ts 
 npm start dev              # chokidar rebuild + dev-sample on src/ and smp/broadcast/ changes
 npm start dev-sample       # export smp/broadcast/ into smp/broadcast.html only
 npm start publish          # version bump (-i<part>), commit, tag, push, npm publish, GitHub release
+npm start publish-minor    # publish with a minor version bump
+npm start publish-major    # publish with a major version bump
 npm start clean            # remove regularly built files
 npm start distclean        # also remove node_modules and package-lock.json
 ```
@@ -340,13 +348,25 @@ oriented at `@rse/stx` again (`cd web && npm start <target>` with
 `web/etc/stx.conf`):
 
 ```
-npm start build      # lint + astro build
+npm start build      # lint + pdfjs + astro build
 npm start lint       # astro check + eslint on src/**/*.{ts,astro}
-npm start dev        # astro dev
+npm start pdfjs      # download and place the prebuilt PDF.js viewer into public/pdfjs/
+npm start dev        # pdfjs + astro dev
 npm start preview    # astro preview
-npm start clean      # remove dst
+npm start clean      # remove dst and public/pdfjs
 npm start distclean  # also remove node_modules and package-lock.json
 ```
+
+The `pdfjs` target (`web/etc/pdfjs.mjs`) fetches the pinned PDF.js
+release, trims it down to the viewer, and patches its defaults (a
+read-only, light-themed preview without the secondary toolbar) into the
+git-ignored `web/public/pdfjs/`. The "Sneak Preview" section shows the
+Broadcast sample through it: `web/public/assets/broadcast.html` (in an
+`<iframe>`) and `web/public/assets/broadcast.pdf` (in the viewer) are
+committed copies of the `smp/broadcast.*` exports, refreshed by hand.
+The "Sharing" section queries the npm registry at build time, and the
+GitHub Actions workflow `.github/workflows/static.yml` builds and deploys
+the website to GitHub Pages.
 
 The Astro configuration (`web/etc/astro.config.mjs`) adds a sitemap and a
 `robots.txt`, and a post-build integration which strips the Vite content
@@ -1146,7 +1166,7 @@ There, `-e`/`--embed` embeds the given YAML schema configuration itself
 instead of just referencing it, and `-z`/`--compress [<level>]` (default and
 bare flag `1`) emits the YAML schema configuration (embedded into the
 Markdown or as the `raw` file content) compressed instead of verbatim:
-level `1` re-emits it with 2-space indentation, unwrapped lines, and
+level `0` emits it verbatim, level `1` re-emits it with 2-space indentation, unwrapped lines, and
 without comments, level `2` additionally drops its `refs`, `badge`,
 `multiple`, `diagram`, and `format` fields, and level `3` additionally drops its `desc` fields of
 objects and properties. The MCP tool `specbook_describe` alone defaults to level `2`
