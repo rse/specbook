@@ -24,9 +24,9 @@ const commands = [
     { name: "lint",     purpose: "Parse and validate the whole corpus, reporting file- and line-precise diagnostics.",
       options: [ "-v", "-c", "-b", "-F", "-g" ] },
     { name: "export",   purpose: "Render the specification into one or more output formats, optionally watching the sources.",
-      options: [ "-v", "-c", "-b", "-F", "-g", "-o", "-w", "-O" ] },
+      options: [ "-v", "-c", "-b", "-F", "-g", "-S", "-o", "-w", "-O" ] },
     { name: "preview",  purpose: "Serve the HTML export live in the browser, updating it in place on every change.",
-      options: [ "-v", "-c", "-b", "-F", "-g", "-O", "-a", "-p" ] },
+      options: [ "-v", "-c", "-b", "-F", "-g", "-S", "-O", "-a", "-p" ] },
     { name: "describe", purpose: "Emit the description of the SpecBook models, formats, and the effective schema.",
       options: [ "-v", "-c", "-b", "-F", "-e", "-z", "-f", "-p", "-o" ] },
     { name: "search",   purpose: "Find shareable schema configurations: the bundled standard one, npm packages, and GitHub repositories.",
@@ -43,6 +43,7 @@ const options = [
     [ "-F, --fetch <mode>",                "SPECBOOK_FETCH",   "network access for remote references: never, auto (default), or always" ],
     [ "-s, --sample",                      "SPECBOOK_SAMPLE",  "scaffold a sample object per object kind instead of bare headings" ],
     [ "-g, --gitignore",                   "SPECBOOK_GITIGNORE", "treat artifact files excluded by the Git exclude rules as absent" ],
+    [ "-S, --schema",                      "SPECBOOK_SCHEMA",  "export the schema configuration itself as a SpecBook document (no -b then)" ],
     [ "-o, --output [<format>:]<file>",    "SPECBOOK_OUTPUT",  "output file, format inferred from its extension" ],
     [ "-w, --watch",                       "SPECBOOK_WATCH",   "re-export on every change of a source or an asset" ],
     [ "-O, --omit <aspect>[,...]",         "SPECBOOK_OMIT",    "omit diagrams (by type or nesting level) and long cell texts" ],
@@ -117,7 +118,8 @@ const options = [
                             "**specbook** export -b docs/spec/\n-o spec.html -o spec.pdf",
                             "**specbook** export -b docs/spec/ -o spec.yaml",
                             "**specbook** export -b docs/spec/ -w -o spec.html",
-                            "**specbook** export -b docs/spec/\n-O diagram:2,text:long -o brief.pdf"
+                            "**specbook** export -b docs/spec/\n-O diagram:2,text:long -o brief.pdf",
+                            "**specbook** export -S -c pm -o schema.html"
                         ]}
                     />
                 </div>

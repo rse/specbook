@@ -2,6 +2,12 @@
 ChangeLog
 =========
 
+1.6.3 (2026-11-11)
+------------------
+
+-   BUGFIX [othr]: Document Schema Export Option on Website
+    The website now lists the option `-S`/`--schema` of `export` and `preview` in its usage section.
+
 1.6.2 (2026-11-02)
 ------------------
 
