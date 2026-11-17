@@ -22,6 +22,13 @@ import { safe }
 const cellHeightDefault = 40
 const cellGainMin       = 25
 
+/*  the maximum number of tables of a document whose cell texts the
+    client-side folding lays out at once (a larger document has them
+    laid out lazily, once they come near the viewport), and the number
+    of tables it lays out lazily per animation frame  */
+const eagerTables = 250
+const tableBatch  = 8
+
 /*  the client-side script of the folding: it wraps every diagram of the
     content into a fold container carrying a chevron mark at its top
     left corner, folds the text of every table cell towering over the
@@ -34,7 +41,9 @@ const cellGainMin       = 25
     level on (1, 2, 3), and all cell texts at once, with their state
     persisted across page loads and their icons marked while they are
     active (the diagram ones, OR-combined) or any cell text is folded
-    (the tab icon while anything at all is). The script runs at
+    (the tab icon while anything at all is). The cell texts of a large
+    document are laid out lazily, once their tables come near the
+    viewport, so its loading does not stall. The script runs at
     the end of the body, as the content it wraps has to exist already,
     and a live preview body swap replaces the containers and their
     listeners along with the body. An export omitting aspects lacks
@@ -207,66 +216,69 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
             the cut, as the chevron itself can claim a line of its own)  */
         const cellGain = ${cellGainMin}
 
-        /*  lay out the text folds, which holds for the current line
-            breaks only and hence is redone on every change of them: the
-            previous cuts are taken back, with their fold state carried
-            over (a cell folding anew follows the others)  */
-        const layout = () => {${textless ? `
-            return` : ""}
-            const all = folds.text.length > 0 && folds.text.every((cell) => cell.classList.contains("folded"))
-            const state = new Map(folds.text.map((cell) => [ cell, cell.classList.contains("folded") ]))
-            folds.text.forEach(uncut)
-            folds.text.length = 0
+        /*  the tables whose cell texts can fold, the ones laid out
+            already, the fold state every cell folding anew adopts (the
+            stored or last chosen one of the text control), and the
+            per-cell fold states carried over a redone layout  */
+        const tables  = ${textless ? "[]" : "Array.from(document.querySelectorAll(\"article table\"))"}
+        const laid    = new Set()
+        const carried = new Map()
+        let textFolded = false
 
-            /*  decide which table cells fold: one which is taller than the
-                configured percentage above every other cell of its row (the
-                leading name column of a compact table excluded, as it is no
-                text of its own). All rows are measured before the first cut,
-                as every cut shifts the layout of the ones still to come  */
+        /*  lay out the text folds of a set of tables, which holds for the
+            current line breaks only and hence is redone on every change of
+            them. As every measurement after a change of the document
+            forces the browser to lay out the document again, all
+            measurements precede all changes: first the cells to fold are
+            decided (the ones taller than the configured percentage above
+            every other cell of their row, the leading name column of a
+            compact table excluded, as it is no text of its own) and the
+            last word position still fitting their height limit is found
+            by a binary search over their measured word positions, then all
+            of them are cut there (the text node split, the chevron mark
+            taking its place, followed by the remainder hidden up the
+            ancestor chain of the cell), then the gain of all applied folds
+            is measured (as only that one tells the real one), and finally
+            the folds gaining less than the minimum share are taken back
+            again, while the kept ones take their fold state  */
+        const foldTables = (list) => {
             const cuts = []
-            document.querySelectorAll("article table tr").forEach((row) => {
-                const table = row.closest("table")
-                let cells = Array.from(row.children).filter((el) => el.tagName === "TD")
-                if (!table.classList.contains("chunks"))
-                    cells = cells.slice(1)
-                cells = cells.filter(candidate)
-                if (cells.length < 2)
-                    return
-                const configured = row.closest("table[data-fold-height]")
+            for (const table of list) {
+                laid.add(table)
+                const configured = table.closest("table[data-fold-height]")
                 const percent = Number(configured?.getAttribute("data-fold-height")) || cellHeight
-                const heights = cells.map((cell) => height(cell))
-                cells.forEach((cell, i) => {
-                    const other = Math.max(...heights.filter((_, j) => j !== i))
-                    const limit = other * (1 + percent / 100)
-                    if (heights[i] > limit)
-                        cuts.push({ cell, limit, full: heights[i] })
-                })
-            })
-
-            /*  fold the decided cells back onto their height limit: the last
-                word position still fitting is found by a binary search over
-                the measured word positions, the text node is split there and
-                the chevron mark takes its place, followed by the remainder
-                hidden up the ancestor chain of the cell. All cells are
-                measured before the first cut and all cuts are applied before
-                their gain is measured, as every measurement after a change
-                of the document forces the browser to lay it out again  */
+                for (const row of table.rows) {
+                    let cells = Array.from(row.children).filter((el) => el.tagName === "TD")
+                    if (!table.classList.contains("chunks"))
+                        cells = cells.slice(1)
+                    cells = cells.filter(candidate)
+                    if (cells.length < 2)
+                        continue
+                    const heights = cells.map((cell) => height(cell))
+                    cells.forEach((cell, i) => {
+                        const other = Math.max(...heights.filter((_, j) => j !== i))
+                        const limit = other * (1 + percent / 100)
+                        if (heights[i] > limit)
+                            cuts.push({ cell, limit, full: heights[i], word: null, chevron: null })
+                    })
+                }
+            }
             for (const cut of cuts) {
-                const list = positions(cut.cell)
-                if (list.length === 0)
+                const words = positions(cut.cell)
+                if (words.length === 0)
                     continue
                 let lo = 0
-                let hi = list.length - 1
+                let hi = words.length - 1
                 while (lo < hi) {
                     const mid = Math.ceil((lo + hi) / 2)
-                    if (height(cut.cell, list[mid]) <= cut.limit)
+                    if (height(cut.cell, words[mid]) <= cut.limit)
                         lo = mid
                     else
                         hi = mid - 1
                 }
-                cut.word = list[lo]
+                cut.word = words[lo]
             }
-            const applied = cuts.filter((cut) => cut.word !== undefined)
+            const applied = cuts.filter((cut) => cut.word !== null)
             for (const cut of applied) {
                 const tail = cut.word.node.splitText(cut.word.offset)
                 cut.chevron = mark("fold-more", "fold/unfold the remaining text")
@@ -283,18 +295,14 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
                 }
                 cut.cell.classList.add("folded")
             }
-
-            /*  the gain is measured on the applied fold, as only that
-                one tells the real one, and a fold gaining less than the
-                minimum share is taken back again, while a kept fold
-                sheds the class again, as every cell starts out unfolded  */
             const gained = applied.map((cut) => height(cut.cell) <= cut.full * (1 - cellGain / 100))
             applied.forEach((cut, i) => {
                 if (!gained[i]) {
                     uncut(cut.cell)
                     return
                 }
-                cut.cell.classList.toggle("folded", state.get(cut.cell) ?? all)
+                cut.cell.classList.toggle("folded", carried.get(cut.cell) ?? textFolded)
+                carried.delete(cut.cell)
                 folds.text.push(cut.cell)
                 cut.chevron.addEventListener("click", (event) => {
                     /*  the cut can land inside a hyperlink, whose navigation
@@ -306,19 +314,111 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
                 })
             })
         }
-        layout()
 
-        /*  mark the text control while any cell text is folded, a diagram
-            control while it is active itself (as the sets of the diagram
-            controls overlap, the fold state of their diagrams tells
-            nothing), and the tab itself while anything at all is folded  */
+        /*  lay out the text folds of tables while the document is scrolled
+            to somewhere, keeping the content at the top of the viewport in
+            place: the scroll anchoring of the browser, which usually does
+            that, is confused by the intermediate layout of the folds (as
+            its anchor can move between the measurements), so it is
+            suspended meanwhile and the element at the top of the viewport
+            (the table row for a table cell, as a cell can be cut) is kept
+            in place by hand instead  */
+        const steady = (list) => {
+            const root = document.documentElement
+            const x    = window.innerWidth / 2
+            let   ref  = null
+            for (let y = 0; ref === null && y < window.innerHeight / 2; y += 16) {
+                const hit = document.elementFromPoint(x, y)
+                if (hit !== null && hit.closest("article") !== null && !(/^(?:ARTICLE|SECTION)$/).test(hit.tagName))
+                    ref = hit.closest("tr") ?? hit
+            }
+            const top = ref?.getBoundingClientRect().top ?? 0
+            root.style.overflowAnchor = "none"
+            foldTables(list)
+            if (ref !== null && ref.isConnected) {
+                const shift = ref.getBoundingClientRect().top - top
+                if (shift !== 0)
+                    window.scrollBy(0, shift)
+            }
+            root.style.overflowAnchor = ""
+        }
+
+        /*  the tables of a small document are laid out at once, so the
+            first rendering shows their folds already, while the ones of a
+            larger document are laid out lazily, as laying out all of them
+            up-front stalls its loading for a long time and the browser
+            does not even render the content far outside the viewport (see
+            "content-visibility" in the stylesheet): only the tables coming
+            near the viewport (within a generous margin, so they are laid
+            out before they get visible) are laid out, the nearest ones
+            first and in small batches per animation frame, so even a long
+            jump through the document never stalls the page. A running
+            search (which shows the remainders) defers it, and a live
+            preview body swap, which left this script behind, ends it  */
+        const eager    = tables.length <= ${eagerTables}
+        const near     = new Map()
+        let   pending  = false
+        let   observer = null
+        const distance = (rect) => rect.bottom < 0 ? -rect.bottom :
+            rect.top > window.innerHeight ? rect.top - window.innerHeight : 0
+        const request = () => {
+            if (pending || near.size === 0)
+                return
+            pending = true
+            requestAnimationFrame(flush)
+        }
+        const flush = () => {
+            pending = false
+            if (!tab.isConnected) {
+                observer.disconnect()
+                return
+            }
+            if (document.body.classList.contains("searching")) {
+                pending = true
+                setTimeout(() => {
+                    pending = false
+                    request()
+                }, 250)
+                return
+            }
+            const batch = Array.from(near.entries())
+                .filter(([ table ]) => !laid.has(table) && table.isConnected)
+                .sort((a, b) => distance(a[1]) - distance(b[1]))
+                .slice(0, ${tableBatch})
+                .map(([ table ]) => table)
+            if (batch.length === 0)
+                return
+            steady(batch)
+            sync()
+            request()
+        }
+        if (!eager) {
+            observer = new IntersectionObserver((entries) => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting)
+                        near.set(entry.target, entry.boundingClientRect)
+                    else
+                        near.delete(entry.target)
+                }
+                request()
+            }, { rootMargin: "100% 0px" })
+            tables.forEach((table) => { observer.observe(table) })
+        }
+
+        /*  mark the text control while any cell text is folded (where the
+            tables still to lay out count as carrying cells in the adopted
+            fold state), a diagram control while it is active itself (as
+            the sets of the diagram controls overlap, the fold state of
+            their diagrams tells nothing), and the tab itself while
+            anything at all is folded  */
         const active = new Set()
         const sync = () => {
+            const texts = folds.text.some((fold) => fold.classList.contains("folded"))
+                || (textFolded && laid.size < tables.length)
             for (const kind of Object.keys(folds))
-                controls[kind].classList.toggle("folded", kind === "text" ?
-                    folds.text.some((fold) => fold.classList.contains("folded")) : active.has(kind))
-            tab.classList.toggle("folded", Object.keys(folds).some((kind) =>
-                folds[kind].some((fold) => fold.classList.contains("folded"))))
+                controls[kind].classList.toggle("folded", kind === "text" ? texts : active.has(kind))
+            tab.classList.toggle("folded", texts || Object.keys(folds).some((kind) =>
+                kind !== "text" && folds[kind].some((fold) => fold.classList.contains("folded"))))
         }
 
         /*  fold exactly the diagrams at least one active control covers  */
@@ -338,17 +438,23 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
             catch { /*  an inaccessible storage just means no stored state  */ }
         }
         if (stored.text !== null)
-            folds.text.forEach((fold) => { fold.classList.toggle("folded", stored.text === "folded") })
+            textFolded = stored.text === "folded"
         if (stored.diagrams !== null) {
             stored.diagrams.split(",").filter((kind) => kind !== "text" && Object.hasOwn(folds, kind))
                 .forEach((kind) => { active.add(kind) })
             apply()
         }
+
+        /*  the text control folds all cell texts unless all of them are
+            folded already, including the ones of the tables still to lay
+            out, which adopt the chosen state once they are laid out  */
         for (const kind of Object.keys(folds)) {
             controls[kind].addEventListener("click", () => {
                 try {
                     if (kind === "text") {
-                        const all = !folds.text.every((fold) => fold.classList.contains("folded"))
+                        const all = !(folds.text.every((fold) => fold.classList.contains("folded"))
+                            && (textFolded || laid.size === tables.length))
+                        textFolded = all
                         folds.text.forEach((fold) => { fold.classList.toggle("folded", all) })
                         localStorage.setItem("specbook-fold-text", all ? "folded" : "unfolded")
                     }
@@ -363,13 +469,18 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
                 sync()
             })
         }
+        if (eager)
+            foldTables(tables)
         sync()
 
         /*  redo the text folds once the line breaks change, which a new
             viewport width and the arrival of the embedded fonts (still
-            loading while this script runs) cause. A running search
-            (which shows the remainders) defers it, and a live preview
-            body swap, which left this script behind, ends it  */
+            loading while this script runs) cause: the previous cuts are
+            taken back, with their fold state carried over, the tables
+            near the viewport are laid out anew right away and the others
+            once they come near it again. A running search (which shows
+            the remainders) defers it, and a live preview body swap, which
+            left this script behind, ends it  */
         let width = document.documentElement.clientWidth
         let timer = 0
         const relayout = () => {
@@ -379,8 +490,16 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
                 schedule()
                 return
             }
-            layout()
+            for (const cell of folds.text) {
+                carried.set(cell, cell.classList.contains("folded"))
+                uncut(cell)
+            }
+            folds.text.length = 0
+            const again = Array.from(laid).filter((table) => table.isConnected && (eager || near.has(table)))
+            laid.clear()
+            steady(again)
             sync()
+            request()
         }
         const schedule = () => {
             clearTimeout(timer)

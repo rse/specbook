@@ -189,7 +189,7 @@ const templates = {
     /*  <Object/>  */
     "Object": textframe`
         <section>
-            <h{{ Object.level }} id="{{ Object.id }}"{% if Object.anchor %} data-id="{{ Object.anchor }}"{% endif %}><span class="object-kind"{% if Object.info %} data-info="{{ Object.info }}" data-info-path="{{ Object.infopath }}"{% endif %}>{{ Object.kind }}:</span> <span class="object-name"{% if Object.spec %} data-info-spec="{{ Object.spec }}"{% endif %}>{{ Object.name }}</span>{% if Object.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if Object.paren %} <span class="anchor-paren">({{ Object.paren }})</span>{% endif %} <a href="#{{ Object.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></h{{ Object.level }}>
+            <h{{ Object.level }} id="{{ Object.id }}"{% if Object.anchor %} data-id="{{ Object.anchor }}"{% endif %}{% if Object.number %} style="counter-set: sec1 {{ Object.number }}"{% endif %}><span class="object-kind"{% if Object.info %} data-info="{{ Object.info }}" data-info-path="{{ Object.infopath }}"{% endif %}>{{ Object.kind }}:</span> <span class="object-name"{% if Object.spec %} data-info-spec="{{ Object.spec }}"{% endif %}>{{ Object.name }}</span>{% if Object.primary %} <span class="primary-marker">&#x2318;</span>{% endif %}{% if Object.paren %} <span class="anchor-paren">({{ Object.paren }})</span>{% endif %} <a href="#{{ Object.id }}"><span class="anchor-symbol">&#x2693;&#xFE0E;</span></a></h{{ Object.level }}>
             {{ Object.diagram }}
             {{ Object.properties }}
             {{ Object.description }}

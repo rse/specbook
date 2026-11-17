@@ -852,11 +852,15 @@ const renderCompact = (children: SpecObject[]): string => {
     } })
 }
 
-/*  recursively render an object into HTML  */
-const renderObject = (object: SpecObject, level: number, concise: boolean): string => {
+/*  recursively render an object into HTML, where a top-level object
+    carries its section number explicitly, as the rendering-skipped
+    top-level sections of the screen (see "content-visibility" in the
+    stylesheet) scope the section counter  */
+const renderObject = (object: SpecObject, level: number, concise: boolean, number?: number): string => {
     const properties = effectiveProperties(object)
     return scoped(object, () => render("Object", { Object: {
         level:       Math.min(level, 6),
+        number,
         kind:        object.kind,
         info:        infoKeyOf(object),
         infopath:    infoRefOf(object, false),
@@ -920,10 +924,11 @@ export const renderTitlePage = (object: SpecObject, created: string, modified: s
     } }))
 }
 
-/*  render an artifact into HTML  */
-export const renderArtifact = (artifact: SpecArtifact): string =>
+/*  render an artifact into HTML, numbering its top-level objects
+    from the given section number on  */
+export const renderArtifact = (artifact: SpecArtifact, first: number): string =>
     render("Artifact", { Artifact: {
-        objects: safe(artifact.objects.map((object) => renderObject(object, 1, false)).join(""))
+        objects: safe(artifact.objects.map((object, i) => renderObject(object, 1, false, first + i)).join(""))
     } })
 
 /*  provide the children of an object rendered with headings of their own
