@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.6.4 (2026-11-22)
+------------------
+
+-   UPDATE [infr]: No High Advisories in Transitive NPM Dependencies
+    Upgrades `@rse/mrcs`, `@rse/nunjucks-addons`, and `json-asty`, and pins fixed versions of
+    `underscore`, `axios`, and `fast-xml-parser` via overrides.
+
 1.6.3 (2026-11-11)
 ------------------
 
