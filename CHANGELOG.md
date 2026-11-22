@@ -2,6 +2,12 @@
 ChangeLog
 =========
 
+1.6.5 (2026-11-22)
+------------------
+
+-   BUGFIX [infr]: Re-Runnable Website Deployment
+    Names the Pages artifact per run attempt (like ASE), so a re-run no longer fails to find it.
+
 1.6.4 (2026-11-22)
 ------------------
 

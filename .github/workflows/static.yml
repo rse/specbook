@@ -7,50 +7,58 @@
 name: Deploy static content to Pages
 
 on:
-  push:
-    branches: [ "master" ]
-    paths:
-      - "web/**"
-      - ".github/workflows/static.yml"
-  workflow_dispatch:
+    push:
+        branches: [ "master" ]
+        paths:
+            -   "web/**"
+            -   ".github/workflows/static.yml"
+    workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+    contents: read
+    pages: write
+    id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+    group: "pages"
+    cancel-in-progress: false
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "24"
-      - name: Setup Pages
-        uses: actions/configure-pages@v6
-      - name: Install dependencies
-        working-directory: "web"
-        run: npm install
-      - name: Build website
-        working-directory: "web"
-        env:
-          SITE_URL: https://specbook.tools
-        run: npm start build
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: "web/dst"
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+    deploy:
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v7
+                with:
+                    persist-credentials: false
+            -   name: Setup Node.js
+                uses: actions/setup-node@v7
+                with:
+                    node-version: "26"
+                    cache: npm
+                    cache-dependency-path: web/package.json
+            -   name: Setup Pages
+                uses: actions/configure-pages@v6
+            -   name: Install dependencies
+                working-directory: web
+                run: npm install --no-audit --no-fund
+            -   name: Build website
+                working-directory: web
+                env:
+                    SITE_URL: https://specbook.tools
+                run: npm start build
+            -   name: Upload artifact
+                uses: actions/upload-pages-artifact@v5
+                with:
+                    path: "web/dst"
+                    name: github-pages-${{ github.run_attempt }}
+            -   name: Deploy to GitHub Pages
+                id: deployment
+                uses: actions/deploy-pages@v5
+                with:
+                    artifact_name: github-pages-${{ github.run_attempt }}
 
