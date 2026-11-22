@@ -43,7 +43,7 @@
         "randexp":                         "0.6.1",
         "wrap-ansi":                       "10.0.2",
         "playwright":                      "1.65.1",
-        "source-code-error":               "1.2.0",
+        "source-code-error":               "1.2.1",
         "commander":                       "15.1.0",
         "chalk":                           "6.0.1",
         "chokidar5":                       "npm:chokidar@5.0.0",
