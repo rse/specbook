@@ -9,11 +9,15 @@ ChangeLog
     `-b`, `SPECBOOK_BASEDIR`, and `basedir` accept several directories or glob patterns, whose
     `.md` files jointly form the specification, while `init` fills the first, literal one.
 
+-   UPDATE [infr]: Upgrade NPM Dependencies
+    Upgrades the NPM dependencies.
+
 1.6.5 (2026-11-22)
 ------------------
 
 -   UPDATE [infr]: Upgrade `source-code-error` to 1.2.1
     The new version depends on the deduplicated `strip-ansi` 6.0.1 instead of the outdated 6.0.0.
+
 -   BUGFIX [infr]: Re-Runnable Website Deployment
     Names the Pages artifact per run attempt (like ASE), so a re-run no longer fails to find it.
 
