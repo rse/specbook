@@ -95,7 +95,7 @@ export type SchemaDiagramCenter = {
 /*  the synthesized center edges of a "hub" diagram: the direction
     property of the node objects, the values mapping onto a
     node-to-center, center-to-node, or two-fold edge, and the
-    property naming the edges  */
+    properties naming the edges (their label and their "via" part)  */
 export type SchemaDiagramCenterEdges = {
     property:          string
     inbound?:          string

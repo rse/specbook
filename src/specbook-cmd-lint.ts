@@ -62,10 +62,14 @@ const reportCoverage = (specification: Spec, config: Schema, verbose: Verbose) =
         `${literal(covered.length)} of ${literal(covered.length + uncovered.length)} ` +
         `(${literal(coverageRatio(covered.length, covered.length + uncovered.length))}%)`
     for (const { schema, covered, uncovered } of referencedCoverage(index, schemas)) {
-        const chain = chainOf(index, covered[0] ?? uncovered[0])
+        /*  name the enclosing artifact only if all objects share one, which
+            the objects of a recurring artifact kind do not  */
+        const chains = [ ...covered, ...uncovered ].map((object) => chainOf(index, object))
+        const root   = chains.every((chain) => chain.length > 1 && chain[0] === chains[0][0]) ?
+            chains[0][0] : undefined
         verbose((schema.referenced ?? []).map((entry) => `"${literal(entry)}"`).join(" or ") +
             ` references ${ratio(covered, uncovered)} ${schema.kind} object(s)` +
-            (chain.length > 1 ? ` below ${label(chain[0])}` : ""), "detail")
+            (root !== undefined ? ` below ${label(root)}` : ""), "detail")
     }
     for (const [ object, entries ] of specCoverage(index, schemas))
         for (const { pattern, covered, uncovered } of entries) {
@@ -76,6 +80,27 @@ const reportCoverage = (specification: Spec, config: Schema, verbose: Verbose) =
                     `"${literal(pattern)}" object(s) unreferenced: ` +
                     uncovered.map(label).join(", "), "trace")
         }
+}
+
+/*  report the demanded artifacts absent from the specification,
+    against the artifact file configured for them below the first
+    base directory (where "init" would create them, present or not)
+    or else against the configuration  */
+const missingArtifacts = (specification: Spec, config: Schema,
+    basedir: string, configFile: string): Diagnostic[] => {
+    const found = new Set<SchemaObject>()
+    for (const artifact of specification.artifacts)
+        for (const object of artifact.objects) {
+            const schema = resolveArtifact(config, object)
+            if (schema !== undefined)
+                found.add(schema)
+        }
+    return config.filter((schema) => isDemanded(schema) && !found.has(schema)).map((schema): Diagnostic => {
+        const file  = schema.file !== undefined ? path.join(basedir, schema.file) : configFile
+        const paren = schema.id !== undefined ? ` (${schema.id})` : ""
+        return { file, line: 1, column: 1, severity: "error",
+            message: `missing artifact "${schema.kind}: ${schema.name ?? ""}${paren}"` }
+    })
 }
 
 /*  lint the specification Markdown files below the base directories
@@ -168,27 +193,9 @@ export const lint = (options: LintOptions): LintResult => {
     if (config !== undefined && result.specification.artifacts.length > 0)
         reportCoverage(result.specification, config, options.verbose)
 
-    /*  report the demanded artifacts absent from the specification,
-        against the artifact file configured for them below the first
-        base directory (where "init" would create them, present or not)
-        or else against the configuration  */
-    if (config !== undefined) {
-        const found = new Set<SchemaObject>()
-        for (const artifact of result.specification.artifacts)
-            for (const object of artifact.objects) {
-                const schema = resolveArtifact(config, object)
-                if (schema !== undefined)
-                    found.add(schema)
-            }
-        for (const schema of config) {
-            if (!isDemanded(schema) || found.has(schema))
-                continue
-            const file  = schema.file !== undefined ? path.join(basedirs[0], schema.file) : options.config[0]
-            const paren = schema.id !== undefined ? ` (${schema.id})` : ""
-            diagnostics.push({ file, line: 1, column: 1, severity: "error",
-                message: `missing artifact "${schema.kind}: ${schema.name ?? ""}${paren}"` })
-        }
-    }
+    /*  report the demanded artifacts absent from the specification  */
+    if (config !== undefined)
+        diagnostics.push(...missingArtifacts(result.specification, config, basedirs[0], options.config[0]))
     return { specification: result.specification, diagnostics, config, files: watched,
         origins: result.origins }
 }

@@ -49,7 +49,7 @@ export const specDirs = (patterns: string[]): string[] => {
 export const specFiles = (basedirs: string[]): string[] => {
     const files = new Array<string>()
     const seen  = new Set<string>()
-    const scan = (dir: string) => {
+    const scan  = (dir: string) => {
         let entries: fs.Dirent[]
         try {
             entries = fs.readdirSync(dir, { withFileTypes: true })

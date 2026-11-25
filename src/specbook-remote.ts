@@ -69,7 +69,7 @@ export const cacheDir = (() => {
 
 /*  whether a file resides in the download cache (and hence never changes)  */
 export const isCached = (file: string): boolean =>
-    path.resolve(file).startsWith(cacheDir + path.sep)
+    isBelow(file, cacheDir)
 
 /*  report the artifacts several schema configuration files define (and
     hence merge): as a detail, or unconditionally if two downloaded
@@ -317,7 +317,7 @@ const fetchUrl = async (ref: Ref & { kind: "url" }, options: RemoteOptions): Pro
     configuration file (or the map of the named building blocks) it
     offers and the SpecBook versions it supports  */
 interface Manifest {
-    specbook?: { schema?: string | Record<string, string> }
+    specbook?: { schema?: string | Record<string, string> | null }
     engines?:  Record<string, string>
 }
 
@@ -355,16 +355,13 @@ const fetchPackage = async (ref: Ref & { kind: "npm" | "github" }, label: string
 }
 
 /*  the directory (or file) inside a fetched package a reference names,
-    which has to exist, where a nested directory carrying a manifest of
-    its own has to support this SpecBook version, too  */
-const packageDir = (pkg: Package, ref: Ref & { kind: "npm" | "github" }, label: string): string => {
+    which has to exist  */
+const packageDir = (pkg: Package, ref: Ref & { kind: "npm" | "github" }): string => {
     if (ref.path === undefined)
         return pkg.root
     const dir = path.join(pkg.root, ...ref.path.split("/"))
     if (!fs.existsSync(dir))
         throw new Error(`"${ref.path}" does not exist in "${pkg.resolved}"`)
-    if (fs.statSync(dir).isDirectory())
-        manifestOf(dir, label)
     return dir
 }
 
@@ -414,15 +411,15 @@ export const resolveConfig = async (ref: string, options: RemoteOptions, chain: 
 
     /*  the path names a building block of the manifest, or a glob pattern inside the package  */
     const blocks = pkg.manifest?.specbook?.schema
-    const block  = typeof blocks === "object" && parsed.path !== undefined && Object.hasOwn(blocks, parsed.path) ?
-        blocks[parsed.path] : undefined
+    const block  = typeof blocks === "object" && blocks !== null && parsed.path !== undefined
+        && Object.hasOwn(blocks, parsed.path) ? blocks[parsed.path] : undefined
     if (block !== undefined)
         return [ path.join(pkg.root, ...safeSegments(ref, block)) ]
     else if (parsed.path !== undefined && (/[*?[{]/).test(parsed.path))
         return expandInside(path.join(pkg.root, ...parsed.path.split("/")))
 
     /*  the path names a file inside the package  */
-    const dir = packageDir(pkg, parsed, ref)
+    const dir = packageDir(pkg, parsed)
     if (!fs.statSync(dir).isDirectory())
         return [ dir ]
 
@@ -430,7 +427,7 @@ export const resolveConfig = async (ref: string, options: RemoteOptions, chain: 
     const schema = (dir === pkg.root ? pkg.manifest : manifestOf(dir, ref))?.specbook?.schema
     if (typeof schema === "string")
         return [ path.join(dir, ...safeSegments(ref, schema)) ]
-    else if (typeof schema === "object")
+    else if (typeof schema === "object" && schema !== null)
         throw new Error(`"${ref}" offers the named schema configurations ` +
             `${Object.keys(schema).map((name) => `"${name}"`).join(", ")} (append one as its path)`)
 
@@ -506,34 +503,34 @@ export const search = async (term: string, options: RemoteOptions): Promise<Sear
         options.verbose("searching the bundled schema configurations only (fetch mode \"never\")")
         return hits
     }
-    const guard = async (source: string, action: () => Promise<void>) => {
+    const guard = async (source: string, action: () => Promise<SearchHit[]>): Promise<SearchHit[]> => {
         try {
-            await action()
+            return await action()
         }
         catch (err) {
             options.verbose(`search of ${source} failed: ` +
                 (err instanceof Error ? err.message : String(err)), "none")
+            return []
         }
     }
 
-    /*  the npm registry, searched by keyword  */
-    await guard("the npm registry", async () => {
-        const result = await npmFetch.json("/-/v1/search", { ...npmOptions(options),
-            query: { text: `keywords:specbook-schema ${term}`.trim(), size: 50 } }) as unknown as NpmSearch
-        for (const { package: pkg } of result.objects)
-            hits.push({ ref: `npm:${pkg.name}`, name: pkg.name, version: pkg.version,
-                description: pkg.description, source: "npm" })
-    })
-
-    /*  GitHub, searched by topic  */
-    await guard("GitHub", async () => {
-        const query    = encodeURIComponent(`topic:specbook-schema ${term}`.trim())
-        const response = await download(`https://api.github.com/search/repositories?q=${query}&per_page=50`,
-            { ...githubHeaders(), Accept: "application/vnd.github+json" })
-        const result   = await response.json() as GithubSearch
-        for (const item of result.items)
-            hits.push({ ref: `github:${item.full_name}`, name: item.full_name,
-                description: item.description ?? undefined, source: "github" })
-    })
+    /*  the npm registry (searched by keyword) and GitHub (searched by topic), queried concurrently  */
+    const found = await Promise.all([
+        guard("the npm registry", async () => {
+            const result = await npmFetch.json("/-/v1/search", { ...npmOptions(options),
+                query: { text: `keywords:specbook-schema ${term}`.trim(), size: 50 } }) as unknown as NpmSearch
+            return result.objects.map(({ package: pkg }): SearchHit => ({ ref: `npm:${pkg.name}`,
+                name: pkg.name, version: pkg.version, description: pkg.description, source: "npm" }))
+        }),
+        guard("GitHub", async () => {
+            const query    = encodeURIComponent(`topic:specbook-schema ${term}`.trim())
+            const response = await download(`https://api.github.com/search/repositories?q=${query}&per_page=50`,
+                { ...githubHeaders(), Accept: "application/vnd.github+json" })
+            const result   = await response.json() as GithubSearch
+            return result.items.map((item): SearchHit => ({ ref: `github:${item.full_name}`,
+                name: item.full_name, description: item.description ?? undefined, source: "github" }))
+        })
+    ])
+    hits.push(...found.flat())
     return hits.filter((hit, i) => hits.findIndex((other) => other.ref === hit.ref) === i)
 }

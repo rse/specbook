@@ -76,9 +76,10 @@ const mergeConfig = (target: unknown, source: unknown, list?: string): unknown =
             if (Array.isArray(t) && Array.isArray(s))
                 return mergeConfig(t, s, key)
 
-            /*  a single diagram and a list of diagrams merge as lists  */
-            if (key === "diagram" && (Array.isArray(t) || Array.isArray(s))
-                && t !== undefined && t !== null && s !== undefined && s !== null)
+            /*  a single diagram and a list of diagrams merge as lists, and
+                so do two single diagrams of different types  */
+            if (key === "diagram" && t !== undefined && t !== null && s !== undefined && s !== null
+                && (Array.isArray(t) || Array.isArray(s) || identityOf(t, key) !== identityOf(s, key)))
                 return mergeConfig(Array.isArray(t) ? t : [ t ], Array.isArray(s) ? s : [ s ], key)
             return undefined
         })

@@ -339,11 +339,12 @@ export const svgInvertible = (svg: string): boolean => {
     if (back !== undefined && !/^\s*(?:none|transparent)\s*$/.test(back) && !light(back))
         return false
 
-    /*  the canvas size (in the user units of the viewBox, if any)  */
+    /*  the canvas origin and size (in the user units of the viewBox, if any)  */
     const attr   = (element: string, name: string) =>
         element.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1] ??
         element.match(new RegExp(`[\\s;"]${name}\\s*:\\s*([^;"]+)`))?.[1]
     const box    = attr(root, "viewBox")?.trim().split(/[\s,]+/).map(Number) ?? []
+    const origin = [ box[0] || 0, box[1] || 0 ]
     const width  = box[2] || parseFloat(attr(root, "width") ?? "")
     const height = box[3] || parseFloat(attr(root, "height") ?? "")
 
@@ -386,8 +387,8 @@ export const svgInvertible = (svg: string): boolean => {
             return false
         const xs = points.map(([ x, y ]) => m[0] * x + m[2] * y + m[4])
         const ys = points.map(([ x, y ]) => m[1] * x + m[3] * y + m[5])
-        return Math.min(...xs) <= 1 && Math.min(...ys) <= 1
-            && Math.max(...xs) >= width - 1 && Math.max(...ys) >= height - 1
+        return Math.min(...xs) <= origin[0] + 1 && Math.min(...ys) <= origin[1] + 1
+            && Math.max(...xs) >= origin[0] + width - 1 && Math.max(...ys) >= origin[1] + height - 1
     }
 
     /*  the topmost leading canvas-covering shape (outside of any
@@ -398,7 +399,9 @@ export const svgInvertible = (svg: string): boolean => {
     for (const shape of body.matchAll(/<(rect|path|circle|ellipse|line|polyline|polygon|text|use)\b[^>]*>/g)) {
         if (!covers(shape[1], shape[0]))
             break
-        fill = attr(shape[0], "fill") ?? "#000000"
+        const color = attr(shape[0], "fill") ?? "#000000"
+        if (color !== "none" && color !== "transparent")
+            fill = color
     }
     return fill === undefined || fill === "none" || fill === "transparent" || light(fill)
 }

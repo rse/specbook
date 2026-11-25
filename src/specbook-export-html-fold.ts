@@ -387,14 +387,16 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
             timer = setTimeout(relayout, 250)
         }
         const resized = () => {
-            if (!tab.isConnected)
-                window.removeEventListener("resize", resized)
-            else if (width !== document.documentElement.clientWidth) {
+            if (width !== document.documentElement.clientWidth) {
                 width = document.documentElement.clientWidth
                 schedule()
             }
         }
         window.addEventListener("resize", resized)
+        document.addEventListener("specbook-swap", () => {
+            window.removeEventListener("resize", resized)
+            clearTimeout(timer)
+        }, { once: true })
         document.fonts.ready.then(() => {
             if (tab.isConnected)
                 schedule()
@@ -448,7 +450,7 @@ export const omitLong = (omit: Set<OmitAspect> | null,
                     open.push(tag[2])
             }
             else if (count + token.length > limit)
-                return safe(out + token.slice(0, limit - count).replace(/\S*$/, "") +
+                return safe(out + token.slice(0, limit - count + 1).replace(/\S*$/, "") +
                     "<span class=\"omit\">[...]</span>" +
                     open.reverse().map((name) => `</${name}>`).join(""))
             else

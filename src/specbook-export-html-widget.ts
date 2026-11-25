@@ -18,19 +18,19 @@ export const themeScript = textframe`
         let style = null
         try { style = localStorage.getItem("specbook-theme") }
         catch { /*  an inaccessible storage just means no stored choice  */ }
-        const html = document.documentElement.classList
+        const classes = document.documentElement.classList
         if (style === null)
-            style = html.contains("theme-dark") ? "dark" : (html.contains("theme-light") ? "light" : null)
+            style = classes.contains("theme-dark") ? "dark" : (classes.contains("theme-light") ? "light" : null)
         if (style === null)
             style = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-        html.remove("theme-light", "theme-dark")
-        html.add("theme-" + style)
+        classes.remove("theme-light", "theme-dark")
+        classes.add("theme-" + style)
     })()
     function themeSwitch () {
-        const html  = document.documentElement.classList
-        const style = html.contains("theme-dark") ? "light" : "dark"
-        html.remove("theme-light", "theme-dark")
-        html.add("theme-" + style)
+        const classes = document.documentElement.classList
+        const style   = classes.contains("theme-dark") ? "light" : "dark"
+        classes.remove("theme-light", "theme-dark")
+        classes.add("theme-" + style)
         try { localStorage.setItem("specbook-theme", style) }
         catch { /*  an inaccessible storage just loses the choice  */ }
     }
@@ -51,7 +51,9 @@ export const placeholderStylesheet = textframe`
     its own page over WebSocket (the URL scheme "http"/"https" replaced with
     "ws"/"wss"), re-connects every second after a lost connection, and
     updates the page on a received "RELOAD" command as well as on every
-    re-established connection (as the server was restarted meanwhile).
+    re-established connection (as the server was restarted meanwhile)
+    and on the first connection of the placeholder page (as the "RELOAD"
+    of the first export may have passed before it connected).
     The update fetches the fresh page and replaces the document in place
     -- instead of reloading the page -- so the scroll position and the
     theme choice survive: the title, the stylesheet (if changed), and
@@ -125,6 +127,8 @@ export const realtimeScript = textframe`
                     lost = false
                     update()
                 }
+                else if (document.querySelector("div.placeholder") !== null)
+                    update()
             }
             ws.onmessage = (event) => {
                 if (event.data === "RELOAD")

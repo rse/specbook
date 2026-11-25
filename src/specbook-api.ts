@@ -138,14 +138,10 @@ export class SpecBook {
         const project = loadProject(cwd)
         if (project !== undefined)
             verbose(`using project configuration "${literal(project.file)}"`)
-        const env     = (name: string) => {
-            const value = process.env[name]
-            return value !== undefined && value !== "" ? value : undefined
-        }
-        const config  = patternsOf(options.config) ??
-            patternsOf(env("SPECBOOK_CONFIG")?.split(path.delimiter).filter((pattern) => pattern !== ""))
-        const basedir = patternsOf(options.basedir) ??
-            patternsOf(env("SPECBOOK_BASEDIR")?.split(path.delimiter).filter((pattern) => pattern !== ""))
+        const envList = (name: string) =>
+            process.env[name]?.split(path.delimiter).filter((pattern) => pattern !== "")
+        const config  = patternsOf(options.config)  ?? patternsOf(envList("SPECBOOK_CONFIG"))
+        const basedir = patternsOf(options.basedir) ?? patternsOf(envList("SPECBOOK_BASEDIR"))
         const given   = (value: string) =>
             options.cwd !== undefined ? path.resolve(cwd, value) : value
         const derived = (value: string) =>

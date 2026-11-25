@@ -71,13 +71,7 @@ const loadRules = (file: string, base: string, nocase: boolean): Rule[] => {
     catch {
         return []
     }
-    const rules = new Array<Rule>()
-    for (const line of text.split(/\r?\n/)) {
-        const rule = compileRule(line, base, nocase)
-        if (rule !== null)
-            rules.push(rule)
-    }
-    return rules
+    return text.split(/\r?\n/).flatMap((line) => compileRule(line, base, nocase) ?? [])
 }
 
 /*  locate the Git working tree containing a directory, i.e. the nearest

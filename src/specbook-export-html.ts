@@ -10,7 +10,7 @@ import type { Spec, SpecArtifact, SpecObject }
     from "./specbook-format-spec.js"
 import type { Schema, SchemaObject }
     from "./specbook-format-schema.js"
-import { buildLinkIndex, anchorPaths, plainText, referenceTargets }
+import { buildLinkIndex, anchorPaths, plainText, referenceTargets, type LinkIndex }
     from "./specbook-link.js"
 import { stylesheet, searchScript, isTitleObject, titleObject,
     documentTitle, documentLang, documentThemeStyle,
@@ -178,6 +178,20 @@ const filterRows = (artifacts: SpecArtifact[], paths: Map<SpecObject, string>) =
     return Array.from(rows.values())
 }
 
+/*  the reference table of the artifact filter: per object its parent
+    index, its anchor path segment (the path less the one of its parent),
+    and the indices of the objects its own texts reference  */
+const filterLinks = (index: LinkIndex, paths: Map<SpecObject, string>): FilterEntry[] => {
+    const positions = new Map<SpecObject, number>(index.map((node) => [ node.object, node.pos ]))
+    return index.map((node): FilterEntry => {
+        const path   = paths.get(node.object) ?? node.object.id
+        const parent = node.parent !== undefined ? paths.get(node.parent.object) : undefined
+        return [ node.parent?.pos ?? -1, parent !== undefined ? path.slice(parent.length + 1) : path,
+            referenceTargets(index, node.object).map((target) => positions.get(target) ?? -1)
+                .filter((pos) => pos >= 0) ]
+    })
+}
+
 /*  render the entire specification into a self-contained HTML document,
     with the build-time pre-assembled stylesheet embedded inline, the
     artifact timestamps aggregated into min(Created)/max(Modified),
@@ -281,19 +295,9 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         const objects   = artifacts.flatMap((artifact) => artifact.objects)
         const entries   = tocEntries(objects, tocPages)
 
-        /*  collect the reference table of the artifact filter: per
-            object its parent index, its anchor path segment (the path
-            less the one of its parent), and the indices of the objects
-            its own texts reference  */
-        const positions = new Map<SpecObject, number>(index.map((node) => [ node.object, node.pos ]))
-        const links     = index.map((node): FilterEntry => {
-            const path   = paths.get(node.object) ?? node.object.id
-            const parent = node.parent !== undefined ? paths.get(node.parent.object) : undefined
-            return [ node.parent?.pos ?? -1, parent !== undefined ? path.slice(parent.length + 1) : path,
-                referenceTargets(index, node.object).map((target) => positions.get(target) ?? -1)
-                    .filter((pos) => pos >= 0) ]
-        })
-        const rows = filterRows(artifacts, paths)
+        /*  collect the reference table and the grid rows of the artifact filter  */
+        const links = filterLinks(index, paths)
+        const rows  = filterRows(artifacts, paths)
 
         /*  the client-side scripts of the widgets and the side panel of
             the table of contents serve the screen only, so print (the

@@ -208,16 +208,15 @@ export const optimizeImages = async (specification: Spec, print: boolean,
             try {
                 /*  an image marked with its treatment on the dark theme is
                     optimized plain and marked again, a PDF page as its SVG  */
-                optimized = document !== undefined ? await optimizeSvg(document) :
-                    plain.content.startsWith("data:") ?
-                        await optimizeRaster(plain.content, print) : await optimizeSvg(plain.content)
+                optimized = document === undefined && plain.content.startsWith("data:") ?
+                    await optimizeRaster(plain.content, print) : await optimizeSvg(document ?? plain.content)
                 if (plain.dark !== undefined)
                     optimized = markDark(optimized, plain.dark)
             }
             catch (err) {
                 verbose?.("optimizing image failed (keeping the original): " +
                     (err instanceof Error ? err.message : String(err)))
-                optimized = document !== undefined ? document : content
+                optimized = document ?? content
             }
             if (document === undefined && optimized.length >= content.length)
                 optimized = content
@@ -230,10 +229,10 @@ export const optimizeImages = async (specification: Spec, print: boolean,
     /*  sweep the cache of the medium to the images of this
         optimization and report its figures  */
     imageCaches[medium] = cache
-    if (contents.size > 0)
-        verbose?.((cached === contents.size ?
+    if (cache.size > 0)
+        verbose?.((cached === cache.size ?
             `reusing ${literal(cached)} cached image(s) for ${medium}: ` :
-            `optimizing ${literal(contents.size)} image(s) for ${medium} (${literal(cached)} cached): `) +
+            `optimizing ${literal(cache.size)} image(s) for ${medium} (${literal(cached)} cached): `) +
             `${literal(Math.round(before / 1024))} KB -> ${literal(Math.round(after / 1024))} KB`)
     return cache
 }
@@ -255,7 +254,7 @@ const rasterInvertible = async (content: string): Promise<boolean> => {
     if (m === null)
         return false
     const { default: sharp } = await import("sharp")
-    const { data, info } = await sharp(Buffer.from(m[1], "base64"))
+    const { data, info }     = await sharp(Buffer.from(m[1], "base64"))
         .resize({ width: 128, height: 128, fit: "inside", withoutEnlargement: true })
         .ensureAlpha().raw().toBuffer({ resolveWithObject: true })
     let canvas = 0

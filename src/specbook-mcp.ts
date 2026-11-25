@@ -35,13 +35,14 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     /*  the input schema fields shared by the specification processing tools  */
     const remote    = "\"npm:<pkg>[@<range>][/<path>]\" or \"github:<user>/<repo>[/<path>][#<ref>]\""
-    const config    = z.array(z.string()).optional().describe("YAML schema configuration files, glob " +
+    const configOf  = (fallback = "") => z.array(z.string()).optional().describe("YAML schema configuration files, glob " +
         `patterns, or remote references (${remote}, or an "http[s]://..." URL), merged in order ` +
         "(\"std\" for the bundled standard schema configuration, \"meta\" for the bundled meta one, " +
         "\"pm\" for the bundled project management one; " +
         "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
         "of the project configuration file, else the bundled standard " +
-        "schema configuration)")
+        `schema configuration${fallback})`)
+    const config    = configOf()
     const basedir   = z.union([ z.string(), z.array(z.string()) ]).optional().describe("base directory " +
         "of the specification Markdown files, or glob pattern, or a list of them (the specification being " +
         "the union of their files, the first one receiving the artifact files of \"init\"; " +
@@ -132,19 +133,19 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         }
     }, async (args) => {
         try {
+            const { format, output, ...options } = args
+
             /*  an explicit format takes the output as a plain file path, while
                 otherwise the output is an "[<format>:]<file>" specification
                 (the "-" stdout sentinel returns the result directly)  */
-            const spec = args.format !== undefined || args.output === undefined ?
-                { format: args.format ?? "json", output: args.output } :
-                parseOutputSpec(args.output)
+            const spec = format !== undefined || output === undefined ?
+                { format: format ?? "json", output } :
+                parseOutputSpec(output)
             /*  the image references of the normalized Markdown are re-based
                 onto the directory of the output file (anchored by the API)  */
             const rebase = spec.format === "md" && spec.output !== undefined && spec.output !== "-" ?
                 path.dirname(spec.output) : undefined
-            const [ data ] = await specbook.export({ config: args.config, basedir: args.basedir,
-                cwd: args.cwd, fetch: args.fetch, formats: [ spec.format ], rebase: [ rebase ],
-                omit: args.omit, gitignore: args.gitignore, schema: args.schema })
+            const [ data ] = await specbook.export({ ...options, formats: [ spec.format ], rebase: [ rebase ] })
             if (spec.output !== undefined && spec.output !== "-") {
                 await fs.promises.writeFile(outputOf(args, spec.output), data)
                 return { content: [ { type: "text", text: `exported specification into "${spec.output}" (${data.length} bytes)` } ] }
@@ -212,13 +213,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
             "points to the artifacts of that particular project. The description can be reduced to a " +
             "single part and emitted as the raw original file content instead of Markdown.",
         inputSchema: {
-            config:   z.array(z.string()).optional().describe("YAML schema configuration files, glob " +
-                `patterns, or remote references (${remote}, or an "http[s]://..." URL), merged in order ` +
-                "(\"std\" for the bundled standard schema configuration, \"meta\" for the bundled meta one, " +
-                "\"pm\" for the bundled project management one; " +
-                "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
-                "of the project configuration file, else the bundled standard " +
-                "schema configuration, embedded)"),
+            config:   configOf(", embedded"),
             basedir:  z.union([ z.string(), z.array(z.string()) ]).optional().describe("base directory " +
                 "of the specification Markdown files, or glob pattern, or a list of them " +
                 "(default: the SPECBOOK_BASEDIR environment variable, else the \"basedir\" entry " +

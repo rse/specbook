@@ -204,23 +204,12 @@ const classDiagramOf = (artifacts: SchemaObject[], view: KindView): string | und
     return [ ...lines, ...relations ].join("\n") + "\n"
 }
 
-/*  generate the Markdown sources of the specification describing a
-    schema configuration (against the meta schema configuration): the
-    title artifact and one (recurring) ARTIFACT-KIND artifact per
-    artifact kind, holding one ARTIFACT object per artifact, the
-    OBJECT-KIND objects flat below their artifact (in
-    pre-order, named after their kind, qualified by the parent kind on
-    a collision), and the PROPERTY/REFERENCE objects below the artifacts
-    and object kinds, where the reference patterns of the configuration
-    are resolved at the kind level against a skeleton corpus  */
-const generateSources = (config: Schema, meta: Schema, files: string[],
-    labels: Map<string, string>, origins: ConfigOrigins): SourceFile[] => {
-    const now = new Date()
-
-    /*  the skeleton corpus standing in for the configuration: one object
-        per schema node, the artifacts carrying their ids and names, so
-        the reference patterns resolve onto the kinds through the
-        regular resolution  */
+/*  the kind-level resolution of the reference patterns: the ancestor
+    chains of the schema nodes and the schema nodes a list of reference
+    patterns matches, resolved through the regular resolution against a
+    skeleton corpus standing in for the configuration (one object per
+    schema node, the artifacts carrying their ids and names)  */
+const kindResolution = (config: Schema, now: Date): Omit<KindView, "metas"> => {
     const chains    = new Map<SchemaObject, SchemaObject[]>()
     const skeletons = new Map<SpecObject, SchemaObject>()
     const skeletonOf = (schema: SchemaObject, chain: SchemaObject[]): SpecObject => {
@@ -250,6 +239,39 @@ const generateSources = (config: Schema, meta: Schema, files: string[],
     }
     const targetsOfAll = (patterns: string[]): SchemaObject[] =>
         Array.from(new Set(patterns.flatMap(targetsOf)))
+    return { chains, targetsOfAll }
+}
+
+/*  the explanation of the meta model and the class diagram notation,
+    closing the abstract of the generated title  */
+const titleElaboration =
+    "Every artifact and object kind lists its properties (`PROPERTY`) and its " +
+    "reference-valued properties (`REFERENCE`, the edges of the diagrams, leading to the " +
+    "artifacts and object kinds the value constraint references), and every object kind " +
+    "names the artifact or object kind it is nested directly below (`PARENT`). The value " +
+    "constraints, name patterns, and configurations are quoted verbatim from the schema " +
+    "configuration.\n\n" +
+    "The UML class diagram of an artifact shows the artifact (stereotyped `artifact`) and " +
+    "its object kinds as classes with their properties as attributes (typed by the kind of " +
+    "their value constraint and their multiplicity), their nesting as compositions, and " +
+    "their reference-valued properties as associations labeled with the property and its " +
+    "arity, where a referenced artifact or object kind of another artifact appears as a bare class."
+
+/*  generate the Markdown sources of the specification describing a
+    schema configuration (against the meta schema configuration): the
+    title artifact and one (recurring) ARTIFACT-KIND artifact per
+    artifact kind, holding one ARTIFACT object per artifact, the
+    OBJECT-KIND objects flat below their artifact (in
+    pre-order, named after their kind, qualified by the parent kind on
+    a collision), and the PROPERTY/REFERENCE objects below the artifacts
+    and object kinds, where the reference patterns of the configuration
+    are resolved at the kind level against a skeleton corpus  */
+const generateSources = (config: Schema, meta: Schema, files: string[],
+    labels: Map<string, string>, origins: ConfigOrigins): SourceFile[] => {
+    const now = new Date()
+
+    /*  the ancestor chains and the kind-level reference targets  */
+    const { chains, targetsOfAll } = kindResolution(config, now)
 
     /*  the meta objects: the title, the artifact kinds, the artifacts,
         the object kinds, and the properties, where a property
@@ -341,17 +363,7 @@ const generateSources = (config: Schema, meta: Schema, files: string[],
         description: `The schema configuration ${labelsMd} specifies ${plural(kinds.size, "artifact kind")} ` +
             `with ${plural(config.length, "artifact")}, ${plural(stats.objects - config.length, "object kind")}, ` +
             `and ${plural(stats.links, "reference relationship")}.`,
-        elaboration: "Every artifact and object kind lists its properties (`PROPERTY`) and its " +
-            "reference-valued properties (`REFERENCE`, the edges of the diagrams, leading to the " +
-            "artifacts and object kinds the value constraint references), and every object kind " +
-            "names the artifact or object kind it is nested directly below (`PARENT`). The value " +
-            "constraints, name patterns, and configurations are quoted verbatim from the schema " +
-            "configuration.\n\n" +
-            "The UML class diagram of an artifact shows the artifact (stereotyped `artifact`) and " +
-            "its object kinds as classes with their properties as attributes (typed by the kind of " +
-            "their value constraint and their multiplicity), their nesting as compositions, and " +
-            "their reference-valued properties as associations labeled with the property and its " +
-            "arity, where a referenced artifact or object kind of another artifact appears as a bare class."
+        elaboration: titleElaboration
     }
 
     /*  the artifact kinds: their artifacts  */

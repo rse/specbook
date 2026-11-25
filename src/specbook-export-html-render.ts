@@ -423,13 +423,12 @@ const renderEmbeddings = (text: string, embedding: string[], framed = true): str
             continue
         const contents = embedding.slice(i, i + count).filter((content) => content !== "")
         i += count
-        if (contents.some((content) => embeddedSource(content) !== undefined || embeddedListing(content) !== undefined))
-            result.push(...contents.map((content) => {
-                const diagram = embeddedSource(content)
-                const listing = embeddedListing(content)
-                return diagram !== undefined ? renderEmbedded(diagram.language, diagram.source, m[1].trim()) :
-                    listing !== undefined && listings !== null ? renderListingBlock(listings, listing) : ""
-            }).filter((html) => html !== ""))
+        const decoded = contents.map((content) => ({ diagram: embeddedSource(content), listing: embeddedListing(content) }))
+        if (decoded.some(({ diagram, listing }) => diagram !== undefined || listing !== undefined))
+            result.push(...decoded.map(({ diagram, listing }) =>
+                diagram !== undefined ? renderEmbedded(diagram.language, diagram.source, m[1].trim()) :
+                    listing !== undefined && listings !== null ? renderListingBlock(listings, listing) : "")
+                .filter((html) => html !== ""))
         else if (!omitted) {
             const variants = contents.filter((content) => !isDocument(content) || images?.has(content) === true)
                 .map((content) => renderImage(content, m[1].trim(), count > 1 ? "none" : undefined))

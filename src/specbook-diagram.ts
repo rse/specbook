@@ -214,6 +214,41 @@ const optionValue = (ctx: DiagramContext, diagram: SchemaDiagram, node: SpecObje
     return value !== undefined ? plainText(value).trim() : undefined
 }
 
+/*  the explicit top-down order of a node of an "ordered" diagram: the
+    members of a container share one row (which Gradia wraps), while the
+    top-level nodes stack in document order, a synthetic container taking
+    the position of its first member (a "matrix" or "tree" knows no
+    container rows, so there every node takes its own position)  */
+const nodeOrder = (positions: Map<SpecObject, number>, nesting: DiagramNesting, type: DiagramType,
+    node: SpecObject): number => {
+    if (nesting.parentOf.has(node) && type !== "matrix" && type !== "tree")
+        return 0
+    let order = positions.get(node) ?? Number.MAX_SAFE_INTEGER
+    for (const [ member, container ] of nesting.parentOf)
+        if (container === node)
+            order = Math.min(order, positions.get(member) ?? order)
+    return order
+}
+
+/*  render a derived edge as a Gradia edge statement: the edge operator
+    carrying its name and arity, plus the message kind and the timing
+    constraints of a "sequence" diagram  */
+const renderEdge = (anchors: Map<SpecObject, string>, edge: DiagramEdge): string => {
+    const op = "--" +
+        (edge.name  !== undefined && edge.name  !== "" ? `(${nameToken(edge.name)})--` : "") + ">" +
+        (edge.arity !== undefined && edge.arity !== "" ? `[${arityToken(edge.arity)}]` : "")
+    const attrs = new Array<string>()
+    if (edge.kind !== undefined && edge.kind !== "sync")
+        attrs.push(`kind: ${edge.kind}`)
+    if (edge.duration !== undefined && edge.duration !== "")
+        attrs.push(`duration: ${atom(edge.duration)}`)
+    if (edge.time !== undefined && edge.time !== "")
+        attrs.push(`time: ${atom(edge.time)}`)
+    return `${atom(anchors.get(edge.source) ?? edge.source.id)} ${op} ` +
+        atom(anchors.get(edge.target) ?? edge.target.id) +
+        (attrs.length > 0 ? ` { ${attrs.join(", ")} }` : "")
+}
+
 /*  generate the Gradia spec text of a derived diagram, opened by a
     "#type" directive and the configured "#config" directives so every
     embedded spec is self-contained: one node statement per object (the
@@ -234,20 +269,7 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
             lines.push(`#config ${key} ${configValue(value)}`)
     lines.push("")
 
-    /*  the explicit top-down order of an "ordered" diagram: the members
-        of a container share one row (which Gradia wraps), while the
-        top-level nodes stack in document order, a synthetic container
-        taking the position of its first member (a "matrix" or "tree"
-        knows no container rows, so there every node takes its own position)  */
-    const orderOf = (node: SpecObject): number => {
-        if (nesting.parentOf.has(node) && type !== "matrix" && type !== "tree")
-            return 0
-        let order = positions.get(node) ?? Number.MAX_SAFE_INTEGER
-        for (const [ member, container ] of nesting.parentOf)
-            if (container === node)
-                order = Math.min(order, positions.get(member) ?? order)
-        return order
-    }
+    /*  one node statement per node object  */
     for (const node of nodes) {
         const anchor = anchors.get(node)
         const attrs  = new Array<string>()
@@ -287,7 +309,7 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
         if (diagram.nest?.layout !== undefined && nesting.containers.has(node))
             attrs.push(`container: ${diagram.nest.layout}`)
         if (diagram.ordered === true)
-            attrs.push(`order: ${orderOf(node)}`)
+            attrs.push(`order: ${nodeOrder(positions, nesting, type, node)}`)
         const badge = badgeOf(ctx, node)
         if (badge !== undefined)
             attrs.push(`badge: ${badge}`)
@@ -304,21 +326,15 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
         /*  the kind of a node of a "petri" diagram, plus the initial
             tokens and the capacity of a place, and the duration and the
             earliest start of a task of a "gantt" diagram  */
-        if (places !== undefined) {
+        if (places !== undefined)
             attrs.push(`petri: ${places.has(node) ? "place" : "transition"}`)
-            if (places.has(node))
-                for (const key of [ "tokens", "capacity" ] as const) {
-                    const value = optionValue(ctx, diagram, node, key)
-                    if (value !== undefined)
-                        attrs.push(`${key}: ${value}`)
-                }
+        const options = places?.has(node) === true ? [ "tokens", "capacity" ] as const :
+            type === "gantt" ? [ "duration", "start" ] as const : [] as const
+        for (const key of options) {
+            const value = optionValue(ctx, diagram, node, key)
+            if (value !== undefined)
+                attrs.push(`${key}: ${value}`)
         }
-        if (type === "gantt")
-            for (const key of [ "duration", "start" ] as const) {
-                const value = optionValue(ctx, diagram, node, key)
-                if (value !== undefined)
-                    attrs.push(`${key}: ${value}`)
-            }
 
         /*  attach the values of the configured properties as Gradia
             key/value attributes (a node lacking a property is fine, as
@@ -335,24 +351,8 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
         lines.push(`${atom(anchor ?? node.id)}: ${atom(plainText(node.name))}` +
             (attrs.length > 0 ? ` [ ${attrs.join(", ")} ]` : ""))
     }
-    if (edges.length > 0) {
-        lines.push("")
-        for (const edge of edges) {
-            const op = "--" +
-                (edge.name  !== undefined && edge.name  !== "" ? `(${nameToken(edge.name)})--` : "") + ">" +
-                (edge.arity !== undefined && edge.arity !== "" ? `[${arityToken(edge.arity)}]` : "")
-            const attrs = new Array<string>()
-            if (edge.kind !== undefined && edge.kind !== "sync")
-                attrs.push(`kind: ${edge.kind}`)
-            if (edge.duration !== undefined && edge.duration !== "")
-                attrs.push(`duration: ${atom(edge.duration)}`)
-            if (edge.time !== undefined && edge.time !== "")
-                attrs.push(`time: ${atom(edge.time)}`)
-            lines.push(`${atom(anchors.get(edge.source) ?? edge.source.id)} ${op} ` +
-                atom(anchors.get(edge.target) ?? edge.target.id) +
-                (attrs.length > 0 ? ` { ${attrs.join(", ")} }` : ""))
-        }
-    }
+    if (edges.length > 0)
+        lines.push("", ...edges.map((edge) => renderEdge(anchors, edge)))
     return lines.join("\n") + "\n"
 }
 
@@ -991,12 +991,12 @@ const nestDiagram = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramT
         return { nodes, edges, nesting: { parentOf: new Map(), containers: new Set(), furtherOf: new Map() } }
     }
     const nesting = deriveNesting(ctx, nest, nodes, nodeSet, errors, type === "tree")
-    const banded  = type === "layer" || type === "slice" || type === "gantt"
-    if ((banded || type === "tree" || type === "matrix") && nest.layout !== undefined)
+    const unboxed = type === "layer" || type === "slice" || type === "gantt"
+    if ((unboxed || type === "tree" || type === "matrix") && nest.layout !== undefined)
         errors.push({ reason: `"${type}" diagram cannot carry a "nest" layout configuration` })
-    if ((banded || type === "tree") && nest.crossing !== undefined && nest.crossing !== "nodes")
+    if ((unboxed || type === "tree") && nest.crossing !== undefined && nest.crossing !== "nodes")
         errors.push({ reason: `"${type}" diagram cannot carry a "nest" crossing configuration` })
-    if (banded) {
+    if (unboxed) {
         /*  a "layer" or "slice" diagram draws its containers as bands
             and cluster groups, a "gantt" one as the partitions of its
             rows, instead of as nodes, so they drop the edges ending at one  */

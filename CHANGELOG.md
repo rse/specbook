@@ -9,6 +9,10 @@ ChangeLog
     `-b`, `SPECBOOK_BASEDIR`, and `basedir` accept several directories or glob patterns, whose
     `.md` files jointly form the specification, while `init` fills the first, literal one.
 
+-   IMPROVEMENT [code]: Concurrent Schema Configuration Search
+    Queries the npm registry and GitHub concurrently in `search`, so the search takes the longer
+    instead of the sum of both round-trips.
+
 -   BUGFIX [code]: Remote Schema Configuration Containment
     Keeps the glob matches of a remote package inside it (also through brace expansions) and
     rejects the npm package names `.` and `..`, so no reference leaves its package or cache entry.
@@ -25,12 +29,28 @@ ChangeLog
     Re-bases the image references of a rationale in the Markdown export, accepts the `centerEdges`
     values in code spans, and reports no single file defining an artifact twice as an overlap.
 
+-   BUGFIX [code]: Diagram Merging, Code Span References, and Manifests
+    Merges two single diagrams of different types as two, ignores code span `[[...]]` in the
+    relation and `automaton` checks, and tolerates a `null` `specbook.schema` manifest entry.
+
+-   BUGFIX [code]: Live Preview Placeholder and Fold Listener
+    Updates a placeholder page whose first export finished before it connected, and drops the cell
+    text fold resize listener on every body swap instead of leaking the swapped-out body.
+
+-   BUGFIX [code]: Dark Theme Detection, Omitted Cell Texts, and Verbose Figures
+    Honors the `viewBox` origin and non-painting shapes on the SVG background check, keeps a fitting
+    last word under `--omit text:long`, and corrects the coverage and image figures.
+
 -   UPDATE [infr]: Upgrade NPM Dependencies
     Upgrades the NPM dependencies.
 
 -   CLEANUP [code]: Code Lint Corrections
     Splits the over-long class diagram, diagram derivation, and chunked table functions, merges the
     duplicated tab styles, drops the dead property fold height, and corrects drifted comments.
+
+-   CLEANUP [code]: Further Code Lint Corrections
+    Splits the over-long schema export, lint, diagram spec, and HTML functions, derives the tab
+    offsets from one formula, deduplicates the MCP options, and corrects drifted comments.
 
 1.6.5 (2026-11-22)
 ------------------

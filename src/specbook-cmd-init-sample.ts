@@ -212,8 +212,8 @@ const valueOf = (sample: Sample, prop: SchemaProperty, index: LinkIndex): string
     defaults, the automaton of the parent dictates the flags of a node
     (the first node is the initial one, the last node the final one) and
     the ends of an edge (from the first node to the last one), an
-    acyclic property is carried by the first object of its kind only,
-    and an optional property no candidate satisfies is left out, while
+    optional acyclic property is carried by the first object of its kind
+    only, and an optional property no candidate satisfies is left out, while
     a required one stays empty (which the check reports)  */
 const fill = (sample: Sample, index: LinkIndex) => {
     const automaton = sample.parent?.schema.automaton

@@ -29,8 +29,7 @@ type Heading = { title: string, subtitle?: string, logo: string }
 const anchorPages = async (pdf: Uint8Array): Promise<Map<string, number>> => {
     const { PDFDocument, PDFName, PDFDict, PDFArray, PDFRef } = await import("pdf-lib")
     const doc     = await PDFDocument.load(pdf)
-    const indexes = new Map<string, number>()
-    doc.getPages().forEach((page, index) => indexes.set(page.ref.toString(), index + 1))
+    const indexes = new Map<string, number>(doc.getPages().map((page, index) => [ page.ref.toString(), index + 1 ]))
 
     /*  map every named destination onto the page number of its target  */
     const pages = new Map<string, number>()
@@ -159,8 +158,8 @@ const decorationTemplates = (
     paper of every page, as Chromium clips print content to the page
     box (0.6rem at the 9pt print root)  */
 const drawBrandBar = async (doc: PDFDocument, accent: string) => {
-    const { rgb } = await import("pdf-lib")
-    const hex = accent.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
+    const { rgb }     = await import("pdf-lib")
+    const hex         = accent.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
     const [ r, g, b ] = (hex !== null ? hex.slice(1) : [ "00", "00", "00" ])
         .map((component) => parseInt(component, 16) / 255)
     for (const page of doc.getPages())
@@ -336,7 +335,7 @@ export const htmlToPdf = async (
         const { PDFDocument } = await import("pdf-lib")
         const merged = await PDFDocument.load(decorated)
         if (titlePage) {
-            const source = await PDFDocument.load(plain)
+            const source    = await PDFDocument.load(plain)
             const [ first ] = await merged.copyPages(source, [ 0 ])
             merged.removePage(0)
             merged.insertPage(0, first)

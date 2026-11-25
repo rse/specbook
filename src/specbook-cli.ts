@@ -146,10 +146,10 @@ const withGitignoreOption = (command: Command): Command => command
 /*  the parsed values of the common options plus the Git exclude one  */
 type ProcessOptions = CommonOptions & { gitignore: boolean }
 
-/*  provide the schema option of the HTML-rendering sub-commands, which
-    exports the effective schema configuration itself (described as a
-    specification of the bundled meta schema configuration) instead of
-    the specification below the base directories  */
+/*  provide the schema option of the exporting and querying sub-commands,
+    which exports (resp. queries) the effective schema configuration itself
+    (described as a specification of the bundled meta schema configuration)
+    instead of the specification below the base directories  */
 const withSchemaOption = (command: Command): Command => command
     .option("-S, --schema", "export the schema configuration itself as a SpecBook document " +
         "(described through the bundled meta schema configuration) instead of the specification " +

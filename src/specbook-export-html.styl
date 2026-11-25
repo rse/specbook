@@ -250,6 +250,11 @@ body::before
     body
         padding: 0
 
+/*  the vertical offset of the n-th (0-based) tab along the brand bar,
+    the tabs following each other in steps of 3.23rem  */
+tab-top(n)
+    round(0.97rem + n * 3.23rem, 2)
+
 /*  a tab riding right of the brand bar (fixed independent of the
     content scrolling, at its vertical offset and inset by a pixel or
     two from the bar), which follows the bar when the table of contents
@@ -272,7 +277,7 @@ tab(offset, inset = 1px)
     half-filled circle icon (drawn like the search icon, mimicking the
     U+25D0 glyph), which switches the color theme  */
 div.theme-switch
-    tab(0.97rem)
+    tab(tab-top(0))
     padding: 0.9rem 0.35rem
     line-height: 0
     cursor: pointer
@@ -294,7 +299,7 @@ div.theme-switch svg.theme-icon
     the description popups on and off (default), where the icon carries
     the mark colors in a rounded box while the popups are enabled  */
 div.info-switch
-    tab(4.20rem)
+    tab(tab-top(1))
     padding: 0.65rem 0.1rem
     line-height: 0
     cursor: pointer
@@ -427,7 +432,7 @@ div.info-popup.spec a.link-compact::before
     (a kind cell outlined while only some of its row is), like the
     filter icon itself while any artifact is  */
 div.filter-switch
-    tab(10.66rem)
+    tab(tab-top(3))
 div.filter-switch,
 div.fold-switch,
 div.search
@@ -536,7 +541,7 @@ div.filter-switch div.filter-kind.some
     like the fold icon itself, the mark colors in a rounded box while
     anything of their kind is folded  */
 div.fold-switch
-    tab(13.89rem)
+    tab(tab-top(4))
 div.fold-switch.folded svg.fold-icon
     color: var(--theme-color-specbook-mark-text)
     background-color: var(--theme-color-specbook-mark-back)
@@ -730,7 +735,7 @@ html.maximized
     a soft accent box for 2s (toggling every 250ms) after a content
     reload  */
 div.realtime-status
-    tab(20.35rem, 2px)
+    tab(tab-top(6), 2px)
     padding: 0.65rem 0.1rem
     line-height: 0
     -webkit-user-select: none
@@ -832,7 +837,7 @@ nav.toc-panel.open div.toc-tab
     box-shadow: 0.2rem 0 0.6rem rgba(0, 0, 0, 0.3)
 nav.toc-panel div.toc-tab
     position: absolute
-    top: 17.12rem
+    top: tab-top(5)
     left: calc(100% - 1px)
     padding: 0.9rem 0.35rem
     line-height: 0
@@ -1551,7 +1556,7 @@ div.titlepage div.description p + p:not(.rationale)
     right (and back in), where the icon carries the mark colors in a
     rounded box while a search filter is active  */
 div.search
-    tab(7.43rem)
+    tab(tab-top(2))
 body.searching div.search svg.search-icon
     color: var(--theme-color-specbook-mark-text)
     background-color: var(--theme-color-specbook-mark-back)

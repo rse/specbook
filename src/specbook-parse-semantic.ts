@@ -373,7 +373,7 @@ const referencedObjects = (ctx: ParseContext, object: SpecObject, name: string):
     if (property === undefined)
         return []
     const targets = new Array<SpecObject>()
-    for (const m of plainText(property.value).matchAll(referenceRegex)) {
+    for (const m of referenceText(property.value).matchAll(referenceRegex)) {
         const target = resolveUnique(ctx.linkIndex, m[1].trim(), object).target
         if (target !== undefined && !targets.includes(target))
             targets.push(target)
@@ -397,7 +397,7 @@ const checkAutomata = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject>
         if (automaton === undefined)
             continue
         const nodes   = object.children.filter((child) => child.kind === automaton.nodes)
-        const nodeSet = new Set<SpecObject>(nodes)
+        const nodeSet = new Set(nodes)
         const flagged = (node: SpecObject, name: string) => {
             const property = findProp(ctx, node, name)
             return property !== undefined && plainText(property.value).trim() === "true"
@@ -419,7 +419,7 @@ const checkAutomata = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject>
 
         /*  the transitive closure of a node set along a neighbor map  */
         const closure = (starts: SpecObject[], next: Map<SpecObject, Set<SpecObject>>) => {
-            const seen  = new Set<SpecObject>(starts)
+            const seen  = new Set(starts)
             const queue = [ ...starts ]
             for (const node of queue)
                 for (const other of next.get(node) ?? [])
@@ -465,7 +465,7 @@ const checkRelations = (ctx: ParseContext, schemas: Map<SpecObject, SchemaObject
                     group.push(object)
             }
     for (const [ prop, objects ] of groups) {
-        const members = new Set<SpecObject>(objects)
+        const members = new Set(objects)
         const locate  = (object: SpecObject) => {
             const meta     = ctx.metaOf(object)
             const property = findProp(ctx, object, prop.name)
@@ -612,13 +612,10 @@ export const validateReferences = (ctx: ParseContext, specification: Spec) => {
         check(object, object.name, meta.file, meta.line)
         for (const property of object.properties)
             check(object, property.value, meta.file, ctx.propMeta.get(property)?.line ?? meta.line)
-        if (object.description !== undefined) {
-            check(object, object.description.description, meta.file, meta.line)
-            if (object.description.rationale !== undefined)
-                check(object, object.description.rationale, meta.file, meta.line)
-            if (object.description.elaboration !== undefined)
-                check(object, object.description.elaboration, meta.file, meta.line)
-        }
+        const desc = object.description
+        for (const text of [ desc?.description, desc?.rationale, desc?.elaboration ])
+            if (text !== undefined)
+                check(object, text, meta.file, meta.line)
         object.children.forEach(walk)
     }
     for (const artifact of specification.artifacts)
