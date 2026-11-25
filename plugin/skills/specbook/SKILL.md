@@ -229,7 +229,8 @@ Procedure
 
         -   <opt-config/> to the list of all `-c`|`--config` values
             (the option is repeatable; default: empty list),
-        -   <opt-basedir/> to the `-b`|`--basedir` value (default: empty),
+        -   <opt-basedir/> to the list of all `-b`|`--basedir` values
+            (the option is repeatable; default: empty list),
         -   <opt-fetch/> to the `-F`|`--fetch` value of `init`, `lint`,
             and `export` (one of `never`, `auto`, or `always`; default: empty),
         -   <opt-sample/> to `true` for `-s`|`--sample` of `init`
@@ -294,7 +295,8 @@ Procedure
         the bundled standard schema configuration and `.`.
 
     6.  Set <params/> to the tool parameters `cwd: <cwd/>`, -- only if
-        <opt-basedir/> is not empty -- `basedir: <opt-basedir/>`,
+        <opt-basedir/> is not empty -- `basedir: <opt-basedir/>` (a
+        string array),
         -- only if <opt-config/> is not empty -- `config: <opt-config/>`
         (a string array), and -- only if <opt-fetch/> is not empty --
         `fetch: <opt-fetch/>`. You *MUST* pass <opt-basedir/>, <opt-config/>,
@@ -333,15 +335,17 @@ when the <query/> explicitly asks for an ad-hoc change.
     the `Created:`/`Modified:` frontmatter block) and the embedded YAML
     *schema configuration* (the allowed artifacts, object kinds,
     nestings, properties, and value constraints). Set <basedir/> to the
-    directory its **SpecBook SPEC Model** statement names (the effective
-    base directory, as resolved by the MCP service), or to <cwd/> if
-    the result carries no such statement. Do not output anything.
+    list of directories its **SpecBook SPEC Model** statement names (the
+    effective base directories, as resolved by the MCP service), or to
+    <cwd/> if the result carries no such statement. Do not output
+    anything.
     </if>
 
 2.  Resolve the specification Markdown files: they are *exactly* the
-    `.md` files below <basedir/> (recursively, except below `.`-prefixed
-    entries), as every one of them is a SpecBook one, while the `file`
-    fields of the artifacts in the schema configuration only tell where
+    `.md` files below the directories of <basedir/> (each file once,
+    recursively, except below `.`-prefixed entries), as every one of
+    them is a SpecBook one, while the `file` fields of the artifacts in
+    the schema configuration only tell where (below the first directory)
     `init` creates a file. Set <artifact-count/> to the number of those
     files. Do *not* read the files themselves in this item. Do not
     output anything.
@@ -378,10 +382,11 @@ explained, or modified *ad-hoc* in plain conversation -- i.e. *outside*
 of the commands of this skill:
 
 -   **Resolution**: You *MUST* resolve the specification Markdown files
-    as the `.md` files below <basedir/> (recursively, except below
-    `.`-prefixed entries) and *never* guess their file paths; a new
-    artifact file goes to the path the `file` field of its artifact in
-    the schema configuration names below <basedir/>.
+    as the `.md` files below the directories of <basedir/> (each file
+    once, recursively, except below `.`-prefixed entries) and *never*
+    guess their file paths; a new artifact file goes to the path the
+    `file` field of its artifact in the schema configuration names below
+    the first directory of <basedir/>.
 
 -   **Interpretation**: You *MUST* interpret the specification content
     strictly according to the retrieved SpecBook description: object
@@ -535,19 +540,19 @@ code, documentation, or other files are ever touched.
         and the `Created:`/`Modified:` frontmatter block) and the
         embedded YAML *schema configuration* (the allowed artifacts,
         object kinds, nestings, properties, and value constraints). Set
-        <basedir/> to the directory its **SpecBook SPEC Model**
-        statement names (the effective base directory, as resolved by
-        the MCP service), or to <cwd/> if the result carries no such
-        statement. Do not output anything.
+        <basedir/> to the list of directories its **SpecBook SPEC
+        Model** statement names (the effective base directories, as
+        resolved by the MCP service), or to <cwd/> if the result carries
+        no such statement. Do not output anything.
         </if>
 
     2.  Resolve the specification Markdown files: they are *exactly* the
-        `.md` files below <basedir/> (recursively, except below
-        `.`-prefixed entries), as every one of them is a SpecBook one.
-        You *MUST* *NEVER* guess other file paths, and a new artifact
-        file goes to the path the `file` field of its artifact in the
-        schema configuration names below <basedir/>. Do not output
-        anything.
+        `.md` files below the directories of <basedir/> (each file once,
+        recursively, except below `.`-prefixed entries), as every one of
+        them is a SpecBook one. You *MUST* *NEVER* guess other file
+        paths, and a new artifact file goes to the path the `file` field
+        of its artifact in the schema configuration names below the
+        first directory of <basedir/>. Do not output anything.
 
     3.  Read all resolved files which are related to <todo-what/> and
         <todo-how/>, and check the structure of the existing

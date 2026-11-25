@@ -42,8 +42,10 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
         "of the project configuration file, else the bundled standard " +
         "schema configuration)")
-    const basedir   = z.string().optional().describe("base directory of the specification Markdown files " +
-        "(default: the SPECBOOK_BASEDIR environment variable, else the \"basedir\" entry " +
+    const basedir   = z.union([ z.string(), z.array(z.string()) ]).optional().describe("base directory " +
+        "of the specification Markdown files, or glob pattern, or a list of them (the specification being " +
+        "the union of their files, the first one receiving the artifact files of \"init\"; " +
+        "default: the SPECBOOK_BASEDIR environment variable, else the \"basedir\" entry " +
         "of the project configuration file, else \".\")")
     const fetch     = z.enum(fetchModes).optional().describe("when to fetch the remote references through " +
         "the network (\"never\": the download cache only, \"auto\": whenever the download cache lacks them " +
@@ -68,11 +70,12 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     server.registerTool("specbook_init", {
         title:       "Initialize Specification",
-        description: "Initialize the configured specification artifact files below the base directory " +
+        description: "Initialize the configured specification artifact files below the first base directory " +
             "with their frontmatter and artifact heading (or, with \"sample\", with a sample object per " +
-            "allowed object kind), skipping already existing files, and " +
-            `create the project configuration file "${projectFile}" in the working directory, ` +
-            "persisting the effective schema configuration and base directory, unless one already applies.",
+            "allowed object kind), skipping the artifacts already present below any base directory and the " +
+            `already existing files, and create the project configuration file "${projectFile}" in the ` +
+            "working directory, persisting the effective schema configuration and base directories, " +
+            "unless one already applies.",
         inputSchema: { config, basedir, fetch, sample, cwd }
     }, async (args) => {
         try {
@@ -90,7 +93,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     server.registerTool("specbook_lint", {
         title:       "Lint Specification",
-        description: "Lint all specification Markdown files below the base directory against the " +
+        description: "Lint all specification Markdown files below the base directories against the " +
             "YAML schema configuration and return all diagnostics.",
         inputSchema: { config, basedir, fetch, gitignore, cwd }
     }, async (args) => {
@@ -108,7 +111,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     server.registerTool("specbook_export", {
         title:       "Export Specification",
-        description: "Export all specification Markdown files below the base directory (or, with " +
+        description: "Export all specification Markdown files below the base directories (or, with " +
             "\"schema\", the effective YAML schema configuration " +
             "itself, described as a SpecBook document through the bundled meta schema configuration) " +
             "as JSON, JSON5, " +
@@ -162,7 +165,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
 
     server.registerTool("specbook_query", {
         title:       "Query Specification",
-        description: "Load all specification Markdown files below the base directory (or, with " +
+        description: "Load all specification Markdown files below the base directories (or, with " +
             "\"schema\", the effective YAML schema configuration itself, described as a SpecBook document " +
             "through the bundled meta schema configuration), strictly validated, and query its Abstract " +
             "Syntax Tree (AST) with an XPath-like ASTq selector (like \"// USE-CASE [ @STATUS == 'Done' ]\"). " +
@@ -217,7 +220,8 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
                 "default: the SPECBOOK_CONFIG environment variable, else the \"config\" entry " +
                 "of the project configuration file, else the bundled standard " +
                 "schema configuration, embedded)"),
-            basedir:  z.string().optional().describe("base directory of the specification Markdown files " +
+            basedir:  z.union([ z.string(), z.array(z.string()) ]).optional().describe("base directory " +
+                "of the specification Markdown files, or glob pattern, or a list of them " +
                 "(default: the SPECBOOK_BASEDIR environment variable, else the \"basedir\" entry " +
                 "of the project configuration file)"),
             fetch,

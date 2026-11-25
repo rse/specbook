@@ -10,16 +10,18 @@ import * as path from "node:path"
 import { literal, type Verbose }           from "./specbook-verbose.js"
 import { type Schema, type SchemaObject }  from "./specbook-format-schema.js"
 import { renderDiagnostic }                from "./specbook-diagnostic.js"
-import { parseSpecification, specStatistics, isRecurring, type SourceFile }
+import { parseSpecification, specStatistics, isRecurring, resolveArtifact, type SourceFile }
     from "./specbook-parse.js"
 import { formatTimestamp, renderObjectMd } from "./specbook-export-md.js"
 import { titleProperties }                 from "./specbook-export-common.js"
 import { sampleArtifacts, wrapSample }     from "./specbook-cmd-init-sample.js"
+import { specDirs, specFiles, isPattern }  from "./specbook-files.js"
 
-/*  the options of the init command  */
+/*  the options of the init command, where "basedir" carries the
+    patterns of the base directories  */
 export interface InitOptions {
     config:  Schema
-    basedir: string
+    basedir: string[]
     sample:  boolean
     verbose: Verbose
 }
@@ -40,22 +42,46 @@ const titleList = (artifact: SchemaObject): string => {
 }
 
 /*  initialize the configured specification artifact files below the
-    base directory with their frontmatter and artifact headings (plus
-    the title properties), or, under "sample", with a sample object per
-    allowed object kind, where all artifacts configured onto the same
+    first base directory with their frontmatter and artifact headings
+    (plus the title properties), or, under "sample", with a sample object
+    per allowed object kind, where all artifacts configured onto the same
     file reside in it side by side, following each other on level 1  */
 export const initSpecification = (options: InitOptions): string[] => {
-    fs.mkdirSync(options.basedir, { recursive: true })
+    /*  the first base directory receives the artifact files, so it
+        has to be a literal path instead of a glob pattern  */
+    const basedir = options.basedir[0] ?? "."
+    if (isPattern(basedir))
+        throw new Error(`the first base directory "${basedir}" has to be a literal path ` +
+            "(instead of a glob pattern), as it receives the created artifact files")
+    fs.mkdirSync(basedir, { recursive: true })
     const now     = formatTimestamp(new Date())
     const created = new Array<string>()
 
+    /*  determine the configured artifacts already present anywhere below
+        the base directories (whatever their files are named), so they are
+        never created twice, where the diagnostics are irrelevant here  */
+    const present = new Set<SchemaObject>()
+    const parsed  = parseSpecification(specFiles(specDirs(options.basedir)).map((file) =>
+        ({ file, text: fs.readFileSync(file, "utf8") })), options.config)
+    for (const artifact of parsed.specification.artifacts)
+        for (const object of artifact.objects) {
+            const schema = resolveArtifact(options.config, object)
+            if (schema !== undefined)
+                present.add(schema)
+        }
+
     /*  group the configured artifacts by their file, preserving the
         schema order both of the files and of the artifacts within,
-        and skipping the already existing files  */
+        and skipping the already present artifacts and existing files  */
     const groups = new Map<string, SchemaObject[]>()
     for (const artifact of options.config) {
         if (artifact.file === undefined)
             continue
+        if (present.has(artifact)) {
+            options.verbose(`skipping existing artifact "${literal(artifact.kind)}: ` +
+                `${literal(artifact.name ?? "")}"`)
+            continue
+        }
         const group = groups.get(artifact.file)
         if (group === undefined)
             groups.set(artifact.file, [ artifact ])
@@ -63,7 +89,7 @@ export const initSpecification = (options: InitOptions): string[] => {
             group.push(artifact)
     }
     for (const file of groups.keys())
-        if (fs.existsSync(path.join(options.basedir, file))) {
+        if (fs.existsSync(path.join(basedir, file))) {
             options.verbose(`skipping existing artifact file "${literal(file)}"`)
             groups.delete(file)
         }
@@ -80,7 +106,7 @@ export const initSpecification = (options: InitOptions): string[] => {
         are named by the authors  */
     const sources = new Array<SourceFile>()
     for (const [ file, artifacts ] of groups) {
-        const target   = path.join(options.basedir, file)
+        const target   = path.join(basedir, file)
         const headings = artifacts.map((artifact) => {
             const sample = samples?.get(artifact)
             if (sample !== undefined)

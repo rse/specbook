@@ -154,9 +154,11 @@ API.
         registry and GitHub, the report of the artifacts several
         configuration files define, and the installation constants
         `version`, `standardConfig`, and `metaConfig`
-    -   `src/specbook-files.ts`: the recursive scan of the specification
-        Markdown files below the base directory (`specFiles`) and the
-        below-directory predicate (`isBelow`) of the Markdown output guard
+    -   `src/specbook-files.ts`: the expansion of the base directory
+        patterns (`specDirs`, `isPattern`), the recursive scan of the
+        specification Markdown files below the base directories
+        (`specFiles`), and the below-directory predicate (`isBelow`) of
+        the Markdown output guard
     -   `src/specbook-ignore.ts`: the Git exclude rules of the
         `--gitignore` option (`excluder`): the global excludes file,
         the `info/exclude` of the Git common directory, and the
@@ -436,7 +438,7 @@ service, and the skill never resolve it themselves): first through the
 environment variables `SPECBOOK_CONFIG`/`SPECBOOK_BASEDIR`, whose
 relative paths anchor like the ones of an explicit option, and then
 through the optional project configuration file `.specbook.yaml` (Valibot-validated entries
-`config`, a pattern or a list of them, and `basedir`), which is searched
+`config` and `basedir`, each a pattern or a list of them), which is searched
 from the working directory upwards to the filesystem root (the closest
 one wins) and whose relative paths resolve against its own directory; an
 explicit option wins over its environment variable, which wins over the
@@ -448,7 +450,7 @@ passes it): it starts the search, anchors the explicit relative paths
 otherwise the project paths are rendered relative to the process one.
 
 The `init` command also persists the effective `config` patterns (`std`
-if absent) and `basedir` (`.` if absent), relative to the working
+if absent) and `basedir` patterns (`.` if absent), relative to the working
 directory, into a new `.specbook.yaml` there (`writeProject` of
 `src/specbook-project.ts`), but only if no project configuration file
 applies at all, as a new one would shadow it.
@@ -609,21 +611,41 @@ last resort, it is optional by definition (`lint` never demands it),
 the bare `init` emits no heading for it, and `init --sample` names its
 sample object like a nested one.
 
+The base directory option `-b`/`--basedir` is repeatable like `-c`
+(the API option `basedir` as `string | string[]`, the MCP one likewise,
+and `SPECBOOK_BASEDIR` a `path.delimiter`-separated list), so a
+specification can span several directories not staying side by side,
+without ever scanning a common parent holding foreign Markdown files.
+`specDirs` of `src/specbook-files.ts` expands the patterns (in pattern
+order, alphabetically within a pattern, a literal path taken as-is even
+if absent, a glob pattern matching no directory being an error, and a
+directory named twice taken once) on every `lint` run, so a re-export
+of `--watch`/`preview` picks up a newly matching directory, and
+`describe` names the expanded directories.
+
 The `file` fields of the artifacts drive `init` only, which places the
-generated specification Markdown files below the base directory. The
-specification itself is *every* `.md` file below the base directory
+generated specification Markdown files below the *first* base
+directory, which it hence demands as a literal path (unlike all other
+commands), and which skips every configured artifact already present
+below any base directory (the existing files parsed and their artifacts
+resolved through `resolveArtifact`, whatever their files are named)
+besides never overwriting an existing file. The
+specification itself is *every* `.md` file below the base directories
 (`specFiles` of `src/specbook-files.ts`: recursively, the `.`-prefixed
-entries skipped, sorted by path), as all of them are taken for SpecBook
+entries skipped, each file taken once, as the directories can nest,
+sorted by path), as all of them are taken for SpecBook
 ones, whatever their names, and the artifacts are ordered along the
-schema configuration afterwards anyway. A base directory holding no
-`.md` file at all is the error `no specification files found`, and a
+schema configuration afterwards anyway. Base directories holding no
+`.md` file at all are the error `no specification files found`, while
+a single one holding none (with files in the others) is just a warning,
+and a
 demanded (neither `optional` nor recurring) artifact found in no file is
 the error `missing artifact "..."`, reported against its configured
-`file` below the base directory (where `init` would create it, present
+`file` below the first base directory (where `init` would create it, present
 or not), else against the schema configuration file. As a normalized
-Markdown output below the base directory would be parsed as a
+Markdown output below a base directory would be parsed as a
 specification file on the next run, `export` (and `preview`) refuses an
-`md` output whose re-basing directory is at or below the base directory
+`md` output whose re-basing directory is at or below any base directory
 (`guardRebase` of `src/specbook-api.ts`, `isBelow` of
 `src/specbook-files.ts`).
 
@@ -640,7 +662,8 @@ their precedence are Git's own: the global excludes file
 the one of its main working tree), and the `.gitignore` files from the
 working tree root down to the artifact file, where the last matching rule
 wins and an excluded ancestor directory excludes everything below it. A
-base directory outside any Git working tree excludes nothing.
+file follows the Git working tree of the first base directory holding
+it, and a base directory outside any Git working tree excludes nothing.
 
 The option `-S`/`--schema` of `export`, `preview`, and `query` (the API/MCP
 option `schema`, `SPECBOOK_SCHEMA`, default `false`) exports (resp. queries) the
@@ -785,7 +808,7 @@ directory.
 
 The export option `-w`/`--watch` performs the regular export and then
 observes the schema configuration files, the specification files, their
-embedded assets, and the base directory as a whole (below which only the
+embedded assets, and the base directories as a whole (below which only the
 `.md` files and the observed assets count, so an export output written
 into it never re-triggers the export, and whose `.`-prefixed directories
 are never entered), re-exporting once a change burst stayed silent for
@@ -794,7 +817,7 @@ loop intact and where `-` (stdout) and an output which is itself an
 observed source file are rejected as an output. The observed set is
 re-synchronized after every re-export, as an edit can add or drop an
 embedded asset, while an added or removed specification file is noticed
-through the base directory.
+through its base directory.
 
 The HTML export embeds the diagram SVGs at half their coordinate scale
 (the node names at about the document text size) and strips their
@@ -1160,7 +1183,7 @@ rendering passes, as the number column itself shifts the pagination.
 The `describe` command outputs `src/specbook-format.md` verbatim,
 followed by a "SpecBook Project Instantiation" section pointing to the
 YAML schema configuration (`-c`, falling back onto the embedded standard
-one) and the base directory (`-b`) whenever one of them is present.
+one) and the base directories (`-b`, expanded) whenever one of them is present.
 
 There, `-e`/`--embed` embeds the given YAML schema configuration itself
 instead of just referencing it, and `-z`/`--compress [<level>]` (default and

@@ -103,12 +103,18 @@ const withConfigOption = (command: Command, fallback: string): Command => comman
 const configOf = (opts: { config: string[] }): string[] | undefined =>
     opts.config.length > 0 ? opts.config : undefined
 
-/*  provide the base directory option, where an absent one is left to
-    the API, which resolves it through the environment variable
-    SPECBOOK_BASEDIR and the project configuration file  */
+/*  provide the repeatable base directory option, whose directories or
+    glob patterns jointly hold the specification, and determine its value,
+    where an absent one is left to the API, which resolves it through the
+    environment variable SPECBOOK_BASEDIR and the project configuration file  */
 const withBasedirOption = (command: Command, fallback: string): Command => command
-    .option("-b, --basedir <directory>", "base directory of the specification Markdown files " +
-        `(default: SPECBOOK_BASEDIR, else the "basedir" entry of "${projectFile}", else ${fallback})`)
+    .option("-b, --basedir <directory>", "base directory of the specification Markdown files, or glob pattern " +
+        "(repeatable, the specification being the union of their files, the first one receiving the " +
+        "artifact files of \"init\"; " +
+        `default: SPECBOOK_BASEDIR, else the "basedir" entry of "${projectFile}", else ${fallback})`,
+    (value: string, previous: string[]) => previous.concat(value), new Array<string>())
+const basedirOf = (opts: { basedir: string[] }): string[] | undefined =>
+    opts.basedir.length > 0 ? opts.basedir : undefined
 
 /*  provide the fetch option, which selects when the remote references
     are fetched through the network, and determine its value  */
@@ -126,7 +132,7 @@ const withCommonOptions = (command: Command): Command =>
         "the bundled standard schema configuration"), "\".\""))
 
 /*  the parsed values of the common options  */
-type CommonOptions = VerboseOption & { config: string[], basedir?: string, fetch: string }
+type CommonOptions = VerboseOption & { config: string[], basedir: string[], fetch: string }
 
 /*  provide the Git exclude option of the specification *reading*
     sub-commands (not of "init", which creates artifact files instead of
@@ -196,13 +202,13 @@ withVerboseOption(program.command("mcp"))
     with a sample object per allowed object kind) and, unless one already
     applies, the project configuration file  */
 withCommonOptions(program.command("init"))
-    .description("initialize the configured specification artifact files below the base directory")
+    .description("initialize the configured specification artifact files below the first base directory")
     .option("-s, --sample", "scaffold a sample object per allowed object kind into the artifact files, " +
         "with placeholder values satisfying the schema configuration",
     envDefaultFlag("sample", false))
     .action(async (opts: CommonOptions & { sample: boolean }) => {
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        const result   = await specbook.init({ config: configOf(opts), basedir: opts.basedir,
+        const result   = await specbook.init({ config: configOf(opts), basedir: basedirOf(opts),
             fetch: fetchOf(opts), sample: opts.sample })
         await writeStdout((result.files.length > 0 ?
             `initialized artifact file(s): ${result.files.join(", ")}\n` :
@@ -213,11 +219,11 @@ withCommonOptions(program.command("init"))
 
 /*  the lint command reports all diagnostics and fails on any error  */
 withGitignoreOption(withCommonOptions(program.command("lint")))
-    .description("lint the specification Markdown files below the base directory")
+    .description("lint the specification Markdown files below the base directories")
     .action(async (opts: ProcessOptions) => {
         const verbose  = verboseOf(opts)
         const specbook = new SpecBook({ verbose })
-        const result   = await specbook.lint({ config: configOf(opts), basedir: opts.basedir,
+        const result   = await specbook.lint({ config: configOf(opts), basedir: basedirOf(opts),
             fetch: fetchOf(opts), gitignore: opts.gitignore })
         const detailed = parseVerbosity(opts.verbose) > 0
         for (const diagnostic of result.diagnostics)
@@ -232,7 +238,7 @@ withGitignoreOption(withCommonOptions(program.command("lint")))
 
 /*  the export command parses the input once and writes every output  */
 withSchemaOption(withOmitOption(withGitignoreOption(withCommonOptions(program.command("export")))))
-    .description("export the specification Markdown files below the base directory " +
+    .description("export the specification Markdown files below the base directories " +
         "(or the schema configuration itself) as JSON, JSON5, YAML, TOON, HTML, PDF, or normalized Markdown")
     .option("-w, --watch", "keep the outputs in sync by re-exporting on every source change",
         envDefaultFlag("watch", false))
@@ -273,11 +279,11 @@ withSchemaOption(withOmitOption(withGitignoreOption(withCommonOptions(program.co
         const formats  = distinct.map(({ format }) => format)
         const rebase   = distinct.map(rebaseOf)
         if (opts.watch)
-            await specbook.watch({ config: configOf(opts), basedir: opts.basedir, fetch: fetchOf(opts),
+            await specbook.watch({ config: configOf(opts), basedir: basedirOf(opts), fetch: fetchOf(opts),
                 formats, rebase, omit: omitOf(opts), gitignore: opts.gitignore, schema: opts.schema,
                 outputs: outputs.map(({ output }) => output), onExport: write })
         else
-            await write(await specbook.export({ config: configOf(opts), basedir: opts.basedir, fetch: fetchOf(opts),
+            await write(await specbook.export({ config: configOf(opts), basedir: basedirOf(opts), fetch: fetchOf(opts),
                 formats, rebase, omit: omitOf(opts), gitignore: opts.gitignore, schema: opts.schema }))
     })
 
@@ -293,14 +299,14 @@ withSchemaOption(withOmitOption(withGitignoreOption(withCommonOptions(program.co
         if (!Number.isInteger(port) || port < 1 || port > 65535)
             throw new Error(`invalid TCP port "${opts.port}"`)
         const specbook = new SpecBook({ verbose: verboseOf(opts) })
-        await specbook.preview({ config: configOf(opts), basedir: opts.basedir, fetch: fetchOf(opts),
+        await specbook.preview({ config: configOf(opts), basedir: basedirOf(opts), fetch: fetchOf(opts),
             addr: opts.addr, port, omit: omitOf(opts), gitignore: opts.gitignore, schema: opts.schema })
     })
 
 /*  the query command loads the specification and writes the
     nodes an ASTq selector matches as JSON, JSON5, YAML, or TOON  */
 withSchemaOption(withGitignoreOption(withCommonOptions(program.command("query"))))
-    .description("query the specification Markdown files below the base directory " +
+    .description("query the specification Markdown files below the base directories " +
         "(or the schema configuration itself) with an ASTq selector, writing the matched nodes " +
         "as JSON, JSON5, YAML, or TOON")
     .argument("<selector>", "the ASTq selector of the nodes to write")
@@ -324,7 +330,7 @@ withSchemaOption(withGitignoreOption(withCommonOptions(program.command("query"))
             params[m[1]] = m[2]
         }
         const specbook = new SpecBook({ verbose })
-        const document = await specbook.load({ config: configOf(opts), basedir: opts.basedir,
+        const document = await specbook.load({ config: configOf(opts), basedir: basedirOf(opts),
             fetch: fetchOf(opts), gitignore: opts.gitignore, schema: opts.schema })
         await writeOutput(output.output, renderNodes(document.query(selector, params), output.format),
             "query", verbose)
@@ -350,7 +356,7 @@ withFetchOption(withBasedirOption(withConfigOption(withVerboseOption(program.com
         format: string, part: string, output: string }) => {
         const verbose  = verboseOf(opts)
         const specbook = new SpecBook({ verbose })
-        const text     = await specbook.describe({ config: configOf(opts), basedir: opts.basedir,
+        const text     = await specbook.describe({ config: configOf(opts), basedir: basedirOf(opts),
             fetch: fetchOf(opts), embed: opts.embed, compress: parseCompressLevel(opts.compress),
             format: parseDescribeFormat(opts.format), part: parseDescribePart(opts.part) })
         await writeOutput(opts.output, text, "describe", verbose)

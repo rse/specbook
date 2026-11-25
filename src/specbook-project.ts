@@ -24,12 +24,14 @@ export const isRemote = (value: string): boolean =>
     value === "std" || value === "meta" || value === "pm" || (/^(?:npm|github):|^https?:\/\//).test(value)
 
 /*  the schema of the YAML project configuration: the files or glob
-    patterns of the YAML schema configuration and the base directory
-    of the specification Markdown files  */
+    patterns of the YAML schema configuration and the directories or
+    glob patterns of the base directories of the specification
+    Markdown files, each a single one or a list of them  */
+const ProjectPatterns = v.optional(v.union([ v.pipe(v.string(), v.minLength(1)),
+    v.pipe(v.array(v.pipe(v.string(), v.minLength(1))), v.minLength(1)) ]))
 const ProjectEntries = v.strictObject({
-    config:  v.optional(v.union([ v.pipe(v.string(), v.minLength(1)),
-        v.pipe(v.array(v.pipe(v.string(), v.minLength(1))), v.minLength(1)) ])),
-    basedir: v.optional(v.pipe(v.string(), v.minLength(1)))
+    config:  ProjectPatterns,
+    basedir: ProjectPatterns
 }, (issue) =>
     issue.expected === "never" ? "unknown project configuration entry" :
         "expected a map of project configuration entries")
@@ -38,7 +40,7 @@ const ProjectEntries = v.strictObject({
 export interface Project {
     file:     string
     config?:  string[]
-    basedir?: string
+    basedir?: string[]
 }
 
 /*  whether a path names an existing regular file, where an
@@ -128,20 +130,22 @@ export const loadProjectFile = (file: string): Project => {
     /*  resolve the relative paths against the directory of the file  */
     const base     = path.dirname(file)
     const { config, basedir } = result.output
-    const patterns = typeof config === "string" ? [ config ] : config
+    const patterns = typeof config  === "string" ? [ config ]  : config
+    const basedirs = typeof basedir === "string" ? [ basedir ] : basedir
     return {
         file,
         config:  patterns?.map((pattern) => isRemote(pattern) ? pattern : path.resolve(base, pattern)),
-        basedir: basedir !== undefined ? path.resolve(base, basedir) : undefined
+        basedir: basedirs?.map((pattern) => path.resolve(base, pattern))
     }
 }
 
 /*  write a new project configuration file into the directory, with the
-    schema configuration patterns and the base directory given relative
-    to it, never overwriting an existing file  */
-export const writeProject = (dir: string, config: string[], basedir: string): string => {
+    schema configuration patterns and the base directory patterns given
+    relative to it, never overwriting an existing file  */
+export const writeProject = (dir: string, config: string[], basedir: string[]): string => {
     const file = path.join(dir, projectFile)
-    const text = stringify({ config: config.length === 1 ? config[0] : config, basedir })
+    const text = stringify({ config: config.length === 1 ? config[0] : config,
+        basedir: basedir.length === 1 ? basedir[0] : basedir })
     fs.writeFileSync(file, text, { encoding: "utf8", flag: "wx" })
     return file
 }

@@ -2,6 +2,13 @@
 ChangeLog
 =========
 
+1.6.6 (2026-11-25)
+------------------
+
+-   FEATURE [code, docs]: Multiple Base Directories
+    `-b`, `SPECBOOK_BASEDIR`, and `basedir` accept several directories or glob patterns, whose
+    `.md` files jointly form the specification, while `init` fills the first, literal one.
+
 1.6.5 (2026-11-22)
 ------------------
 

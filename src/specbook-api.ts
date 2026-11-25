@@ -15,7 +15,7 @@ import { renderDiagnostic, renderDiagnosticVerbose, type Diagnostic, type Diagno
     from "./specbook-diagnostic.js"
 import { initSpecification }                             from "./specbook-cmd-init.js"
 import { lint, type LintResult }                         from "./specbook-cmd-lint.js"
-import { isBelow }                                       from "./specbook-files.js"
+import { isBelow, specDirs }                             from "./specbook-files.js"
 import { exportSpecification, watchSpecification, parseOutputSpec, formats,
     requireBrowser, parseOmit, omitAspects, type ExportFormat, type ExportOptions }
     from "./specbook-cmd-export.js"
@@ -62,12 +62,14 @@ export interface SpecBookOptions {
 
 /*  the project options of all commands: the YAML schema configuration
     patterns (local files or glob patterns, or remote references), the
-    base directory, the working directory, from which the project
-    configuration file is searched upwards, and the fetch mode of the
-    remote references ("never", "auto", or "always", default "auto")  */
+    base directory patterns (a single one or a list of them, the
+    specification being the union of their Markdown files), the working
+    directory, from which the project configuration file is searched
+    upwards, and the fetch mode of the remote references ("never",
+    "auto", or "always", default "auto")  */
 export interface ProjectOptions {
     config?:  string[]
-    basedir?: string
+    basedir?: string | string[]
     cwd?:     string
     fetch?:   FetchMode
 }
@@ -107,6 +109,12 @@ export interface WatchRequest extends ExportRequest {
     onExport: (buffers: Buffer[]) => void | Promise<void>
 }
 
+/*  the given base directory patterns, where an empty list counts as absent  */
+const basedirsOf = (basedir: string | string[] | undefined): string[] | undefined => {
+    const basedirs = typeof basedir === "string" ? [ basedir ] : basedir
+    return basedirs !== undefined && basedirs.length > 0 ? basedirs : undefined
+}
+
 /*  the SpecBook API  */
 export class SpecBook {
     private verbose: VerboseSink
@@ -120,12 +128,12 @@ export class SpecBook {
     }
 
     /*  determine the effective project options: a given option wins over
-        its environment variable (SPECBOOK_CONFIG, a path-delimiter-separated
-        list of patterns, and SPECBOOK_BASEDIR), which in turn wins over
+        its environment variable (SPECBOOK_CONFIG and SPECBOOK_BASEDIR, both
+        path-delimiter-separated lists of patterns), which in turn wins over
         its entry in the project configuration file. A given working
         directory anchors the given relative paths and keeps all paths
         absolute, else the project ones are rendered relative to ours  */
-    private project (options: ProjectOptions, verbose: Verbose): { file?: string, config?: string[], basedir?: string } {
+    private project (options: ProjectOptions, verbose: Verbose): { file?: string, config?: string[], basedir?: string[] } {
         const cwd     = path.resolve(options.cwd ?? ".")
         const project = loadProject(cwd)
         if (project !== undefined)
@@ -136,7 +144,8 @@ export class SpecBook {
         }
         const config  = options.config !== undefined && options.config.length > 0 ? options.config :
             env("SPECBOOK_CONFIG")?.split(path.delimiter).filter((pattern) => pattern !== "")
-        const basedir = options.basedir ?? env("SPECBOOK_BASEDIR")
+        const basedir = basedirsOf(options.basedir) ??
+            basedirsOf(env("SPECBOOK_BASEDIR")?.split(path.delimiter).filter((pattern) => pattern !== ""))
         const given   = (value: string) =>
             options.cwd !== undefined ? path.resolve(cwd, value) : value
         const derived = (value: string) =>
@@ -146,9 +155,9 @@ export class SpecBook {
             config: config !== undefined && config.length > 0 ?
                 config.map((pattern) => isRemote(pattern) ? pattern : given(pattern)) :
                 project?.config?.map((pattern) => isRemote(pattern) ? pattern : derived(pattern)),
-            basedir: basedir !== undefined ? given(basedir) :
-                project?.basedir !== undefined ? derived(project.basedir) :
-                    options.cwd !== undefined ? cwd : undefined
+            basedir: basedir !== undefined ? basedir.map(given) :
+                project?.basedir !== undefined ? project.basedir.map(derived) :
+                    options.cwd !== undefined ? [ cwd ] : undefined
         }
     }
 
@@ -200,7 +209,7 @@ export class SpecBook {
     }
 
     /*  initialize the configured specification artifact files below the
-        base directory (where "sample" scaffolds a sample object per
+        first base directory (where "sample" scaffolds a sample object per
         allowed object kind into them) and persist the effective project
         options into a new project configuration file in the working
         directory, unless one already applies (as a new one would shadow it)  */
@@ -209,7 +218,7 @@ export class SpecBook {
         const project = this.project(options, verbose)
         const config  = await this.configFiles(project.config, this.remoteOptions(options, verbose))
         const files   = initSpecification({ config: this.requireConfig(config, verbose),
-            basedir: project.basedir ?? ".", sample: options.sample === true, verbose })
+            basedir: project.basedir ?? [ "." ], sample: options.sample === true, verbose })
         if (project.file !== undefined) {
             verbose(`skipping existing project configuration "${literal(project.file)}"`)
             return { files }
@@ -218,22 +227,22 @@ export class SpecBook {
         const relative = (value: string) => path.relative(cwd, path.resolve(cwd, value)) || "."
         const file     = writeProject(cwd,
             project.config?.map((pattern) => isRemote(pattern) ? pattern : relative(pattern)) ?? [ "std" ],
-            relative(project.basedir ?? "."))
+            (project.basedir ?? [ "." ]).map(relative))
         verbose(`created project configuration "${literal(file)}"`)
         return { files, project: options.cwd !== undefined ? file : path.relative(process.cwd(), file) }
     }
 
-    /*  lint the specification Markdown files below the base directory,
+    /*  lint the specification Markdown files below the base directories,
         where "gitignore" treats an artifact file Git excludes from its
         project exactly like an absent one  */
     async lint (options: ProjectOptions & { gitignore?: boolean }): Promise<LintResult> {
         const verbose = this.verboseOf("lint")
         const project = this.project(options, verbose)
         return lint({ config: await this.configFiles(project.config, this.remoteOptions(options, verbose)),
-            basedir: project.basedir ?? ".", gitignore: options.gitignore === true, verbose })
+            basedir: project.basedir ?? [ "." ], gitignore: options.gitignore === true, verbose })
     }
 
-    /*  load the specification Markdown files below the base directory (or,
+    /*  load the specification Markdown files below the base directories (or,
         under "schema", the effective schema configuration itself, described
         as a specification of the bundled meta schema configuration) as a
         document queryable through ASTq selectors, strictly like "export":
@@ -242,12 +251,12 @@ export class SpecBook {
         surfaced as unconditional verbose messages  */
     async load (options: ProjectOptions & { gitignore?: boolean, schema?: boolean }): Promise<SpecBookDocument> {
         const verbose = this.verboseOf("load")
-        if (options.schema === true && options.basedir !== undefined)
+        if (options.schema === true && basedirsOf(options.basedir) !== undefined)
             throw new Error("the base directory is not applicable to the export of the schema configuration")
         const project = this.project(options, verbose)
         const labels  = new Map<string, string>()
         const config  = await this.configFiles(project.config, this.remoteOptions(options, verbose), labels)
-        const result  = this.parseSource(options, config, labels, project.basedir ?? ".", verbose)
+        const result  = this.parseSource(options, config, labels, project.basedir ?? [ "." ], verbose)
         if (result.config === undefined || result.diagnostics.some((diagnostic) => diagnostic.severity === "error"))
             throw new Error("invalid specification:\n" +
                 result.diagnostics.map(renderDiagnostic).join("\n"))
@@ -300,25 +309,28 @@ export class SpecBook {
             dir !== undefined ? path.resolve(cwd, dir) : dir)
     }
 
-    /*  refuse a normalized Markdown output below the base directory (told
-        by its re-basing directory), as every ".md" file below the base
+    /*  refuse a normalized Markdown output below a base directory (told
+        by its re-basing directory), as every ".md" file below a base
         directory is a specification file and hence the output would be
         parsed as one on the next run  */
-    private guardRebase (requested: ExportFormat[], rebase: (string | undefined)[] | undefined, basedir: string) {
+    private guardRebase (requested: ExportFormat[], rebase: (string | undefined)[] | undefined, basedir: string[]) {
+        const basedirs = requested.includes("md") ? specDirs(basedir) : []
         for (const [ i, format ] of requested.entries()) {
-            const dir = rebase?.[i]
-            if (format === "md" && dir !== undefined && isBelow(dir, basedir))
+            const dir   = rebase?.[i]
+            const below = format === "md" && dir !== undefined ?
+                basedirs.find((base) => isBelow(dir, base)) : undefined
+            if (below !== undefined)
                 throw new Error(`the Markdown output directory "${dir}" is at or below the base directory ` +
-                    `"${basedir}", so the output would be parsed as a specification file`)
+                    `"${below}", so the output would be parsed as a specification file`)
         }
     }
 
     /*  parse the source of an export: the specification Markdown files
-        below the base directory, or, under "schema", the specification
+        below the base directories, or, under "schema", the specification
         generated out of the effective schema configuration itself (to
         which no base directory applies)  */
     private parseSource (options: ExportRequest, config: string[], labels: Map<string, string>,
-        basedir: string, verbose: Verbose): LintResult {
+        basedir: string[], verbose: Verbose): LintResult {
         if (options.schema === true)
             return lintSchema({ config, labels, verbose })
         return lint({ config, basedir, gitignore: options.gitignore === true, verbose })
@@ -339,11 +351,11 @@ export class SpecBook {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
         const omit      = parseOmit(options.omit)
-        if (options.schema === true && options.basedir !== undefined)
+        if (options.schema === true && basedirsOf(options.basedir) !== undefined)
             throw new Error("the base directory is not applicable to the export of the schema configuration")
         const project   = this.project(options, verbose)
         if (options.schema !== true)
-            this.guardRebase(requested, this.rebaseOf(options), project.basedir ?? ".")
+            this.guardRebase(requested, this.rebaseOf(options), project.basedir ?? [ "." ])
         const labels    = new Map<string, string>()
         const config    = await this.configFiles(project.config, this.remoteOptions(options, verbose), labels)
 
@@ -352,7 +364,7 @@ export class SpecBook {
         if (requested.includes("pdf"))
             await requireBrowser(verbose)
 
-        const result = this.parseSource(options, config, labels, project.basedir ?? ".", verbose)
+        const result = this.parseSource(options, config, labels, project.basedir ?? [ "." ], verbose)
         return this.renderFormats(result, requested, verbose,
             { realtime: options.realtime === true, omit }, this.rebaseOf(options))
     }
@@ -369,11 +381,11 @@ export class SpecBook {
     private async observe (options: WatchRequest & { formats: ExportFormat[], realtime: boolean },
         verbose: Verbose): Promise<void> {
         const omit    = parseOmit(options.omit)
-        if (options.schema === true && options.basedir !== undefined)
+        if (options.schema === true && basedirsOf(options.basedir) !== undefined)
             throw new Error("the base directory is not applicable to the export of the schema configuration")
         const project = this.project(options, verbose)
         if (options.schema !== true)
-            this.guardRebase(options.formats, this.rebaseOf(options), project.basedir ?? ".")
+            this.guardRebase(options.formats, this.rebaseOf(options), project.basedir ?? [ "." ])
         const labels  = new Map<string, string>()
         const config  = await this.configFiles(project.config, this.remoteOptions(options, verbose), labels)
 
@@ -389,7 +401,7 @@ export class SpecBook {
                 a failing export (even one due to an invalid configuration)
                 still keeps the observe loop fed, while the files of the
                 download cache never change  */
-            const result = this.parseSource(options, config, labels, project.basedir ?? ".", verbose)
+            const result = this.parseSource(options, config, labels, project.basedir ?? [ "." ], verbose)
             const files  = [ ...config.map((file) => path.resolve(file)), ...result.files ]
                 .filter((file) => !isCached(file))
 
@@ -478,7 +490,8 @@ export class SpecBook {
             await this.configFiles(project.config, this.remoteOptions(options, verbose)) : undefined
         const standard = config !== undefined && config.every(isBundled)
         const embed    = options.embed === true || standard || (config?.some(isCached) ?? false)
-        const basedir  = project.basedir ?? (part === "spec" ? "." : undefined)
+        const patterns = project.basedir ?? (part === "spec" ? [ "." ] : undefined)
+        const basedir  = patterns !== undefined ? specDirs(patterns) : undefined
         const schema   = config !== undefined ? this.requireConfig(config, verbose) : undefined
         verbose(`describing the "${literal(part)}" part of the SpecBook models and formats ` +
             `in the "${literal(format)}" format`)

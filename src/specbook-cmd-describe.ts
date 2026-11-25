@@ -112,11 +112,12 @@ const schemaSection = (config: string[], schema: Schema | undefined,
 }
 
 /*  render the reference to the specification Markdown files  */
-const specSection = (basedir: string): string =>
-    textframe(`
-        The **SpecBook SPEC Model** is the set of Markdown specification files in directory:
-        @${basedir}
-    `)
+const specSection = (basedirs: string[]): string => {
+    const noun = basedirs.length === 1 ? "directory" : "directories"
+    return textframe(`
+        The **SpecBook SPEC Model** is the set of Markdown specification files in ${noun}:
+    `) + basedirs.map((basedir) => `@${basedir}\n`).join("")
+}
 
 /*  describe the generic SpecBook models and formats as Markdown,
     optionally extended by the references to (or the embeddings of) the
@@ -127,7 +128,7 @@ const specSection = (basedir: string): string =>
     the configuration loaded out of the "config" files (required for
     embedding several files), and where "compress" emits the
     configuration compressed by the given level instead of verbatim  */
-export const describeFormat = (options: { config?: string[], schema?: Schema, basedir?: string, embed?: boolean,
+export const describeFormat = (options: { config?: string[], schema?: Schema, basedir?: string[], embed?: boolean,
     standard?: boolean, compress?: CompressLevel, format?: DescribeFormat, part?: DescribePart }): string => {
     const format   = parseDescribeFormat(options.format ?? "md")
     const part     = parseDescribePart(options.part ?? "all")

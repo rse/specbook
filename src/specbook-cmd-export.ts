@@ -96,7 +96,7 @@ const snapshot = (files: string[]): Map<string, number> => {
     for (const file of files) {
         try {
             const stats = fs.statSync(file)
-            times.set(file, stats.isDirectory() ? specFiles(file).length : stats.mtimeMs)
+            times.set(file, stats.isDirectory() ? specFiles([ file ]).length : stats.mtimeMs)
         }
         catch {
             times.set(file, 0)

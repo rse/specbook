@@ -18,12 +18,13 @@ import { type Schema, type SchemaObject }                       from "./specbook
 import { buildLinkIndex, chainOf, plainText }                   from "./specbook-link.js"
 import { referencedCoverage, specCoverage, coverageRatio }      from "./specbook-coverage.js"
 import { excluder }                                             from "./specbook-ignore.js"
-import { specFiles }                                            from "./specbook-files.js"
+import { specDirs, specFiles, isBelow }                         from "./specbook-files.js"
 
-/*  the options of the lint command  */
+/*  the options of the lint command, where "basedir" carries the
+    patterns of the base directories  */
 export interface LintOptions {
     config:    string[]
-    basedir:   string
+    basedir:   string[]
     gitignore: boolean
     verbose:   Verbose
 }
@@ -95,22 +96,33 @@ export const lint = (options: LintOptions): LintResult => {
             `and ${literal(stats.links)} link relationship(s)`)
     }
 
-    /*  read the specification Markdown files below the base directory
+    /*  read the specification Markdown files below the base directories
         (every one of them is taken for a SpecBook one, the "file"
         fields of the configuration drive "init" only), where the base
-        directory itself heads the observed paths, so a watching
-        consumer notices added and removed files, too  */
-    const files = specFiles(options.basedir)
+        directories themselves head the observed paths, so a watching
+        consumer notices added and removed files, too, and where an
+        empty base directory (perhaps a mistyped one) is a warning only,
+        as its artifacts may legitimately reside in the other ones  */
+    const basedirs = specDirs(options.basedir)
+    const files    = specFiles(basedirs)
     if (files.length === 0)
-        diagnostics.push({ file: options.basedir, line: 1, column: 1, severity: "error",
+        diagnostics.push({ file: basedirs[0], line: 1, column: 1, severity: "error",
             message: "no specification files found" })
+    else
+        for (const basedir of basedirs)
+            if (!files.some((file) => isBelow(file, basedir)))
+                diagnostics.push({ file: basedir, line: 1, column: 1, severity: "warning",
+                    message: "no specification files found in base directory" })
 
     /*  a file Git excludes from its project is no part of the project
-        and hence no part of its specification, so it is set aside  */
-    const excluded = options.gitignore ? excluder(options.basedir) : () => false
-    const sources  = new Array<SourceFile>()
-    const pruned   = new Array<SourceFile>()
-    const watched  = [ path.resolve(options.basedir) ]
+        and hence no part of its specification, so it is set aside, as
+        told by the Git working tree of its (first) base directory  */
+    const excluders = basedirs.map((basedir) => options.gitignore ? excluder(basedir) : () => false)
+    const excluded  = (file: string) =>
+        excluders[Math.max(0, basedirs.findIndex((basedir) => isBelow(file, basedir)))](file)
+    const sources   = new Array<SourceFile>()
+    const pruned    = new Array<SourceFile>()
+    const watched   = basedirs.map((basedir) => path.resolve(basedir))
     for (const file of files) {
         watched.push(path.resolve(file))
         try {
@@ -143,8 +155,8 @@ export const lint = (options: LintOptions): LintResult => {
     }
 
     /*  parse and validate the artifact files against the configuration  */
-    options.verbose(`parsing ${literal(sources.length)} specification file(s) ` +
-        `below "${literal(options.basedir)}"`)
+    options.verbose(`parsing ${literal(sources.length)} specification file(s) below ` +
+        basedirs.map((basedir) => `"${literal(basedir)}"`).join(", "))
     const result = parseSpecification(sources, config)
     diagnostics.push(...result.diagnostics)
     watched.push(...result.assets)
@@ -157,9 +169,9 @@ export const lint = (options: LintOptions): LintResult => {
         reportCoverage(result.specification, config, options.verbose)
 
     /*  report the demanded artifacts absent from the specification,
-        against the artifact file configured for them below the base
-        directory (where "init" would create them, present or not) or
-        else against the configuration  */
+        against the artifact file configured for them below the first
+        base directory (where "init" would create them, present or not)
+        or else against the configuration  */
     if (config !== undefined) {
         const found = new Set<SchemaObject>()
         for (const artifact of result.specification.artifacts)
@@ -171,7 +183,7 @@ export const lint = (options: LintOptions): LintResult => {
         for (const schema of config) {
             if (!isDemanded(schema) || found.has(schema))
                 continue
-            const file  = schema.file !== undefined ? path.join(options.basedir, schema.file) : options.config[0]
+            const file  = schema.file !== undefined ? path.join(basedirs[0], schema.file) : options.config[0]
             const paren = schema.id !== undefined ? ` (${schema.id})` : ""
             diagnostics.push({ file, line: 1, column: 1, severity: "error",
                 message: `missing artifact "${schema.kind}: ${schema.name ?? ""}${paren}"` })

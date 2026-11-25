@@ -268,9 +268,17 @@ Options:
     The base directory (default: the `basedir` entry of the project
     configuration file `.specbook.yaml`, else `.`) is the directory
     whose `.md` files (recursively, except below `.`-prefixed entries)
-    make up the specification, and generated specification Markdown
-    files are placed inside it, too. A normalized Markdown export written
+    make up the specification. A normalized Markdown export written
     into it is refused, as it would be parsed as a specification file.
+
+    The option is repeatable and accepts glob patterns (a pattern matching
+    no directory being an error), so a specification can span several
+    directories, which do not have to stay side by side: it then is the
+    union of their `.md` files, each file taken once, while a parent
+    directory holding foreign Markdown files is never scanned. Generated
+    specification Markdown files are placed into the first directory,
+    which `init` hence demands as a literal path, and `init` skips every
+    artifact already found below any of the directories.
 
 -   `-F|--fetch <mode>`:
     When to fetch the remote references of the schema configuration
@@ -439,7 +447,9 @@ basedir: docs/spec
 
 The entry `config` is a single file or glob pattern or a list of them
 (exactly like the repeatable `-c|--config`, including the literals
-`std`, `meta`, and `pm`), and the entry `basedir` is a directory. Relative paths resolve
+`std`, `meta`, and `pm`), and the entry `basedir` is a single directory
+or glob pattern or a list of them (exactly like the repeatable
+`-b|--basedir`). Relative paths resolve
 against the directory of the `.specbook.yaml` itself, the file is
 validated (an unknown entry or a wrongly typed value fails the command),
 and both an explicitly supplied option and its environment variable
@@ -458,9 +468,10 @@ The default value of every CLI option `--xxx` can be overridden
 by a corresponding `SPECBOOK_XXX` environment variable (e.g.
 `SPECBOOK_BASEDIR`, `SPECBOOK_CONFIG`, `SPECBOOK_OUTPUT`,
 `SPECBOOK_VERBOSE`, `SPECBOOK_ADDR`, `SPECBOOK_PORT`), while an
-explicitly supplied option always wins. As `-c|--config` is repeatable,
-`SPECBOOK_CONFIG` carries a list of patterns separated by the path
-delimiter of the platform (`:` on Unix, `;` on Windows). Unlike all
+explicitly supplied option always wins. As `-c|--config` and
+`-b|--basedir` are repeatable, `SPECBOOK_CONFIG` and `SPECBOOK_BASEDIR`
+carry a list of patterns separated by the path delimiter of the
+platform (`:` on Unix, `;` on Windows). Unlike all
 others, `SPECBOOK_CONFIG` and `SPECBOOK_BASEDIR` are resolved by the API
 itself, so they apply to the API methods and the MCP tools, too.
 
