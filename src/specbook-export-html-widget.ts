@@ -176,8 +176,10 @@ export const scrollProgressScript = textframe`
         }
         meter.addEventListener("click", () => {
             window.scrollTo({ top: 0, behavior: "smooth" })
-            if (window.location.hash)
+            if (window.location.hash) {
                 history.replaceState(null, "", window.location.pathname + window.location.search)
+                window.dispatchEvent(new HashChangeEvent("hashchange"))
+            }
         })
         window.addEventListener("scroll", schedule, { passive: true })
         window.addEventListener("resize", schedule)
@@ -376,16 +378,11 @@ export const tocPanelScript = textframe`
         panel.querySelector("div.toc-tab").addEventListener("click", () => { toggle() })
         links.forEach((a) => { a.addEventListener("click", () => { toggle(false) }) })
         document.body.addEventListener("keydown", (event) => { if (event.key === "Escape") toggle(false) })
+        const tabs    = "div.search, div.theme-switch, div.info-switch, div.filter-switch, div.fold-switch, div.realtime-status"
         const outside = (event) => {
             if (!panel.isConnected)
                 document.removeEventListener("click", outside)
-            else if (!panel.contains(event.target)
-                && event.target.closest("div.search")          === null
-                && event.target.closest("div.theme-switch")    === null
-                && event.target.closest("div.info-switch")     === null
-                && event.target.closest("div.filter-switch")   === null
-                && event.target.closest("div.fold-switch")     === null
-                && event.target.closest("div.realtime-status") === null)
+            else if (!panel.contains(event.target) && event.target.closest(tabs) === null)
                 toggle(false)
         }
         document.addEventListener("click", outside)
@@ -399,26 +396,12 @@ export const tocPanelScript = textframe`
     })()
 `
 
-/*  the client-side script of the description popups: the info tab
-    toggles the popups (off by default, persisted across page loads),
-    and while they are on, a mouse resting 400ms on an element carrying
-    a "data-info" key (plus "data-info-prop" for a property) pops up the
-    schema description of its object kind (or property), while one
-    carrying a "data-info-spec" key pops up the corpus description of
-    the object instance (a diagram node box resolves through its
-    hyperlinked object anchor), titled with the object path (an instance
-    popup trailing the anchor id of the object) and fed from the
-    injected INFO/SPEC tables: as thousands of elements carry those
-    keys, they are just the table indices, and a title path is composed
-    from the SPEC table (the anchor id, parent index, kind, plain name,
-    and pre-rendered description HTML per object) instead of being
-    repeated on every element -- the path of an instance popup is the
-    one of its own object, while "data-info-path" names the object of a
-    schema popup, a trailing "^" keeping its last segment kind-only;
-    the popup is capped at 40% viewport width and attached above or
-    below, whichever side offers more space; the script runs at the
-    end of the body, so a live preview body swap replaces the popup
-    and the body-bound listeners along with it  */
+/*  the client-side script of the description popups: the persisted info
+    tab toggles them, and a mouse resting 400ms on an element pops up the
+    schema or corpus description it indexes in the injected INFO/SPEC
+    tables (just indices, as thousands of elements carry them, a trailing
+    "^" of "data-info-path" keeping the last title segment kind-only); it
+    runs at the end of the body, so a live preview body swap replaces it  */
 const infoPopupScript = textframe`
     (function (INFO, SPEC) {
         const popup = document.createElement("div")
@@ -611,26 +594,12 @@ const infoPopupScript = textframe`
     })(@INFO@, @SPEC@)
 `
 
-/*  the client-side script of the artifact filter: the filter tab
-    slides a grid out, holding one row per artifact kind -- the kind
-    cell first, then one cell per top-level artifact of the kind --,
-    whose cells are sticky checkboxes (persisted across page loads as
-    the anchor paths of the enabled artifacts), a kind cell toggling
-    all artifacts of its row. Every enabled artifact is an origin shown
-    entirely, while in all other artifacts only the objects stay
-    visible which the closure reaches from the origin objects through
-    the outgoing references (the own references of a reached object
-    continuing it, not those of its hidden children), each shown
-    without its child objects, plus the headings of its enclosing
-    objects; the table of contents (page and side panel) is filtered
-    along and the diagram of contents hidden. The closure is computed
-    from the injected LINKS table (per object: parent index, anchor
-    path segment, and referenced object indices), from which the anchor
-    paths identifying the DOM elements are composed. A hyperlink whose
-    target the filter hid clears the filter before it jumps. The script
-    runs at the end of the body, as the content it hides has to exist
-    already, and a live preview body swap replaces the tab and its
-    listeners along with the body  */
+/*  the client-side script of the artifact filter: its tab slides out a
+    grid of persisted artifact checkboxes (one row per kind), the enabled
+    artifacts being shown entirely and elsewhere just the objects their
+    reference closure over the injected LINKS table reaches (plus their
+    headings), the table of contents filtered along; it runs at the end
+    of the body, so a live preview body swap replaces it  */
 const artifactFilterScript = textframe`
     (function (LINKS) {
         const tab = document.querySelector("div.filter-switch")

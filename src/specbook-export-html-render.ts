@@ -738,7 +738,14 @@ const renderTable = (children: SpecObject[], maxColumns: number): string => {
             }))
         } })
     }
+    return renderChunkedTable(children, keys, desc, fold, maxColumns)
+}
 
+/*  render a single-kind group of children into one chunked table: the
+    property and description cells (and the leading diagram) of every
+    object chunked into an embedded per-object table  */
+const renderChunkedTable = (children: SpecObject[], keys: string[], desc: boolean,
+    fold: number | undefined, maxColumns: number): string => {
     /*  the embedded rows hold at most maxColumns - 1 cells (of the
         group-wide union of property keys, plus the trailing description),
         with the last cell spanning the leftover columns of the final row,
@@ -832,8 +839,7 @@ const renderCompact = (children: SpecObject[]): string => {
             const properties = effectiveProperties(child)
             let html = head("Diagram", diagramOf(child).toString())
             if (properties.length > 0)
-                html += head("Properties", render("Properties", { Properties: inlineProperties(child, properties),
-                    Fold: formatOf(child)?.maxCellHeight }))
+                html += head("Properties", render("Properties", { Properties: inlineProperties(child, properties) }))
             if (child.description !== undefined)
                 html += head("Description", renderDescription(child.description))
             html += coverageOf(child).toString()
@@ -868,8 +874,7 @@ const renderObject = (object: SpecObject, level: number, concise: boolean): stri
         name:        inline(object.name),
         diagram:     diagramOf(object),
         properties:  properties.length > 0 ?
-            safe(render("Properties", { Properties: inlineProperties(object, properties),
-                Fold: formatOf(object)?.maxCellHeight })) : "",
+            safe(render("Properties", { Properties: inlineProperties(object, properties) })) : "",
         description: object.description !== undefined ?
             safe(renderDescription(object.description)) : "",
         coverage:    coverageOf(object),

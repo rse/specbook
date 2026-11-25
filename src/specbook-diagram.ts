@@ -275,8 +275,9 @@ const renderSpec = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramTy
             if (banded && container !== undefined)
                 attrs.push(`${type}: ${atom(plainText(container.name))}`)
             const clusters = new Array<string>()
-            for (let p = banded ? (container !== undefined ? nesting.parentOf.get(container) : undefined) :
-                nesting.containers.has(node) ? node : container; p !== undefined; p = nesting.parentOf.get(p))
+            const first    = banded ? (container !== undefined ? nesting.parentOf.get(container) : undefined) :
+                nesting.containers.has(node) ? node : container
+            for (let p = first; p !== undefined; p = nesting.parentOf.get(p))
                 clusters.unshift(plainText(p.name))
             if (clusters.length > 0)
                 attrs.push(`cluster: ${atom(clusters.join("/"))}`)
@@ -451,7 +452,7 @@ const deriveObjectEdges = (ctx: DiagramContext, diagram: SchemaDiagram, admits: 
 
     /*  resolve the nodes an edge object references through a named
         property (all of its references), or through the first reference
-        of its first single-reference property when no name is configured
+        of its first reference-carrying property when no name is configured
         (skipping the source property)  */
     const edgeNodes = (edgeObject: SpecObject, key: string | undefined): SpecObject[] => {
         const value = key !== undefined ?
@@ -599,22 +600,27 @@ const validateGantt = (ctx: DiagramContext, diagram: SchemaDiagram, nodes: SpecO
         successors.set(edge.source, [ ...(successors.get(edge.source) ?? []), edge.target ])
     const done  = new Set<SpecObject>()
     const path  = new Set<SpecObject>()
-    const visit = (node: SpecObject): boolean => {
+    const visit = (node: SpecObject): SpecObject | undefined => {
         if (path.has(node))
-            return true
+            return node
         if (done.has(node))
-            return false
+            return undefined
         path.add(node)
-        const cyclic = (successors.get(node) ?? []).some(visit)
+        let cycle: SpecObject | undefined
+        for (const successor of successors.get(node) ?? [])
+            if ((cycle = visit(successor)) !== undefined)
+                break
         path.delete(node)
         done.add(node)
-        return cyclic
+        return cycle
     }
-    for (const node of nodes)
-        if (visit(node)) {
-            errors.push({ object: node, reason: "takes part in a cycle of dependencies" })
+    for (const node of nodes) {
+        const cycle = visit(node)
+        if (cycle !== undefined) {
+            errors.push({ object: cycle, reason: "takes part in a cycle of dependencies" })
             break
         }
+    }
 }
 
 /*  derive the edges of a diagram: the reference edges of the node
@@ -786,7 +792,8 @@ const deriveCenterEdges = (ctx: DiagramContext, cfg: SchemaDiagramCenterEdges, n
     for (const node of nodes) {
         if (node === center)
             continue
-        const value    = propValue(parenProps, node, cfg.property)
+        const raw      = propValue(parenProps, node, cfg.property)
+        const value    = raw !== undefined ? plainText(raw).trim() : undefined
         const inbound  = cfg.inbound  !== undefined && value === cfg.inbound
         const outbound = cfg.outbound !== undefined && value === cfg.outbound
         const both     = cfg.both     !== undefined && value === cfg.both
@@ -961,10 +968,92 @@ const projectHub = (nodes: SpecObject[], edges: DiagramEdge[],
     center: SpecObject): { nodes: SpecObject[], edges: DiagramEdge[], columns: number } => {
     const incident  = edges.filter((edge) => edge.source === center || edge.target === center)
     const connected = endsOf(incident).add(center)
-    const columns = 1 +
+    const columns   = 1 +
         (incident.some((edge) => edge.target === center && edge.source !== center) ? 1 : 0) +
         (incident.some((edge) => edge.source === center) ? 1 : 0)
     return { nodes: nodes.filter((node) => connected.has(node)), edges: incident, columns }
+}
+
+/*  nest the nodes of a diagram into container nodes (except in a "hub"
+    diagram, where every container would need a primary node of its own,
+    in a "state" diagram, where every container would be a composite
+    state needing an initial state of its own, and in a "sequence" or
+    "petri" diagram, whose nodes nest not at all), dropping the edges
+    between a container and its own members, which Gradia rejects, as
+    the nesting already shows them  */
+const nestDiagram = (ctx: DiagramContext, diagram: SchemaDiagram, type: DiagramType, nodes: SpecObject[],
+    nodeSet: Set<SpecObject>, edges: DiagramEdge[],
+    errors: DiagramError[]): { nodes: SpecObject[], edges: DiagramEdge[], nesting: DiagramNesting } => {
+    const nest = diagram.nest
+    if (nest === undefined || type === "hub" || type === "state" || type === "sequence" || type === "petri") {
+        if (nest !== undefined)
+            errors.push({ reason: `"${type}" diagram cannot carry a "nest" configuration` })
+        return { nodes, edges, nesting: { parentOf: new Map(), containers: new Set(), furtherOf: new Map() } }
+    }
+    const nesting = deriveNesting(ctx, nest, nodes, nodeSet, errors, type === "tree")
+    const banded  = type === "layer" || type === "slice" || type === "gantt"
+    if ((banded || type === "tree" || type === "matrix") && nest.layout !== undefined)
+        errors.push({ reason: `"${type}" diagram cannot carry a "nest" layout configuration` })
+    if ((banded || type === "tree") && nest.crossing !== undefined && nest.crossing !== "nodes")
+        errors.push({ reason: `"${type}" diagram cannot carry a "nest" crossing configuration` })
+    if (banded) {
+        /*  a "layer" or "slice" diagram draws its containers as bands
+            and cluster groups, a "gantt" one as the partitions of its
+            rows, instead of as nodes, so they drop the edges ending at one  */
+        nodes = nodes.filter((node) => !nesting.containers.has(node))
+        edges = edges.filter((edge) => !nesting.containers.has(edge.source)
+            && !nesting.containers.has(edge.target))
+    }
+    else if (type !== "tree" && nest.crossing !== undefined && nest.crossing !== "nodes")
+        edges = liftEdges(edges, nesting.parentOf, nest.crossing, ctx.anchors)
+
+    /*  a "matrix" diagram keeps its containers as regular rows
+        and columns (only partitioning their members), so it
+        keeps their edges onto their own members, too  */
+    if (type !== "matrix")
+        edges = edges.filter((edge) => nesting.parentOf.get(edge.source) !== edge.target
+            && nesting.parentOf.get(edge.target) !== edge.source)
+
+    /*  a "tree" diagram draws the nesting as its parent-to-child
+        edges (the containers staying nodes), placed first, as the
+        first edge into a node makes its source the parent, while
+        every other edge (the ones from the further containers of
+        a node included) becomes a dashed cross link  */
+    if (type === "tree")
+        edges = [
+            ...Array.from(nesting.parentOf, ([ member, container ]) => ({ source: container, target: member })),
+            ...Array.from(nesting.furtherOf).flatMap(([ member, further ]) =>
+                further.map((container) => ({ source: container, target: member }))),
+            ...edges
+        ]
+    return { nodes, edges, nesting }
+}
+
+/*  add the pseudo-states of a "state" diagram of an object kind carrying
+    an "automaton", which Gradia knows instead of its flags: a single
+    initial one leading into every node flagged initial, and a single
+    final one every node flagged final leads into  */
+const addPseudoStates = (ctx: DiagramContext, object: SpecObject, automaton: SchemaAutomaton,
+    nodes: SpecObject[], edges: DiagramEdge[]): Map<SpecObject, PseudoState> => {
+    const pseudo = new Map<SpecObject, PseudoState>()
+    for (const role of [ "initial", "final" ] as const) {
+        const states = nodes.filter((node) => node.kind === automaton.nodes
+            && plainText(propValue(ctx.parenProps, node, automaton[role]) ?? "").trim() === "true")
+        if (states.length === 0)
+            continue
+        const state: SpecObject = { kind: "", id: `${ctx.anchors.get(object) ?? object.id}-@${role}`,
+            name: role, properties: [], children: [] }
+        pseudo.set(state, role)
+        if (role === "initial") {
+            nodes.unshift(state)
+            edges.push(...states.map((target) => ({ source: state, target })))
+        }
+        else {
+            nodes.push(state)
+            edges.push(...states.map((source) => ({ source, target: state })))
+        }
+    }
+    return pseudo
 }
 
 /*  derive the Gradia spec of a single object from its "diagram:"
@@ -974,7 +1063,7 @@ const projectHub = (nodes: SpecObject[], edges: DiagramEdge[],
     single node)  */
 const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaDiagram,
     automaton: SchemaAutomaton | undefined): DiagramResult => {
-    const { index, anchors, parenProps } = ctx
+    const { index, anchors } = ctx
     const type   = diagram.type ?? "graph"
     const errors = new Array<DiagramError>()
 
@@ -1047,57 +1136,11 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
             ({ nodes, edges, columns } = projectHub(nodes, edges, center))
     }
 
-    /*  nest the nodes into container nodes (except in a "hub" diagram,
-        where every container would need a primary node of its own, in a
-        "state" diagram, where every container would be a composite state
-        needing an initial state of its own, and in a "sequence" or "petri"
-        diagram, whose nodes nest not at all), dropping the edges between
-        a container and its own members, which Gradia rejects, as the
-        nesting already shows them  */
-    let nesting: DiagramNesting = { parentOf: new Map(), containers: new Set(), furtherOf: new Map() }
-    if (diagram.nest !== undefined) {
-        if (type === "hub" || type === "state" || type === "sequence" || type === "petri")
-            errors.push({ reason: `"${type}" diagram cannot carry a "nest" configuration` })
-        else {
-            nesting = deriveNesting(ctx, diagram.nest, nodes, nodeSet, errors, type === "tree")
-            const banded = type === "layer" || type === "slice" || type === "gantt"
-            if ((banded || type === "tree" || type === "matrix") && diagram.nest.layout !== undefined)
-                errors.push({ reason: `"${type}" diagram cannot carry a "nest" layout configuration` })
-            if ((banded || type === "tree") && diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
-                errors.push({ reason: `"${type}" diagram cannot carry a "nest" crossing configuration` })
-            if (banded) {
-                /*  a "layer" or "slice" diagram draws its containers as
-                    bands and cluster groups, a "gantt" one as the
-                    partitions of its rows, instead of as nodes, so they
-                    drop the edges ending at one  */
-                nodes = nodes.filter((node) => !nesting.containers.has(node))
-                edges = edges.filter((edge) => !nesting.containers.has(edge.source)
-                    && !nesting.containers.has(edge.target))
-            }
-            else if (type !== "tree" && diagram.nest.crossing !== undefined && diagram.nest.crossing !== "nodes")
-                edges = liftEdges(edges, nesting.parentOf, diagram.nest.crossing, anchors)
-
-            /*  a "matrix" diagram keeps its containers as regular rows
-                and columns (only partitioning their members), so it
-                keeps their edges onto their own members, too  */
-            if (type !== "matrix")
-                edges = edges.filter((edge) => nesting.parentOf.get(edge.source) !== edge.target
-                    && nesting.parentOf.get(edge.target) !== edge.source)
-
-            /*  a "tree" diagram draws the nesting as its parent-to-child
-                edges (the containers staying nodes), placed first, as the
-                first edge into a node makes its source the parent, while
-                every other edge (the ones from the further containers of
-                a node included) becomes a dashed cross link  */
-            if (type === "tree")
-                edges = [
-                    ...Array.from(nesting.parentOf, ([ member, container ]) => ({ source: container, target: member })),
-                    ...Array.from(nesting.furtherOf).flatMap(([ member, further ]) =>
-                        further.map((container) => ({ source: container, target: member }))),
-                    ...edges
-                ]
-        }
-    }
+    /*  nest the nodes into container nodes  */
+    const nested  = nestDiagram(ctx, diagram, type, nodes, nodeSet, edges, errors)
+    const nesting = nested.nesting
+    nodes = nested.nodes
+    edges = nested.edges
     if ((type === "layer" || type === "slice") && diagram.ordered === true)
         errors.push({ reason: `"${type}" diagram cannot carry an "ordered" configuration` })
 
@@ -1159,29 +1202,9 @@ const deriveDiagram = (ctx: DiagramContext, object: SpecObject, diagram: SchemaD
         return { type, errors }
 
     /*  a "state" diagram of an object kind carrying an "automaton" draws
-        its flags as pseudo-states, which Gradia knows instead: a single
-        initial one leading into every node flagged initial, and a single
-        final one every node flagged final leads into  */
-    const pseudo = new Map<SpecObject, PseudoState>()
-    if (type === "state" && automaton !== undefined) {
-        for (const role of [ "initial", "final" ] as const) {
-            const states = nodes.filter((node) => node.kind === automaton.nodes
-                && plainText(propValue(parenProps, node, automaton[role]) ?? "").trim() === "true")
-            if (states.length === 0)
-                continue
-            const state: SpecObject = { kind: "", id: `${anchors.get(object) ?? object.id}-@${role}`,
-                name: role, properties: [], children: [] }
-            pseudo.set(state, role)
-            if (role === "initial") {
-                nodes.unshift(state)
-                edges.push(...states.map((target) => ({ source: state, target })))
-            }
-            else {
-                nodes.push(state)
-                edges.push(...states.map((source) => ({ source, target: state })))
-            }
-        }
-    }
+        its flags as pseudo-states  */
+    const pseudo = type === "state" && automaton !== undefined ?
+        addPseudoStates(ctx, object, automaton, nodes, edges) : new Map<SpecObject, PseudoState>()
 
     return { type, spec: renderSpec(ctx, diagram, type, center, centerUrl, nodes, edges, nesting, pseudo, places),
         config: { ...diagramPresets, ...diagram.config }, columns, errors }

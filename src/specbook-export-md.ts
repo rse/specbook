@@ -162,7 +162,7 @@ export const renderMarkdown = async (specification: Spec,
     /*  embed the images of a text, optimized like the ones of the HTML
         export, as reference-style "![alt][img-N]" with a closing
         "[img-N]: data:..." definition (the light variant of a "{theme}"
-        image or a rendered diagram, every SVG marked with its resolved
+        image or a rendered diagram, every image marked with its resolved
         dark theme treatment, so a re-parse keeps it), turn an embedded
         source code file of a description into a fenced code block
         collected into "fences", and re-base only the remaining ones  */
@@ -223,6 +223,8 @@ export const renderMarkdown = async (specification: Spec,
             const fences    = new Array<string>()
             clone.description = { ...object.description,
                 description: embedMd(object.description.description, embedding, from, to, fences) }
+            if (object.description.rationale !== undefined)
+                clone.description.rationale = embedMd(object.description.rationale, [], from, to)
             if (object.description.elaboration !== undefined)
                 clone.description.elaboration = embedMd(object.description.elaboration,
                     embedding.slice(skip), from, to, fences)

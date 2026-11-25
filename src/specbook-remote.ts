@@ -72,8 +72,8 @@ export const isCached = (file: string): boolean =>
     path.resolve(file).startsWith(cacheDir + path.sep)
 
 /*  report the artifacts several schema configuration files define (and
-    hence merge): as a detail, or unconditionally if two remote files
-    collide, as such a merge is hardly intended  */
+    hence merge): as a detail, or unconditionally if two downloaded
+    (cached) files collide, as such a merge is hardly intended  */
 export const reportOverlaps = (overlaps: ConfigOverlap[], verbose: Verbose): void => {
     for (const { artifact, files } of overlaps)
         verbose(`artifact "${literal(artifact)}" defined by ` +
@@ -122,7 +122,7 @@ type Ref =
     URL, where a path never leaves its package  */
 const parseRef = (ref: string): Ref => {
     let m: RegExpExecArray | null
-    if ((m = (/^npm:((?:@[^/@]+\/)?[^/@]+)(?:@([^/]+))?(?:\/(.+))?$/).exec(ref)) !== null)
+    if ((m = (/^npm:((?:@[^/@.][^/@]*\/)?[^/@.][^/@]*)(?:@([^/]+))?(?:\/(.+))?$/).exec(ref)) !== null)
         return { kind: "npm", name: m[1], range: m[2], path: safePath(ref, m[3]) }
     else if ((m = (/^github:([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)(?:\/([^#]+))?(?:#(.+))?$/).exec(ref)) !== null
         && ![ m[1], m[2], m[4] ].some((segment) => segment === "." || segment === ".."))
@@ -402,6 +402,16 @@ export const resolveConfig = async (ref: string, options: RemoteOptions, chain: 
     if (chain.includes(pkg.resolved))
         throw new Error(`cyclic schema configuration reference "${ref}"`)
 
+    /*  expand a glob pattern inside the package, whose matches (perhaps
+        leaving it through a brace expansion) have to stay inside it  */
+    const expandInside = async (pattern: string) => {
+        const files   = await expandPattern(pattern)
+        const outside = files.find((file) => !isBelow(file, pkg.root))
+        if (outside !== undefined)
+            throw new Error(`"${ref}" references "${outside}" outside of its package`)
+        return files
+    }
+
     /*  the path names a building block of the manifest, or a glob pattern inside the package  */
     const blocks = pkg.manifest?.specbook?.schema
     const block  = typeof blocks === "object" && parsed.path !== undefined && Object.hasOwn(blocks, parsed.path) ?
@@ -409,7 +419,7 @@ export const resolveConfig = async (ref: string, options: RemoteOptions, chain: 
     if (block !== undefined)
         return [ path.join(pkg.root, ...safeSegments(ref, block)) ]
     else if (parsed.path !== undefined && (/[*?[{]/).test(parsed.path))
-        return expandPattern(path.join(pkg.root, ...parsed.path.split("/")))
+        return expandInside(path.join(pkg.root, ...parsed.path.split("/")))
 
     /*  the path names a file inside the package  */
     const dir = packageDir(pkg, parsed, ref)
@@ -433,7 +443,7 @@ export const resolveConfig = async (ref: string, options: RemoteOptions, chain: 
                 throw new Error(`"${projectFile}" of "${ref}" references "${pattern}" outside of its package`)
             files.push(...(isRemote(pattern) ?
                 await resolveConfig(pattern, options, [ ...chain, pkg.resolved ]) :
-                await expandPattern(pattern)))
+                await expandInside(pattern)))
         }
         return files
     }

@@ -122,10 +122,10 @@ export const watchSpecification = async (
     let observed  = await run()
     let times     = snapshot(observed)
 
-    /*  the observed set carries the base directory as a whole (so the
+    /*  the observed set carries the base directories as a whole (so the
         added and removed specification files are noticed, too), below
         which only the Markdown files and the explicitly observed files
-        count, as any other file written into it (like an export output)
+        count, as any other file written into them (like an export output)
         would re-trigger the export endlessly, and whose "."-prefixed
         directories (like ".git") the specification never spans  */
     const watcher = watch(observed, { ignoreInitial: true,

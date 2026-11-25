@@ -9,8 +9,28 @@ ChangeLog
     `-b`, `SPECBOOK_BASEDIR`, and `basedir` accept several directories or glob patterns, whose
     `.md` files jointly form the specification, while `init` fills the first, literal one.
 
+-   BUGFIX [code]: Remote Schema Configuration Containment
+    Keeps the glob matches of a remote package inside it (also through brace expansions) and
+    rejects the npm package names `.` and `..`, so no reference leaves its package or cache entry.
+
+-   BUGFIX [code]: Gantt Dependency Cycle Location
+    Reports a dependency cycle of a `gantt` diagram on a task of the cycle instead of on the task
+    the search started at.
+
+-   BUGFIX [code]: HTML Export Widget Corrections
+    Folds a nested table by the `maxCellHeight` of its own object kind (like `--omit text:long`)
+    and unmarks the anchored table of contents entry when the scroll meter strips the URL hash.
+
+-   BUGFIX [code]: Rationale Images, Center Edge Values, and Overlap Reports
+    Re-bases the image references of a rationale in the Markdown export, accepts the `centerEdges`
+    values in code spans, and reports no single file defining an artifact twice as an overlap.
+
 -   UPDATE [infr]: Upgrade NPM Dependencies
     Upgrades the NPM dependencies.
+
+-   CLEANUP [code]: Code Lint Corrections
+    Splits the over-long class diagram, diagram derivation, and chunked table functions, merges the
+    duplicated tab styles, drops the dead property fold height, and corrects drifted comments.
 
 1.6.5 (2026-11-22)
 ------------------

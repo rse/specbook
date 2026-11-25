@@ -149,7 +149,7 @@ type ProcessOptions = CommonOptions & { gitignore: boolean }
 /*  provide the schema option of the HTML-rendering sub-commands, which
     exports the effective schema configuration itself (described as a
     specification of the bundled meta schema configuration) instead of
-    the specification below the base directory  */
+    the specification below the base directories  */
 const withSchemaOption = (command: Command): Command => command
     .option("-S, --schema", "export the schema configuration itself as a SpecBook document " +
         "(described through the bundled meta schema configuration) instead of the specification " +
@@ -290,7 +290,7 @@ withSchemaOption(withOmitOption(withGitignoreOption(withCommonOptions(program.co
 /*  the preview command serves the HTML export live in the browser  */
 withSchemaOption(withOmitOption(withGitignoreOption(withCommonOptions(program.command("preview")))))
     .description("serve the HTML export of the specification Markdown files below the base " +
-        "directory (or of the schema configuration itself) as a live preview, re-exported and " +
+        "directories (or of the schema configuration itself) as a live preview, re-exported and " +
         "reloaded on every source change")
     .option("-a, --addr <ip-addr>",  "IP address to listen on", envDefault("addr", previewAddr))
     .option("-p, --port <tcp-port>", "TCP port to listen on",   envDefault("port", String(previewPort)))

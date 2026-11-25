@@ -232,8 +232,8 @@ export const foldScript = (standins: boolean, textless: boolean) => textframe`
                 cells = cells.filter(candidate)
                 if (cells.length < 2)
                     return
-                const configured = row.closest("table[data-fold-height]")
-                const percent = Number(configured?.getAttribute("data-fold-height")) || cellHeight
+                const owner   = table.classList.contains("chunks") ? table.parentElement.closest("table") : table
+                const percent = Number(owner?.getAttribute("data-fold-height")) || cellHeight
                 const heights = cells.map((cell) => height(cell))
                 cells.forEach((cell, i) => {
                     const other = Math.max(...heights.filter((_, j) => j !== i))

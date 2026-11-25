@@ -160,9 +160,11 @@ const overlapsOf = (docs: ConfigDoc[]): ConfigOverlap[] => {
                 const object  = item as Record<string, unknown>
                 const kind    = String(object.kind ?? "")
                 const label   = object.id !== undefined ? `${kind} (${String(object.id)})` : `${kind}: ${String(object.name ?? "")}`
-                const overlap = defined.get(identityOf(item)) ?? { artifact: label, files: [] }
-                overlap.files.push(file)
-                defined.set(identityOf(item), overlap)
+                const ident   = identityOf(item)
+                const overlap = defined.get(ident) ?? { artifact: label, files: [] }
+                if (!overlap.files.includes(file))
+                    overlap.files.push(file)
+                defined.set(ident, overlap)
             }
     return Array.from(defined.values()).filter((overlap) => overlap.files.length > 1)
 }

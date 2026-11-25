@@ -37,7 +37,7 @@ export interface LintResult {
 
     /*  the resolved paths of all files the specification is made of --
         the specification Markdown files plus their embedded assets --
-        and of the base directory itself, so a watching consumer knows
+        and of the base directories themselves, so a watching consumer knows
         what to observe and notices added and removed files, too  */
     files:         string[]
 
@@ -78,7 +78,7 @@ const reportCoverage = (specification: Spec, config: Schema, verbose: Verbose) =
         }
 }
 
-/*  lint the specification Markdown files below the base directory
+/*  lint the specification Markdown files below the base directories
     against the configuration  */
 export const lint = (options: LintOptions): LintResult => {
     const diagnostics = new Array<Diagnostic>()

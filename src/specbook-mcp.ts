@@ -112,10 +112,9 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
     server.registerTool("specbook_export", {
         title:       "Export Specification",
         description: "Export all specification Markdown files below the base directories (or, with " +
-            "\"schema\", the effective YAML schema configuration " +
-            "itself, described as a SpecBook document through the bundled meta schema configuration) " +
-            "as JSON, JSON5, " +
-            "YAML, TOON, HTML, PDF, or normalized Markdown. The result is written to the output file " +
+            "\"schema\", the effective YAML schema configuration itself, described as a SpecBook " +
+            "document through the bundled meta schema configuration) as JSON, JSON5, YAML, TOON, " +
+            "HTML, PDF, or normalized Markdown. The result is written to the output file " +
             "if an output path is given, else it is returned directly (PDF as a base64-encoded resource). " +
             "The normalized Markdown embeds its images as \"data:\" URL definitions (so it is large), and " +
             "its remaining image references are re-based onto the directory of the " +
@@ -167,7 +166,7 @@ export const serveMcp = async (verbose: VerboseSink): Promise<void> => {
         title:       "Query Specification",
         description: "Load all specification Markdown files below the base directories (or, with " +
             "\"schema\", the effective YAML schema configuration itself, described as a SpecBook document " +
-            "through the bundled meta schema configuration), strictly validated, and query its Abstract " +
+            "through the bundled meta schema configuration), strictly validated, and query the resulting Abstract " +
             "Syntax Tree (AST) with an XPath-like ASTq selector (like \"// USE-CASE [ @STATUS == 'Done' ]\"). " +
             "The root node is of type \"specification\", its children are of type \"artifact\" (attributes " +
             "\"created\", \"modified\", and \"file\"), and the objects below are typed by their kind (attributes " +

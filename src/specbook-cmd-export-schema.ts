@@ -122,6 +122,88 @@ const classAttribute = (prop: SchemaProperty): string => {
     return `${kind === "reference" ? "ref" : kind}[${prop.optional === true ? "0..1" : "1"}] ${classId(prop.name)}`
 }
 
+/*  the schema nodes of the given artifacts and their object kinds, in pre-order  */
+const membersOf = (schemas: SchemaObject[]): SchemaObject[] =>
+    schemas.flatMap((schema) => [ schema, ...membersOf(schema.children ?? []) ])
+
+/*  the kind-level view of the schema configuration the class diagrams
+    draw on: the ancestor chains, the meta objects, and the reference targets  */
+interface KindView {
+    chains:       Map<SchemaObject, SchemaObject[]>
+    metas:        Map<SchemaObject, SpecObject>
+    targetsOfAll: (patterns: string[]) => SchemaObject[]
+}
+
+/*  the UML class diagram of an artifact and its object kinds -- the
+    artifact stereotyped, the non-reference properties as typed
+    attributes, the nesting as compositions, and the reference-valued
+    properties as labeled associations with their arity (none for a
+    degenerate diagram without any relationship, exactly like the
+    collapsed Gradia diagrams)  */
+const classDiagramOf = (artifacts: SchemaObject[], view: KindView): string | undefined => {
+    const { chains, metas, targetsOfAll } = view
+    const members = membersOf(artifacts)
+
+    /*  the class names in the notation of the references: an artifact
+        as "<kind>.<id>", an object kind by its kind, qualified by the
+        id of its artifact (and then by its parent kind) only where
+        the name collides among the classes of the diagram  */
+    const shown  = new Set<SchemaObject>([ ...members,
+        ...members.flatMap((schema) => (schema.props ?? []).flatMap((prop) => targetsOfAll(patternsOf(prop)))) ])
+    const names  = new Map<SchemaObject, string>()
+    const unique = (candidate: (schema: SchemaObject) => string, nodes: SchemaObject[]) => {
+        const counts = new Map<string, number>()
+        for (const schema of nodes)
+            counts.set(candidate(schema), (counts.get(candidate(schema)) ?? 0) + 1)
+        return nodes.filter((schema) => {
+            if (counts.get(candidate(schema)) !== 1)
+                return true
+            names.set(schema, classId(candidate(schema)))
+            return false
+        })
+    }
+    const artifactLabel = (schema: SchemaObject): string =>
+        schema.id ?? slugify(schema.name ?? schema.kind)
+    for (const schema of shown) {
+        const chain = chains.get(schema) ?? [ schema ]
+        if (chain.length === 1)
+            names.set(schema, classId(`${schema.kind}.${artifactLabel(schema)}`))
+    }
+    const qualified = (schema: SchemaObject): string =>
+        `${artifactLabel((chains.get(schema) ?? [ schema ])[0])}.${schema.kind}`
+    const nested = (schema: SchemaObject): string =>
+        `${artifactLabel((chains.get(schema) ?? [ schema ])[0])}.` +
+            (metas.get(schema)?.name ?? schema.kind).replace(/\//g, ".")
+    let rest = Array.from(shown).filter((schema) => !names.has(schema))
+    rest = unique((schema) => schema.kind, rest)
+    rest = unique(qualified, rest)
+    for (const schema of rest)
+        names.set(schema, classId(nested(schema)))
+    const classOf = (schema: SchemaObject): string => names.get(schema) ?? classId(schema.kind)
+    const relations = new Array<string>()
+    for (const schema of members) {
+        for (const child of schema.children ?? [])
+            relations.push(`    ${classOf(schema)} *-- "${child.optional === true ? "0..n" : "1..n"}" ` +
+                classOf(child))
+        for (const prop of schema.props ?? [])
+            for (const target of targetsOfAll(patternsOf(prop)))
+                relations.push(`    ${classOf(schema)} --> "${arityOf(prop)}" ${classOf(target)} : ${prop.name}`)
+    }
+    if (relations.length === 0)
+        return undefined
+    const lines = [ "classDiagram" ]
+    for (const schema of members) {
+        lines.push(`    class ${classOf(schema)} {`)
+        if ((chains.get(schema) ?? [ schema ]).length === 1)
+            lines.push("        <<artifact>>")
+        for (const prop of schema.props ?? [])
+            if (targetsOfAll(patternsOf(prop)).length === 0)
+                lines.push(`        ${classAttribute(prop)}`)
+        lines.push("    }")
+    }
+    return [ ...lines, ...relations ].join("\n") + "\n"
+}
+
 /*  generate the Markdown sources of the specification describing a
     schema configuration (against the meta schema configuration): the
     title artifact and one (recurring) ARTIFACT-KIND artifact per
@@ -272,84 +354,6 @@ const generateSources = (config: Schema, meta: Schema, files: string[],
             "arity, where a referenced artifact or object kind of another artifact appears as a bare class."
     }
 
-    /*  the UML class diagram of an artifact and its object kinds -- the
-        artifact stereotyped, the non-reference properties as typed
-        attributes, the nesting as compositions, and the reference-valued
-        properties as labeled associations with their arity (none for a
-        degenerate diagram without any relationship, exactly like the
-        collapsed Gradia diagrams)  */
-    const membersOf = (artifacts: SchemaObject[]): SchemaObject[] => {
-        const members = new Array<SchemaObject>()
-        const collect = (schema: SchemaObject) => {
-            members.push(schema)
-            for (const child of schema.children ?? [])
-                collect(child)
-        }
-        artifacts.forEach(collect)
-        return members
-    }
-    const classDiagramOf = (artifacts: SchemaObject[]): string | undefined => {
-        const members = membersOf(artifacts)
-
-        /*  the class names in the notation of the references: an artifact
-            as "<kind>.<id>", an object kind by its kind, qualified by the
-            id of its artifact (and then by its parent kind) only where
-            the name collides among the classes of the diagram  */
-        const shown  = new Set<SchemaObject>([ ...members,
-            ...members.flatMap((schema) => (schema.props ?? []).flatMap((prop) => targetsOfAll(patternsOf(prop)))) ])
-        const names  = new Map<SchemaObject, string>()
-        const unique = (candidate: (schema: SchemaObject) => string, nodes: SchemaObject[]) => {
-            const counts = new Map<string, number>()
-            for (const schema of nodes)
-                counts.set(candidate(schema), (counts.get(candidate(schema)) ?? 0) + 1)
-            return nodes.filter((schema) => {
-                if (counts.get(candidate(schema)) !== 1)
-                    return true
-                names.set(schema, classId(candidate(schema)))
-                return false
-            })
-        }
-        const artifactLabel = (schema: SchemaObject): string =>
-            schema.id ?? slugify(schema.name ?? schema.kind)
-        for (const schema of shown) {
-            const chain = chains.get(schema) ?? [ schema ]
-            if (chain.length === 1)
-                names.set(schema, classId(`${schema.kind}.${artifactLabel(schema)}`))
-        }
-        const qualified = (schema: SchemaObject): string =>
-            `${artifactLabel((chains.get(schema) ?? [ schema ])[0])}.${schema.kind}`
-        const nested = (schema: SchemaObject): string =>
-            `${artifactLabel((chains.get(schema) ?? [ schema ])[0])}.` +
-                (metas.get(schema)?.name ?? schema.kind).replace(/\//g, ".")
-        let rest = Array.from(shown).filter((schema) => !names.has(schema))
-        rest = unique((schema) => schema.kind, rest)
-        rest = unique(qualified, rest)
-        for (const schema of rest)
-            names.set(schema, classId(nested(schema)))
-        const classOf = (schema: SchemaObject): string => names.get(schema) ?? classId(schema.kind)
-        const relations = new Array<string>()
-        for (const schema of members) {
-            for (const child of schema.children ?? [])
-                relations.push(`    ${classOf(schema)} *-- "${child.optional === true ? "0..n" : "1..n"}" ` +
-                    classOf(child))
-            for (const prop of schema.props ?? [])
-                for (const target of targetsOfAll(patternsOf(prop)))
-                    relations.push(`    ${classOf(schema)} --> "${arityOf(prop)}" ${classOf(target)} : ${prop.name}`)
-        }
-        if (relations.length === 0)
-            return undefined
-        const lines = [ "classDiagram" ]
-        for (const schema of members) {
-            lines.push(`    class ${classOf(schema)} {`)
-            if ((chains.get(schema) ?? [ schema ]).length === 1)
-                lines.push("        <<artifact>>")
-            for (const prop of schema.props ?? [])
-                if (targetsOfAll(patternsOf(prop)).length === 0)
-                    lines.push(`        ${classAttribute(prop)}`)
-            lines.push("    }")
-        }
-        return [ ...lines, ...relations ].join("\n") + "\n"
-    }
     /*  the artifact kinds: their artifacts  */
     for (const [ name, o ] of kinds) {
         const artifacts = config.filter((schema) => schema.kind === name)
@@ -364,7 +368,7 @@ const generateSources = (config: Schema, meta: Schema, files: string[],
         object kinds and associations, plus the other artifacts the
         associations reach into  */
     const classDiagramMd = (schema: SchemaObject, o: SpecObject): string | undefined => {
-        const uml = classDiagramOf([ schema ])
+        const uml = classDiagramOf([ schema ], { chains, metas, targetsOfAll })
         if (uml === undefined)
             return undefined
         const members = membersOf([ schema ])

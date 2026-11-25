@@ -214,7 +214,7 @@ const templates = {
 
     /*  <Properties/>  */
     "Properties": textframe`
-        <table class="props"{% if Fold %} data-fold-height="{{ Fold }}"{% endif %}>
+        <table class="props">
             {% for property in Properties %}
             <tr><td class="key property-name"><span{% if property.info %} data-info="{{ property.info }}" data-info-path="{{ property.infopath }}" data-info-prop="{{ property.key }}"{% endif %}>{{ property.key }}</span></td><td>{{ property.value }}</td></tr>
             {% endfor %}

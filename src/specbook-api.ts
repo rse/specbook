@@ -109,10 +109,10 @@ export interface WatchRequest extends ExportRequest {
     onExport: (buffers: Buffer[]) => void | Promise<void>
 }
 
-/*  the given base directory patterns, where an empty list counts as absent  */
-const basedirsOf = (basedir: string | string[] | undefined): string[] | undefined => {
-    const basedirs = typeof basedir === "string" ? [ basedir ] : basedir
-    return basedirs !== undefined && basedirs.length > 0 ? basedirs : undefined
+/*  the given patterns (a single one or a list of them), where an empty list counts as absent  */
+const patternsOf = (pattern: string | string[] | undefined): string[] | undefined => {
+    const patterns = typeof pattern === "string" ? [ pattern ] : pattern
+    return patterns !== undefined && patterns.length > 0 ? patterns : undefined
 }
 
 /*  the SpecBook API  */
@@ -142,17 +142,17 @@ export class SpecBook {
             const value = process.env[name]
             return value !== undefined && value !== "" ? value : undefined
         }
-        const config  = options.config !== undefined && options.config.length > 0 ? options.config :
-            env("SPECBOOK_CONFIG")?.split(path.delimiter).filter((pattern) => pattern !== "")
-        const basedir = basedirsOf(options.basedir) ??
-            basedirsOf(env("SPECBOOK_BASEDIR")?.split(path.delimiter).filter((pattern) => pattern !== ""))
+        const config  = patternsOf(options.config) ??
+            patternsOf(env("SPECBOOK_CONFIG")?.split(path.delimiter).filter((pattern) => pattern !== ""))
+        const basedir = patternsOf(options.basedir) ??
+            patternsOf(env("SPECBOOK_BASEDIR")?.split(path.delimiter).filter((pattern) => pattern !== ""))
         const given   = (value: string) =>
             options.cwd !== undefined ? path.resolve(cwd, value) : value
         const derived = (value: string) =>
             options.cwd !== undefined ? value : path.relative(cwd, value) || "."
         return {
             file:   project?.file,
-            config: config !== undefined && config.length > 0 ?
+            config: config !== undefined ?
                 config.map((pattern) => isRemote(pattern) ? pattern : given(pattern)) :
                 project?.config?.map((pattern) => isRemote(pattern) ? pattern : derived(pattern)),
             basedir: basedir !== undefined ? basedir.map(given) :
@@ -251,7 +251,7 @@ export class SpecBook {
         surfaced as unconditional verbose messages  */
     async load (options: ProjectOptions & { gitignore?: boolean, schema?: boolean }): Promise<SpecBookDocument> {
         const verbose = this.verboseOf("load")
-        if (options.schema === true && basedirsOf(options.basedir) !== undefined)
+        if (options.schema === true && patternsOf(options.basedir) !== undefined)
             throw new Error("the base directory is not applicable to the export of the schema configuration")
         const project = this.project(options, verbose)
         const labels  = new Map<string, string>()
@@ -336,7 +336,7 @@ export class SpecBook {
         return lint({ config, basedir, gitignore: options.gitignore === true, verbose })
     }
 
-    /*  export the specification Markdown files below the base directory
+    /*  export the specification Markdown files below the base directories
         (or, under "schema", the effective schema configuration itself,
         described as a specification of the bundled meta schema
         configuration) as JSON, JSON5, YAML, TOON, HTML, PDF, or
@@ -351,7 +351,7 @@ export class SpecBook {
         const verbose   = this.verboseOf("export")
         const requested = options.formats ?? [ "json" ]
         const omit      = parseOmit(options.omit)
-        if (options.schema === true && basedirsOf(options.basedir) !== undefined)
+        if (options.schema === true && patternsOf(options.basedir) !== undefined)
             throw new Error("the base directory is not applicable to the export of the schema configuration")
         const project   = this.project(options, verbose)
         if (options.schema !== true)
@@ -381,7 +381,7 @@ export class SpecBook {
     private async observe (options: WatchRequest & { formats: ExportFormat[], realtime: boolean },
         verbose: Verbose): Promise<void> {
         const omit    = parseOmit(options.omit)
-        if (options.schema === true && basedirsOf(options.basedir) !== undefined)
+        if (options.schema === true && patternsOf(options.basedir) !== undefined)
             throw new Error("the base directory is not applicable to the export of the schema configuration")
         const project = this.project(options, verbose)
         if (options.schema !== true)

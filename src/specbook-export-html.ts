@@ -200,13 +200,13 @@ export const renderHtml = async (specification: Spec, config?: Schema,
 
     /*  pre-optimize the embedded images (downscaled and re-encoded)
         and judge the raster ones for their treatment on the dark theme  */
-    const optimized = await optimizeImages(specification, print, verbose)
-    const analyzed  = await analyzeImages(specification, verbose)
+    const images  = await optimizeImages(specification, print, verbose)
+    const rasters = await analyzeImages(specification, verbose)
 
     /*  pre-render the embedded Mermaid/D2 diagrams (except the omitted ones)
         and prepare the syntax highlighting of the code listings  */
-    const sources  = await renderEmbeddedDiagrams(specification, verbose, omit)
-    const renderer = await prepareListings(specification, verbose)
+    const embedded = await renderEmbeddedDiagrams(specification, verbose, omit)
+    const listings = await prepareListings(specification, verbose)
 
     /*  collect the per-document rendering state, where the description
         popup keys are filled in below, once the state is established  */
@@ -234,10 +234,10 @@ export const renderHtml = async (specification: Spec, config?: Schema,
         members:     config !== undefined ? collectMembers(config, new Map()) : null,
         schemas,
         diagrams,
-        images:      optimized,
-        rasters:     analyzed,
-        embedded:    sources,
-        listings:    renderer,
+        images,
+        rasters,
+        embedded,
+        listings,
         levels,
         coverages:   schemas !== null ? specCoverage(index, schemas) : null,
         infoKeys:    config !== undefined ? infoKeys : null,

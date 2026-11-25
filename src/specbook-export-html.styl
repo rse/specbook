@@ -302,12 +302,6 @@ div.info-switch
     user-select: none
 div.info-switch:hover
     background-color: var(--theme-color-specbook-accent-soft)
-div.info-switch svg.info-icon
-    width: 1.1rem
-    height: 1.1rem
-    padding: 0.25rem
-    border-radius: 0.3rem
-    margin-right: 0.15rem
 body.info-on div.info-switch svg.info-icon
     color: var(--theme-color-specbook-mark-text)
     background-color: var(--theme-color-specbook-mark-back)
@@ -435,7 +429,8 @@ div.info-popup.spec a.link-compact::before
 div.filter-switch
     tab(10.66rem)
 div.filter-switch,
-div.fold-switch
+div.fold-switch,
+div.search
     display: flex
     align-items: center
 div.filter-switch.open,
@@ -459,16 +454,21 @@ div.fold-switch.open::after
     visibility: visible
     transition-delay: 0s
 div.filter-switch div.filter-toggle,
-div.fold-switch div.fold-toggle
+div.fold-switch div.fold-toggle,
+div.search div.search-toggle
     padding: 0.65rem 0.1rem
     line-height: 0
     border-radius: 0 0.3rem 0.3rem 0
     cursor: pointer
 div.filter-switch div.filter-toggle:hover,
-div.fold-switch div.fold-toggle:hover
+div.fold-switch div.fold-toggle:hover,
+div.search div.search-toggle:hover
     background-color: var(--theme-color-specbook-accent-soft)
 div.filter-switch svg.filter-icon,
-div.fold-switch svg.fold-icon
+div.fold-switch svg.fold-icon,
+div.info-switch svg.info-icon,
+div.realtime-status svg.realtime-icon,
+div.search svg.search-icon
     width: 1.1rem
     height: 1.1rem
     padding: 0.25rem
@@ -735,12 +735,6 @@ div.realtime-status
     line-height: 0
     -webkit-user-select: none
     user-select: none
-div.realtime-status svg.realtime-icon
-    width: 1.1rem
-    height: 1.1rem
-    padding: 0.25rem
-    border-radius: 0.3rem
-    margin-right: 0.15rem
 div.realtime-status.disconnected svg.realtime-icon
     color: var(--theme-color-specbook-mark-text)
     background-color: var(--theme-color-specbook-mark-back)
@@ -974,6 +968,7 @@ article h3::before
     content: counter(sec1, decimal-leading-zero) "." counter(sec2, decimal-leading-zero) "." \
         counter(sec3, decimal-leading-zero) " "
 
+/*  the hyperlinks in the accent color, not underlined  */
 a
     color: var(--theme-color-specbook-accent)
     text-decoration: none
@@ -1214,6 +1209,7 @@ table.objects td.compact > div.compact-head + :is(div.diagram, :has(> div.diagra
 table.objects td.compact > :is(div.diagram, :has(> div.diagram)) + div.compact-head
     margin-top: 0
 
+/*  the property tables of a compact cell, stretched over its padding onto its borders  */
 table.objects td.compact > table.props
     margin-left: -0.6rem
     margin-right: -0.6rem
@@ -1556,21 +1552,6 @@ div.titlepage div.description p + p:not(.rationale)
     rounded box while a search filter is active  */
 div.search
     tab(7.43rem)
-    display: flex
-    align-items: center
-div.search div.search-toggle
-    padding: 0.65rem 0.1rem
-    line-height: 0
-    border-radius: 0 0.3rem 0.3rem 0
-    cursor: pointer
-div.search div.search-toggle:hover
-    background-color: var(--theme-color-specbook-accent-soft)
-div.search svg.search-icon
-    width: 1.1rem
-    height: 1.1rem
-    padding: 0.25rem
-    border-radius: 0.3rem
-    margin-right: 0.15rem
 body.searching div.search svg.search-icon
     color: var(--theme-color-specbook-mark-text)
     background-color: var(--theme-color-specbook-mark-back)
